@@ -6,7 +6,7 @@
 
 <div align="center">
 
-**Openship is an operations and fulfillment platform that enables multi-channel fulfillment**
+**Openship is an operations platform that enables multi-channel fulfillment**
 
 [Website](https://openship.org) · [Documentation](https://docs.openship.org) · [Openship Cloud](https://openship.org/signup)
 
