@@ -10,7 +10,7 @@ const handler = async (req, res) => {
 
   const [foundOrder] = await query.Order.findMany({
     where: {
-      orderId: { equals: orderId },
+      orderId: { equals: parseFloat(orderId) },
     },
   });
 
