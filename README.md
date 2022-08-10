@@ -51,13 +51,17 @@ $ yarn dev
 
 Once the application is running, go to localhost:3000. If there are no users in the database, you'll be redirected to localhost:3000/init where you can create the admin user.
 
+### GraphQL Playground: http://localhost:3000/api/graphql
+
+Use the playground to build and run queries and mutations against the API
+
 ### Keystone CMS: http://localhost:8000
 
-Openship uses [Keystone.js](https://github.com/keystonejs/keystone) under the hood. Running Openship locally will give you access to the Keystone CMS at localhost:8000. It's a great way to see and interact with your database.
+Openship uses [Keystone.js](https://github.com/keystonejs/keystone). Running Openship locally will give you access to the Keystone CMS at localhost:8000. It's a great way to see and interact with your database.
 
 ## Deployment
 
-Under the hood, Openship is using Next.js, so naturally, it can be hosted anywhere that supports Node.js. Openship also requires a `postgres` database.
+Openship uses Next.js, so naturally, it can be hosted anywhere that supports Node.js. Openship also requires a `postgres` database.
 
 ### 1-Click Deployment
 
