@@ -32,9 +32,12 @@ import {
 } from "@mantine/core";
 import { OsOrderList } from "./osOrderList";
 import { useSharedState } from "@lib/useSharedState";
+import { useNotifications } from "@mantine/notifications";
 
 export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
   const theme = useMantineTheme();
+  const notifications = useNotifications();
+
   const [selectedShop, setSelectedShop] = useState();
   const [searchEntry, setSearchEntry] = useState("");
   const [orderPerPage, setOrderPerPage] = useState(defaultPerPage);
@@ -121,8 +124,8 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
       BULK_UPDATE_ORDERS,
       {
         data: ordersWithCart.map(({ id }) => ({
-          id,
-          data: { status: { equals: "INPROCESS" } },
+          where: { id },
+          data: { status: "INPROCESS" },
         })),
       }
     )

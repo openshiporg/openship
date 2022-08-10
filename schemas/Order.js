@@ -62,6 +62,8 @@ export const Order = list({
           `,
         });
 
+        console.log("New order created", order);
+
         if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
           const cartItemsFromLink = await sudoContext.query.CartItem.createMany(
             {
@@ -86,12 +88,13 @@ export const Order = list({
               orderId: item.id,
               context: sudoContext,
             });
+            console.log({ cartItemsFromMatch });
 
             const order = await sudoContext.query.Order.findOne({
               where: { id: item.id },
               query: `id orderError`,
             });
-            console.log('PENDING', order);
+            console.log("PENDING", order);
             if (order?.orderError) {
               const updatedOrder = await sudoContext.query.Order.updateOne({
                 where: { id: item.id },

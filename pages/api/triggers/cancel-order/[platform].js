@@ -13,12 +13,14 @@ const handler = async (req, res) => {
       orderId: { equals: parseFloat(orderId) },
     },
   });
-
-  const updatedOrder = await query.Order.updateOne({
-    where: { id: foundOrder },
-    data: { status: "CANCELLED" },
-  });
-  return res.status(200).send("Order cancelled");
+  if (foundOrder) {
+    const updatedOrder = await query.Order.updateOne({
+      where: { id: foundOrder },
+      data: { status: "CANCELLED" },
+    });
+    return res.status(200).send("Order cancelled");
+  }
+  return res.status(200).send("Order could not be cancelled");
 };
 
 export default handler;
