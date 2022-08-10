@@ -25,41 +25,43 @@ export function ChannelGrid({
   return (
     <Container mt="xl" mb="xs" size="md" px="xs">
       {id && (
-        <Stack
-          spacing="md"
-          align="flex-start"
-          sx={{
-            [theme.fn.largerThan("md")]: { flexDirection: "row" },
-          }}
-        >
-          <Stack sx={{ flex: 1, width: "100%" }}>
-            <Details
-              channelId={id}
-              name={name}
-              type={type}
-              domain={domain}
-              accessToken={accessToken}
-            />
-            <Metafields channelId={id} metafields={metafields} />
-            <Functions
-              channelId={id}
-              searchProductsEndpoint={searchProductsEndpoint}
-              createPurchaseEndpoint={createPurchaseEndpoint}
-            />
-            <Webhooks
-              channelId={id}
-              type={type}
-              domain={domain}
-              accessToken={accessToken}
-              getWebhooksEndpoint={getWebhooksEndpoint}
-              createWebhookEndpoint={createWebhookEndpoint}
-              deleteWebhookEndpoint={deleteWebhookEndpoint}
-            />
-            <Dangerous channelId={id} name={name} />
+        <Stack>
+          <Stack
+            spacing="md"
+            align="flex-start"
+            sx={{
+              [theme.fn.largerThan("md")]: { flexDirection: "row" },
+            }}
+          >
+            <Stack sx={{ flex: 1, width: "100%" }}>
+              <Details
+                channelId={id}
+                name={name}
+                type={type}
+                domain={domain}
+                accessToken={accessToken}
+              />
+              <Metafields channelId={id} metafields={metafields} />
+              <Functions
+                channelId={id}
+                searchProductsEndpoint={searchProductsEndpoint}
+                createPurchaseEndpoint={createPurchaseEndpoint}
+              />
+              <Webhooks
+                channelId={id}
+                type={type}
+                domain={domain}
+                accessToken={accessToken}
+                getWebhooksEndpoint={getWebhooksEndpoint}
+                createWebhookEndpoint={createWebhookEndpoint}
+                deleteWebhookEndpoint={deleteWebhookEndpoint}
+              />
+            </Stack>
+            <Stack sx={{ flex: 1, width: "100%" }}>
+              <Orders channelId={id} />
+            </Stack>
           </Stack>
-          <Stack sx={{ flex: 1, width: "100%" }}>
-            <Orders channelId={id} />
-          </Stack>
+          <Dangerous channelId={id} name={name} />
         </Stack>
       )}
     </Container>

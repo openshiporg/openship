@@ -11,7 +11,7 @@ import {
   Badge,
   Stack,
 } from "@mantine/core";
-import { XIcon } from "@primer/octicons-react";
+import { FlameIcon, XIcon } from "@primer/octicons-react";
 import {
   CHANNELS_QUERY,
   CREATE_CHANNEL_METAFIELD_MUTATION,
@@ -95,7 +95,7 @@ export const Dangerous = ({ channelId, name }) => {
 
   return (
     <>
-      <Text mb={-10} weight={600} color="red">
+      {/* <Text mb={-10} weight={600} color="red">
         Delete channel
       </Text>
 
@@ -137,7 +137,21 @@ export const Dangerous = ({ channelId, name }) => {
       </Badge>
       <Button onClick={openDeleteModal} color="red" size="md" compact>
         Delete channel
-      </Button>
+      </Button> */}
+      <Box>
+        <Button
+          onClick={openDeleteModal}
+          leftIcon={<FlameIcon />}
+          variant="outline"
+          color="red"
+          sx={{
+            // boxShadow: theme.shadows.xs,
+            background: theme.colorScheme === "dark" ? "#000" : "#fff",
+          }}
+        >
+          Delete Channel
+        </Button>
+      </Box>
     </>
   );
 };

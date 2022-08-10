@@ -13,7 +13,7 @@ import {
   Notification,
   Stack,
 } from "@mantine/core";
-import { AlertIcon, XIcon } from "@primer/octicons-react";
+import { AlertIcon, FlameIcon, XIcon } from "@primer/octicons-react";
 import {
   CHANNELS_QUERY,
   CREATE_CHANNEL_METAFIELD_MUTATION,
@@ -99,7 +99,7 @@ export const Dangerous = ({ shopId, name }) => {
 
   return (
     <>
-      <Text mb={-10} weight={600} color="red">
+      {/* <Text mb={-10} weight={600} color="red">
         Delete shop
       </Text>
 
@@ -138,10 +138,24 @@ export const Dangerous = ({ shopId, name }) => {
             </Text>
           </Stack>
         </Group>
-      </Badge>
-      <Button onClick={openDeleteModal} color="red" size="md" compact>
+      </Badge> */}
+      {/* <Button onClick={openDeleteModal} color="red" size="md" compact>
         Delete shop
-      </Button>
+      </Button> */}
+      <Box>
+      <Button
+          onClick={openDeleteModal}
+          leftIcon={<FlameIcon />}
+          variant="outline"
+          color="red"
+          sx={{
+            // boxShadow: theme.shadows.xs,
+            background: theme.colorScheme === "dark" ? "#000" : "#fff",
+          }}
+        >
+          Delete Shop
+        </Button>
+      </Box>
     </>
   );
 };

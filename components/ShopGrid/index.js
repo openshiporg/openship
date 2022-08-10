@@ -27,43 +27,45 @@ export function ShopGrid({
   return (
     <Container mt="xl" mb="xs" size="md" px="xs">
       {id && (
-        <Stack
-          spacing="md"
-          align="flex-start"
-          sx={{
-            [theme.fn.largerThan("md")]: { flexDirection: "row" },
-          }}
-        >
-          <Stack sx={{ flex: 1, width: "100%" }}>
-            <Details
-              shopId={id}
-              name={name}
-              type={type}
-              domain={domain}
-              accessToken={accessToken}
-              channelData={channelData}
-            />
-            <Links shopId={id} links={links} channelData={channelData} />
-            <Functions
-              shopId={id}
-              searchOrdersEndpoint={searchOrdersEndpoint}
-              searchProductsEndpoint={searchProductsEndpoint}
-              updateProductEndpoint={updateProductEndpoint}
-            />
-            <Webhooks
-              shopId={id}
-              type={type}
-              domain={domain}
-              accessToken={accessToken}
-              getWebhooksEndpoint={getWebhooksEndpoint}
-              createWebhookEndpoint={createWebhookEndpoint}
-              deleteWebhookEndpoint={deleteWebhookEndpoint}
-            />
-            <Dangerous shopId={id} name={name} />
+        <Stack>
+          <Stack
+            spacing="md"
+            align="flex-start"
+            sx={{
+              [theme.fn.largerThan("md")]: { flexDirection: "row" },
+            }}
+          >
+            <Stack sx={{ flex: 1, width: "100%" }}>
+              <Details
+                shopId={id}
+                name={name}
+                type={type}
+                domain={domain}
+                accessToken={accessToken}
+                channelData={channelData}
+              />
+              <Links shopId={id} links={links} channelData={channelData} />
+              <Functions
+                shopId={id}
+                searchOrdersEndpoint={searchOrdersEndpoint}
+                searchProductsEndpoint={searchProductsEndpoint}
+                updateProductEndpoint={updateProductEndpoint}
+              />
+              <Webhooks
+                shopId={id}
+                type={type}
+                domain={domain}
+                accessToken={accessToken}
+                getWebhooksEndpoint={getWebhooksEndpoint}
+                createWebhookEndpoint={createWebhookEndpoint}
+                deleteWebhookEndpoint={deleteWebhookEndpoint}
+              />
+            </Stack>
+            <Stack sx={{ flex: 1, width: "100%" }}>
+              <Orders shopId={id} />
+            </Stack>
           </Stack>
-          <Stack sx={{ flex: 1, width: "100%" }}>
-            <Orders shopId={id} />
-          </Stack>
+          <Dangerous shopId={id} name={name} />
         </Stack>
       )}
     </Container>
