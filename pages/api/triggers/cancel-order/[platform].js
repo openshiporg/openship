@@ -18,7 +18,7 @@ const handler = async (req, res) => {
   ;
   if (foundOrder) {
     const updatedOrder = await query.Order.updateOne({
-      where: { id: foundOrder },
+      where: { id: foundOrder.id },
       data: { status: "CANCELLED" },
     });
     return res.status(200).send("Order cancelled");
