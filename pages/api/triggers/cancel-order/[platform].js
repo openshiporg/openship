@@ -13,6 +13,9 @@ const handler = async (req, res) => {
       orderId: { equals: parseFloat(orderId) },
     },
   });
+
+  console.log({ foundOrder })
+  ;
   if (foundOrder) {
     const updatedOrder = await query.Order.updateOne({
       where: { id: foundOrder },
