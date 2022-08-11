@@ -1,6 +1,8 @@
 import { query } from ".keystone/api";
 
 const handler = async (req, res) => {
+  res.status(200).json({ received: true });
+
   const { platform } = req.query;
   if (!transformer[platform]) {
     return res.status(400).json({ error: "Parser for platform not found" });
