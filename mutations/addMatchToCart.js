@@ -200,8 +200,10 @@ export async function getMatches({ orderId, context }) {
             where: { id: orderId },
             data: {
               orderError: "Some lineItems not matched",
+              status: "PENDING",
             },
           });
+
         })
       );
 
