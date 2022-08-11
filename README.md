@@ -53,7 +53,7 @@ Once the application is running, go to localhost:3000. If there are no users in 
 
 ### GraphQL Playground: http://localhost:3000/api/graphql
 
-Use the playground to build and run queries and mutations against the API
+Use the playground to build and run queries/mutations against the API.
 
 ### Keystone CMS: http://localhost:8000
 
