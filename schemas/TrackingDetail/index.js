@@ -75,6 +75,8 @@ export const TrackingDetail = list({
           query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
         });
 
+        console.log({ foundTracking });
+
         if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
           if (functions[foundTracking.cartItems[0].order.shop.type]) {
             const addTracking = await functions[
@@ -94,8 +96,6 @@ export const TrackingDetail = list({
             "Tracking details were created without order connected. This should not be happening."
           );
         }
-
-        console.log({ foundTracking });
 
         // we check if all the cart items in this order have trackingDetails.
         // If so, we mark the order as complete.
