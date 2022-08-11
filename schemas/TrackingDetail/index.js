@@ -95,11 +95,14 @@ export const TrackingDetail = list({
           );
         }
 
+        console.log({ foundTracking });
+
         // we check if all the cart items in this order have trackingDetails.
         // If so, we mark the order as complete.
-        const order = await sudoContext.query.Order.findOne({
-          where: { id: foundTracking.cartItems[0].order.id },
-          query: `
+        if (foundTracking?.cartItems[0]?.order) {
+          const order = await sudoContext.query.Order.findOne({
+            where: { id: foundTracking.cartItems[0].order.id },
+            query: `
             id
             orderName
             cartItems(
@@ -115,15 +118,16 @@ export const TrackingDetail = list({
               productId
             }
           `,
-        });
-
-        if (order.cartItems.length === 0) {
-          const updatedOrder = await sudoContext.query.Order.updateOne({
-            where: { id: order.id },
-            data: {
-              status: "COMPLETE",
-            },
           });
+
+          if (order?.cartItems.length === 0) {
+            const updatedOrder = await sudoContext.query.Order.updateOne({
+              where: { id: order.id },
+              data: {
+                status: "COMPLETE",
+              },
+            });
+          }
         }
       }
     },
