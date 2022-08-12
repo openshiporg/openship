@@ -5,7 +5,7 @@ const handler = async (req, res) => {
 
   const { platform } = req.query;
   if (!transformer[platform]) {
-    return res.status(400).json({ error: "Parser for platform not found" });
+    return { error: "Parser for platform not found" };
   }
 
   const orderId = await transformer[platform](req, res);
@@ -16,16 +16,16 @@ const handler = async (req, res) => {
     },
   });
 
-  console.log({ foundOrder })
-  ;
+  console.log({ foundOrder });
   if (foundOrder) {
     const updatedOrder = await query.Order.updateOne({
       where: { id: foundOrder.id },
       data: { status: "CANCELLED" },
     });
-    return res.status(200).send("Order cancelled");
+    return { success: "Order cancelled" };
   }
-  return res.status(200).send("Order could not be cancelled");
+
+  return { error: "Order could not be cancelled" };
 };
 
 export default handler;

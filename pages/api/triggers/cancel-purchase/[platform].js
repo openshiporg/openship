@@ -5,7 +5,7 @@ const handler = async (req, res) => {
 
   const { platform } = req.query;
   if (!transformer[platform]) {
-    return res.status(400).json({ error: "Parser for platform not found" });
+    return { error: "Parser for platform not found" };
   }
 
   const purchaseId = await transformer[platform](req, res);
@@ -31,7 +31,7 @@ const handler = async (req, res) => {
       status: "PENDING",
     },
   });
-  return res.status(200).send("Order cancelled");
+  return { success: "Order cancelled" };
 };
 
 export default handler;
