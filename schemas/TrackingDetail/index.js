@@ -70,19 +70,25 @@ export const TrackingDetail = list({
               },
             });
         }
-        const [{ order }] = await sudoContext.query.TrackingDetail.findOne({
-          where: { id: item.id },
-          query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
-        });
+        const [trackingDetail] = await sudoContext.query.TrackingDetail.findOne(
+          {
+            where: { id: item.id },
+            query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
+          }
+        );
 
-        if (order?.shop?.type !== "custom") {
+        console.log({ trackingDetail });
+
+        if (trackingDetail?.order?.shop?.type !== "custom") {
           console.log("Adding tracking");
-          if (functions[order.shop.type]) {
-            const addTracking = await functions[order.shop.type]({
-              order,
-              trackingCompany: item.trackingCompany,
-              trackingNumber: item.trackingNumber,
-            });
+          if (functions[trackingDetail.order.shop.type]) {
+            const addTracking = await functions[trackingDetail.order.shop.type](
+              {
+                order: trackingDetail.order,
+                trackingCompany: item.trackingCompany,
+                trackingNumber: item.trackingNumber,
+              }
+            );
           } else {
             console.log(
               "Add shop tracking function for shop type does not exist."
@@ -96,10 +102,10 @@ export const TrackingDetail = list({
 
         // we check if all the cart items in this order have trackingDetails.
         // If so, we mark the order as complete.
-
-        const foundOrder = await sudoContext.query.Order.findOne({
-          where: { id: order.id },
-          query: `
+        if (trackingDetail?.order?.id) {
+          const foundOrder = await sudoContext.query.Order.findOne({
+            where: { id: trackingDetail.order.id },
+            query: `
             id
             orderName
             cartItems(
@@ -115,15 +121,16 @@ export const TrackingDetail = list({
               productId
             }
           `,
-        });
-
-        if (foundOrder?.cartItems.length === 0) {
-          const updatedOrder = await sudoContext.query.Order.updateOne({
-            where: { id: foundOrder.id },
-            data: {
-              status: "COMPLETE",
-            },
           });
+
+          if (foundOrder?.cartItems.length === 0) {
+            const updatedOrder = await sudoContext.query.Order.updateOne({
+              where: { id: foundOrder.id },
+              data: {
+                status: "COMPLETE",
+              },
+            });
+          }
         }
       }
     },
