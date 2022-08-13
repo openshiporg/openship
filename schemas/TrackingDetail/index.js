@@ -70,25 +70,22 @@ export const TrackingDetail = list({
               },
             });
         }
-        const [trackingDetail] = await sudoContext.query.TrackingDetail.findOne(
-          {
-            where: { id: item.id },
-            query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
-          }
-        );
+        const foundTracking = await sudoContext.query.TrackingDetail.findOne({
+          where: { id: item.id },
+          query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
+        });
 
-        console.log({ trackingDetail });
+        console.log({ foundTracking });
 
-        if (trackingDetail?.order?.shop?.type !== "custom") {
-          console.log("Adding tracking");
-          if (functions[trackingDetail.order.shop.type]) {
-            const addTracking = await functions[trackingDetail.order.shop.type](
-              {
-                order: trackingDetail.order,
-                trackingCompany: item.trackingCompany,
-                trackingNumber: item.trackingNumber,
-              }
-            );
+        if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
+          if (functions[foundTracking.cartItems[0].order.shop.type]) {
+            const addTracking = await functions[
+              foundTracking.cartItems[0].order.shop.type
+            ]({
+              order: foundTracking.cartItems[0].order,
+              trackingCompany: item.trackingCompany,
+              trackingNumber: item.trackingNumber,
+            });
           } else {
             console.log(
               "Add shop tracking function for shop type does not exist."
@@ -102,9 +99,9 @@ export const TrackingDetail = list({
 
         // we check if all the cart items in this order have trackingDetails.
         // If so, we mark the order as complete.
-        if (trackingDetail?.order?.id) {
+        if (foundTracking?.cartItems[0]?.order?.id) {
           const foundOrder = await sudoContext.query.Order.findOne({
-            where: { id: trackingDetail.order.id },
+            where: { id: foundTracking.cartItems[0].order.id },
             query: `
             id
             orderName
