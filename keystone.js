@@ -12,6 +12,7 @@ import { CartItem } from "./schemas/CartItem";
 import { Shop } from "./schemas/Shop";
 import { Channel } from "./schemas/Channel";
 import { ChannelMetafield } from "./schemas/ChannelMetafield";
+import { ShopMetafield } from "./schemas/ShopMetafield";
 import { ChannelItem } from "./schemas/ChannelItem";
 import { ShopItem } from "./schemas/ShopItem";
 import { Match } from "./schemas/Match";
@@ -192,10 +193,11 @@ export default withAuth(
       TrackingDetail,
       LineItem,
       CartItem,
-      Shop,
       Channel,
       ChannelMetafield,
       ChannelItem,
+      Shop,
+      ShopMetafield,
       ShopItem,
       Match,
       Link,

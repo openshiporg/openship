@@ -15,19 +15,19 @@ import { PencilIcon, TrashIcon, XIcon } from "@primer/octicons-react";
 import request from "graphql-request";
 import { useNotifications } from "@mantine/notifications";
 import {
-  CHANNELS_QUERY,
-  DELETE_CHANNEL_METAFIELD_MUTATION,
-  UPDATE_CHANNEL_METAFIELD_MUTATION,
-} from "@graphql/channels";
+  SHOPS_QUERY,
+  DELETE_SHOP_METAFIELD_MUTATION,
+  UPDATE_SHOP_METAFIELD_MUTATION,
+} from "@graphql/shops";
 
-export const EditWebhook = ({ metafield, channelId }) => {
+export const EditMetafield = ({ metafield, shopId }) => {
   const theme = useMantineTheme();
   const notifications = useNotifications();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(metafield.value);
   const [key, setKey] = useState(metafield.key);
-  const { mutate: mutateChannels } = useSWR(CHANNELS_QUERY, gqlFetcher);
+  const { mutate: mutateShops } = useSWR(SHOPS_QUERY, gqlFetcher);
 
   return editMode ? (
     <Group
@@ -116,38 +116,36 @@ export const EditWebhook = ({ metafield, channelId }) => {
                   ...(value !== metafield.value && { value }),
                   ...(key !== metafield.key && { key }),
                 };
-                console.log({ data });
                 await request(
                   "/api/graphql",
-                  UPDATE_CHANNEL_METAFIELD_MUTATION,
+                  UPDATE_SHOP_METAFIELD_MUTATION,
                   {
                     id: metafield.id,
                     data,
                   }
                 )
-                  .then(async ({ updateChannelMetafield: { channel } }) => {
+                  .then(async ({ updateShopMetafield: { shop } }) => {
                     setLoading(false);
-                    await mutateChannels(({ channels }) => {
+                    await mutateShops(({ shops }) => {
                       const newData = [];
-                      for (const item of channels) {
-                        if (item.id === channelId) {
-                          newData.push(channel);
+                      for (const item of shops) {
+                        if (item.id === shopId) {
+                          newData.push(shop);
                         } else {
                           newData.push(item);
                         }
                       }
                       return {
-                        channels: newData,
+                        shops: newData,
                       };
                     }, false);
                     notifications.showNotification({
-                      title: `Channel has been updated.`,
+                      title: `Shop has been updated.`,
                       // message: JSON.stringify(data),
                     });
                     setEditMode(false);
                   })
                   .catch((error) => {
-                    console.log(error);
                     setLoading(false);
                     notifications.showNotification({
                       title: error.response.errors[0].extensions.code,
@@ -228,31 +226,31 @@ export const EditWebhook = ({ metafield, channelId }) => {
                   setLoading(true);
                   await request(
                     "/api/graphql",
-                    DELETE_CHANNEL_METAFIELD_MUTATION,
+                    DELETE_SHOP_METAFIELD_MUTATION,
                     {
                       where: { id: metafield.id },
                     }
                   )
-                    .then(async ({ deleteChannelMetafield }) => {
+                    .then(async ({ deleteShopMetafield }) => {
                       setLoading(false);
 
-                      await mutateChannels(({ channels }) => {
+                      await mutateShops(({ shops }) => {
                         const newData = [];
-                        for (const item of channels) {
-                          if (item.id === channelId) {
-                            const filteredChannel = {
+                        for (const item of shops) {
+                          if (item.id === shopId) {
+                            const filteredShop = {
                               ...item,
                               metafields: item.metafields.filter(
-                                (c) => c.id !== deleteChannelMetafield.id
+                                (c) => c.id !== deleteShopMetafield.id
                               ),
                             };
-                            newData.push(filteredChannel);
+                            newData.push(filteredShop);
                           } else {
                             newData.push(item);
                           }
                         }
                         return {
-                          channels: newData,
+                          shops: newData,
                         };
                       }, false);
                       notifications.showNotification({
@@ -261,7 +259,6 @@ export const EditWebhook = ({ metafield, channelId }) => {
                       });
                     })
                     .catch((error) => {
-                      console.log(error);
                       setLoading(false);
                       notifications.showNotification({
                         title: error.response.errors[0].extensions.code,

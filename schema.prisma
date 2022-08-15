@@ -28,6 +28,7 @@ model User {
   matches                 Match[]            @relation("Match_user")
   links                   Link[]             @relation("Link_user")
   channelMetafields       ChannelMetafield[] @relation("ChannelMetafield_user")
+  shopMetafields          ShopMetafield[]    @relation("ShopMetafield_user")
   trackingDetails         TrackingDetail[]   @relation("TrackingDetail_user")
   role                    Role?              @relation("User_role", fields: [roleId], references: [id])
   roleId                  String?            @map("role")
@@ -173,29 +174,6 @@ model CartItem {
   @@index([channelId])
 }
 
-model Shop {
-  id                     String     @id @default(cuid())
-  name                   String     @default("")
-  type                   String     @default("")
-  domain                 String     @unique @default("")
-  accessToken            String     @default("")
-  searchProductsEndpoint String     @default("")
-  searchOrdersEndpoint   String     @default("")
-  updateProductEndpoint  String     @default("")
-  getWebhooksEndpoint    String     @default("")
-  createWebhookEndpoint  String     @default("")
-  deleteWebhookEndpoint  String     @default("")
-  orders                 Order[]    @relation("Order_shop")
-  shopItems              ShopItem[] @relation("ShopItem_shop")
-  links                  Link[]     @relation("Link_shop")
-  user                   User?      @relation("Shop_user", fields: [userId], references: [id])
-  userId                 String?    @map("user")
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @default(now()) @updatedAt
-
-  @@index([userId])
-}
-
 model Channel {
   id                     String             @id @default(cuid())
   name                   String             @default("")
@@ -250,6 +228,45 @@ model ChannelItem {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@index([channelId])
+  @@index([userId])
+}
+
+model Shop {
+  id                     String          @id @default(cuid())
+  name                   String          @default("")
+  type                   String          @default("")
+  domain                 String          @unique @default("")
+  accessToken            String          @default("")
+  searchProductsEndpoint String          @default("")
+  searchOrdersEndpoint   String          @default("")
+  updateProductEndpoint  String          @default("")
+  getWebhooksEndpoint    String          @default("")
+  createWebhookEndpoint  String          @default("")
+  deleteWebhookEndpoint  String          @default("")
+  orders                 Order[]         @relation("Order_shop")
+  shopItems              ShopItem[]      @relation("ShopItem_shop")
+  links                  Link[]          @relation("Link_shop")
+  metafields             ShopMetafield[] @relation("ShopMetafield_shop")
+  user                   User?           @relation("Shop_user", fields: [userId], references: [id])
+  userId                 String?         @map("user")
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @default(now()) @updatedAt
+
+  @@index([userId])
+}
+
+model ShopMetafield {
+  id        String   @id @default(cuid())
+  key       String   @default("")
+  value     String   @default("")
+  shop      Shop?    @relation("ShopMetafield_shop", fields: [shopId], references: [id])
+  shopId    String?  @map("shop")
+  user      User?    @relation("ShopMetafield_user", fields: [userId], references: [id])
+  userId    String?  @map("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([shopId])
   @@index([userId])
 }
 

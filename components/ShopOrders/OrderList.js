@@ -23,6 +23,7 @@ export function OrderList({
   searchEntry,
   shopName,
   searchOrdersEndpoint,
+  metafields
 }) {
   const theme = useMantineTheme();
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -31,10 +32,16 @@ export function OrderList({
     "createOrderInitialState"
   );
 
+  const metafieldsObject = Object.assign(
+    {},
+    ...metafields.map(({ key, value }) => ({ [key]: value }))
+  );
+
   const params = new URLSearchParams({
     accessToken,
     domain,
     searchEntry,
+    metafields: metafieldsObject
   }).toString();
 
   const url = `${searchOrdersEndpoint}?${params}`;

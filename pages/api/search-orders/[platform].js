@@ -1,4 +1,8 @@
 import { gql, GraphQLClient } from "graphql-request";
+import walmartMarketplaceApi, {
+  OrdersApi,
+  defaultParams,
+} from "@whitebox-co/walmart-marketplace-api";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -191,11 +195,21 @@ const transformer = {
             ),
           };
           arr.push(newData);
-        } catch {
-        }
+        } catch {}
       }
     );
 
     return { orders: arr };
+  },
+  walmart: async (res, req) => {
+    // const ordersApi = await walmartMarketplaceApi.getConfiguredApi(OrdersApi, {
+    //   clientId: req.query.metafields.clientId,
+    //   clientSecret: req.query.metafields.clientSecret,
+    //   consumerChannelType,
+    // });
+
+    // const orders = ordersApi.getAllOrders();
+    console.log(req.query);
+    return { orders: [] };
   },
 };

@@ -122,6 +122,7 @@ export const ShopOrders = ({ shops }) => {
                 searchEntry={searchEntry}
                 shopName={filteredShop.name}
                 searchOrdersEndpoint={filteredShop.searchOrdersEndpoint}
+                metafields={filteredShop.metafields}
               />
             )
           : searchEntry && (
@@ -157,6 +158,7 @@ export const ShopOrders = ({ shops }) => {
                       searchEntry={searchEntry}
                       shopName={shop.name}
                       searchOrdersEndpoint={shop.searchOrdersEndpoint}
+                      metafields={shop.metafields}
                     />
                   </>
                 ))}

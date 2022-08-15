@@ -16,7 +16,6 @@ import {
   TextInput,
   Stack,
 } from "@mantine/core";
-import { EditMetafield } from "./EditWebhook";
 import { GearIcon, PlusIcon, TrashIcon, XIcon } from "@primer/octicons-react";
 import {
   CHANNELS_QUERY,

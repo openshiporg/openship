@@ -54,6 +54,7 @@ export const User = list({
       ref: "ChannelMetafield.user",
       many: true,
     }),
+    shopMetafields: relationship({ ref: "ShopMetafield.user", many: true }),
     trackingDetails: relationship({ ref: "TrackingDetail.user", many: true }),
     role: relationship({
       ref: "Role.assignedTo",
