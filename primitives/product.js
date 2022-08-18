@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Group,
@@ -6,8 +6,9 @@ import {
   Text,
   useMantineTheme,
   Button,
-} from '@mantine/core';
-import { QuantityCounter } from './quantityCounter';
+  Stack
+} from "@mantine/core";
+import { QuantityCounter } from "./quantityCounter";
 
 export function Product({
   channelId,
@@ -36,25 +37,25 @@ export function Product({
     <Box
       sx={{
         background:
-          theme.colorScheme === 'light'
+          theme.colorScheme === "light"
             ? theme.white
             : theme.fn.darken(theme.colors.blue[9], 0.8),
         borderTop: `1px solid ${
-          theme.colorScheme === 'light'
+          theme.colorScheme === "light"
             ? theme.colors.blueGray[2]
             : theme.colors.dark[8]
         }`,
       }}
     >
-      <Group align={'stretch'} spacing={0}>
+      <Group align={"stretch"} spacing={0}>
         <Group
-          align={'center'}
+          align={"center"}
           sx={{
             flex: 1,
             padding: 10,
             // background: '#fff',
             borderRight: `1px solid ${
-              theme.colorScheme === 'light'
+              theme.colorScheme === "light"
                 ? theme.colors.blueGray[2]
                 : theme.colors.dark[8]
             }`,
@@ -66,17 +67,17 @@ export function Product({
           sx={{
             flex: 9,
             // wordBreak: 'break-all',
-            marginTop: 'auto',
-            marginBottom: 'auto',
+            marginTop: "auto",
+            marginBottom: "auto",
             padding: 5,
           }}
         >
-          <Box sx={{ display: 'flex' }}>
-            <Box>
+          <Box sx={{ display: "flex" }}>
+            <Stack spacing={2}>
               <Text
                 size="sm"
                 color={
-                  theme.colorScheme === 'light'
+                  theme.colorScheme === "light"
                     ? theme.colors.blueGray[8]
                     : theme.colors.blueGray[0]
                 }
@@ -86,20 +87,24 @@ export function Product({
                 {title}
               </Text>
               <Text
+                component="a"
+                href={productLink}
+                target="_blank"
+                rel="noopener noreferrer"
                 size="xs"
                 color={
-                  theme.colorScheme === 'light'
+                  theme.colorScheme === "light"
                     ? theme.colors.blueGray[6]
                     : theme.colors.blueGray[3]
                 }
               >
-                {productId} {productId && variantId && '|'} {variantId}
+                {productId} {productId && variantId && "|"} {variantId}
               </Text>
               <Group align="center">
                 <Text
                   size="md"
                   color={
-                    theme.colorScheme === 'light'
+                    theme.colorScheme === "light"
                       ? theme.colors.green[9]
                       : theme.colors.green[6]
                   }
@@ -139,7 +144,7 @@ export function Product({
                         productId,
                         variantId,
                         channelId,
-                        channelName
+                        channelName,
                       });
                       setLoading(false);
                     }}
@@ -165,9 +170,9 @@ export function Product({
                     },
                   })}
               </Box>
-            </Box>
+            </Stack>
             <Group
-              sx={{ marginTop: 'auto', marginLeft: 'auto', flexWrap: 'nowrap' }}
+              sx={{ marginTop: "auto", marginLeft: "auto", flexWrap: "nowrap" }}
               spacing={5}
             >
               {/* <Box mb={2}>{error}</Box> */}

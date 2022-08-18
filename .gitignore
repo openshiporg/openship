@@ -38,13 +38,13 @@ yarn-error.log*
 .keystone
 
 # next-pwa
-**/public/precache.*.*.js
-**/public/sw.js
-**/public/workbox-*.js
-**/public/worker-*.js
-**/public/fallback-*.js
-**/public/precache.*.*.js.map
+/public/precache.*.*.js
+/public/sw.js
+/public/workbox-*.js
+/public/worker-*.js
+/public/fallback-*.js
+/public/precache.*.*.js.map
 /public/sw.js.map
-**/public/workbox-*.js.map
-**/public/worker-*.js.map
-**/public/fallback-*.js
+/public/workbox-*.js.map
+/public/worker-*.js.map
+/public/fallback-*.js

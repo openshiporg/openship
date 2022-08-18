@@ -53,6 +53,7 @@ const transformer = {
                 title
                 product {
                   id
+                  handle
                   title
                   images(first: 1) {
                     edges {
@@ -81,9 +82,10 @@ const transformer = {
           variantId: id.split("/").pop(),
           price,
           availableForSale,
-          productLink: `https://${req.query.domain}/admin/products/${product.id
-            .split("/")
-            .pop()}`,
+          // productLink: `https://${req.query.domain}/admin/products/${product.id
+          //   .split("/")
+          //   .pop()}`,
+          productLink: `https://${req.query.domain}/products/${product.handle}`,
         };
 
         arr.push(newData);

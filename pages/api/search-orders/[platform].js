@@ -201,15 +201,21 @@ const transformer = {
 
     return { orders: arr };
   },
-  walmart: async (res, req) => {
-    // const ordersApi = await walmartMarketplaceApi.getConfiguredApi(OrdersApi, {
-    //   clientId: req.query.metafields.clientId,
-    //   clientSecret: req.query.metafields.clientSecret,
-    //   consumerChannelType,
-    // });
+  walmart: async (req, res) => {
+    try {
+      const ordersApi = await walmartMarketplaceApi.getConfiguredApi(
+        OrdersApi,
+        {
+          clientId: req.query.clientId,
+          clientSecret: req.query.clientSecret,
+        }
+      );
 
-    // const orders = ordersApi.getAllOrders();
-    console.log(req.query);
+      const orders = await ordersApi.getAllOrders();
+      console.log(orders.data.list.elements.order[0].orderLines.orderLine);
+    } catch (err) {
+      console.log({ err });
+    }
     return { orders: [] };
   },
 };
