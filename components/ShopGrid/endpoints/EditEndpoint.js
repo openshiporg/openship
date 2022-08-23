@@ -16,7 +16,7 @@ import { SHOPS_QUERY, UPDATE_SHOP_MUTATION } from "@graphql/shops";
 import request from "graphql-request";
 import { useNotifications } from "@mantine/notifications";
 
-export const EditFunction = ({ detail, shopId }) => {
+export const EditEndpoint = ({ detail, shopId }) => {
   const notifications = useNotifications();
   const theme = useMantineTheme();
   const [opened, setOpen] = useState(false);

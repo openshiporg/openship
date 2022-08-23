@@ -48,9 +48,10 @@ export const globalStyles = {
     overflow: "hidden",
     position: "relative",
   },
-  ".nprogress-custom-parent #nprogress .spinner,\n.nprogress-custom-parent #nprogress .bar": {
-    position: "absolute",
-  },
+  ".nprogress-custom-parent #nprogress .spinner,\n.nprogress-custom-parent #nprogress .bar":
+    {
+      position: "absolute",
+    },
   "@-webkit-keyframes nprogress-spinner": {
     "0%": { WebkitTransform: "rotate(0deg)" },
     "100%": { WebkitTransform: "rotate(360deg)" },

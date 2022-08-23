@@ -92,20 +92,93 @@ export const EditMetafield = ({ metafield, channelId }) => {
           }}
           autoFocus
         />
-        <Group spacing={0} noWrap>
+        <Group spacing={0} noWrap ml="md">
+          <Button
+            size="xs"
+            ml="auto"
+            color="gray"
+            variant="subtle"
+            onClick={() => {
+              setEditMode(false);
+              setValue(metafield.value);
+              setKey(metafield.key);
+            }}
+            compact
+          >
+            Cancel
+          </Button>
+          <Button
+            size="xs"
+            ml="auto"
+            color="red"
+            variant="subtle"
+            onClick={async (event) => {
+              event.preventDefault();
+              if (value && key) {
+                setLoading(true);
+                await request(
+                  "/api/graphql",
+                  DELETE_CHANNEL_METAFIELD_MUTATION,
+                  {
+                    where: { id: metafield.id },
+                  }
+                )
+                  .then(async ({ deleteChannelMetafield }) => {
+                    setLoading(false);
+
+                    await mutateChannels(({ channels }) => {
+                      const newData = [];
+                      for (const item of channels) {
+                        if (item.id === channelId) {
+                          const filteredChannel = {
+                            ...item,
+                            metafields: item.metafields.filter(
+                              (c) => c.id !== deleteChannelMetafield.id
+                            ),
+                          };
+                          newData.push(filteredChannel);
+                        } else {
+                          newData.push(item);
+                        }
+                      }
+                      return {
+                        channels: newData,
+                      };
+                    }, false);
+                    notifications.showNotification({
+                      title: `Custom detail is deleted.`,
+                      // message: JSON.stringify(data),
+                    });
+                  })
+                  .catch((error) => {
+                    setLoading(false);
+                    notifications.showNotification({
+                      title: error.response.errors[0].extensions.code,
+                      message: error.response.errors[0].message,
+                      color: "red",
+                    });
+                  });
+              }
+            }}
+            compact
+          >
+            Delete
+          </Button>
           <Button
             color="cyan"
-            variant="light"
+            variant="subtle"
             size="xs"
             sx={{
               fontWeight: 700,
               letterSpacing: -0.4,
-              borderTopLeftRadius: theme.radius.sm,
-              borderBottomLeftRadius: theme.radius.sm,
             }}
             type="submit"
+            styles={{
+              subtle: {
+                ":disabled": { backgroundColor: "transparent !important" },
+              },
+            }}
             // loading={true}
-            radius={0}
             compact
             disabled={value === metafield.value && key === metafield.key}
             onClick={async (event) => {
@@ -156,25 +229,8 @@ export const EditMetafield = ({ metafield, channelId }) => {
               }
             }}
           >
-            {loading ? <Loader size={10} color="cyan" /> : "Update"}
+            {loading ? <Loader size={10} color="cyan" /> : "Save"}
           </Button>
-          <ActionIcon
-            radius={0}
-            sx={{
-              borderTopRightRadius: theme.radius.sm,
-              borderBottomRightRadius: theme.radius.sm,
-            }}
-            color="red"
-            size="sm"
-            variant="light"
-            onClick={() => {
-              setEditMode(false);
-              setValue(metafield.value);
-              setKey(metafield.key);
-            }}
-          >
-            <XIcon size={14} />
-          </ActionIcon>
         </Group>
       </Group>
     </Group>
@@ -193,6 +249,7 @@ export const EditMetafield = ({ metafield, channelId }) => {
           borderTop: "none",
         },
       }}
+      noWrap
     >
       <Box sx={{ flexBasis: 150 }}>
         <Text
@@ -203,89 +260,45 @@ export const EditMetafield = ({ metafield, channelId }) => {
           {metafield.key}
         </Text>
       </Box>
-      <Box sx={{ flex: 1 }}>
-        <Group spacing={8} ml={2}>
-          <Text size="sm" weight={400}>
+      <Box
+        sx={{
+          overflow: "hidden",
+          flex: 1,
+          maxWidth: "100%",
+        }}
+      >
+        <Group spacing={8} ml={2} noWrap>
+          <Text
+            size="sm"
+            weight={400}
+            sx={{
+              flex: 1,
+              maxWidth: "100%",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {metafield.value}
           </Text>
           <Group spacing={0} noWrap ml="auto">
             {loading && <Loader size={14} color="cyan" mr={5} />}
-            <ActionIcon
-              variant="light"
-              color="red"
-              size="sm"
-              ml="auto"
-              radius={0}
-              sx={{
-                borderTopLeftRadius: theme.radius.sm,
-                borderBottomLeftRadius: theme.radius.sm,
-              }}
-              onClick={async (event) => {
-                event.preventDefault();
-                if (value && key) {
-                  setLoading(true);
-                  await request(
-                    "/api/graphql",
-                    DELETE_CHANNEL_METAFIELD_MUTATION,
-                    {
-                      where: { id: metafield.id },
-                    }
-                  )
-                    .then(async ({ deleteChannelMetafield }) => {
-                      setLoading(false);
 
-                      await mutateChannels(({ channels }) => {
-                        const newData = [];
-                        for (const item of channels) {
-                          if (item.id === channelId) {
-                            const filteredChannel = {
-                              ...item,
-                              metafields: item.metafields.filter(
-                                (c) => c.id !== deleteChannelMetafield.id
-                              ),
-                            };
-                            newData.push(filteredChannel);
-                          } else {
-                            newData.push(item);
-                          }
-                        }
-                        return {
-                          channels: newData,
-                        };
-                      }, false);
-                      notifications.showNotification({
-                        title: `Custom detail is deleted.`,
-                        // message: JSON.stringify(data),
-                      });
-                    })
-                    .catch((error) => {
-                      setLoading(false);
-                      notifications.showNotification({
-                        title: error.response.errors[0].extensions.code,
-                        message: error.response.errors[0].message,
-                        color: "red",
-                      });
-                    });
-                }
-              }}
-            >
-              <TrashIcon size={12} />
-            </ActionIcon>
-
-            <ActionIcon
-              variant="light"
-              color="blue"
-              size="sm"
+            <Button
+              color="indigo"
+              variant="subtle"
               onClick={() => setEditMode(true)}
-              ml="auto"
-              radius={0}
+              size="xs"
               sx={{
-                borderTopRightRadius: theme.radius.sm,
-                borderBottomRightRadius: theme.radius.sm,
+                fontWeight: 700,
+                letterSpacing: -0.4,
               }}
+              radius="sm"
+              compact
+              ml="md"
             >
-              <PencilIcon size={12} />
-            </ActionIcon>
+              Update
+            </Button>
           </Group>
         </Group>
       </Box>

@@ -67,6 +67,7 @@ export const EditMetafield = ({ metafield, shopId }) => {
               minHeight: 0,
               height: 22,
               fontWeight: 600,
+              lineHeight: 1,
               color:
                 theme.colors.blueGray[theme.colorScheme === "dark" ? 4 : 5],
             },
@@ -88,24 +89,97 @@ export const EditMetafield = ({ metafield, shopId }) => {
             input: {
               minHeight: 0,
               height: 22,
+              lineHeight: 1,
             },
           }}
           autoFocus
         />
-        <Group spacing={0} noWrap>
+        <Group spacing={0} noWrap ml="md">
+          <Button
+            size="xs"
+            ml="auto"
+            color="gray"
+            variant="subtle"
+            onClick={() => {
+              setEditMode(false);
+              setValue(metafield.value);
+              setKey(metafield.key);
+            }}
+            compact
+          >
+            Cancel
+          </Button>
+          <Button
+            size="xs"
+            ml="auto"
+            color="red"
+            variant="subtle"
+            onClick={async (event) => {
+              event.preventDefault();
+              if (value && key) {
+                setLoading(true);
+                await request("/api/graphql", DELETE_SHOP_METAFIELD_MUTATION, {
+                  where: { id: metafield.id },
+                })
+                  .then(async ({ deleteShopMetafield }) => {
+                    setLoading(false);
+
+                    await mutateShops(({ shops }) => {
+                      const newData = [];
+                      for (const item of shops) {
+                        if (item.id === shopId) {
+                          const filteredShop = {
+                            ...item,
+                            metafields: item.metafields.filter(
+                              (c) => c.id !== deleteShopMetafield.id
+                            ),
+                          };
+                          newData.push(filteredShop);
+                        } else {
+                          newData.push(item);
+                        }
+                      }
+                      return {
+                        shops: newData,
+                      };
+                    }, false);
+                    notifications.showNotification({
+                      title: `Custom detail is deleted.`,
+                      // message: JSON.stringify(data),
+                    });
+                  })
+                  .catch((error) => {
+                    setLoading(false);
+                    notifications.showNotification({
+                      title: error.response.errors[0].extensions.code,
+                      message: error.response.errors[0].message,
+                      color: "red",
+                    });
+                  });
+              }
+            }}
+            compact
+          >
+            Delete
+          </Button>
           <Button
             color="cyan"
-            variant="light"
+            variant="subtle"
             size="xs"
             sx={{
               fontWeight: 700,
               letterSpacing: -0.4,
-              borderTopLeftRadius: theme.radius.sm,
-              borderBottomLeftRadius: theme.radius.sm,
+              // borderTopLeftRadius: theme.radius.sm,
+              // borderBottomLeftRadius: theme.radius.sm,
             }}
             type="submit"
             // loading={true}
-            radius={0}
+            // radius={0}
+            styles={{
+              subtle: {
+                ":disabled": { backgroundColor: "transparent !important" },
+              },
+            }}
             compact
             disabled={value === metafield.value && key === metafield.key}
             onClick={async (event) => {
@@ -116,14 +190,10 @@ export const EditMetafield = ({ metafield, shopId }) => {
                   ...(value !== metafield.value && { value }),
                   ...(key !== metafield.key && { key }),
                 };
-                await request(
-                  "/api/graphql",
-                  UPDATE_SHOP_METAFIELD_MUTATION,
-                  {
-                    id: metafield.id,
-                    data,
-                  }
-                )
+                await request("/api/graphql", UPDATE_SHOP_METAFIELD_MUTATION, {
+                  id: metafield.id,
+                  data,
+                })
                   .then(async ({ updateShopMetafield: { shop } }) => {
                     setLoading(false);
                     await mutateShops(({ shops }) => {
@@ -156,25 +226,8 @@ export const EditMetafield = ({ metafield, shopId }) => {
               }
             }}
           >
-            {loading ? <Loader size={10} color="cyan" /> : "Update"}
+            {loading ? <Loader size={10} color="cyan" /> : "Save"}
           </Button>
-          <ActionIcon
-            radius={0}
-            sx={{
-              borderTopRightRadius: theme.radius.sm,
-              borderBottomRightRadius: theme.radius.sm,
-            }}
-            color="red"
-            size="sm"
-            variant="light"
-            onClick={() => {
-              setEditMode(false);
-              setValue(metafield.value);
-              setKey(metafield.key);
-            }}
-          >
-            <XIcon size={14} />
-          </ActionIcon>
         </Group>
       </Group>
     </Group>
@@ -183,6 +236,7 @@ export const EditMetafield = ({ metafield, shopId }) => {
       spacing={0}
       px="sm"
       py="xs"
+      noWrap
       sx={{
         borderTop: `1px solid ${
           theme.colorScheme === "light"
@@ -203,76 +257,34 @@ export const EditMetafield = ({ metafield, shopId }) => {
           {metafield.key}
         </Text>
       </Box>
-      <Box sx={{ flex: 1 }}>
-        <Group spacing={8} ml={2}>
-          <Text size="sm" weight={400}>
+      <Box
+        sx={{
+          overflow: "hidden",
+          flex: 1,
+          maxWidth: "100%",
+        }}
+      >
+        <Group spacing={8} ml={2} noWrap>
+          {/* <Text size="sm" weight={400}>
+            {metafield.value}
+          </Text> */}
+          <Text
+            size="sm"
+            weight={400}
+            sx={{
+              flex: 1,
+              maxWidth: "100%",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {metafield.value}
           </Text>
           <Group spacing={0} noWrap ml="auto">
             {loading && <Loader size={14} color="cyan" mr={5} />}
-            <ActionIcon
-              variant="light"
-              color="red"
-              size="sm"
-              ml="auto"
-              radius={0}
-              sx={{
-                borderTopLeftRadius: theme.radius.sm,
-                borderBottomLeftRadius: theme.radius.sm,
-              }}
-              onClick={async (event) => {
-                event.preventDefault();
-                if (value && key) {
-                  setLoading(true);
-                  await request(
-                    "/api/graphql",
-                    DELETE_SHOP_METAFIELD_MUTATION,
-                    {
-                      where: { id: metafield.id },
-                    }
-                  )
-                    .then(async ({ deleteShopMetafield }) => {
-                      setLoading(false);
 
-                      await mutateShops(({ shops }) => {
-                        const newData = [];
-                        for (const item of shops) {
-                          if (item.id === shopId) {
-                            const filteredShop = {
-                              ...item,
-                              metafields: item.metafields.filter(
-                                (c) => c.id !== deleteShopMetafield.id
-                              ),
-                            };
-                            newData.push(filteredShop);
-                          } else {
-                            newData.push(item);
-                          }
-                        }
-                        return {
-                          shops: newData,
-                        };
-                      }, false);
-                      notifications.showNotification({
-                        title: `Custom detail is deleted.`,
-                        // message: JSON.stringify(data),
-                      });
-                    })
-                    .catch((error) => {
-                      setLoading(false);
-                      notifications.showNotification({
-                        title: error.response.errors[0].extensions.code,
-                        message: error.response.errors[0].message,
-                        color: "red",
-                      });
-                    });
-                }
-              }}
-            >
-              <TrashIcon size={12} />
-            </ActionIcon>
-
-            <ActionIcon
+            {/* <ActionIcon
               variant="light"
               color="blue"
               size="sm"
@@ -285,7 +297,22 @@ export const EditMetafield = ({ metafield, shopId }) => {
               }}
             >
               <PencilIcon size={12} />
-            </ActionIcon>
+            </ActionIcon> */}
+            <Button
+              color="indigo"
+              variant="subtle"
+              onClick={() => setEditMode(true)}
+              size="xs"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: -0.4,
+              }}
+              radius="sm"
+              compact
+              ml="md"
+            >
+              Update
+            </Button>
           </Group>
         </Group>
       </Box>

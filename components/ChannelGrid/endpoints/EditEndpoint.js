@@ -16,7 +16,7 @@ import request from "graphql-request";
 import { useNotifications } from "@mantine/notifications";
 import { CHANNELS_QUERY, UPDATE_CHANNEL_MUTATION } from "@graphql/channels";
 
-export const EditFunction = ({ detail, channelId }) => {
+export const EditEndpoint = ({ detail, channelId }) => {
   const notifications = useNotifications();
   const theme = useMantineTheme();
   const [opened, setOpen] = useState(false);

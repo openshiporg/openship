@@ -1,9 +1,9 @@
 import React from "react";
 import { Group, Paper, Stack, Text, useMantineTheme } from "@mantine/core";
 import { useNotifications } from "@mantine/notifications";
-import { EditFunction } from "./EditFunction";
+import { EditEndpoint } from "./EditEndpoint";
 
-export const Functions = ({
+export const Endpoints = ({
   shopId,
   searchOrdersEndpoint,
   searchProductsEndpoint,
@@ -39,7 +39,7 @@ export const Functions = ({
       radius="sm"
       //   shadow="xs"
       withBorder
-      sx={{ width: "100%" }}
+      sx={{ maxWidth: 600 }}
     >
       <Stack px="xs" py={5} spacing={0}>
         <Text
@@ -47,14 +47,14 @@ export const Functions = ({
           size="sm"
           color={theme.colors.blueGray[theme.colorScheme === "dark" ? 3 : 7]}
         >
-          Advanced Settings
+          Endpoints
         </Text>
         <Text size="xs" color="dimmed">
           Control how Openship interacts with your shop
         </Text>
       </Stack>
       {functions.map((detail) => (
-        <EditFunction detail={detail} shopId={shopId} />
+        <EditEndpoint detail={detail} shopId={shopId} />
       ))}
     </Paper>
   );

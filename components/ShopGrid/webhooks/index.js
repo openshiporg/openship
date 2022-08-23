@@ -15,8 +15,15 @@ import {
   Divider,
   TextInput,
   Stack,
+  Tooltip,
 } from "@mantine/core";
-import { GearIcon, PlusIcon, TrashIcon, XIcon } from "@primer/octicons-react";
+import {
+  GearIcon,
+  InfoIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from "@primer/octicons-react";
 import {
   CHANNELS_QUERY,
   CREATE_CHANNEL_METAFIELD_MUTATION,
@@ -76,14 +83,20 @@ export const Webhooks = ({
     {
       callbackUrl: `/api/triggers/create-order/${type}`,
       topic: "ORDER_CREATED",
+      description:
+        "When an order is created on the shop, it will be created on Openship to be fulfilled",
     },
     {
       callbackUrl: `/api/triggers/cancel-order/${type}`,
       topic: "ORDER_CANCELLED",
+      description:
+        "When an order is cancelled on the shop, Openship will mark the order status cancelled",
     },
     {
       callbackUrl: `/api/triggers/cancel-order/${type}`,
       topic: "ORDER_CHARGEBACKED",
+      description:
+        "When an order is chargebacked on the shop, Openship will mark the order status cancelled",
     },
   ].filter((item) => {
     return (
@@ -115,7 +128,7 @@ export const Webhooks = ({
   ];
 
   return (
-    <Paper radius="sm" withBorder sx={{ width: "100%" }}>
+    <Paper radius="sm" withBorder sx={{ maxWidth: 600 }}>
       <Group px="xs" py={5}>
         <Stack spacing={0}>
           <Text
@@ -180,7 +193,6 @@ export const Webhooks = ({
               : theme.colors.gray[0],
         }}
       >
-  
         <Divider />
         <Text
           mx="md"
@@ -222,7 +234,22 @@ export const Webhooks = ({
                 sx={{ opacity: !webhook.id && ".7" }}
               >
                 <td>
-                  <Code>{webhook.topic}</Code>
+                  <Group spacing="xs" noWrap>
+                    <Code>{webhook.topic}</Code>
+                    {webhook.description && (
+                      <Tooltip
+                        wrapLines
+                        width={320}
+                        transition="fade"
+                        transitionDuration={200}
+                        label={webhook.description}
+                      >
+                        <ActionIcon color="gray" size={12}>
+                          <InfoIcon size={12} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </Group>
                 </td>
                 <td>
                   <Text sx={{ wordBreak: "break-word" }} size="xs">

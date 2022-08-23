@@ -29,7 +29,7 @@ import {
 import {
   GlobeIcon,
   IssueReopenedIcon,
-  WebhookIcon,
+  StackIcon,
   ContainerIcon,
   SunIcon,
   MoonIcon,
@@ -252,7 +252,7 @@ export const mainLinksMockdata = [
   { icon: GlobeIcon, label: "Orders", href: "/" },
   { icon: ContainerIcon, label: "Products", href: "/products" },
   { icon: PackageIcon, label: "Shops", href: "/shops" },
-  { icon: WebhookIcon, label: "Channels", href: "/channels" },
+  { icon: StackIcon, label: "Channels", href: "/channels" },
 ];
 
 export function AppShell({
@@ -449,6 +449,8 @@ export function AppShell({
                       x="0px"
                       y="0px"
                       viewBox="0 0 400 400"
+                      width="100%"
+                      hwight="100%"
                     >
                       <g>
                         <g>
@@ -675,17 +677,20 @@ export function AppShell({
         }}
       >
         <Stack spacing={0}>
-          <Group align={"center"} sx={{ overflow: "hidden" }} p="xs">
+          <Group align={"center"} sx={{ overflow: "hidden" }} p="xs" noWrap>
             <Center
               // py="md"
               // pl="md"
               p={5}
-              sx={{
-                background: "linear-gradient(87deg,#172b4d 25%,#1a174d 100%)",
-                borderRadius: theme.radius.sm,
-              }}
+              // sx={{
+              //   background: "linear-gradient(87deg,#172b4d 25%,#1a174d 100%)",
+              //   borderRadius: theme.radius.sm,
+              // }}
             >
-              <LogoIconSVG color="#fff" width={18} />
+              <LogoIconSVG
+                color={theme.colorScheme === "light" ? "#000" : "#fff"}
+                width={22}
+              />
             </Center>
 
             {/* <Breadcrumbs>
@@ -698,7 +703,7 @@ export function AppShell({
               />
             )}
           </Breadcrumbs> */}
-            <Group direction="row" ml="auto" spacing="xs">
+            <Group direction="row" ml="auto" spacing="xs" noWrap>
               {/* <ActionIcon
               variant="light"
               onClick={toggle}
@@ -749,7 +754,9 @@ export function AppShell({
                   // leftIcon={<data[activeTab].icon size={10} />}
                   rightIcon={
                     (data[activeTab]?.count || data[activeTab].count === 0) && (
-                      <Badge size="sm">{data[activeTab].count}</Badge>
+                      <Badge size="sm">
+                        {data[activeTab].count}
+                      </Badge>
                     )
                   }
                   onClick={() => {

@@ -37,24 +37,43 @@ export const EditDetails = ({ detail, channelId }) => {
           input: {
             minHeight: 0,
             height: 22,
+            lineHeight: 1,
           },
         }}
         autoFocus
+        type={detail.type}
       />
-      <Group spacing={0} noWrap>
+      <Group spacing={2} noWrap>
+        <Button
+          size="xs"
+          ml="auto"
+          color="gray"
+          variant="subtle"
+          onClick={() => {
+            setEditMode(false);
+            setValue(detail.value);
+          }}
+          compact
+        >
+          Cancel
+        </Button>
         <Button
           color="cyan"
-          variant="light"
+          variant="subtle"
           size="xs"
           sx={{
             fontWeight: 700,
             letterSpacing: -0.4,
-            borderTopLeftRadius: theme.radius.sm,
-            borderBottomLeftRadius: theme.radius.sm,
+            // borderTopLeftRadius: theme.radius.sm,
+            // borderBottomLeftRadius: theme.radius.sm,
+          }}
+          styles={{
+            subtle: {
+              ":disabled": { backgroundColor: "transparent !important" },
+            },
           }}
           type="submit"
           // loading={true}
-          radius={0}
           compact
           disabled={value === detail.value}
           onClick={async (event) => {
@@ -99,45 +118,56 @@ export const EditDetails = ({ detail, channelId }) => {
             }
           }}
         >
-          {loading ? <Loader size={10} color="cyan" /> : "Update"}
+          {loading ? <Loader size={10} color="cyan" /> : "Save"}
         </Button>
-        <ActionIcon
-          radius={0}
-          sx={{
-            borderTopRightRadius: theme.radius.sm,
-            borderBottomRightRadius: theme.radius.sm,
-          }}
-          color="red"
-          size="sm"
-          variant="light"
-          onClick={() => {
-            setEditMode(false);
-            setValue(detail.value);
-          }}
-        >
-          <XIcon size={14} />
-        </ActionIcon>
       </Group>
     </Group>
   ) : (
-    <Group spacing={8} ml={2}>
-      <Text size="sm" weight={400}>
-        {detail.type === "password"
-          ? "·································"
-          : detail.value}
-      </Text>
-      <ActionIcon
-        variant="light"
-        color="blue"
-        size="sm"
-        onClick={() => setEditMode(true)}
-        ml="auto"
-      >
-        <PencilIcon size={12} />
-      </ActionIcon>
-      {/* <Button
-        color="blue"
-        variant="light"
+    <Group
+      spacing={8}
+      ml={2}
+      noWrap
+      sx={{
+        maxWidth: "100%",
+      }}
+    >
+      {detail.type === "password" ? (
+        <Input
+          size="sm"
+          variant="unstyled"
+          value={value}
+          readOnly
+          styles={{
+            wrapper: {
+              width: "100%",
+            },
+            input: {
+              minHeight: 0,
+              height: 22,
+              lineHeight: 1,
+            },
+          }}
+          type={detail.type}
+          ml={-2}
+        />
+      ) : (
+        <Text
+          size="sm"
+          weight={400}
+          sx={{
+            flex: 1,
+            maxWidth: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {detail.value}
+        </Text>
+      )}
+      <Button
+        color="indigo"
+        variant="subtle"
         onClick={() => setEditMode(true)}
         size="xs"
         sx={{
@@ -149,8 +179,8 @@ export const EditDetails = ({ detail, channelId }) => {
         compact
         ml="auto"
       >
-        Edit
-      </Button> */}
+        Update
+      </Button>
     </Group>
   );
 };

@@ -6,12 +6,6 @@ export const Details = ({ channelId, name, type, domain, accessToken }) => {
   const theme = useMantineTheme();
   const details = [
     {
-      label: "Name",
-      value: name,
-      edit: true,
-      functionValue: "name",
-    },
-    {
       label: "Domain",
       value: domain,
       edit: true,
@@ -37,7 +31,7 @@ export const Details = ({ channelId, name, type, domain, accessToken }) => {
       radius="sm"
       //   shadow="xs"
       withBorder
-      sx={{ width: "100%" }}
+      sx={{ maxWidth: 600 }}
     >
       <Stack px="xs" py={5} spacing={0}>
         <Text

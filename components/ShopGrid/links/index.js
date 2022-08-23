@@ -26,7 +26,7 @@ export const Links = ({ shopId, links, channelData }) => {
   const [opened, setOpen] = useState(false);
 
   return (
-    <Paper radius="sm" withBorder sx={{ width: "100%" }}>
+    <Paper radius="sm" withBorder sx={{ maxWidth: 600 }}>
       <Group px="xs" py={5}>
         <Stack spacing={0}>
           <Text

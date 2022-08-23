@@ -28,7 +28,7 @@ export const Metafields = ({ channelId, metafields }) => {
   const [opened, setOpen] = useState(false);
 
   return (
-    <Paper radius="sm" withBorder sx={{ width: "100%" }}>
+    <Paper radius="sm" withBorder sx={{ maxWidth: 600 }}>
       <Group px="xs" py={5}>
         <Stack spacing={0}>
           <Text
@@ -140,21 +140,36 @@ const CreateMetafield = ({ channelId, setOpen, opened }) => {
         />
         <Group spacing={0} noWrap>
           {loading && <Loader size={14} color="cyan" mr={5} />}
-
+          <Button
+            size="xs"
+            ml="auto"
+            color="gray"
+            variant="subtle"
+            onClick={() => {
+              setOpen(false);
+              setValue("");
+              setKey("");
+            }}
+            compact
+          >
+            Cancel
+          </Button>
           <Button
             color="indigo"
-            variant="light"
+            variant="subtle"
             size="xs"
             sx={{
               fontWeight: 700,
               letterSpacing: -0.4,
-              borderTopLeftRadius: theme.radius.sm,
-              borderBottomLeftRadius: theme.radius.sm,
             }}
             type="submit"
             // loading={true}
-            radius={0}
             compact
+            styles={{
+              subtle: {
+                ":disabled": { backgroundColor: "transparent !important" },
+              },
+            }}
             disabled={value === "" || key === ""}
             onClick={async (event) => {
               event.preventDefault();
@@ -208,23 +223,6 @@ const CreateMetafield = ({ channelId, setOpen, opened }) => {
           >
             Create
           </Button>
-          <ActionIcon
-            radius={0}
-            sx={{
-              borderTopRightRadius: theme.radius.sm,
-              borderBottomRightRadius: theme.radius.sm,
-            }}
-            color="gray"
-            size="sm"
-            variant="light"
-            onClick={() => {
-              setOpen(false);
-              setValue("");
-              setKey("");
-            }}
-          >
-            <XIcon size={14} />
-          </ActionIcon>
         </Group>
       </Group>
     </Group>

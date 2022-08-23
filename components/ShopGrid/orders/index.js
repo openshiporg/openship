@@ -59,7 +59,7 @@ export const Orders = ({ shopId }) => {
       radius="sm"
       //   shadow="xs"
       withBorder
-      sx={{ width: "100%" }}
+      sx={{ maxWidth: 600 }}
     >
       <Stack px="xs" py={5} spacing={0}>
         <Text

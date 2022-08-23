@@ -14,10 +14,7 @@ import {
 } from "@mantine/core";
 import { EditMetafield } from "./EditMetafield";
 import { PlusIcon, XIcon } from "@primer/octicons-react";
-import {
-  SHOPS_QUERY,
-  CREATE_SHOP_METAFIELD_MUTATION,
-} from "@graphql/shops";
+import { SHOPS_QUERY, CREATE_SHOP_METAFIELD_MUTATION } from "@graphql/shops";
 import { useNotifications } from "@mantine/notifications";
 import useSWR from "swr";
 import { gqlFetcher } from "@lib/gqlFetcher";
@@ -28,7 +25,7 @@ export const Metafields = ({ shopId, metafields }) => {
   const [opened, setOpen] = useState(false);
 
   return (
-    <Paper radius="sm" withBorder sx={{ width: "100%" }}>
+    <Paper radius="sm" withBorder sx={{ maxWidth: 600 }}>
       <Group px="xs" py={5}>
         <Stack spacing={0}>
           <Text
@@ -60,11 +57,7 @@ export const Metafields = ({ shopId, metafields }) => {
         </ActionIcon>
       </Group>
       <Collapse in={opened} sx={{ width: "100%" }}>
-        <CreateMetafield
-          shopId={shopId}
-          setOpen={setOpen}
-          opened={opened}
-        />
+        <CreateMetafield shopId={shopId} setOpen={setOpen} opened={opened} />
       </Collapse>
       {metafields.map((metafield) => (
         <EditMetafield
@@ -113,6 +106,7 @@ const CreateMetafield = ({ shopId, setOpen, opened }) => {
               minHeight: 0,
               height: 22,
               fontWeight: 600,
+              lineHeight: 1,
               color:
                 theme.colors.blueGray[theme.colorScheme === "dark" ? 4 : 5],
             },
@@ -135,26 +129,42 @@ const CreateMetafield = ({ shopId, setOpen, opened }) => {
             input: {
               minHeight: 0,
               height: 22,
+              lineHeight: 1,
             },
           }}
         />
         <Group spacing={0} noWrap>
           {loading && <Loader size={14} color="cyan" mr={5} />}
-
+          <Button
+            size="xs"
+            ml="auto"
+            color="gray"
+            variant="subtle"
+            onClick={() => {
+              setOpen(false);
+              setValue("");
+              setKey("");
+            }}
+            compact
+          >
+            Cancel
+          </Button>
           <Button
             color="indigo"
-            variant="light"
+            variant="subtle"
             size="xs"
             sx={{
               fontWeight: 700,
               letterSpacing: -0.4,
-              borderTopLeftRadius: theme.radius.sm,
-              borderBottomLeftRadius: theme.radius.sm,
             }}
             type="submit"
             // loading={true}
-            radius={0}
             compact
+            styles={{
+              subtle: {
+                ":disabled": { backgroundColor: "transparent !important" },
+              },
+            }}
             disabled={value === "" || key === ""}
             onClick={async (event) => {
               event.preventDefault();
@@ -165,13 +175,9 @@ const CreateMetafield = ({ shopId, setOpen, opened }) => {
                   ...(key && { key }),
                   shop: { connect: { id: shopId } },
                 };
-                await request(
-                  "/api/graphql",
-                  CREATE_SHOP_METAFIELD_MUTATION,
-                  {
-                    data,
-                  }
-                )
+                await request("/api/graphql", CREATE_SHOP_METAFIELD_MUTATION, {
+                  data,
+                })
                   .then(async ({ createShopMetafield: { shop } }) => {
                     setLoading(false);
                     await mutateShops(({ shops }) => {
@@ -208,23 +214,6 @@ const CreateMetafield = ({ shopId, setOpen, opened }) => {
           >
             Create
           </Button>
-          <ActionIcon
-            radius={0}
-            sx={{
-              borderTopRightRadius: theme.radius.sm,
-              borderBottomRightRadius: theme.radius.sm,
-            }}
-            color="gray"
-            size="sm"
-            variant="light"
-            onClick={() => {
-              setOpen(false);
-              setValue("");
-              setKey("");
-            }}
-          >
-            <XIcon size={14} />
-          </ActionIcon>
         </Group>
       </Group>
     </Group>

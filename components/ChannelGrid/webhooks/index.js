@@ -15,12 +15,16 @@ import {
   Divider,
   TextInput,
   Stack,
+  Tooltip,
 } from "@mantine/core";
-import { GearIcon, PlusIcon, TrashIcon, XIcon } from "@primer/octicons-react";
 import {
-  CHANNELS_QUERY,
-  UPDATE_CHANNEL_MUTATION,
-} from "@graphql/channels";
+  GearIcon,
+  InfoIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from "@primer/octicons-react";
+import { CHANNELS_QUERY, UPDATE_CHANNEL_MUTATION } from "@graphql/channels";
 import { useNotifications } from "@mantine/notifications";
 import useSWR from "swr";
 import { gqlFetcher } from "@lib/gqlFetcher";
@@ -74,10 +78,14 @@ export const Webhooks = ({
     {
       callbackUrl: `/api/triggers/cancel-purchase/${type}`,
       topic: "ORDER_CANCELLED",
+      description:
+        "When a purchase order is cancelled by the channel, Openship will mark the cart item as cancelled and move the order to PENDING to be processed again",
     },
     {
       callbackUrl: `/api/triggers/create-tracking/${type}`,
       topic: "TRACKING_CREATED",
+      description:
+        "When a purchase order is fulfilled by the channel, Openship will add this tracking to the order and the shop",
     },
   ].filter((item) => {
     return (
@@ -109,7 +117,7 @@ export const Webhooks = ({
   ];
 
   return (
-    <Paper radius="sm" withBorder sx={{ width: "100%" }}>
+    <Paper radius="sm" withBorder sx={{ maxWidth: 600 }}>
       <Group px="xs" py={5}>
         <Stack spacing={0}>
           <Text
@@ -226,7 +234,22 @@ export const Webhooks = ({
                 sx={{ opacity: !webhook.id && ".7" }}
               >
                 <td>
-                  <Code>{webhook.topic}</Code>
+                  <Group spacing="xs" noWrap>
+                    <Code>{webhook.topic}</Code>
+                    {webhook.description && (
+                      <Tooltip
+                        wrapLines
+                        width={320}
+                        transition="fade"
+                        transitionDuration={200}
+                        label={webhook.description}
+                      >
+                        <ActionIcon color="gray" size={12}>
+                          <InfoIcon size={12} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </Group>
                 </td>
                 <td>
                   <Text sx={{ wordBreak: "break-word" }} size="xs">
