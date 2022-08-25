@@ -37,7 +37,6 @@ export default class _Document extends Document {
           <meta name="msapplication-TileColor" content="#ffffff" />
           <meta httpEquiv="Content-Language" content="en" />
           <meta name="twitter:card" content="summary_large_image" />
-
           <meta name="apple-mobile-web-app-title" content="Openship" />
         </Head>
         <body>
