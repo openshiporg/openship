@@ -87,6 +87,16 @@ To deploy on platforms that don't support databases like [Netlify](https://netli
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/openshiporg/openship)
 
+Go to site settings > build & deploy > environment and add these variables:
+
+```bash
+  FRONTEND_URL=http://localhost:3000
+  DATABASE_URL=postgresql://postgres:example@url:3000/postgres
+  SESSION_SECRET=please_change_me
+```
+
+Replace DATABASE_URL with a postgres database connection string and FRONTEND_URL with the url ending in netlify.app. Redeploy the site.
+
 ## Credits
 
 Openship wouldn't be here without these great projects
