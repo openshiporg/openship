@@ -45,7 +45,7 @@ const transformer = {
     }));
 
     const input = {
-      email: "junaidkabani@windstream.net",
+      email: req.body.email,
       note: "Openship order placed",
       shippingAddress: {
         firstName: req.body.address.first_name,

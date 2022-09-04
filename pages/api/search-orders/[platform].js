@@ -1,6 +1,7 @@
 import { gql, GraphQLClient } from "graphql-request";
 import walmartMarketplaceApi, {
   OrdersApi,
+  ItemsApi,
   defaultParams,
 } from "@whitebox-co/walmart-marketplace-api";
 
@@ -211,11 +212,64 @@ const transformer = {
         }
       );
 
+      const itemsApi = await walmartMarketplaceApi.getConfiguredApi(ItemsApi, {
+        clientId: req.query.clientId,
+        clientSecret: req.query.clientSecret,
+      });
+
+      const lineItems = await itemsApi.getAnItem({ productIdType: "SKU", id: "438590438509834095" });
+      console.log(lineItems);
+
       const orders = await ordersApi.getAllOrders();
       console.log(orders.data.list.elements.order[0].orderLines.orderLine);
+      return {
+        orders: orders.data.list.elements.order.map(
+          ({
+            purchaseOrderId,
+            customerOrderId,
+            customerEmailId,
+            orderDate,
+            orderLines: { orderLine },
+            shippingInfo: {
+              postalAddress: {
+                name,
+                address1,
+                address2,
+                city,
+                state,
+                postalCode,
+                country,
+              },
+            },
+          }) => {
+            return {
+              orderId: purchaseOrderId,
+              orderName: customerOrderId,
+              link: `https://${req.query.domain}/admin/orders/${purchaseOrderId}`,
+              date: Intl.DateTimeFormat("en-US").format(orderDate),
+              first_name: name.split(" ")[0],
+              last_name: name.split(" ")[1] || name.split(" ")[0],
+              streetAddress1: address1,
+              streetAddress2: address2,
+              city,
+              state,
+              zip: postalCode,
+              country,
+              email: customerEmailId,
+              lineItems: orderLine.map(({ item, orderLineQuantity }) => ({
+                name: item.productName,
+                quantity: orderLineQuantity.amount,
+                // price: amount,
+                // image: originalSrc,
+                productId: "0",
+                variantId: item.sku,
+              })),
+            };
+          }
+        ),
+      };
     } catch (err) {
-      console.log({ err });
+      console.log(err.response.data.error);
     }
-    return { orders: [] };
   },
 };
