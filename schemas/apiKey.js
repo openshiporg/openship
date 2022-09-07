@@ -48,11 +48,10 @@ export const apiKey = list({
     user: relationship({
       ref: "User.apiKeys",
       hooks: {
-        resolveInput: ({ context, resolvedData }) => {
-          if (context?.session?.itemId) {
-            return {
-              connect: { id: context.session.itemId },
-            };
+        resolveInput({ operation, resolvedData, context }) {
+          // Default to the currently logged in user on create.
+          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+            return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;
         },

@@ -45,7 +45,7 @@ const transformer = {
     }));
 
     const input = {
-      email: req.body.email,
+      email: req.body.metafields.Email || req.body.email,
       note: "Openship order placed",
       shippingAddress: {
         firstName: req.body.address.first_name,
