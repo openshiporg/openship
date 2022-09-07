@@ -6,7 +6,7 @@ import {
   Text,
   useMantineTheme,
   Button,
-  Stack
+  Stack,
 } from "@mantine/core";
 import { QuantityCounter } from "./quantityCounter";
 
@@ -32,6 +32,7 @@ export function Product({
 
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [clicks, setClicks] = useState(0);
 
   return (
     <Box
@@ -127,31 +128,43 @@ export function Product({
                     setQuantity={setQuantity}
                     color="blue"
                   />
-                  <Button
-                    variant="light"
-                    color="blue"
-                    compact
-                    uppercase
-                    disabled={disabled}
-                    loading={loading}
-                    onClick={async () => {
-                      setLoading(true);
-                      await addToCart({
-                        name: title,
-                        image,
-                        price,
-                        quantity: quantity.toString(),
-                        productId,
-                        variantId,
-                        channelId,
-                        channelName,
-                      });
-                      setLoading(false);
-                    }}
-                    sx={{ fontWeight: 700, letterSpacing: -0.1 }}
-                  >
-                    {atcText}
-                  </Button>
+                  {disabled && clicks < 3 ? (
+                    <Button
+                      variant="light"
+                      color="gray"
+                      compact
+                      uppercase
+                      onClick={() => setClicks(clicks + 1)}
+                      sx={{ fontWeight: 700, letterSpacing: -0.1, cursor: "not-allowed" }}
+                    >
+                      {atcText}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="light"
+                      color="blue"
+                      compact
+                      uppercase
+                      loading={loading}
+                      onClick={async () => {
+                        setLoading(true);
+                        await addToCart({
+                          name: title,
+                          image,
+                          price,
+                          quantity: quantity.toString(),
+                          productId,
+                          variantId,
+                          channelId,
+                          channelName,
+                        });
+                        setLoading(false);
+                      }}
+                      sx={{ fontWeight: 700, letterSpacing: -0.1 }}
+                    >
+                      {atcText}
+                    </Button>
+                  )}
                 </Group>
               )}
               <Box mt="auto" ml="auto">

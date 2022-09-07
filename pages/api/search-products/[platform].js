@@ -74,10 +74,10 @@ const transformer = {
     const arr = [];
 
     productVariants?.edges.forEach(
-      ({ node: { id, image, price, product, availableForSale } }) => {
+      ({ node: { id, image, price, product, availableForSale, title } }) => {
         const newData = {
           image: image?.originalSrc || product.images.edges[0].node.originalSrc,
-          title: product.title,
+          title: `${product.title} - ${title}`,
           productId: product.id.split("/").pop(),
           variantId: id.split("/").pop(),
           price,
