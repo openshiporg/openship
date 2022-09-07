@@ -305,7 +305,7 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
             >
               {orderPPList.map((item) => (
                 <Menu.Item
-                  key={item.value}
+                  key={item}
                   icon={
                     <Box
                       sx={{
@@ -367,7 +367,7 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
                   key={Math.ceil(skip / orderPerPage) + 1}
                   // value={skip + 1}
                   min={1}
-                  max={pageCount ?? null}
+                  max={pageCount ?? 9999}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       if (
@@ -379,7 +379,7 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
                       }
                     }
                   }}
-                />
+                />{pageCount}
                 <ActionIcon
                   color="cyan"
                   variant="light"
