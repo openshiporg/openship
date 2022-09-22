@@ -379,7 +379,7 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
                       }
                     }
                   }}
-                />{pageCount}
+                />
                 <ActionIcon
                   color="cyan"
                   variant="light"

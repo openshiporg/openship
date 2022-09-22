@@ -212,16 +212,10 @@ const transformer = {
         }
       );
 
-      const itemsApi = await walmartMarketplaceApi.getConfiguredApi(ItemsApi, {
-        clientId: req.query.clientId,
-        clientSecret: req.query.clientSecret,
-      });
-
-      const lineItems = await itemsApi.getAnItem({ productIdType: "SKU", id: "438590438509834095" });
-      console.log(lineItems);
-
-      const orders = await ordersApi.getAllOrders();
-      console.log(orders.data.list.elements.order[0].orderLines.orderLine);
+      const orders = await ordersApi.getAllOrders({ productInfo: true });
+      console.log(
+        orders.data.list.elements.order[0].orderLines.orderLine[0].orderLineQuantity
+      );
       return {
         orders: orders.data.list.elements.order.map(
           ({
@@ -256,14 +250,16 @@ const transformer = {
               zip: postalCode,
               country,
               email: customerEmailId,
-              lineItems: orderLine.map(({ item, orderLineQuantity }) => ({
-                name: item.productName,
-                quantity: orderLineQuantity.amount,
-                // price: amount,
-                // image: originalSrc,
-                productId: "0",
-                variantId: item.sku,
-              })),
+              lineItems: orderLine.map(
+                ({ item, orderLineQuantity, charges: { charge } }) => ({
+                  name: item.productName,
+                  quantity: parseInt(orderLineQuantity.amount),
+                  price: charge[0].chargeAmount.amount,
+                  image: item.imageUrl,
+                  productId: "0",
+                  variantId: item.sku,
+                })
+              ),
             };
           }
         ),
