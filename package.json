@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hapi/iron": "^6.0.0",
-    "@keystone-6/auth": "4.0.1",
-    "@keystone-6/core": "2.2.0",
+    "@keystone-6/auth": "4.0.0",
+    "@keystone-6/core": "2.1.0",
     "@mantine/core": "^4.2.9",
     "@mantine/dates": "^4.2.9",
     "@mantine/form": "^4.2.9",
