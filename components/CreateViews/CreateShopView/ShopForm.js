@@ -25,17 +25,16 @@ export const ShopForm = ({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      {fields.map(({ name, title, placeholder, rightSection }) => (
+      {fields.map(({ name, title, placeholder, rightSection, rightSectionWidth = 140 }) => (
         <TextInput
           mt="md"
           placeholder={placeholder}
           label={title}
           sx={{ overflow: "hidden" }}
           rightSection={rightSection}
-          rightSectionWidth={140}
+          rightSectionWidth={rightSectionWidth}
           styles={{
             rightSection: {
-              width: 140,
               color:
                 theme.colorScheme === "dark"
                   ? theme.colors.dark[9]

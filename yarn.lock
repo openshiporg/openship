@@ -4744,6 +4744,13 @@ debug@4, debug@^4.1.0, debug@^4.1.1, debug@^4.3.3, debug@^4.3.4:
   dependencies:
     ms "2.1.2"
 
+debug@^3.1.0:
+  version "3.2.7"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.7.tgz#72580b7e9145fb39b6676f9c5e5fb100b934179a"
+  integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
+  dependencies:
+    ms "^2.1.1"
+
 decamelize-keys@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/decamelize-keys/-/decamelize-keys-1.1.0.tgz#d171a87933252807eb3cb61dc1c1445d078df2d9"
@@ -6765,6 +6772,13 @@ node-abort-controller@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-3.0.1.tgz#f91fa50b1dee3f909afabb7e261b1e1d6b0cb74e"
   integrity sha512-/ujIVxthRs+7q6hsdjHMaj8hRG9NuWmwrz+JdRwZ14jdFoKSkm+vDsCbF9PLpnSqjaWQJuTmVtcWHNLr+vrOFw==
+
+node-bigcommerce@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/node-bigcommerce/-/node-bigcommerce-4.1.0.tgz#f961b744961abb27c2fc14de4969b531da31664a"
+  integrity sha512-cNgDjeDO4kQ2TLnxPd/5hN7Xd8gqK+c/M+6lISlAIPPzbqnJnT7yISYv+BYAHPWJOhD1p1ozp9+Je73cX9HZjw==
+  dependencies:
+    debug "^3.1.0"
 
 node-fetch@2.6.7, node-fetch@^2.6.7:
   version "2.6.7"

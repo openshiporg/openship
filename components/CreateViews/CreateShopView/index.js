@@ -93,6 +93,21 @@ export const CreateShopView = ({ showModal, setShowModal }) => {
           ...endpoints.shopify,
         }),
     },
+    bigcommerce: {
+      label: "Big Commerce",
+      fields: [
+        {
+          title: "URL",
+          name: "shop",
+          placeholder: "centralbikeshop",
+          rightSection: ".mybigcommerce.com",
+          rightSectionWidth: 190
+        },
+      ],
+      handleSubmit: (values) =>
+        router.push(`/api/o-auth/shop/bigcommerce?shop=${values.shop}`),
+      buttonText: "Connect BigCommerce",
+    },
     custom: {
       label: "Custom",
       fields: [
