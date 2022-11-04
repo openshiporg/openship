@@ -117,6 +117,8 @@ export default async (req, res) => {
     //   });
     // }
     // const redirectUrl = `${process.env.FRONTEND_URL}/shops`;
+    const redirectUrl = `${process.env.FRONTEND_URL}/bigcommerce/load`;
+
     const bigcommerceResponse = await fetch(
       "https://login.bigcommerce.com/oauth2/token",
       {
@@ -132,14 +134,13 @@ export default async (req, res) => {
           context: req.query.context,
           scope: req.query.scope,
           grant_type: "authorization_code",
-          redirect_uri: "https://dry-impala-94.telebit.io/api/o-auth/shop/bigcommerce/callback",
+          redirect_uri: redirectUrl,
         }),
       }
     );
     const content = await bigcommerceResponse.json();
 
     console.log({ content });
-    const redirectUrl = `${process.env.FRONTEND_URL}/shops`;
     return res.status(200).redirect(redirectUrl);
   } catch (e) {
     console.warn(e);
