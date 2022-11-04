@@ -119,6 +119,8 @@ export default async (req, res) => {
     // const redirectUrl = `${process.env.FRONTEND_URL}/shops`;
     const redirectUrl = `${process.env.FRONTEND_URL}/bigcommerce/load`;
 
+    console.log({ redirectUrl });
+    
     const bigcommerceResponse = await fetch(
       "https://login.bigcommerce.com/oauth2/token",
       {
