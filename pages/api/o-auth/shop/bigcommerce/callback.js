@@ -120,7 +120,7 @@ export default async (req, res) => {
     const redirectUrl = `${process.env.FRONTEND_URL}/bigcommerce/load`;
 
     console.log({ redirectUrl });
-    
+
     const bigcommerceResponse = await fetch(
       "https://login.bigcommerce.com/oauth2/token",
       {
@@ -136,7 +136,7 @@ export default async (req, res) => {
           context: req.query.context,
           scope: req.query.scope,
           grant_type: "authorization_code",
-          redirect_uri: redirectUrl,
+          redirect_uri: `${process.env.FRONTEND_URL}/api/o-auth/shop/bigcommerce/callback`,
         }),
       }
     );
