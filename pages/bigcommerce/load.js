@@ -113,6 +113,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
           <Group position="apart" mt="xl">
             <Button
               component="a"
+              target="_blank"
               href={`https://${domain}.myopenship.com`}
               // color={"green"}
               variant="gradient"
