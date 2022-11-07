@@ -42,31 +42,39 @@ export const ChannelForm = ({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      {fields.map(({ name, title, placeholder, rightSection }) => (
-        <TextInput
-          mt="md"
-          placeholder={placeholder}
-          label={title}
-          sx={{ overflow: "hidden" }}
-          rightSection={rightSection}
-          rightSectionWidth={140}
-          styles={{
-            rightSection: {
-              width: 140,
-              color:
-                theme.colorScheme === "dark"
-                  ? theme.colors.dark[9]
-                  : theme.colors.blueGray[5],
+      {fields.map(
+        ({
+          name,
+          title,
+          placeholder,
+          rightSection,
+          rightSectionWidth = 140,
+        }) => (
+          <TextInput
+            mt="md"
+            placeholder={placeholder}
+            label={title}
+            sx={{ overflow: "hidden" }}
+            rightSection={rightSection}
+            rightSectionWidth={rightSectionWidth}
+            styles={{
+              rightSection: {
+                width: 140,
+                color:
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[9]
+                    : theme.colors.blueGray[5],
 
-              top: 20,
-              bottom: 1,
-              borderTopRightRadius: 4,
-              borderBottomRightRadius: 4,
-            },
-          }}
-          {...form.getInputProps(name)}
-        />
-      ))}
+                top: 20,
+                bottom: 1,
+                borderTopRightRadius: 4,
+                borderBottomRightRadius: 4,
+              },
+            }}
+            {...form.getInputProps(name)}
+          />
+        )
+      )}
       {metafields && (
         <Paper
           p="xs"

@@ -1,10 +1,4 @@
-import ShopifyToken from "shopify-token";
-import { CREATE_SHOP_MUTATION } from "@graphql/shops";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
-import { gql } from "graphql-request";
-
 export default async (req, res) => {
-  console.log(req.query);
   try {
     const bigcommerceResponse = await fetch(
       "https://login.bigcommerce.com/oauth2/token",

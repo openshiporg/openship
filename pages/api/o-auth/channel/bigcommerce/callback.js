@@ -63,7 +63,7 @@ export default async (req, res) => {
         }
       );
     }
-    const redirectUrl = `${process.env.FRONTEND_URL}/shops`;
+    const redirectUrl = `${process.env.FRONTEND_URL}/channels`;
     return res.status(200).redirect(redirectUrl);
   } catch (e) {
     console.warn(e);
