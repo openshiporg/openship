@@ -81,6 +81,39 @@ export const CreateChannelView = ({ showModal, setShowModal }) => {
         router.push(`/api/o-auth/channel/shopify?shop=${values.shop}`),
       buttonText: "Connect Shopify",
     },
+    shopifycustom: {
+      label: "Shopify Custom",
+      fields: [
+        { title: "Name", name: "name", placeholder: "Central Bike Shop" },
+        { title: "Domain", name: "domain", placeholder: "centralbikeshop.com" },
+        {
+          title: "Access Token",
+          name: "accessToken",
+          placeholder: "supersecret",
+        },
+      ],
+      handleSubmit: (values) =>
+        createChannel({
+          type: "shopify",
+          ...values,
+          ...endpoints.shopify,
+        }),
+    },
+    bigcommerce: {
+      label: "Big Commerce",
+      fields: [
+        {
+          title: "URL",
+          name: "shop",
+          placeholder: "centralbikeshop",
+          rightSection: ".mybigcommerce.com",
+          rightSectionWidth: 190
+        },
+      ],
+      handleSubmit: (values) =>
+        router.push(`/api/o-auth/channel/bigcommerce?shop=${values.shop}`),
+      buttonText: "Connect BigCommerce",
+    },
     stockandtrace: {
       label: "Stock & Trace",
       fields: [
@@ -108,24 +141,6 @@ export const CreateChannelView = ({ showModal, setShowModal }) => {
           ...values,
           //hardcoded values
           ...endpoints.stockandtrace,
-        }),
-    },
-    shopifycustom: {
-      label: "Shopify Custom",
-      fields: [
-        { title: "Name", name: "name", placeholder: "Central Bike Shop" },
-        { title: "Domain", name: "domain", placeholder: "centralbikeshop.com" },
-        {
-          title: "Access Token",
-          name: "accessToken",
-          placeholder: "supersecret",
-        },
-      ],
-      handleSubmit: (values) =>
-        createChannel({
-          type: "shopify",
-          ...values,
-          ...endpoints.shopify,
         }),
     },
     custom: {
