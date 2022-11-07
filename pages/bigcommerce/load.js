@@ -21,6 +21,8 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
   const router = useRouter()
   const [domain, setDomain] = useState("");
 
+  const params = new URLSearchParams(router.query).toString();
+
   return (
     <Center
       sx={{
@@ -115,7 +117,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
             <Button
               component="a"
               target="_blank"
-              href={`/api/o-auth/shop/bigcommerce/callback?${router.query}`}
+              href={`/api/o-auth/shop/bigcommerce/callback?${params}`}
               // color={"green"}
               variant="gradient"
               gradient={{
