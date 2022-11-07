@@ -21,7 +21,7 @@ export default async (req, res) => {
       shops: [foundShop],
     } = await gqlClient(req).request(gql`
       query SHOPS_QUERY {
-        shops(where: { domain: { equals: "${context}" } }) {
+        shops(where: { domain: { equals: "${context.split("/")[1]}" } }) {
           id
         }
       }
