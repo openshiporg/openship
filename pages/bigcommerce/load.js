@@ -18,7 +18,7 @@ import { patterns } from "@components/Patterns";
 
 export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
   const theme = useMantineTheme();
-
+  const router = useRouter()
   const [domain, setDomain] = useState("");
 
   return (
@@ -84,7 +84,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
             </Text>
           </Group>
 
-          <TextInput
+          {/* <TextInput
             size="md"
             mt="md"
             required
@@ -93,6 +93,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
             rightSection={<Text size="md">.myopenship.com</Text>}
             variant="filled"
             value={domain}
+            disabled
             onChange={(e) => setDomain(e.target.value)}
             styles={{
               rightSection: {
@@ -108,13 +109,13 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
                 borderBottomRightRadius: 4,
               },
             }}
-          />
+          /> */}
 
           <Group position="apart" mt="xl">
             <Button
               component="a"
               target="_blank"
-              href={`https://${domain}.myopenship.com`}
+              href={`/api/o-auth/shop/bigcommerce/callback?${router.query}`}
               // color={"green"}
               variant="gradient"
               gradient={{
