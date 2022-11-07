@@ -118,8 +118,6 @@ export default async (req, res) => {
     // }
     // const redirectUrl = `${process.env.FRONTEND_URL}/shops`;
 
-    console.log({ redirectUrl });
-
     const bigcommerceResponse = await fetch(
       "https://login.bigcommerce.com/oauth2/token",
       {
