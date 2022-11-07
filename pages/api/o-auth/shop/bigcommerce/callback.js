@@ -47,9 +47,9 @@ export default async (req, res) => {
     } else {
       const createShop = await gqlClient(req).request(CREATE_SHOP_MUTATION, {
         data: {
-          name: context.split("/")[0],
+          name: context.split("/")[1],
           accessToken: access_token,
-          domain: context.split("/")[0],
+          domain: context.split("/")[1],
           type: "bigcommerce",
           searchProductsEndpoint: "/api/search-products/bigcommerce",
           searchOrdersEndpoint: "/api/search-orders/bigcommerce",
