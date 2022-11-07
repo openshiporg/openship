@@ -32,6 +32,7 @@ export default async (req, res) => {
       access_token,
       context,
       account_uuid,
+      type: "channel"
     }).toString();
 
     console.log({ params });

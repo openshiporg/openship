@@ -18,7 +18,7 @@ import { patterns } from "@components/Patterns";
 
 export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
   const theme = useMantineTheme();
-  const router = useRouter()
+  const router = useRouter();
   const [domain, setDomain] = useState("");
 
   const params = new URLSearchParams(router.query).toString();
@@ -71,7 +71,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
               ml={1}
               mr="auto"
             >
-              Connect to Openship
+              Confirmation
               <Box
                 sx={{
                   background: `linear-gradient(90deg, #9a6a39 1.95%, #eeba7e 100%)`,
@@ -114,30 +114,57 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
           /> */}
 
           <Group position="apart" mt="xl">
-            <Button
-              component="a"
-              target="_blank"
-              href={`/api/o-auth/shop/bigcommerce/callback?${params}`}
-              // color={"green"}
-              variant="gradient"
-              gradient={{
-                from: "#8d5e32",
-                to: "#d7a76e",
-                deg: 105,
-              }}
-              // variant="light"
-              fullWidth
-              size="md"
-              uppercase
-              ml="auto"
-              sx={{
-                boxShadow: theme.shadows.xs,
-                fontWeight: 700,
-                letterSpacing: 0.4,
-              }}
-            >
-              Connect
-            </Button>
+            {router.query?.context && router.query?.type ? (
+              <Button
+                component="a"
+                target="_blank"
+                href={`/api/o-auth/${router.query.type}/bigcommerce/callback?${params}`}
+                // color={"green"}
+                variant="gradient"
+                gradient={{
+                  from: "#8d5e32",
+                  to: "#d7a76e",
+                  deg: 105,
+                }}
+                // variant="light"
+                fullWidth
+                size="md"
+                uppercase
+                ml="auto"
+                sx={{
+                  boxShadow: theme.shadows.xs,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                }}
+              >
+                Connect
+              </Button>
+            ) : (
+              <Button
+                component="a"
+                target="_blank"
+                href={`/`}
+                // color={"green"}
+                variant="gradient"
+                gradient={{
+                  from: "#8d5e32",
+                  to: "#d7a76e",
+                  deg: 105,
+                }}
+                // variant="light"
+                fullWidth
+                size="md"
+                uppercase
+                ml="auto"
+                sx={{
+                  boxShadow: theme.shadows.xs,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                }}
+              >
+                Go to Openship
+              </Button>
+            )}
           </Group>
         </Paper>
       </Stack>

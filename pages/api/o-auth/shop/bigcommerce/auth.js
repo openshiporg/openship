@@ -144,12 +144,13 @@ export default async (req, res) => {
       access_token,
       context,
       account_uuid,
+      type: "shop",
     }).toString();
 
     console.log({ params });
 
     const redirectUrl = `${process.env.FRONTEND_URL}/bigcommerce/load?${params}`;
-    
+
     return res.status(200).redirect(redirectUrl);
   } catch (e) {
     console.warn(e);
