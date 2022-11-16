@@ -1,4 +1,5 @@
 import { gql, GraphQLClient } from "graphql-request";
+import BigCommerce from "node-bigcommerce";
 import walmartMarketplaceApi, {
   OrdersApi,
   ItemsApi,
@@ -33,6 +34,31 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    const bigCommerceClient = new BigCommerce({
+      clientId: "m042y7fkmepa9vxp1n0eq56lk0ffk7b",
+      accessToken: req.query.accessToken,
+      storeHash: req.query.domain,
+      responseType: 'json'
+    });
+  const arr = [];
+
+  const data = await bigCommerceClient.get('/orders');
+  // data?.forEach(({ id, price, primary_image, name, availability }) => {
+  //   const newData = {
+  //     image: primary_image.tiny_url,
+  //     title: name,
+  //     productId: id,
+  //     price: price,
+  //     availableForSale: availability,
+  //     variantId: id,
+  //   }
+
+  //   arr.push(newData);
+  // });
+
+  return { orders: data }
+  },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
       `https://${req.query.domain}/admin/api/graphql.json`,
