@@ -28,6 +28,37 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    const arr = [];
+
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=images&name:like=${req.query.searchEntry}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Auth-Token": req.query.accessToken,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { data } = await response.json();
+
+    data.forEach(({ id, price, primary_image, name, availability, images }) => {
+      // console.log({ images });
+      const newData = {
+        image: images[0]?.url_thumbnail,
+        title: name,
+        productId: id,
+        price: price,
+        availableForSale: availability === "available",
+        variantId: id,
+      };
+      arr.push(newData);
+    });
+
+    return { products: arr };
+  },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
       `https://${req.query.domain}/admin/api/graphql.json`,
