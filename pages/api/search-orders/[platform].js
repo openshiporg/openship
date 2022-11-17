@@ -26,7 +26,7 @@ const handler = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).json({
-      error: `${platform} search orders endpoint failed, please try again.`,
+      error: `${platform} search orders endpoint failed, please try again. ${err}`,
     });
   }
 };
@@ -35,29 +35,93 @@ export default handler;
 
 const transformer = {
   bigcommerce: async (req, res) => {
-    const bigCommerceClient = new BigCommerce({
-      clientId: "m042y7fkmepa9vxp1n0eq56lk0ffk7b",
-      accessToken: req.query.accessToken,
-      storeHash: req.query.domain,
-      responseType: 'json'
-    });
-  const arr = [];
+    const headers = {
+      "X-Auth-Token": req.query.accessToken,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
 
-  const data = await bigCommerceClient.get('/orders');
-  // data?.forEach(({ id, price, primary_image, name, availability }) => {
-  //   const newData = {
-  //     image: primary_image.tiny_url,
-  //     title: name,
-  //     productId: id,
-  //     price: price,
-  //     availableForSale: availability,
-  //     variantId: id,
-  //   }
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.query.domain}/v2/orders`,
+      {
+        method: "GET",
+        headers: headers,
+      }
+    );
 
-  //   arr.push(newData);
-  // });
+    const data = await response.json();
+    console.log(data);
 
-  return { orders: data }
+    const promises = data.map((value, index) => {
+      return Promise.all([
+        fetch(
+          value.shipping_addresses.url,
+          {
+            method: "GET",
+            headers: headers,
+          }
+        ).then(res => res.json()),
+        fetch(
+          value.products.url,
+          {
+            method: "GET",
+            headers: headers,
+          }
+        ).then(res => res.json())
+      ])
+    })
+
+    const result = await Promise.all(promises)
+    const arr = result.map(([shippingData, productData], key) => {
+      const { id, date_created } = data[key]
+      const { 
+        first_name, 
+        last_name, 
+        street_1, 
+        street_2, 
+        city, 
+        state,
+        zip,
+        email,
+        country,
+      } = shippingData[0]
+
+      return {
+        orderId: id.toString(),
+        orderName: `#${id}`,
+        link: `https://${req.query.domain}/manage/orders/${id}`,
+        date: Intl.DateTimeFormat("en-US").format(Date.parse(date_created)),
+        first_name,
+        last_name,
+        streetAddress1: street_1,
+        streetAddress2: street_2,
+        city,
+        state,
+        zip,
+        email,
+        country,
+        cartItems: [],
+        cursor: '',
+        lineItems: productData.map(({ 
+          id,
+          name,
+          quantity,
+          product_id,
+          variant_id,
+          base_price
+         }) => ({
+          name,
+          quantity,
+          price: base_price,
+          image: '',
+          productId: product_id.toString(),
+          variantId: variant_id.toString(),
+          lineItemId: id.toString(),
+        }))
+      }
+    })
+
+    return { orders: arr };
   },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
