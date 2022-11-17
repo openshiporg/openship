@@ -27,6 +27,30 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v3/hooks/${req.body.webhookId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.title) {
+      console.log(data.title);
+      return {
+        error: data.title,
+      };
+    }
+
+    return { success: "Webhook deleted" };
+  },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
       `https://${req.body.domain}/admin/api/graphql.json`,

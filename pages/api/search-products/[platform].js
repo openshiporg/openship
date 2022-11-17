@@ -46,7 +46,6 @@ const transformer = {
     const { data } = await response.json();
 
     data.forEach(({ id, price, primary_image, name, availability, images }) => {
-      // console.log({ images });
       const newData = {
         image: images[0]?.url_thumbnail,
         title: name,

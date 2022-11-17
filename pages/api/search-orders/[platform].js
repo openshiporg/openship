@@ -50,7 +50,6 @@ const transformer = {
     );
 
     const data = await response.json();
-    console.log(data);
 
     const promises = data.map((value, index) => {
       return Promise.all([
@@ -114,8 +113,8 @@ const transformer = {
           quantity,
           price: base_price,
           image: '',
-          productId: product_id.toString(),
-          variantId: variant_id.toString(),
+          productId: variant_id.toString(),
+          variantId: product_id.toString(),
           lineItemId: id.toString(),
         }))
       }

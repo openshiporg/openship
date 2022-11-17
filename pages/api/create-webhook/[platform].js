@@ -27,6 +27,53 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    const mapTopic = {
+      ORDERS_CREATE: "ORDER_CREATED",
+      ORDERS_CANCELLED: "ORDER_CANCELLED",
+      DISPUTES_CREATE: "ORDER_CHARGEBACKED",
+      FULFILLMENTS_CREATE: "TRACKING_CREATED",
+    };
+
+
+    if (!mapTopic[req.body.topic]) {
+      return {
+        error: "Topic not mapped yet",
+      };
+    }
+
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v3/hooks`,
+      {
+        method: "POST",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        data: {
+          scope: mapTopic[req.body.topic],
+          destination: `${process.env.FRONTEND_URL}${req.body.endpoint}`,
+          is_active: true,
+          events_history_enabled: true,
+          headers: {
+            custom: "JSON"
+          }
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.title) {
+      console.log(data.title);
+      return {
+        error: data.title,
+      };
+    }
+
+    return { success: "Webhook created" };
+  },
   shopify: async (req, res) => {
     const mapTopic = {
       ORDER_CREATED: "ORDERS_CREATE",

@@ -20,7 +20,7 @@ const handler = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).json({
-      error: `${platform} update product endpoint failed, please try again.`,
+      error: `${platform} update product endpoint failed, please try again. ${err}`,
     });
   }
 };
@@ -28,6 +28,28 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    const arr = [];
+
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v3/catalog/products/${req.body.variantId}`,
+      {
+        method: "PUT",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        data: {
+          "price": req.body.price.toString()
+        }
+      }
+    );
+
+    const { data } = await response.json();
+
+    return { updatedVariant: data.price };
+  },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
       `https://${req.body.domain}/admin/api/graphql.json`,
