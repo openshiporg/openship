@@ -31,6 +31,14 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    if (!req.body.id) {
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to cancel order" });
+    }
+    return req.body.id.toString();
+  },
   shopify: async (req, res) => {
     if (!req.body.id) {
       return res

@@ -29,10 +29,10 @@ export default handler;
 const transformer = {
   bigcommerce: async (req, res) => {
     const mapTopic = {
-      ORDERS_CREATE: "ORDER_CREATED",
-      ORDERS_CANCELLED: "ORDER_CANCELLED",
-      DISPUTES_CREATE: "ORDER_CHARGEBACKED",
-      FULFILLMENTS_CREATE: "TRACKING_CREATED",
+      ORDERS_CREATE: "store/order/created",
+      ORDERS_CANCELLED: "store/order/archived",
+      DISPUTES_CREATE: "store/order/refund/created",
+      FULFILLMENTS_CREATE: "store/order/transaction/created",
     };
 
 
