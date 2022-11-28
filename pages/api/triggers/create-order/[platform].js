@@ -27,6 +27,96 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    if (req.body) {
+      const existingShop = await query.Shop.findOne({
+        where: {
+          domain: req.headers["X-Auth-Token"],
+        },
+        query: `
+        id
+        domain
+        accessToken
+        user {
+          id
+          email
+        }
+        links {
+          channel {
+            id
+            name
+          }
+        }
+      `,
+      });
+      const lineItemsOutput = await Promise.all(
+        req.body.line_items.map(
+          async ({
+            id,
+            name,
+            price,
+            quantity,
+            variant_id,
+            product_id,
+            sku,
+          }) => {
+            const pvRes = await fetch(
+              `https://api.bigcommerce.com/stores/${existingShop.domain}/v3/catalog/products/${product_id}/variants/${variant_id}`,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Auth-Token": existingShop.accessToken,
+                  "Accept": "application/json"
+                },
+                method: "POST",
+              }
+            );
+
+            const { data: pvData, errors: pvError } = await pvRes.json();
+
+            if (pvData) {
+              return {
+                name,
+                price,
+                lineItemId: id.toString(),
+                quantity,
+                image: pvData.image_url,
+                productId: product_id.toString(),
+                variantId: variant_id.toString(),
+                sku: sku.toString(),
+                user: { connect: { id: existingShop.user.id } },
+              };
+            }
+            return null;
+          }
+        )
+      );
+      return {
+        orderId: req.body.id,
+        orderName: req.body.name,
+        email: req.body.email,
+        first_name: req.body.shipping_address.first_name,
+        last_name: req.body.shipping_address.last_name,
+        streetAddress1: req.body.shipping_address.address1,
+        streetAddress2: req.body.shipping_address.address2,
+        city: req.body.shipping_address.city,
+        state: req.body.shipping_address.province_code,
+        zip: req.body.shipping_address.zip,
+        country: req.body.shipping_address.country_code,
+        shippingMethod: req.body.shipping_lines,
+        currency: req.body.currency,
+        phoneNumber: req.body.shipping_address.phone,
+        note: req.body.note,
+        lineItems: { create: lineItemsOutput },
+        user: { connect: { id: existingShop.user.id } },
+        shop: { connect: { id: existingShop.id } },
+        status: "INPROCESS",
+        linkOrder: true,
+        matchOrder: true,
+        processOrder: true,
+      };
+    }
+  },
   shopify: async (req, res) => {
     if (req.body) {
       const existingShop = await query.Shop.findOne({

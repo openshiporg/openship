@@ -1,4 +1,5 @@
 import { gql, GraphQLClient } from "graphql-request";
+import BigCommerce from "node-bigcommerce";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -20,7 +21,7 @@ const handler = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).json({
-      error: `${platform} search products endpoint failed, please try again.`,
+      error: `${platform} search products endpoint failed, please try again. ${req.query.domain}, ${err}`,
     });
   }
 };
@@ -45,7 +46,6 @@ const transformer = {
     const { data } = await response.json();
 
     data.forEach(({ id, price, primary_image, name, availability, images }) => {
-      // console.log({ images });
       const newData = {
         image: images[0]?.url_thumbnail,
         title: name,

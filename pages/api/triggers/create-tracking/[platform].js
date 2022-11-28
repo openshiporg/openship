@@ -28,6 +28,22 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: (req, res) => {
+    if (
+      !req.body.tracking_numbers?.length > 0 ||
+      !req.body.tracking_company ||
+      !req.body.order_id
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
+    }
+    return {
+      purchaseId: req.body.order_id.toString(),
+      trackingNumber: req.body.tracking_numbers[0],
+      trackingCompany: req.body.tracking_company,
+    };
+  },
   shopify: (req, res) => {
     if (
       !req.body.tracking_numbers?.length > 0 ||
