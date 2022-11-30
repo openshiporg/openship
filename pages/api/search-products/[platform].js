@@ -1,5 +1,4 @@
 import { gql, GraphQLClient } from "graphql-request";
-import BigCommerce from "node-bigcommerce";
 
 const handler = async (req, res) => {
   const { platform } = req.query;

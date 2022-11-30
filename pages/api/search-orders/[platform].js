@@ -1,5 +1,4 @@
 import { gql, GraphQLClient } from "graphql-request";
-import BigCommerce from "node-bigcommerce";
 import walmartMarketplaceApi, {
   OrdersApi,
   ItemsApi,
@@ -71,6 +70,17 @@ const transformer = {
     })
 
     const result = await Promise.all(promises)
+    const productPromises = result.map((([shippingData, productData]) => {
+      return fetch(`https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${productData.product_id}/images`,
+        {
+          method: "GET",
+          headers: headers,
+        }
+      ).then(res => res.json())
+    }))
+
+    const images = await Promise.all(productPromises)
+
     const arr = result.map(([shippingData, productData], key) => {
       const { id, date_created } = data[key]
       const { 
@@ -108,11 +118,11 @@ const transformer = {
           product_id,
           variant_id,
           base_price
-         }) => ({
+         }, key) => ({
           name,
           quantity,
           price: base_price,
-          image: '',
+          image: images[key].data[0].url_zoom,
           productId: variant_id.toString(),
           variantId: product_id.toString(),
           lineItemId: id.toString(),
