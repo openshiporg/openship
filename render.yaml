@@ -3,6 +3,7 @@ services:
   name: openship
   env: node
   plan: free
+  branch: master
   buildCommand: yarn; yarn build
   startCommand: yarn start
   envVars:
