@@ -70,8 +70,8 @@ const transformer = {
     })
 
     const result = await Promise.all(promises)
-    const productPromises = result.map((([shippingData, productData]) => {
-      return fetch(`https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${productData.product_id}/images`,
+    const productPromises = result.map(((value) => {
+      return fetch(`https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${value[1][0].product_id}/images`,
         {
           method: "GET",
           headers: headers,
@@ -118,12 +118,12 @@ const transformer = {
           product_id,
           variant_id,
           base_price
-         }, key) => ({
+         }) => ({
           name,
           quantity,
-          price: base_price,
-          image: images[key].data[0].url_zoom,
-          productId: variant_id.toString(),
+          price: base_price.toString(),
+          image: images[key].data ? images[key].data[0].url_zoom : "",
+          productId: product_id.toString(),
           variantId: product_id.toString(),
           lineItemId: id.toString(),
         }))

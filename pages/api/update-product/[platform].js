@@ -48,7 +48,7 @@ const transformer = {
 
     const { data } = await response.json();
 
-    return { updatedVariant: data.price };
+    return { updatedVariant: data };
   },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(

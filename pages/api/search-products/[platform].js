@@ -48,10 +48,10 @@ const transformer = {
       const newData = {
         image: images[0]?.url_thumbnail,
         title: name,
-        productId: id,
-        price: price,
+        productId: id.toString(),
+        price: price.toString(),
         availableForSale: availability === "available",
-        variantId: id,
+        variantId: id.toString(),
       };
       arr.push(newData);
     });

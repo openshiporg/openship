@@ -77,7 +77,7 @@ const transformer = {
             if (pvData) {
               return {
                 name,
-                price,
+                price: price.toString(),
                 lineItemId: id.toString(),
                 quantity,
                 image: pvData.image_url,
