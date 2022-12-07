@@ -32,7 +32,7 @@ const transformer = {
       ORDERS_CREATE: "store/order/created",
       ORDERS_CANCELLED: "store/order/archived",
       ORDER_CHARGEBACKED: "store/order/refund/created",
-      TRACKING_CREATED: "store/order/shipment/created",
+      TRACKING_CREATED: "store/shipment/created",
     };
 
 
@@ -41,6 +41,16 @@ const transformer = {
         error: "Topic not mapped yet",
       };
     }
+
+    console.log({
+      "scope": mapTopic[req.body.topic],
+      "destination": `${process.env.FRONTEND_URL}${req.body.endpoint}`,
+      "is_active": true,
+      "events_history_enabled": true,
+      "headers": {
+        "custom": "JSON"
+      }
+    });
 
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.body.domain}/v3/hooks`,
@@ -52,12 +62,12 @@ const transformer = {
           "Accept": "application/json"
         },
         data: {
-          scope: mapTopic[req.body.topic],
-          destination: `${process.env.FRONTEND_URL}${req.body.endpoint}`,
-          is_active: true,
-          events_history_enabled: true,
-          headers: {
-            custom: "JSON"
+          "scope": mapTopic[req.body.topic],
+          "destination": `${process.env.FRONTEND_URL}${req.body.endpoint}`,
+          "is_active": true,
+          "events_history_enabled": true,
+          "headers": {
+            "custom": "JSON"
           }
         }
       }
