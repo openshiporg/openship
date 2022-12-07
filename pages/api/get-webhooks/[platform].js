@@ -28,7 +28,7 @@ const transformer = {
       ORDERS_CREATE: "store/order/created",
       ORDERS_CANCELLED: "store/order/archived",
       DISPUTES_CREATE: "store/order/refund/created",
-      FULFILLMENTS_CREATE: "store/order/transaction/created",
+      FULFILLMENTS_CREATE: "store/order/shipment/created",
     };
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.query.domain}/v3/hooks`,

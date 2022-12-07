@@ -31,8 +31,8 @@ const transformer = {
     const mapTopic = {
       ORDERS_CREATE: "store/order/created",
       ORDERS_CANCELLED: "store/order/archived",
-      DISPUTES_CREATE: "store/order/refund/created",
-      FULFILLMENTS_CREATE: "store/order/transaction/created",
+      ORDER_CHARGEBACKED: "store/order/refund/created",
+      TRACKING_CREATED: "store/order/shipment/created",
     };
 
 
