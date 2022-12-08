@@ -1,4 +1,4 @@
-import { gql, GraphQLClient } from "graphql-request";
+import { gql, GraphQLClient, request } from "graphql-request";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -29,6 +29,106 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  bigcommerce: async (req, res) => {
+    console.log("****data*****",req.body.domain,req.body.orderId)
+
+    const query = gql`
+      {
+        order (
+          where: {
+            id: "${req.body.orderId}"
+          }
+        ) {
+          orderId
+        }
+      }
+    `
+    console.log("^^^^^^query^^^^^",query);
+
+    const data = await request("https://michael.myopenship.com/api/graphql", query);
+
+    console.log("!!!!!!!!!!!!!!",data)
+
+    const order_id = data.order.orderId;
+
+    console.log("~~~~orderid~~~~~",order_id)
+
+    const orderResponse = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      }
+    )
+    const orderData = await orderResponse.json();
+    console.log("-------OrderData---------", orderData)
+
+    const shippingResponse = await fetch(
+      orderData.shipping_addresses.url,
+      {
+        method: "GET",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      }
+    )
+
+    const shippingData = await shippingResponse.json();
+
+    const productsResponse = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}/products`,
+      {
+        method: "GET",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      }
+    )
+
+    const productsData = await productsResponse.json()
+
+    const shopItems = req.body.cartItems.map((value, index) => {
+      const product = productsData.filter(({product_id}) => (product_id === value.variantId))
+      return {
+        order_product_id: product[0].id,
+        quantity: value.quantity > product[0].quantity ? product[0].quantity : value.quantity
+      }
+    });
+
+    const response = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}/shipments`,
+      {
+        method: "POST",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        data: {
+          order_address_id: shippingData[0].id,
+          shipping_method: shippingData[0].shipping_method,
+          shipping_provider: shippingData[0].shipping_provider ? shippingData[0].shipping_provider : "usps",
+          comments: "Openship order placed",
+          items: shopItems
+        }
+      }
+    )
+
+    const result = await response.json()
+
+    return {
+      url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders`,
+      purchaseId: order_id,
+    };
+  },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
       `https://${req.body.domain}/admin/api/graphql.json`,
