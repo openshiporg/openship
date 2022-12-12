@@ -30,81 +30,14 @@ export default handler;
 
 const transformer = {
   bigcommerce: async (req, res) => {
-    console.log("****data*****",req.body.domain,req.body.orderId)
 
-    const query = gql`
-      {
-        order (
-          where: {
-            id: "${req.body.orderId}"
-          }
-        ) {
-          orderId
-        }
-      }
-    `
-    console.log("^^^^^^query^^^^^",query);
-
-    const data = await request("https://michael.myopenship.com/api/graphql", query);
-
-    console.log("!!!!!!!!!!!!!!",data)
-
-    const order_id = data.order.orderId;
-
-    console.log("~~~~orderid~~~~~",order_id)
-
-    const orderResponse = await fetch(
-      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": req.body.accessToken,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
-      }
-    )
-    const orderData = await orderResponse.json();
-    console.log("-------OrderData---------", orderData)
-
-    const shippingResponse = await fetch(
-      orderData.shipping_addresses.url,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": req.body.accessToken,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
-      }
-    )
-
-    const shippingData = await shippingResponse.json();
-
-    const productsResponse = await fetch(
-      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}/products`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": req.body.accessToken,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
-      }
-    )
-
-    const productsData = await productsResponse.json()
-
-    const shopItems = req.body.cartItems.map((value, index) => {
-      const product = productsData.filter(({product_id}) => (product_id === value.variantId))
-      return {
-        order_product_id: product[0].id,
-        quantity: value.quantity > product[0].quantity ? product[0].quantity : value.quantity
-      }
-    });
+    const shopItems = req.body.cartItems.map(({ productId, quantity }) => ({
+      product_id: productId,
+      quantity,
+    }));
 
     const response = await fetch(
-      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders/${order_id}/shipments`,
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders`,
       {
         method: "POST",
         headers: {
@@ -113,20 +46,62 @@ const transformer = {
           "Accept": "application/json"
         },
         data: {
-          order_address_id: shippingData[0].id,
-          shipping_method: shippingData[0].shipping_method,
-          shipping_provider: shippingData[0].shipping_provider ? shippingData[0].shipping_provider : "usps",
-          comments: "Openship order placed",
-          items: shopItems
+          billing_address: {
+            first_name: req.body.address.first_name,
+            last_name: req.body.address.last_name,
+            street_1: req.body.address.streetAddress1,
+            city: req.body.address.city,
+            state: req.body.address.state,
+            zip: req.body.address.zip,
+            country: "United States",
+            country_iso2: "US",
+            email: req.body.metafields.Email || req.body.email
+          },
+          shipping_addresses: {
+            first_name: req.body.address.first_name,
+            last_name: req.body.address.last_name,
+            street_1: req.body.address.streetAddress1,
+            city: req.body.address.city,
+            state: req.body.address.state,
+            zip: req.body.address.zip,
+            country: "United States",
+            country_iso2: "US",
+            email: req.body.metafields.Email || req.body.email,
+            shipping_method: "Free shipping",
+          },
+          status_id: 11,
+          staff_notes: "Openship order placed",
+          products: shopItems
         }
       }
     )
 
-    const result = await response.json()
+    const data = await response.json();
+
+    console.log("-----data------",data,{
+      url: "https://store-eqxsn1hwxh.mybigcommerce.com/manage/orders/draft-orders",
+      purchaseId: data.cart_id,
+    },{
+      shipping_addresses: {
+        first_name: req.body.address.first_name,
+        last_name: req.body.address.last_name,
+        street_1: req.body.address.streetAddress1,
+        city: req.body.address.city,
+        state: req.body.address.state,
+        zip: req.body.address.zip,
+        country: "United States",
+        country_iso2: "US",
+        email: req.body.metafields.Email || req.body.email,
+        shipping_method: "Free shipping",
+      },
+      status_id: 11,
+      staff_notes: "Openship order placed",
+      products: shopItems
+    })
 
     return {
-      url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders`,
-      purchaseId: order_id,
+      url: "https://store-eqxsn1hwxh.mybigcommerce.com/manage/orders/draft-orders",
+      purchaseId: data.cart_id,
     };
   },
   shopify: async (req, res) => {

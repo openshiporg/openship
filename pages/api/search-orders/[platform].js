@@ -41,7 +41,7 @@ const transformer = {
     };
 
     const response = await fetch(
-      `https://api.bigcommerce.com/stores/${req.query.domain}/v2/orders`,
+      `https://api.bigcommerce.com/stores/${req.query.domain}/v2/orders?is_deleted=false`,
       {
         method: "GET",
         headers: headers,
