@@ -40,9 +40,9 @@ const transformer = {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        data: {
+        body: JSON.stringify({
           "price": req.body.price.toString()
-        }
+        })
       }
     );
 

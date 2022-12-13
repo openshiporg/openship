@@ -61,7 +61,7 @@ const transformer = {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        data: {
+        body: JSON.stringify({
           "scope": mapTopic[req.body.topic],
           "destination": `${process.env.FRONTEND_URL}${req.body.endpoint}`,
           "is_active": true,
@@ -69,7 +69,7 @@ const transformer = {
           "headers": {
             "custom": "JSON"
           }
-        }
+        })
       }
     );
 

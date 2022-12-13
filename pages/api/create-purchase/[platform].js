@@ -36,6 +36,20 @@ const transformer = {
       quantity,
     }));
 
+    const customerResponse = await fetch(
+      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/customers?email=${req.body.email}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Auth-Token": req.body.accessToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
+      }
+    )
+
+    const customer = await customerResponse.json()
+
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders`,
       {
@@ -45,7 +59,7 @@ const transformer = {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        data: {
+        body: JSON.stringify({
           billing_address: {
             first_name: req.body.address.first_name,
             last_name: req.body.address.last_name,
@@ -57,22 +71,26 @@ const transformer = {
             country_iso2: "US",
             email: req.body.metafields.Email || req.body.email
           },
-          shipping_addresses: {
+          shipping_addresses: [{
             first_name: req.body.address.first_name,
             last_name: req.body.address.last_name,
             street_1: req.body.address.streetAddress1,
+            street_2: req.body.address.streetAddress2,
+            company: "",
+            phone: "",
             city: req.body.address.city,
             state: req.body.address.state,
             zip: req.body.address.zip,
             country: "United States",
             country_iso2: "US",
             email: req.body.metafields.Email || req.body.email,
-            shipping_method: "Free shipping",
-          },
+            shipping_method: "Free Shipping",
+          }],
           status_id: 11,
           staff_notes: "Openship order placed",
-          products: shopItems
-        }
+          products: shopItems,
+          customer_id: Array.isArray(customer) ? customer[0].id : 0
+        })
       }
     )
 
