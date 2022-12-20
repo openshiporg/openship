@@ -29,6 +29,7 @@ export default handler;
 
 const transformer = {
   bigcommerce: (req, res) => {
+    console.log("~~~Tracking~~~~", req.body);
     if (
       !req.body.tracking_numbers?.length > 0 ||
       !req.body.tracking_company ||

@@ -28,7 +28,7 @@ const transformer = {
       ORDERS_CREATE: "store/order/created",
       ORDERS_CANCELLED: "store/order/archived",
       DISPUTES_CREATE: "store/order/refund/created",
-      FULFILLMENTS_CREATE: "store/order/shipment/created",
+      SHIPMENTS_CREATE: "store/shipment/created",
     };
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.query.domain}/v3/hooks`,
@@ -51,10 +51,12 @@ const transformer = {
         id,
         createdAt: created_at,
         callbackUrl: destination.replace(process.env.FRONTEND_URL, ""),
-        topic: mapTopic[scope],
+        topic: Object.keys(mapTopic).find(key => mapTopic[key].includes(scope)),
         includeFields: []
       }
     ))
+
+    console.log("~~~Array~~~",arr);
 
     return { webhooks: arr };
   },
