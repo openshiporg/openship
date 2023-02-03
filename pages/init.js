@@ -48,7 +48,7 @@ export default function Init({ noShadow, noPadding, noLogo, noSubmit, style }) {
 
     validationRules: {
       email: (value) => /^\S+@\S+$/.test(value),
-      password: (value) => /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(value),
+      password: (value) => /^(?=.*[A-Za-z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/.test(value),
     },
 
     errorMessages: {
