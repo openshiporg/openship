@@ -50,7 +50,7 @@ export default function SignUp({ style, devMode }) {
 
     validationRules: {
       email: (value) => /^\S+@\S+$/.test(value),
-      password: (value) => /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(value),
+      password: (value) => /^(?=.*[A-Za-z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/.test(value),
     },
 
     errorMessages: {
