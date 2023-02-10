@@ -59,12 +59,11 @@ export const ChannelForm = ({
             rightSectionWidth={rightSectionWidth}
             styles={{
               rightSection: {
-                width: 140,
                 color:
                   theme.colorScheme === "dark"
                     ? theme.colors.dark[9]
                     : theme.colors.blueGray[5],
-
+  
                 top: 20,
                 bottom: 1,
                 borderTopRightRadius: 4,

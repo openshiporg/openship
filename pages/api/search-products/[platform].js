@@ -156,4 +156,36 @@ const transformer = {
     }
     return { products: allProducts };
   },
+  torod: async (req, res) => {
+    const { searchEntry, productId, variantId } = req.query;
+
+    const allProducts = [
+      {
+        image:
+          "https://images.pexels.com/photos/531844/pexels-photo-531844.jpeg?cs=srgb&dl=pexels-pixabay-531844.jpg&fm=jpg&h=120&w=100&fit=crop",
+        title: "Pocket Book",
+        productId: "887262",
+        variantId: "0",
+        price: "9.99",
+        availableForSale: true,
+      },
+    ];
+    if (searchEntry) {
+      const products = allProducts.filter((product) =>
+        product.title.includes(searchEntry)
+      );
+      return { products };
+    }
+    if (productId && variantId) {
+      const products = allProducts.filter(
+        (product) =>
+          product.productId === productId && product.variantId === variantId
+      );
+      if (products.length > 0) {
+        return { products };
+      }
+      return { error: "Not found" };
+    }
+    return { products: allProducts };
+  },
 };

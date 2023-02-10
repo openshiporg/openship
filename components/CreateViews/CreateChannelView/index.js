@@ -114,7 +114,7 @@ export const CreateChannelView = ({ showModal, setShowModal }) => {
           name: "shop",
           placeholder: "centralbikeshop",
           rightSection: ".mybigcommerce.com",
-          rightSectionWidth: 190
+          rightSectionWidth: 190,
         },
       ],
       handleSubmit: (values) =>
@@ -166,8 +166,27 @@ export const CreateChannelView = ({ showModal, setShowModal }) => {
         },
       ],
       metafields: [
-        { title: "Client ID", name: "client_id", placeholder: "FTYGYU324YPLY" },
-        { title: "Client Secret", name: "client_secret", placeholder: "BH234IHNI234" },
+        { title: "Client ID", name: "ClientID", placeholder: "FTYGYU324YPLY" },
+        {
+          title: "Client Secret",
+          name: "ClientSecret",
+          placeholder: "BH234IHNI234",
+        },
+        {
+          title: "Warehouse",
+          name: "Warehouse",
+          placeholder: "2712RSSFCA",
+        },
+        {
+          title: "Warehouse Name",
+          name: "WarehouseName",
+          placeholder: "San Francisco Warehouse #1",
+        },
+        {
+          title: "Warehouse Address",
+          name: "WarehouseAddress",
+          placeholder: "2712 Roosevelt Street San Francisco, CA 94112",
+        },
       ],
       handleSubmit: ({ metafields, ...values }) =>
         createChannel({

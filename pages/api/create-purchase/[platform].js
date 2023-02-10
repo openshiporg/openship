@@ -1,4 +1,5 @@
 import { gql, GraphQLClient } from "graphql-request";
+import FormData from "form-data";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -206,6 +207,157 @@ const transformer = {
     return {
       url: `https://${req.body.domain}/shipping/express/load/${rfesponse.shippingOrders[0].id}`,
       purchaseId: req.body.orderName.toString(),
+    };
+  },
+  torod: async (req, res) => {
+    const headers = {
+      Accept: "application/json",
+      Authorization: `Bearer ${req.body.accessToken}`,
+    };
+    // 1. Check the address list for Warehouse Address
+    const checkAddressResponse = await fetch(
+      `${req.body.domain}/address/list`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+    const checkAddressResult = await checkAddressResponse.json();
+
+    console.log(checkAddressResult.data);
+
+    if (checkAddressResult.status === 405) {
+      return {
+        error: `Access denied. Token may be invalid.`,
+      };
+    }
+
+    const filteredAddress = checkAddressResult.data.filter(
+      ({ warehouse }) => warehouse === req.body.metafields.Warehouse
+    )[0];
+
+    let warehouseID;
+
+    if (!filteredAddress) {
+      console.log("filteredObject does not exist");
+      // Create a new address
+
+      var createAddressFormdata = FormData();
+      createAddressFormdata.append(
+        "warehouse_name",
+        req.body.metafields.WarehouseName
+      );
+      createAddressFormdata.append("warehouse", req.body.metafields.Warehouse);
+      createAddressFormdata.append("contact_name", "John Doe");
+      createAddressFormdata.append("phone_number", "966555555555");
+      createAddressFormdata.append("email", "johndoe@torod.co");
+      createAddressFormdata.append("zip_code", "123123");
+      createAddressFormdata.append("type", "address");
+      createAddressFormdata.append(
+        "locate_address",
+        req.body.metafields.WarehouseAddress
+      );
+
+      const createAddressResponse = await fetch(
+        "https://demo.stage.torod.co/en/api/create/address",
+        {
+          method: "POST",
+          headers,
+          body: createAddressFormdata,
+          redirect: "follow",
+        }
+      );
+
+      const createdAddress = await createAddressResponse.json();
+
+      console.log(req.body.metafields.WarehouseAddress);
+      console.log({ createdAddress });
+
+      warehouseID = createdAddress.data.id;
+    } else {
+      console.log("filteredObject does exist");
+      // Get the existing warehouse ID
+      warehouseID = filteredAddress.id;
+    }
+
+    // return {
+    //   error: `Access denied. Token may be invalid.`,
+    // };
+
+    // 2. Create an order
+
+    var createOrderFormdata = FormData();
+    createOrderFormdata.append(
+      "name",
+      `${req.body.address.first_name} ${req.body.address.last_name}`
+    );
+    createOrderFormdata.append("email", req.body.email);
+    createOrderFormdata.append("phone_number", 966555555555);
+    createOrderFormdata.append("item_description", "Mobile case covers");
+    createOrderFormdata.append("order_total", "1000");
+    createOrderFormdata.append("payment", "Prepaid");
+    createOrderFormdata.append("weight", "20");
+    createOrderFormdata.append("no_of_box", "1");
+    createOrderFormdata.append("type", "address");
+    createOrderFormdata.append(
+      "locate_address",
+      `${req.body.address.streetAddress1} ${req.body.address.streetAddress2} ${req.body.address.city} ${req.body.address.state} ${req.body.address.country}`
+    );
+
+    const createOrderResponse = await fetch(`${req.body.domain}/order/create`, {
+      method: "POST",
+      headers,
+      body: createOrderFormdata,
+    });
+    const createdOrder = await createOrderResponse.json();
+
+    console.log({ createdOrder });
+
+    // 3. Get the courier partner ID
+    var getCourierPartnerFormdata = FormData();
+    getCourierPartnerFormdata.append("order_id", createdOrder.data.order_id);
+    getCourierPartnerFormdata.append(
+      "warehouse",
+      req.body.metafields.Warehouse
+    );
+    getCourierPartnerFormdata.append("type", "normal");
+    getCourierPartnerFormdata.append("filter_by", "cheapest");
+
+    const getCourierPartnerResponse = await fetch(
+      `${req.body.domain}/courier/partners`,
+      {
+        method: "POST",
+        headers,
+        body: getCourierPartnerFormdata,
+      }
+    );
+    const courierPartner = await getCourierPartnerResponse.json();
+
+    console.log({ courierPartner });
+
+    var orderShipProcessFormdata = FormData();
+    orderShipProcessFormdata.append("order_id", createdOrder.data.order_id);
+    orderShipProcessFormdata.append("warehouse", req.body.metafields.Warehouse);
+    orderShipProcessFormdata.append("type", "normal");
+    orderShipProcessFormdata.append("courier_partner_id", courierPartner.data[0].id);
+    orderShipProcessFormdata.append("is_own", 0);
+    orderShipProcessFormdata.append("is_insurance", 0);
+
+    const orderShipProcessResponse = await fetch(
+      `${req.body.domain}/order/ship/process`,
+      {
+        method: "POST",
+        headers,
+        body: orderShipProcessFormdata,
+      }
+    );
+    const shippedOrder = await orderShipProcessResponse.json();
+
+    console.log({ shippedOrder });
+
+    return {
+      url: shippedOrder.data.aws_label,
+      purchaseId: createdOrder.data.order_id,
     };
   },
 };
