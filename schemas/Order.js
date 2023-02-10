@@ -62,9 +62,12 @@ export const Order = list({
           `,
         });
 
-        console.log("New order created", order);
+        // console.log("linkOrder", item.linkOrder);
 
         if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
+          console.log("linkOrder", item.linkOrder);
+          console.log("linkedOrderFound", order.shop?.links[0]?.channel?.id);
+
           const cartItemsFromLink = await sudoContext.query.CartItem.createMany(
             {
               data: order.lineItems.map((c) => ({
@@ -157,7 +160,11 @@ export const Order = list({
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
           // Default to the currently logged in user on create.
-          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+          if (
+            operation === "create" &&
+            !resolvedData.user &&
+            context.session?.itemId
+          ) {
             return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;
