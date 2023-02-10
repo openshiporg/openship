@@ -40,6 +40,9 @@ export const Order = list({
           where: { id: item.id },
           query: `
             id
+            user {
+              id
+            }
             shop {
               name
               links {
@@ -76,9 +79,13 @@ export const Order = list({
                   connect: { id: order.shop?.links[0]?.channel?.id },
                 },
                 order: { connect: { id: item.id } },
+                user: { connect: { id: order.user?.id } },
               })),
             }
           );
+
+          console.log({ cartItemsFromLink });
+
           if (item.processOrder) {
             const processedOrder = await placeMultipleOrders({
               ids: [item.id],
