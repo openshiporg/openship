@@ -1,5 +1,6 @@
 import { gql, GraphQLClient } from "graphql-request";
 import FormData from "form-data";
+import { query } from ".keystone/api";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -210,6 +211,7 @@ const transformer = {
     };
   },
   torod: async (req, res) => {
+    console.log(req.body);
     const headers = {
       Accept: "application/json",
       Authorization: `Bearer ${req.body.accessToken}`,
@@ -224,17 +226,35 @@ const transformer = {
     );
     const checkAddressResult = await checkAddressResponse.json();
 
-    console.log(checkAddressResult.data);
+    console.log(checkAddressResult);
 
-    if (checkAddressResult.status === 405) {
+    if (checkAddressResult.code === 401) {
+      var tokenFormdata = FormData();
+      tokenFormdata.append("client_id", req.body.metafields.ClientID);
+      tokenFormdata.append("client_secret", req.body.metafields.ClientSecret);
+      const tokenResponse = await fetch(`${req.body.domain}/token`, {
+        method: "POST",
+        headers,
+        body: tokenFormdata,
+      });
+      const token = await tokenResponse.json();
+      console.log({ token });
       return {
         error: `Access denied. Token may be invalid.`,
       };
     }
 
-    const filteredAddress = checkAddressResult.data.filter(
+    if (checkAddressResult.code === 405) {
+      return {
+        error: `Access denied. Token may be invalid.`,
+      };
+    }
+
+    const filteredAddress = checkAddressResult?.data?.filter(
       ({ warehouse }) => warehouse === req.body.metafields.Warehouse
     )[0];
+
+    console.log({ filteredAddress });
 
     let warehouseID;
 
@@ -293,7 +313,6 @@ const transformer = {
     );
     createOrderFormdata.append("email", req.body.email);
     createOrderFormdata.append("phone_number", 966555555555);
-    createOrderFormdata.append("item_description", "Mobile case covers");
     createOrderFormdata.append("order_total", "1000");
     createOrderFormdata.append("payment", "Prepaid");
     createOrderFormdata.append("weight", "20");
@@ -302,6 +321,21 @@ const transformer = {
     createOrderFormdata.append(
       "locate_address",
       `${req.body.address.streetAddress1} ${req.body.address.streetAddress2} ${req.body.address.city} ${req.body.address.state} ${req.body.address.country}`
+    );
+    createOrderFormdata.append(
+      "item_description",
+      JSON.stringify(
+        req.body.cartItems.map(
+          ({ id, productId, variantId, sku, name, quantity, price }) => ({
+            id,
+            name,
+            sku,
+            quantity,
+            weight: 5,
+            price,
+          })
+        )
+      )
     );
 
     const createOrderResponse = await fetch(`${req.body.domain}/order/create`, {
@@ -339,7 +373,10 @@ const transformer = {
     orderShipProcessFormdata.append("order_id", createdOrder.data.order_id);
     orderShipProcessFormdata.append("warehouse", req.body.metafields.Warehouse);
     orderShipProcessFormdata.append("type", "normal");
-    orderShipProcessFormdata.append("courier_partner_id", courierPartner.data[0].id);
+    orderShipProcessFormdata.append(
+      "courier_partner_id",
+      courierPartner.data[0].id
+    );
     orderShipProcessFormdata.append("is_own", 0);
     orderShipProcessFormdata.append("is_insurance", 0);
 

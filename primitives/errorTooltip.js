@@ -17,7 +17,7 @@ export function ErrorTooltip({ onClick, label, buttonText }) {
 
   return (
     <Group spacing={0} sx={{ flexWrap: "nowrap", height: 22 }}>
-      <Tooltip label="Ackwoledge Error" position="top-start">
+      <Tooltip label="Acknowledge Error" position="top-start">
         <ActionIcon
           radius={5}
           sx={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}

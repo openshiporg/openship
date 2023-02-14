@@ -367,7 +367,7 @@ export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
                   key={Math.ceil(skip / orderPerPage) + 1}
                   // value={skip + 1}
                   min={1}
-                  max={pageCount ?? 9999}
+                  {...(pageCount && { max: pageCount })}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       if (
