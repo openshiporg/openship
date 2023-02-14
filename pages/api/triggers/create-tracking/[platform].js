@@ -13,7 +13,6 @@ const handler = async (req, res) => {
     res
   );
 
-
   const createdTracking = await query.TrackingDetail.createOne({
     data: {
       trackingNumber,
@@ -74,6 +73,18 @@ const transformer = {
       purchaseId: req.body.shippingOrder.purchaseOrder,
       trackingNumber: req.body.shippingOrder.trackingNumber[0],
       trackingCompany: req.body.shippingOrder.carrier.name,
+    };
+  },
+  torod: (req, res) => {
+    if (!req.body.order_id || !req.body.tracking_id) {
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
+    }
+    return {
+      purchaseId: req.body.order_id,
+      trackingNumber: req.body.tracking_id,
+      trackingCompany: "TOROD",
     };
   },
 };

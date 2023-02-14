@@ -53,4 +53,12 @@ const transformer = {
     }
     return req.body.id.toString();
   },
+  torod: async (req, res) => {
+    if (!req.body.order_id) {
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to cancel cart item" });
+    }
+    return req.body.order_id.toString();
+  },
 };
