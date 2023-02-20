@@ -35,7 +35,11 @@ export const TrackingDetail = list({
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
           // Default to the currently logged in user on create.
-          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+          if (
+            operation === "create" &&
+            !resolvedData.user &&
+            context.session?.itemId
+          ) {
             return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;
@@ -45,6 +49,17 @@ export const TrackingDetail = list({
     ...trackingFields,
   },
   hooks: {
+    resolveInput: async ({ operation, resolvedData, context }) => {
+      // Default to the currently logged in user on create.
+      if (
+        operation === "create" &&
+        !resolvedData.user &&
+        context.session?.itemId
+      ) {
+        return { connect: { id: context.session?.itemId } };
+      }
+      return resolvedData.user;
+    },
     afterOperation: async ({ operation, item, context }) => {
       if (operation === "create") {
         const sudoContext = context.sudo();
@@ -57,6 +72,9 @@ export const TrackingDetail = list({
             query:
               "id quantity order { id orderId shop { domain accessToken } }",
           });
+
+          console.log({ foundCartItems });
+
           const addCartItemsToTracking =
             await sudoContext.query.TrackingDetail.updateOne({
               where: { id: item.id },
