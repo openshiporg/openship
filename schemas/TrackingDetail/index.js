@@ -49,20 +49,6 @@ export const TrackingDetail = list({
     ...trackingFields,
   },
   hooks: {
-    resolveInput: async ({ operation, resolvedData, context }) => {
-      // Default to the currently logged in user on create.
-      console.log("resolvedData", resolvedData.user)
-      console.log("context", context.session?.itemId)
-
-      if (
-        operation === "create" &&
-        !resolvedData.user &&
-        context.session?.itemId
-      ) {
-        return { connect: { id: context.session?.itemId } };
-      }
-      return resolvedData.user;
-    },
     afterOperation: async ({ operation, item, context }) => {
       if (operation === "create") {
         const sudoContext = context.sudo();
