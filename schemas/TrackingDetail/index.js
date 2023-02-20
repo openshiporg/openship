@@ -51,6 +51,9 @@ export const TrackingDetail = list({
   hooks: {
     resolveInput: async ({ operation, resolvedData, context }) => {
       // Default to the currently logged in user on create.
+      console.log("resolvedData", resolvedData.user)
+      console.log("context", context.session?.itemId)
+
       if (
         operation === "create" &&
         !resolvedData.user &&
