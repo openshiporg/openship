@@ -10,6 +10,7 @@ import {
   Group,
   Tooltip,
   Modal,
+  Checkbox,
 } from "@mantine/core";
 import { mutate } from "swr";
 import { CREATE_ORDER, ORDER_COUNT_QUERY, UPDATE_ORDER } from "@graphql/orders";
@@ -65,6 +66,7 @@ export const CreateOrderView = ({
             ...item,
           })) ?? []
         ),
+        processOrder: false,
       }
     : {
         status: "PENDING",
@@ -82,6 +84,7 @@ export const CreateOrderView = ({
         channelId: channelData?.channels[0]?.id,
         lineItems: formList([]),
         cartItems: formList([]),
+        processOrder: false,
       };
 
   const form = useForm({
@@ -144,6 +147,11 @@ export const CreateOrderView = ({
             })
           ),
         },
+        ...(values.processOrder === "TRUE" && {
+          linkOrder: true,
+          matchOrder: true,
+          processOrder: true,
+        }),
       }),
     })
       .then(async () => {
@@ -404,6 +412,76 @@ export const CreateOrderView = ({
                 }
               />
             )}
+            <Select
+              label="Process Order"
+              // itemComponent={SelectItem}
+              data={["FALSE", "TRUE"]}
+              maxDropdownHeight={400}
+              nothingFound="Nobody here"
+              defaultValue="FALSE"
+              // variant="unstyled"
+              size="md"
+              mt={20}
+              styles={{
+                root: {
+                  position: "relative",
+                },
+
+                input: {
+                  fontWeight: 600,
+                  color:
+                    theme.colorScheme === "light"
+                      ? theme.colors.gray[6]
+                      : theme.colors.dark[0],
+                  height: "auto",
+                  paddingTop: 18,
+                  paddingLeft: 13,
+                  border: `1px solid ${
+                    theme.colors.blueGray[theme.colorScheme === "dark" ? 7 : 2]
+                  }`,
+                  boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+                  // fontSize: "16px !important",
+                  background:
+                    theme.colorScheme === "dark"
+                      ? theme.colors.dark[5]
+                      : theme.fn.lighten(theme.colors.blueGray[0], 0.5),
+                  "&:focus, &:focus-within": {
+                    outline: "none",
+                    borderColor: `${
+                      theme.colors[theme.primaryColor][
+                        theme.colorScheme === "dark" ? 8 : 5
+                      ]
+                    } !important`,
+                  },
+                },
+
+                required: {
+                  display: "none",
+                  // ":before": { marginLeft: "auto", content: '" required"' },
+                },
+
+                error: {
+                  fontSize: 14,
+                },
+
+                label: {
+                  position: "absolute",
+                  pointerEvents: "none",
+                  color:
+                    theme.colors.blueGray[theme.colorScheme === "dark" ? 2 : 6],
+                  fontSize: theme.fontSizes.xs,
+                  paddingLeft: 14,
+                  paddingTop: 6,
+                  zIndex: 1,
+                },
+                item: {
+                  fontWeight: 600,
+                  marginTop: 3,
+                },
+              }}
+              // rightSection={<ArrowDownIcon />}
+              {...form.getInputProps("processOrder")}
+            />
           </Box>
         </Group>
         <Box sx={{ display: "flex", width: "100%" }}>
