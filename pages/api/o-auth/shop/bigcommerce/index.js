@@ -1,5 +1,3 @@
-import BigCommerce from "node-bigcommerce";
-
 export default async (req, res) => {
   try {
     if (!req.query.shop) {
