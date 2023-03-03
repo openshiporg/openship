@@ -38,17 +38,17 @@ const transformer = {
         headers: {
           "X-Auth-Token": req.body.accessToken,
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          Accept: "application/json",
         },
-        data: {
-          "price": req.body.price.toString()
-        }
+        body: JSON.stringify({
+          price: req.body.price.toString(),
+        }),
       }
     );
 
     const { data } = await response.json();
 
-    return { updatedVariant: data.price };
+    return { updatedVariant: data };
   },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(

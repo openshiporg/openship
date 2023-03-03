@@ -467,19 +467,21 @@ const transformer = {
       quantity,
     }));
 
-    const customerResponse = await fetch(
-      `https://api.bigcommerce.com/stores/${req.body.domain}/v2/customers?email=${req.body.email}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": req.body.accessToken,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      }
-    );
+    // const customerResponse = await fetch(
+    //   `https://api.bigcommerce.com/stores/${req.body.domain}/v2/customers?email=${req.body.email}`,
+    //   {
+    //     method: "GET",
+    //     headers: {
+    //       "X-Auth-Token": req.body.accessToken,
+    //       "Content-Type": "application/json",
+    //       Accept: "application/json",
+    //     },
+    //   }
+    // );
 
-    const customer = await customerResponse.json();
+    // const customer = await customerResponse.json();
+
+    // console.log({ customer });
 
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders`,
@@ -522,17 +524,20 @@ const transformer = {
           status_id: 11,
           staff_notes: "Openship order placed",
           products: shopItems,
-          customer_id: Array.isArray(customer) ? customer[0].id : 0,
+          customer_id: 0,
         }),
       }
     );
 
     const data = await response.json();
-    console.log({ data });
+    // console.log({
+    //   url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
+    //   purchaseId: data.id,
+    // });
 
     return {
-      url: `https://google.com`,
-      purchaseId: data.cart_id,
+      url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
+      purchaseId: data.id.toString(),
     };
   },
 };

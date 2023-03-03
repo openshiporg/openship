@@ -32,7 +32,7 @@ const transformer = {
     const arr = [];
 
     const response = await fetch(
-      `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=images&name:like=${req.query.searchEntry}`,
+      `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=images,variants&name:like=${req.query.searchEntry}`,
       {
         method: "GET",
         headers: {
@@ -44,17 +44,46 @@ const transformer = {
 
     const { data } = await response.json();
 
-    data.forEach(({ id, price, primary_image, name, availability, images }) => {
-      const newData = {
-        image: images[0]?.url_thumbnail,
-        title: name,
-        productId: id.toString(),
-        price: price.toString(),
-        availableForSale: availability === "available",
-        variantId: id.toString(),
-      };
-      arr.push(newData);
-    });
+    // console.log(data[0].variants);
+
+    data.forEach(
+      ({
+        id,
+        base_variant_id,
+        price,
+        primary_image,
+        name,
+        availability,
+        images,
+        variants,
+      }) => {
+        variants.forEach(
+          ({
+            id,
+            product_id,
+            image_url,
+            price: variantPrice,
+            option_values,
+          }) => {
+            console.log({ option_values });
+            const newData = {
+              image: image_url || images[0]?.url_thumbnail || "",
+              title: `${name} ${
+                option_values.length > 0
+                  ? `(${option_values.map((o) => o.label).join("/")})`
+                  : ""
+              }`,
+              productId: product_id.toString(),
+              variantId: id.toString(),
+              price: variantPrice?.toString() || price?.toString() || 0,
+              availableForSale: availability === "available",
+            };
+            // console.log({ newData });
+            arr.push(newData);
+          }
+        );
+      }
+    );
 
     return { products: arr };
   },

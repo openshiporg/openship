@@ -113,8 +113,8 @@ const transformer = {
             quantity,
             price: base_price,
             image: images[key].data ? images[key].data[0].url_zoom : "",
-            productId: variant_id.toString(),
-            variantId: product_id.toString(),
+            productId: product_id.toString(),
+            variantId: variant_id.toString(),
             lineItemId: id.toString(),
           })
         ),
