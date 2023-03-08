@@ -1,4 +1,4 @@
-async function bigcommerce({ order, trackingCompany, trackingNumber }) {
+export async function bigcommerce({ order, trackingCompany, trackingNumber }) {
   const fulfillResponse = await fetch(
     `https://api.bigcommerce.com/stores/${order.shop.domain}/v2/orders/${order.orderId}/shipments`,
     {

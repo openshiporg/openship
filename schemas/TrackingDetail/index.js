@@ -9,9 +9,11 @@ import { list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../../access";
 import { trackingFields } from "../trackingFields";
 import { shopify } from "./addShopTracking/shopify";
+import { bigcommerce } from "./addShopTracking/bigcommerce";
 
 const functions = {
-  shopify: shopify,
+  shopify,
+  bigcommerce
 };
 
 export const TrackingDetail = list({
