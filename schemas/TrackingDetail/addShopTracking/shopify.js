@@ -1,3 +1,5 @@
+import { gql } from "graphql-request";
+
 export async function shopify({ order, trackingCompany, trackingNumber }) {
   const locationResponse = await fetch(
     `https://${order.shop.domain}/admin/api/graphql.json`,
@@ -8,7 +10,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
       },
       method: "POST",
       body: JSON.stringify({
-        query: `query locations {
+        query: gql`query locations {
             locations(first: 1) {
               edges {
                 node {
@@ -26,7 +28,6 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     errors: locErrors,
   } = await locationResponse.json();
 
-
   const location = locations.edges[0].node.id;
 
   const fulfillResponse = await fetch(
@@ -38,7 +39,8 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
       },
       method: "POST",
       body: JSON.stringify({
-        query: `mutation fulfillmentCreate(
+        query: gql`
+          mutation fulfillmentCreate(
             $orderId: ID!
             $locationId: ID!
             $trackingNumbers: [String!]
@@ -58,12 +60,13 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
               fulfillment {
                 id
               }
-              userErrors{
+              userErrors {
                 message
                 field
               }
             }
-          }`,
+          }
+        `,
         variables: {
           orderId: `gid://shopify/Order/${order.orderId}`,
           locationId: location,
@@ -78,7 +81,6 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     data: { fulfillmentCreate },
     errors: fulErrors,
   } = await fulfillResponse.json();
-
 
   if (fulfillmentCreate?.userErrors?.length > 0) {
     const orderResponse = await fetch(
@@ -152,7 +154,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 {
                   number: trackingNumber,
                 },
-                ...fulfillments[0].trackingInfo
+                ...fulfillments[0].trackingInfo,
               ],
               trackingCompany: trackingCompany,
             },
