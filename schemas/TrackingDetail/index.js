@@ -10,10 +10,12 @@ import { isSignedIn, rules, permissions } from "../../access";
 import { trackingFields } from "../trackingFields";
 import { shopify } from "./addShopTracking/shopify";
 import { bigcommerce } from "./addShopTracking/bigcommerce";
+import { woocommerce } from "./addShopTracking/woocommerce";
 
 const functions = {
   shopify,
-  bigcommerce
+  bigcommerce,
+  woocommerce
 };
 
 export const TrackingDetail = list({

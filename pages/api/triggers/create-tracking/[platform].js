@@ -33,9 +33,7 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to create tracking" });
+      return res.json({ error: "Missing fields needed to create tracking" });
     }
     return {
       purchaseId: req.body.order_id.toString(),
