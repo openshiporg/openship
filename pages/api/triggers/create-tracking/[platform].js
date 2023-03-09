@@ -21,7 +21,7 @@ const handler = async (req, res) => {
     },
   });
 
-  return { success: "Fulfillment Uploaded" };
+  return res.json({ success: "Fulfillment Uploaded" });
 };
 
 export default handler;
@@ -33,7 +33,9 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
-      return res.json({ error: "Missing fields needed to create tracking" });
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
     }
     return {
       purchaseId: req.body.order_id.toString(),
@@ -47,7 +49,9 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
-      return res.json({ error: "Missing fields needed to create tracking" });
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
     }
     return {
       purchaseId: req.body.order_id.toString(),
@@ -61,7 +65,9 @@ const transformer = {
       !req.body.shippingOrder?.carrier?.name ||
       !req.body.shippingOrder?.purchaseOrder
     ) {
-      return res.json({ error: "Missing fields needed to create tracking" });
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
     }
     return {
       purchaseId: req.body.shippingOrder.purchaseOrder,
@@ -71,7 +77,9 @@ const transformer = {
   },
   torod: (req, res) => {
     if (!req.body.order_id || !req.body.tracking_id) {
-      return res.json({ error: "Missing fields needed to create tracking" });
+      return res
+        .status(400)
+        .json({ error: "Missing fields needed to create tracking" });
     }
     return {
       purchaseId: req.body.order_id,
