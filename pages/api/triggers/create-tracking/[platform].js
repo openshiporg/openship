@@ -6,10 +6,14 @@ const handler = async (req, res) => {
     return res.status(400).json({ error: "Parser for platform not found" });
   }
 
-  const { purchaseId, trackingNumber, trackingCompany, error } = transformer[platform](req, res);
+  const { purchaseId, trackingNumber, trackingCompany, error } = transformer[
+    platform
+  ](req, res);
 
   if (error) {
-    return res.status(400).json({ error: "Missing fields needed to create tracking" });
+    return res
+      .status(400)
+      .json({ error: "Missing fields needed to create tracking" });
   }
 
   const createdTracking = await query.TrackingDetail.createOne({
@@ -32,6 +36,7 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
+      console.log(req.body);
       return { error: true };
     }
     return {
