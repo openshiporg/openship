@@ -1,17 +1,16 @@
 import { query } from ".keystone/api";
 
 const handler = async (req, res) => {
-  res.status(200).json({ received: true });
-
   const { platform } = req.query;
   if (!transformer[platform]) {
-    return { error: "Parser for platform not found" };
+    return res.status(400).json({ error: "Parser for platform not found" });
   }
 
-  const { purchaseId, trackingNumber, trackingCompany } = transformer[platform](
-    req,
-    res
-  );
+  const { purchaseId, trackingNumber, trackingCompany, error } = transformer[platform](req, res);
+
+  if (error) {
+    return res.status(400).json({ error: "Missing fields needed to create tracking" });
+  }
 
   const createdTracking = await query.TrackingDetail.createOne({
     data: {
@@ -21,7 +20,7 @@ const handler = async (req, res) => {
     },
   });
 
-  return res.json({ success: "Fulfillment Uploaded" });
+  return res.status(200).json({ success: "Fulfillment Uploaded" });
 };
 
 export default handler;
@@ -33,9 +32,7 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to create tracking" });
+      return { error: true };
     }
     return {
       purchaseId: req.body.order_id.toString(),
@@ -49,9 +46,7 @@ const transformer = {
       !req.body.tracking_company ||
       !req.body.order_id
     ) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to create tracking" });
+      return { error: true };
     }
     return {
       purchaseId: req.body.order_id.toString(),
@@ -65,9 +60,7 @@ const transformer = {
       !req.body.shippingOrder?.carrier?.name ||
       !req.body.shippingOrder?.purchaseOrder
     ) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to create tracking" });
+      return { error: true };
     }
     return {
       purchaseId: req.body.shippingOrder.purchaseOrder,
@@ -77,9 +70,7 @@ const transformer = {
   },
   torod: (req, res) => {
     if (!req.body.order_id || !req.body.tracking_id) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to create tracking" });
+      return { error: true };
     }
     return {
       purchaseId: req.body.order_id,
