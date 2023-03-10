@@ -15,7 +15,7 @@ import { woocommerce } from "./addShopTracking/woocommerce";
 const functions = {
   shopify,
   bigcommerce,
-  woocommerce
+  woocommerce,
 };
 
 export const TrackingDetail = list({
@@ -79,40 +79,40 @@ export const TrackingDetail = list({
                 },
               },
             });
-        }
-        const foundTracking = await sudoContext.query.TrackingDetail.findOne({
-          where: { id: item.id },
-          query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
-        });
+        } else {
+          const foundTracking = await sudoContext.query.TrackingDetail.findOne({
+            where: { id: item.id },
+            query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
+          });
 
-        console.log({ foundTracking });
+          console.log({ foundTracking });
 
-        if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
-          if (functions[foundTracking.cartItems[0].order.shop.type]) {
-            const addTracking = await functions[
-              foundTracking.cartItems[0].order.shop.type
-            ]({
-              order: foundTracking.cartItems[0].order,
-              trackingCompany: item.trackingCompany,
-              trackingNumber: item.trackingNumber,
-            });
+          if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
+            if (functions[foundTracking.cartItems[0].order.shop.type]) {
+              const addTracking = await functions[
+                foundTracking.cartItems[0].order.shop.type
+              ]({
+                order: foundTracking.cartItems[0].order,
+                trackingCompany: item.trackingCompany,
+                trackingNumber: item.trackingNumber,
+              });
+            } else {
+              console.log(
+                "Add shop tracking function for shop type does not exist."
+              );
+            }
           } else {
             console.log(
-              "Add shop tracking function for shop type does not exist."
+              "Tracking details were created without order connected. This should not be happening."
             );
           }
-        } else {
-          console.log(
-            "Tracking details were created without order connected. This should not be happening."
-          );
-        }
 
-        // we check if all the cart items in this order have trackingDetails.
-        // If so, we mark the order as complete.
-        if (foundTracking?.cartItems[0]?.order?.id) {
-          const foundOrder = await sudoContext.query.Order.findOne({
-            where: { id: foundTracking.cartItems[0].order.id },
-            query: `
+          // we check if all the cart items in this order have trackingDetails.
+          // If so, we mark the order as complete.
+          if (foundTracking?.cartItems[0]?.order?.id) {
+            const foundOrder = await sudoContext.query.Order.findOne({
+              where: { id: foundTracking.cartItems[0].order.id },
+              query: `
             id
             orderName
             cartItems(
@@ -128,15 +128,16 @@ export const TrackingDetail = list({
               productId
             }
           `,
-          });
-
-          if (foundOrder?.cartItems.length === 0) {
-            const updatedOrder = await sudoContext.query.Order.updateOne({
-              where: { id: foundOrder.id },
-              data: {
-                status: "COMPLETE",
-              },
             });
+
+            if (foundOrder?.cartItems.length === 0) {
+              const updatedOrder = await sudoContext.query.Order.updateOne({
+                where: { id: foundOrder.id },
+                data: {
+                  status: "COMPLETE",
+                },
+              });
+            }
           }
         }
       }
