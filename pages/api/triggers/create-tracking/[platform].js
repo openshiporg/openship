@@ -6,6 +6,8 @@ const handler = async (req, res) => {
     return res.status(200).json({ error: "Parser for platform not found" });
   }
 
+  console.log("Create-tracking", req.body);
+
   const { purchaseId, trackingNumber, trackingCompany, error } =
     await transformer[platform](req, res);
 
@@ -40,6 +42,8 @@ const transformer = {
         },
         query: "id quantity order { id orderId shop { domain accessToken } }",
       });
+
+      console.log("foundCartItems", foundCartItems[0]);
       if (foundCartItems[0].order?.shop?.domain) {
         // Send the API request
         const response = await fetch(
