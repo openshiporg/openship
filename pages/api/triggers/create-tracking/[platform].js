@@ -33,37 +33,44 @@ const transformer = {
     if (!req.body.data?.id || !req.body.data?.orderId) {
       return { error: true };
     }
-    // try {
-    //   // Send the API request
-    //   const response = await fetch(
-    //     `https://api.bigcommerce.com/stores/${storeHash}/v3/orders/${req.body.data.orderId}/shipments/${req.body.data.id}`,
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "X-Auth-Token": req.body.accessToken,
-    //         "Content-Type": "application/json",
-    //         Accept: "application/json",
-    //       },
-    //     }
-    //   );
+    try {
+      const foundCartItems = await query.CartItem.findMany({
+        where: {
+          purchaseId: { equals: req.body.data.orderId.toString() },
+        },
+        query: "id quantity order { id orderId shop { domain accessToken } }",
+      });
+      if (foundCartItems[0].order?.shop?.domain) {
+        // Send the API request
+        const response = await fetch(
+          `https://api.bigcommerce.com/stores/${foundCartItems[0].order?.shop?.domain}/v3/orders/${req.body.data.orderId}/shipments/${req.body.data.id}`,
+          {
+            method: "POST",
+            headers: {
+              "X-Auth-Token": foundCartItems[0].order?.shop?.accessToken,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
 
-    //   const data = await response.json();
+        const data = await response.json();
 
-    //   // Extract the tracking number and tracking company from the response data
-    //   const trackingNumber = data.tracking_number;
-    //   const trackingCompany = data.carrier;
+        // Extract the tracking number and tracking company from the response data
+        // const trackingNumber = data.tracking_number;
+        // const trackingCompany = data.carrier;
 
-    //   // Do something with the tracking number and tracking company
-    //   console.log(`Tracking number: ${trackingNumber}`);
-    //   console.log(`Tracking company: ${trackingCompany}`);
-    // } catch (error) {
-    //   console.error(error);
-    // }
-    return {
-      purchaseId: req.body.order_id.toString(),
-      trackingNumber: req.body.tracking_numbers[0],
-      trackingCompany: req.body.tracking_company,
-    };
+        return {
+          purchaseId: req.body.data.orderId.toString(),
+          trackingNumber: data.tracking_number,
+          trackingCompany: data.carrier,
+        };
+      } else {
+        return { error: true };
+      }
+    } catch (error) {
+      console.error(error);
+    }
   },
   shopify: (req, res) => {
     if (

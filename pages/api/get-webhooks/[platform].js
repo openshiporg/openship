@@ -23,6 +23,35 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  woocommerce: async (req, res) => {
+    const mapTopic = {
+      ORDER_CREATED: "woocommerce_checkout_order_processed",
+      ORDER_CANCELLED: "woocommerce_order_status_cancelled",
+      ORDER_CHARGEBACKED: "woocommerce_refund_created",
+      TRACKING_CREATED: "woocommerce_order_status_changed",
+    };
+
+    const response = await fetch(`${req.query.domain}/wp-json/wc/v3/webhooks`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${btoa(req.query.accessToken)}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    const arr = data.map(({ id, delivery_url, created_at, topic }) => ({
+      id,
+      createdAt: created_at,
+      callbackUrl: delivery_url.replace(process.env.FRONTEND_URL, ""),
+      topic: mapTopic[topic],
+      includeFields: [],
+    }));
+
+    return { webhooks: arr };
+  },
   bigcommerce: async (req, res) => {
     const mapTopic = {
       "store/order/created": "ORDER_CREATED",
@@ -88,9 +117,6 @@ const transformer = {
         }
       `
     );
-    console.log(req.query.topic);
-
-    console.log(data.webhookSubscriptions.edges);
 
     return {
       webhooks: data?.webhookSubscriptions.edges.map(({ node }) => ({

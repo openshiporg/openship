@@ -27,6 +27,30 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  woocommerce: async (req, res) => {
+    const response = await fetch(
+      `${req.body.domain}/wp-json/wc/v3/webhooks/${req.body.webhookId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${btoa(req.body.accessToken)}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.message) {
+      console.log(data.message);
+      return {
+        error: data.message,
+      };
+    }
+
+    return { success: "Webhook deleted" };
+  },
   bigcommerce: async (req, res) => {
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.body.domain}/v3/hooks/${req.body.webhookId}`,
@@ -35,8 +59,8 @@ const transformer = {
         headers: {
           "X-Auth-Token": req.body.accessToken,
           "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
+          Accept: "application/json",
+        },
       }
     );
 

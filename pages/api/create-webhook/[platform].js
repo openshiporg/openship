@@ -27,6 +27,50 @@ const handler = async (req, res) => {
 export default handler;
 
 const transformer = {
+  woocommerce: async (req, res) => {
+    const mapTopic = {
+      ORDER_CREATED: "woocommerce_created_order",
+      ORDER_CANCELLED: "woocommerce_order_status_cancelled",
+      ORDER_CHARGEBACKED: "woocommerce_payment_complete",
+      TRACKING_CREATED: "woocommerce_order_tracking_number_added",
+    };
+
+    if (!mapTopic[req.body.topic]) {
+      return {
+        error: "Topic not mapped yet",
+      };
+    }
+
+    const response = await fetch(
+      `${req.body.domain}/wp-json/wc/v3/webhooks`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${req.body.accessToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: `${req.body.topic} webhook`,
+          topic: mapTopic[req.body.topic],
+          delivery_url: `${process.env.FRONTEND_URL}${req.body.endpoint}`,
+          status: "active",
+          secret: "",
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.message) {
+      console.log(data.message);
+      return {
+        error: data.message,
+      };
+    }
+
+    return { success: "Webhook created" };
+  },
   bigcommerce: async (req, res) => {
     const mapTopic = {
       ORDER_CREATED: "store/order/created",
