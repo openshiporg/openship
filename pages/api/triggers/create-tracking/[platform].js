@@ -6,8 +6,6 @@ const handler = async (req, res) => {
     return res.status(200).json({ error: "Parser for platform not found" });
   }
 
-  console.log("Create-tracking", req.body);
-
   const { purchaseId, trackingNumber, trackingCompany, error } =
     await transformer[platform](req, res);
 
@@ -32,6 +30,7 @@ export default handler;
 
 const transformer = {
   bigcommerce: async (req, res) => {
+    console.log("BigCommerce", req.body)
     if (!req.body.data?.id || !req.body.data?.orderId) {
       return { error: true };
     }
