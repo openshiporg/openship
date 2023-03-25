@@ -56,6 +56,7 @@ export const TrackingDetail = list({
     afterOperation: async ({ operation, item, context }) => {
       if (operation === "create") {
         const sudoContext = context.sudo();
+        console.log({ item });
         // get cartItems from purchaseId if cartItems doesn't exist
         if (!item.cartItems) {
           const foundCartItems = await sudoContext.query.CartItem.findMany({
@@ -79,40 +80,43 @@ export const TrackingDetail = list({
                 },
               },
             });
-        } else {
-          const foundTracking = await sudoContext.query.TrackingDetail.findOne({
-            where: { id: item.id },
-            query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
-          });
 
-          console.log({ foundTracking });
+          console.log({ addCartItemsToTracking });
+        }
+        const foundTracking = await sudoContext.query.TrackingDetail.findOne({
+          where: { id: item.id },
+          query: `id cartItems { order { id orderId shop { domain accessToken type } } }`,
+        });
 
-          if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
-            if (functions[foundTracking.cartItems[0].order.shop.type]) {
-              const addTracking = await functions[
-                foundTracking.cartItems[0].order.shop.type
-              ]({
-                order: foundTracking.cartItems[0].order,
-                trackingCompany: item.trackingCompany,
-                trackingNumber: item.trackingNumber,
-              });
-            } else {
-              console.log(
-                "Add shop tracking function for shop type does not exist."
-              );
-            }
+        console.log({ foundTracking });
+
+        if (foundTracking?.cartItems[0]?.order?.shop?.type !== "custom") {
+          if (functions[foundTracking.cartItems[0].order.shop.type]) {
+            const addTracking = await functions[
+              foundTracking.cartItems[0].order.shop.type
+            ]({
+              order: foundTracking.cartItems[0].order,
+              trackingCompany: item.trackingCompany,
+              trackingNumber: item.trackingNumber,
+            });
+            console.log({ addTracking });
           } else {
             console.log(
-              "Tracking details were created without order connected. This should not be happening."
+              "Add shop tracking function for shop type does not exist."
             );
           }
+        } else {
+          console.log(
+            "Tracking details were created without order connected. This should not be happening."
+          );
+        }
 
-          // we check if all the cart items in this order have trackingDetails.
-          // If so, we mark the order as complete.
-          if (foundTracking?.cartItems[0]?.order?.id) {
-            const foundOrder = await sudoContext.query.Order.findOne({
-              where: { id: foundTracking.cartItems[0].order.id },
-              query: `
+        // we check if all the cart items in this order have trackingDetails.
+        // If so, we mark the order as complete.
+        if (foundTracking?.cartItems[0]?.order?.id) {
+          const foundOrder = await sudoContext.query.Order.findOne({
+            where: { id: foundTracking.cartItems[0].order.id },
+            query: `
             id
             orderName
             cartItems(
@@ -128,16 +132,15 @@ export const TrackingDetail = list({
               productId
             }
           `,
-            });
+          });
 
-            if (foundOrder?.cartItems.length === 0) {
-              const updatedOrder = await sudoContext.query.Order.updateOne({
-                where: { id: foundOrder.id },
-                data: {
-                  status: "COMPLETE",
-                },
-              });
-            }
+          if (foundOrder?.cartItems.length === 0) {
+            const updatedOrder = await sudoContext.query.Order.updateOne({
+              where: { id: foundOrder.id },
+              data: {
+                status: "COMPLETE",
+              },
+            });
           }
         }
       }

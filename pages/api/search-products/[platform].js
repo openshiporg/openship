@@ -65,7 +65,7 @@ const transformer = {
             price: variantPrice,
             option_values,
           }) => {
-            console.log({ option_values });
+            // console.log({ option_values });
             const newData = {
               image: image_url || images[0]?.url_thumbnail || "",
               title: `${name} ${

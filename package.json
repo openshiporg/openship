@@ -39,7 +39,8 @@
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "shopify-token": "^4.0.4",
-    "swr": "^1.2.1"
+    "swr": "^1.2.1",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "typescript": "^4.4.4"

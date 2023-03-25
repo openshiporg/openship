@@ -134,8 +134,6 @@ export async function getMatches({ orderId, context }) {
     ({ inputCount }) => inputCount === order.lineItems.length
   );
 
-  // console.log({ filt });
-
   if (filt) {
     return await createCartItems({ matches: [filt] });
   } else {
@@ -190,10 +188,7 @@ export async function getMatches({ orderId, context }) {
 
           const [singleFilt] = singleAllMatches;
 
-          // console.log({ singleFilt });
-
           if (singleFilt) {
-            // console.log('single filt returned');
             return singleFilt;
           }
           const updateOrder = await context.query.Order.updateOne({
@@ -203,11 +198,12 @@ export async function getMatches({ orderId, context }) {
               status: "PENDING",
             },
           });
-
         })
       );
 
-      return await createCartItems({ matches: output });
+      if (output.filter((value) => value !== undefined).length) {
+        return await createCartItems({ matches: output });
+      }
     } else {
       const updateOrder = await context.query.Order.updateOne({
         where: { id: orderId },

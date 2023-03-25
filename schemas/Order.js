@@ -65,7 +65,7 @@ export const Order = list({
           `,
         });
 
-        // console.log("linkOrder", item.linkOrder);
+        console.log({ order });
 
         if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
           console.log("linkOrder", item.linkOrder);
@@ -93,6 +93,9 @@ export const Order = list({
             });
           }
         } else {
+          console.log("else");
+          console.log({ item });
+
           if (item.matchOrder) {
             const cartItemsFromMatch = await getMatches({
               orderId: item.id,

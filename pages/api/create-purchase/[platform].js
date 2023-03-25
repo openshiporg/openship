@@ -530,14 +530,22 @@ const transformer = {
     );
 
     const data = await response.json();
+
+    // console.log("hello", data[0].details.errors[0].product.missing_option);
     // console.log({
     //   url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
     //   purchaseId: data.id,
     // });
 
-    return {
-      url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
-      purchaseId: data.id.toString(),
-    };
+    if (data[0]?.status >= 400) {
+      return {
+        error: `Order creation failed.`,
+      };
+    } else {
+      return {
+        url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
+        purchaseId: data.id.toString(),
+      };
+    }
   },
 };

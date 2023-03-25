@@ -24,7 +24,6 @@ const handler = async (req, res) => {
     query: `id order { id }`,
   });
 
-
   const order = await query.Order.updateOne({
     where: { id: updatedCartItems[0].order.id },
     data: {
@@ -38,12 +37,12 @@ export default handler;
 
 const transformer = {
   bigcommerce: async (req, res) => {
-    if (!req.body.id) {
+    if (!req.body.data?.orderId) {
       return res
         .status(400)
         .json({ error: "Missing fields needed to cancel cart item" });
     }
-    return req.body.id.toString();
+    return req.body.data.orderId.toString();
   },
   shopify: async (req, res) => {
     if (!req.body.id) {

@@ -32,12 +32,12 @@ export default handler;
 
 const transformer = {
   bigcommerce: async (req, res) => {
-    if (!req.body.id) {
+    if (!req.body.data.orderId) {
       return res
         .status(400)
         .json({ error: "Missing fields needed to cancel order" });
     }
-    return req.body.id.toString();
+    return req.body.data.orderId.toString();
   },
   shopify: async (req, res) => {
     if (!req.body.id) {
