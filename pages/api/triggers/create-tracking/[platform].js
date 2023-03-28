@@ -6,7 +6,7 @@ const handler = async (req, res) => {
     return res.status(200).json({ error: "Parser for platform not found" });
   }
 
-  const { purchaseId, trackingNumber, trackingCompany, userId, error } =
+  const { purchaseId, trackingNumber, trackingCompany, domain, error } =
     await transformer[platform](req, res);
 
   if (error) {
@@ -15,15 +15,24 @@ const handler = async (req, res) => {
       .json({ error: "Missing fields needed to create tracking" });
   }
 
-  const createdTracking = await query.TrackingDetail.createOne({
-    data: {
-      trackingNumber,
-      trackingCompany,
-      purchaseId,
-      user: { connect: { id: userId } },
+  const foundCartItems = await query.CartItem.findMany({
+    where: {
+      purchaseId: { equals: purchaseId },
+      channel: { domain: { equals: domain } },
     },
+    query: "user { id }",
   });
 
+  if (foundCartItems[0]?.user?.id) {
+    const createdTracking = await query.TrackingDetail.createOne({
+      data: {
+        trackingNumber,
+        trackingCompany,
+        purchaseId,
+        user: { connect: { id: foundCartItems[0]?.user?.id } },
+      },
+    });
+  }
   return res.status(200).json({ success: "Fulfillment Uploaded" });
 };
 
@@ -41,11 +50,14 @@ const transformer = {
           purchaseId: { equals: req.body.data.orderId.toString() },
           channel: { domain: { equals: req.body.producer.split("/")[1] } },
         },
-        query: "id quantity channel { domain accessToken } user { id }",
+        query: "id quantity channel { domain accessToken }",
       });
 
       console.log("foundCartItems", foundCartItems[0].channel);
-      if (foundCartItems[0]?.channel?.domain && foundCartItems[0]?.user?.id) {
+      if (
+        foundCartItems[0]?.channel?.domain &&
+        foundCartItems[0]?.channel?.accessToken
+      ) {
         // Send the API request
         const response = await fetch(
           `https://api.bigcommerce.com/stores/${foundCartItems[0]?.channel?.domain}/v2/orders/${req.body.data.orderId}/shipments/${req.body.data.id}`,
@@ -65,17 +77,13 @@ const transformer = {
           purchaseId: req.body.data.orderId.toString(),
           trackingNumber: data.tracking_number,
           trackingCompany: getShippingCarrier(data.tracking_number),
-          userId: foundCartItems[0]?.user?.id,
+          domain: req.body.producer.split("/")[1],
         });
-        // Extract the tracking number and tracking company from the response data
-        // const trackingNumber = data.tracking_number;
-        // const trackingCompany = data.carrier;
-
         return {
           purchaseId: req.body.data.orderId.toString(),
           trackingNumber: data.tracking_number,
           trackingCompany: getShippingCarrier(data.tracking_number),
-          userId: foundCartItems[0]?.user?.id,
+          domain: req.body.producer.split("/")[1],
         };
       } else {
         return { error: true };

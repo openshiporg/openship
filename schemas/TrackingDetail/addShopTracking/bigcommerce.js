@@ -1,66 +1,51 @@
-import xml2js from "xml2js";
-
-function convertXmlToJson(xml) {
-  let json = null;
-  const parser = new xml2js.Parser({ explicitArray: false });
-  parser.parseString(xml, (error, result) => {
-    if (error) {
-      throw new Error("Failed to parse XML: " + error);
-    }
-    json = result;
-  });
-  return json;
-}
-
 export async function bigcommerce({ order, trackingCompany, trackingNumber }) {
   const shippingResponse = await fetch(
     `https://api.bigcommerce.com/stores/${order.shop.domain}/v2/orders/${order.orderId}/shipping_addresses`,
     {
       headers: {
-        "Content-Type": "application/json",
         "X-Auth-Token": order.shop.accessToken,
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       method: "GET",
     }
   );
 
-  const shippingAddresses = await shippingResponse.text();
+  const shippingAddresses = await shippingResponse.json();
 
-  const { addresses } = convertXmlToJson(shippingAddresses);
+  console.log({ shippingAddresses });
 
   const orderProductsResponse = await fetch(
     `https://api.bigcommerce.com/stores/${order.shop.domain}/v2/orders/${order.orderId}/products`,
     {
       headers: {
-        "Content-Type": "application/json",
         "X-Auth-Token": order.shop.accessToken,
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       method: "GET",
     }
   );
 
-  const orderProducts = await orderProductsResponse.text();
+  const orderProducts = await orderProductsResponse.json();
 
-  const { products } = convertXmlToJson(orderProducts);
-
-  const productsArray = Array.isArray(products.product)
-    ? products.product
-    : [products.product];
+  console.log({ orderProducts });
 
   const shipmentResponse = await fetch(
     `https://api.bigcommerce.com/stores/${order.shop.domain}/v2/orders/${order.orderId}/shipments`,
     {
       headers: {
-        "Content-Type": "application/json",
         "X-Auth-Token": order.shop.accessToken,
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       method: "POST",
       body: JSON.stringify({
-        order_address_id: addresses.address.id,
+        order_address_id: shippingAddresses[0].id,
         tracking_number: trackingNumber,
         shipping_method: "Standard",
         tracking_carrier: "usps",
-        items: productsArray.map(({ id, quantity }) => ({
+        items: orderProducts.map(({ id, quantity }) => ({
           order_product_id: id,
           quantity,
         })),
@@ -70,13 +55,17 @@ export async function bigcommerce({ order, trackingCompany, trackingNumber }) {
 
   // console.log(fulfillResponse);
 
-  const shipments = await shipmentResponse.text();
+  const shipments = await shipmentResponse.json();
 
-  const { shipment } = convertXmlToJson(shipments);
+  // const { shipment } = convertXmlToJson(shipments);
 
-  console.log(shipment);
+  console.log({ shipments });
 
-  return { fulfillment: { id: shipment.id }, userErrors: [] };
+  if (shipments[0]?.status === 400) {
+    return { error: shipments[0]?.message };
+  }
+
+  return { fulfillment: { id: shipments.id } };
 
   // if (fulErrors?.length > 0) {
   //   const orderResponse = await fetch(
