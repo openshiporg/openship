@@ -97,6 +97,7 @@ const transformer = {
         body: JSON.stringify({
           scope: mapTopic[req.body.topic],
           destination: `${process.env.FRONTEND_URL}${req.body.endpoint}`,
+          // destination: "https://webhook.site/82e2431c-a78f-44af-bc10-6ff9da8f15d9",
           is_active: true,
           events_history_enabled: true,
           headers: {

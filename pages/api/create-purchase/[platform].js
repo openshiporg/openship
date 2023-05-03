@@ -481,7 +481,7 @@ const transformer = {
 
     // const customer = await customerResponse.json();
 
-    // console.log({ customer });
+    // console.log(req.body.address);
 
     const response = await fetch(
       `https://api.bigcommerce.com/stores/${req.body.domain}/v2/orders`,
@@ -531,6 +531,7 @@ const transformer = {
 
     const data = await response.json();
 
+    console.log({ data });
     // console.log("hello", data[0].details.errors[0].product.missing_option);
     // console.log({
     //   url: `https://store-${req.body.domain}.mybigcommerce.com/manage/orders/${data.id}`,
