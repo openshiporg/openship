@@ -220,6 +220,7 @@ const transformer = {
         }
       `,
       });
+      console.log("order created", req.body);
       const lineItemsOutput = await Promise.all(
         req.body.line_items.map(
           async ({

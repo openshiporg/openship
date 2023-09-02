@@ -119,7 +119,7 @@ export function OrderList({
                       {streetAddress1} {streetAddress2}
                       <br />
                       {city}
-                      {", "}
+                      {state && ", "}
                       {state} {zip}
                     </>
                   }
