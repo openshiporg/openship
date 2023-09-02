@@ -30,6 +30,7 @@ export async function middleware(req) {
     if (req.nextUrl.search) {
       from += req.nextUrl.search;
     }
+    console.log("5")
 
     return NextResponse.redirect(
       new URL(`/dashboard/signin?from=${encodeURIComponent(from)}`, req.url)
