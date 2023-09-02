@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { request, gql } from "graphql-request";
 import { useForm } from "@mantine/hooks";
 import { patterns } from "@components/Patterns";
-import { checkAuth } from "@lib/checkAuth";
+import { checkAuth } from "keystone/lib/checkAuth";
 
 const INITUSER_MUTATION = gql`
   mutation INITUSER_MUTATION(

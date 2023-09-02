@@ -1,6 +1,6 @@
 import ShopifyToken from "shopify-token";
 import { CREATE_CHANNEL_MUTATION } from "@graphql/channels";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 import { gql } from "graphql-request";
 
 export default async (req, res) => {

@@ -13,8 +13,8 @@ import {
 } from "@mantine/core";
 import { useNotifications } from "@mantine/notifications";
 import { ChevronDownIcon } from "@primer/octicons-react";
-import { useSharedState } from "@lib/useSharedState";
-import { removeEmpty } from "@lib/removeEmpty";
+import { useSharedState } from "keystone/lib/useSharedState";
+import { removeEmpty } from "keystone/lib/removeEmpty";
 import { ShopProductSearch } from "./ShopProductSearch";
 import { ShopSelect } from "./ShopSelect";
 import { ChannelProductSearch } from "./ChannelProductSearch";

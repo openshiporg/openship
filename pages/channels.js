@@ -4,8 +4,8 @@ import { AppShell } from "@components/AppShell";
 import { useState } from "react";
 import { SHOPS_QUERY } from "@graphql/shops";
 import { CHANNELS_QUERY } from "@graphql/channels";
-import { gqlFetcher } from "@lib/gqlFetcher";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 import { ChannelGrid } from "@components/ChannelGrid";
 
 export default function Products({ shops, channels }) {

@@ -11,7 +11,7 @@ import {
 import { list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
-import { placeMultipleOrders } from "../lib/placeMultipleOrders";
+import { placeMultipleOrders } from "../keystone/lib/placeMultipleOrders";
 import { getMatches } from "../mutations/addMatchToCart";
 
 export const Order = list({

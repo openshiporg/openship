@@ -47,7 +47,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { SHOPS_QUERY } from "@graphql/shops";
 import { CHANNELS_QUERY } from "@graphql/channels";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import useSWR from "swr";
 import { CreateShopView } from "./CreateViews/CreateShopView";
 import { CreateChannelView } from "./CreateViews/CreateChannelView";
@@ -57,7 +57,7 @@ import request, { gql } from "graphql-request";
 import { useClipboard, useClickOutside } from "@mantine/hooks";
 import { useNotifications } from "@mantine/notifications";
 import { useModals } from "@mantine/modals";
-import { useSharedState } from "@lib/useSharedState";
+import { useSharedState } from "keystone/lib/useSharedState";
 
 const HEADER_SIZE = 50;
 

@@ -1,6 +1,6 @@
 import { query } from ".keystone/api";
-import { checkAuth } from "@lib/checkAuth";
-import { removeEmpty } from "@lib/removeEmpty";
+import { checkAuth } from "keystone/lib/checkAuth";
+import { removeEmpty } from "keystone/lib/removeEmpty";
 
 export default async function handle(req, res) {
   try {

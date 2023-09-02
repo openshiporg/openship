@@ -14,7 +14,7 @@ import { LineItem } from "@primitives/lineItem";
 import { CartItem } from "@primitives/cartItem";
 import { Collapse } from "@primitives/collapse";
 import { ArrowUpRightIcon, PlusIcon } from "@primer/octicons-react";
-import { useSharedState } from "@lib/useSharedState";
+import { useSharedState } from "keystone/lib/useSharedState";
 
 export function OrderList({
   shopId,

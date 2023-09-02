@@ -1,6 +1,6 @@
 import { query } from ".keystone/api";
-import { placeMultipleOrders } from "@lib/placeMultipleOrders";
-import { removeEmpty } from "@lib/removeEmpty";
+import { placeMultipleOrders } from "keystone/lib/placeMultipleOrders";
+import { removeEmpty } from "keystone/lib/removeEmpty";
 import { getMatches } from "mutations/addMatchToCart";
 
 const handler = async (req, res) => {

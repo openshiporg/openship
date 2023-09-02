@@ -1,5 +1,5 @@
 import { CREATE_SHOP_MUTATION } from "@graphql/shops";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 import { gql } from "graphql-request";
 
 export default async (req, res) => {

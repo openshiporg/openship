@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import useSWR from "swr";
 import { SHOPS_QUERY } from "@graphql/shops";
-import { gqlFetcher } from "@lib/gqlFetcher";
-import { useSharedState } from "@lib/useSharedState";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
+import { useSharedState } from "keystone/lib/useSharedState";
 import { EditProduct } from "./editProduct";
 import { ProductSearch } from "./Search";
 

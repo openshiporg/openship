@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { ORDERS_QUERY } from "@graphql/orders";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { LineItem } from "@primitives/lineItem";
 import { Collapse } from "@primitives/collapse";
 import { Order } from "@primitives/order";

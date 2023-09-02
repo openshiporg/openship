@@ -1,6 +1,5 @@
 import { gql, GraphQLClient } from "graphql-request";
 import FormData from "form-data";
-import { query } from ".keystone/api";
 
 const handler = async (req, res) => {
   const { platform } = req.query;

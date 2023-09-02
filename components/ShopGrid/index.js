@@ -32,7 +32,7 @@ import { useHover } from "@mantine/hooks";
 import { useState } from "react";
 import request from "graphql-request";
 import { SHOPS_QUERY, UPDATE_SHOP_MUTATION } from "@graphql/shops";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import useSWR from "swr";
 import { useNotifications } from "@mantine/notifications";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
-import { useSharedState } from "@lib/useSharedState";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
+import { useSharedState } from "keystone/lib/useSharedState";
 import { CHANNELS_QUERY } from "@graphql/channels";
 import { ProductSearch } from "./Search";
 

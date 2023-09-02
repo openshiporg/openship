@@ -4,9 +4,9 @@ import { AppShell } from "@components/AppShell";
 import { useState } from "react";
 import { SHOPS_QUERY } from "@graphql/shops";
 import { CHANNELS_QUERY } from "@graphql/channels";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { ShopGrid } from "@components/ShopGrid";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 
 export default function Shops({ shops, channels }) {
   const theme = useMantineTheme();

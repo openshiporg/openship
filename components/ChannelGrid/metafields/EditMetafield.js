@@ -10,7 +10,7 @@ import {
   Box,
 } from "@mantine/core";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { PencilIcon, TrashIcon, XIcon } from "@primer/octicons-react";
 import request from "graphql-request";
 import { useNotifications } from "@mantine/notifications";
