@@ -1,4 +1,4 @@
-import { query } from ".keystone/api";
+import { keystoneContext } from "@keystone/keystoneContext";
 
 const handler = async (req, res) => {
   const { platform } = req.query;
@@ -15,7 +15,7 @@ const handler = async (req, res) => {
       .json({ error: "Missing fields needed to create tracking" });
   }
 
-  const foundCartItems = await query.CartItem.findMany({
+  const foundCartItems = await keystoneContext.sudo().query.CartItem.findMany({
     where: {
       purchaseId: { equals: purchaseId },
       channel: { domain: { equals: domain } },
@@ -24,7 +24,7 @@ const handler = async (req, res) => {
   });
 
   if (foundCartItems[0]?.user?.id) {
-    const createdTracking = await query.TrackingDetail.createOne({
+    const createdTracking = await keystoneContext.sudo().query.TrackingDetail.createOne({
       data: {
         trackingNumber,
         trackingCompany,
@@ -45,7 +45,7 @@ const transformer = {
       return { error: true };
     }
     try {
-      const foundCartItems = await query.CartItem.findMany({
+      const foundCartItems = await keystoneContext.sudo().query.CartItem.findMany({
         where: {
           purchaseId: { equals: req.body.data.orderId.toString() },
           channel: { domain: { equals: req.body.producer.split("/")[1] } },
@@ -119,16 +119,6 @@ const transformer = {
       purchaseId: req.body.shippingOrder.purchaseOrder,
       trackingNumber: req.body.shippingOrder.trackingNumber[0],
       trackingCompany: req.body.shippingOrder.carrier.name,
-    };
-  },
-  torod: (req, res) => {
-    if (!req.body.order_id || !req.body.tracking_id) {
-      return { error: true };
-    }
-    return {
-      purchaseId: req.body.order_id,
-      trackingNumber: req.body.tracking_id,
-      trackingCompany: "TOROD",
     };
   },
 };

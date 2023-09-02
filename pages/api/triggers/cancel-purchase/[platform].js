@@ -1,4 +1,4 @@
-import { query } from ".keystone/api";
+import { keystoneContext } from "@keystone/keystoneContext";
 
 const handler = async (req, res) => {
   res.status(200).json({ received: true });
@@ -10,13 +10,13 @@ const handler = async (req, res) => {
 
   const purchaseId = await transformer[platform](req, res);
 
-  const cartItemIDs = await query.CartItem.findMany({
+  const cartItemIDs = await keystoneContext.sudo().query.CartItem.findMany({
     where: {
       purchaseId: { equals: purchaseId },
     },
   });
 
-  const updatedCartItems = await query.CartItem.updateMany({
+  const updatedCartItems = await keystoneContext.sudo().query.CartItem.updateMany({
     data: cartItemIDs.map(({ id }) => ({
       where: { id },
       data: { status: "CANCELLED" },
@@ -24,7 +24,7 @@ const handler = async (req, res) => {
     query: `id order { id }`,
   });
 
-  const order = await query.Order.updateOne({
+  const order = await keystoneContext.sudo().query.Order.updateOne({
     where: { id: updatedCartItems[0].order.id },
     data: {
       status: "PENDING",
@@ -51,13 +51,5 @@ const transformer = {
         .json({ error: "Missing fields needed to cancel cart item" });
     }
     return req.body.id.toString();
-  },
-  torod: async (req, res) => {
-    if (!req.body.order_id) {
-      return res
-        .status(400)
-        .json({ error: "Missing fields needed to cancel cart item" });
-    }
-    return req.body.order_id.toString();
   },
 };

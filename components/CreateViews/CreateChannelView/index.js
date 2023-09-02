@@ -23,13 +23,6 @@ const endpoints = {
     createWebhookEndpoint: "/api/create-webhook/shopify",
     deleteWebhookEndpoint: "/api/delete-webhook/shopify",
   },
-  torod: {
-    searchProductsEndpoint: "/api/search-products/torod",
-    createPurchaseEndpoint: "/api/create-purchase/torod",
-    getWebhooksEndpoint: "/api/get-webhooks/torod",
-    createWebhookEndpoint: "/api/create-webhook/torod",
-    deleteWebhookEndpoint: "/api/delete-webhook/torod",
-  },
   demo: {
     domain: "https://openship-channel.vercel.app",
     accessToken: "supersecret",
@@ -148,53 +141,6 @@ export const CreateChannelView = ({ showModal, setShowModal }) => {
           ...values,
           //hardcoded values
           ...endpoints.stockandtrace,
-        }),
-    },
-    torod: {
-      label: "Torod",
-      fields: [
-        { title: "Name", name: "name", placeholder: "Central Bike Shop" },
-        {
-          title: "Domain",
-          name: "domain",
-          placeholder: "centralbikeshop.com",
-        },
-        {
-          title: "Access Token",
-          name: "accessToken",
-          placeholder: "supersecret",
-        },
-      ],
-      metafields: [
-        { title: "Client ID", name: "ClientID", placeholder: "FTYGYU324YPLY" },
-        {
-          title: "Client Secret",
-          name: "ClientSecret",
-          placeholder: "BH234IHNI234",
-        },
-        {
-          title: "Warehouse",
-          name: "Warehouse",
-          placeholder: "2712RSSFCA",
-        },
-        {
-          title: "Warehouse Name",
-          name: "WarehouseName",
-          placeholder: "San Francisco Warehouse #1",
-        },
-        {
-          title: "Warehouse Address",
-          name: "WarehouseAddress",
-          placeholder: "2712 Roosevelt Street San Francisco, CA 94112",
-        },
-      ],
-      handleSubmit: ({ metafields, ...values }) =>
-        createChannel({
-          type: "torod",
-          metafields: { create: metafields },
-          ...values,
-          //hardcoded values
-          ...endpoints.torod,
         }),
     },
     custom: {
