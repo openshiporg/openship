@@ -33,17 +33,15 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     }
   );
 
-  const {
-    data: { order: {fulfillmentOrders} },
-    errors: foErrors,
-  } = await foResponse.json();
-
-  if (foErrors) {
-    console.error(foErrors);
-    throw new Error(foErrors);
+  const foResponseBody = await foResponse.json();
+ 
+  if (!foResponseBody.data || !foResponseBody.data.order || !foResponseBody.data.order.fulfillmentOrders) {
+    // Handle error or throw an error
+    console.error('Unexpected response:', foResponseBody);
+    throw new Error('Unexpected response from Shopify API');
   }
-
-  const fulfillmentOrder = fulfillmentOrders.edges[0].node;
+  
+  const fulfillmentOrder = foResponseBody.data.order.fulfillmentOrders.edges[0].node;
 
   // Accept the fulfillment order
   const acceptResponse = await fetch(
@@ -74,14 +72,11 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     }
   );
 
-  const {
-    data: { fulfillmentOrderAccept },
-    errors: acceptErrors,
-  } = await acceptResponse.json();
+  const acceptResponseBody = await acceptResponse.json();
 
-  if (acceptErrors || fulfillmentOrderAccept.userErrors.length > 0) {
-    console.error(acceptErrors || fulfillmentOrderAccept.userErrors);
-    throw new Error(acceptErrors || fulfillmentOrderAccept.userErrors);
+  if (acceptResponseBody.errors || acceptResponseBody.data.fulfillmentOrderAccept.userErrors.length > 0) {
+    console.error('Error accepting fulfillment order:', acceptResponseBody);
+    throw new Error('Error accepting fulfillment order');
   }
 
   // Fulfill the fulfillment order
@@ -127,19 +122,14 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     }
   );
 
-  const {
-    data: { fulfillmentOrderFulfill },
-    errors: fulfillErrors,
-  } = await fulfillResponse.json();
+  const fulfillResponseBody = await fulfillResponse.json();
 
   if (
-    fulfillErrors ||
-    fulfillmentOrderFulfill.userErrors.length > 0
+    fulfillResponseBody.errors ||
+    fulfillResponseBody.data.fulfillmentOrderFulfill.userErrors.length > 0
   ) {
-    const errors =
-      fulfillErrors || fulfillmentOrderFulfill.userErrors;
-    console.error(errors);
-    throw new Error(errors);
+    console.error('Error fulfilling order:', fulfillResponseBody);
+    throw new Error('Error fulfilling order');
   }
 }
 
