@@ -18,7 +18,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 edges {
                   node {
                     id
-                    assignedLocation {
+                    locations {
                       id
                     }
                   }
