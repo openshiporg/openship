@@ -18,14 +18,17 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 edges {
                   node {
                     id
-                    locations {
-                      id
+                    assignedLocation {
+                      location {
+                        id
+                      }
                     }
                   }
                 }
               }
             }
-          }`,
+          }
+        `,
         variables: {
           id: `gid://shopify/Order/${order.orderId}`,
         },
@@ -34,14 +37,19 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
   );
 
   const foResponseBody = await foResponse.json();
- 
-  if (!foResponseBody.data || !foResponseBody.data.order || !foResponseBody.data.order.fulfillmentOrders) {
+
+  if (
+    !foResponseBody.data ||
+    !foResponseBody.data.order ||
+    !foResponseBody.data.order.fulfillmentOrders
+  ) {
     // Handle error or throw an error
-    console.error('Unexpected response:', foResponseBody);
-    throw new Error('Unexpected response from Shopify API');
+    console.error("Unexpected response:", foResponseBody);
+    throw new Error("Unexpected response from Shopify API");
   }
-  
-  const fulfillmentOrder = foResponseBody.data.order.fulfillmentOrders.edges[0].node;
+
+  const fulfillmentOrder =
+    foResponseBody.data.order.fulfillmentOrders.edges[0].node;
 
   // Accept the fulfillment order
   const acceptResponse = await fetch(
@@ -64,7 +72,8 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 message
               }
             }
-          }`,
+          }
+        `,
         variables: {
           id: fulfillmentOrder.id,
         },
@@ -74,9 +83,12 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 
   const acceptResponseBody = await acceptResponse.json();
 
-  if (acceptResponseBody.errors || acceptResponseBody.data.fulfillmentOrderAccept.userErrors.length > 0) {
-    console.error('Error accepting fulfillment order:', acceptResponseBody);
-    throw new Error('Error accepting fulfillment order');
+  if (
+    acceptResponseBody.errors ||
+    acceptResponseBody.data.fulfillmentOrderAccept.userErrors.length > 0
+  ) {
+    console.error("Error accepting fulfillment order:", acceptResponseBody);
+    throw new Error("Error accepting fulfillment order");
   }
 
   // Fulfill the fulfillment order
@@ -98,10 +110,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
             fulfillmentOrderFulfill(
               id: $id
               fulfillmentInput: {
-                tracker: { 
-                  company: $trackingCompany
-                  number: $trackingNumber
-                } 
+                tracker: { company: $trackingCompany, number: $trackingNumber }
               }
             ) {
               fulfillment {
@@ -112,7 +121,8 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 message
               }
             }
-          }`,
+          }
+        `,
         variables: {
           id: fulfillmentOrder.id,
           trackingCompany: trackingCompany,
@@ -128,11 +138,10 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
     fulfillResponseBody.errors ||
     fulfillResponseBody.data.fulfillmentOrderFulfill.userErrors.length > 0
   ) {
-    console.error('Error fulfilling order:', fulfillResponseBody);
-    throw new Error('Error fulfilling order');
+    console.error("Error fulfilling order:", fulfillResponseBody);
+    throw new Error("Error fulfilling order");
   }
 }
-
 
 // import { gql } from "graphql-request";
 
@@ -280,7 +289,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 //                 }
 //               ) {
 //                 fulfillment {
-//                   id               
+//                   id
 //                 }
 //                 userErrors{
 //                   message
