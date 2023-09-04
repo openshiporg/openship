@@ -83,6 +83,8 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 
   const acceptResponseBody = await acceptResponse.json();
 
+  console.log({ acceptResponseBody });
+
   if (
     acceptResponseBody.errors ||
     acceptResponseBody.data.fulfillmentOrderAccept.userErrors.length > 0
