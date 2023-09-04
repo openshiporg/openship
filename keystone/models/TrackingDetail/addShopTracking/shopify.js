@@ -63,7 +63,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
       body: JSON.stringify({
         query: gql`
           mutation ($id: ID!) {
-            fulfillmentOrderAccept(id: $id) {
+            fulfillmentOrderAcceptFulfillmentRequest(id: $id) {
               fulfillmentOrder {
                 id
               }
