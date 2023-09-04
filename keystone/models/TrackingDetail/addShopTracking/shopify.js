@@ -134,9 +134,11 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 
   const fulfillResponseBody = await fulfillResponse.json();
 
+  console.log({ fulfillResponseBody });
+
   if (
     fulfillResponseBody.errors ||
-    fulfillResponseBody.data.fulfillmentOrderFulfill.userErrors.length > 0
+    fulfillResponseBody.data.fulfillmentOrderFulfill?.userErrors?.length > 0
   ) {
     console.error("Error fulfilling order:", fulfillResponseBody);
     throw new Error("Error fulfilling order");
