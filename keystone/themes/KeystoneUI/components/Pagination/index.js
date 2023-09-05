@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Stack, useTheme } from "@keystone-ui/core";
 import { Select } from "@keystone-ui/fields";
 import { ChevronRightIcon, ChevronLeftIcon } from "@keystone-ui/icons";
@@ -22,7 +22,14 @@ const getPaginationStats = ({ list, pageSize, currentPage, total }) => {
 };
 
 export function Pagination({ currentPage, total, pageSize, list }) {
-  const { query, pathname, push } = useRouter();
+  const { push } = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = {};
+  for (let [key, value] of searchParams.entries()) {
+    query[key] = value;
+  }
+
   const { stats } = getPaginationStats({ list, currentPage, total, pageSize });
   const { opacity } = useTheme();
 
@@ -41,13 +48,14 @@ export function Pagination({ currentPage, total, pageSize, list }) {
     // the maximal page given the total and associated page size value.
     // (This could happen due to a deletion event, in which case we want to reroute the user to a previous page).
     if (currentPage > Math.ceil(total / pageSize)) {
-      push({
-        pathname,
-        query: {
-          ...query,
-          page: Math.ceil(total / pageSize),
-        },
-      });
+      // push({
+      //   pathname,
+      //   query: {
+      //     ...query,
+      //     page: Math.ceil(total / pageSize),
+      //   },
+      // });
+      push(`${pathname}?${searchParams}&page=${Math.ceil(total / pageSize)}`);
     }
   }, [total, pageSize, currentPage, pathname, query, push]);
 
@@ -55,13 +63,14 @@ export function Pagination({ currentPage, total, pageSize, list }) {
   if (total <= pageSize) return null;
 
   const onChange = (selectedOption) => {
-    push({
-      pathname,
-      query: {
-        ...query,
-        page: selectedOption.value,
-      },
-    });
+    // push({
+    //   pathname,
+    //   query: {
+    //     ...query,
+    //     page: selectedOption.value,
+    //   },
+    // });
+    push(`${pathname}?${searchParams}&page=${selectedOption.value}`);
   };
 
   for (let page = minPage; page <= limit; page++) {

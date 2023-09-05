@@ -6,7 +6,7 @@ import { CheckboxControl } from "@keystone-ui/fields";
 import { ArrowRightCircleIcon } from "@keystone-ui/icons/icons/ArrowRightCircleIcon";
 import { AdminLink } from "@keystone/components/AdminLink";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
 import { CellLink } from "@keystone/components/CellLink";
@@ -32,7 +32,12 @@ export function ListTable({
   orderableFields,
 }) {
   const list = useList(listKey);
-  const { query } = useRouter();
+  // const { query } = useRouter();
+  const searchParams = useSearchParams()
+  const query = {};
+  for (let [key, value] of searchParams.entries()) {
+    query[key] = value;
+  }
   const shouldShowLinkIcon =
     !list.fields[selectedFields.keys().next().value].views.Cell.supportsLinkTo;
   return (

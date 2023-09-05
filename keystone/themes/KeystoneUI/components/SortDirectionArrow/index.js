@@ -1,3 +1,8 @@
+/** @jsxRuntime classic */
+/** @jsx jsx */
+
+import { jsx } from "@keystone-ui/core";
+
 export const SortDirectionArrow = ({ direction }) => {
   const size = "0.25em";
   return (
