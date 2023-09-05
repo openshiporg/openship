@@ -31,7 +31,7 @@ import { CHANNELS_QUERY, UPDATE_CHANNEL_MUTATION } from "@graphql/channels";
 import { useHover } from "@mantine/hooks";
 import useSWR from "swr";
 import { useNotifications } from "@mantine/notifications";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import request from "graphql-request";
 
 export function ChannelGrid({

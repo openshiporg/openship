@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { CHANNEL_ORDERS_QUERY } from "@graphql/orders";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { Collapse } from "@primitives/collapse";
 import { Order } from "@primitives/order";
 import { CartItem } from "@primitives/cartItem";
@@ -165,7 +165,7 @@ export const Orders = ({ channelId }) => {
                           {streetAddress1} {streetAddress2}
                           <br />
                           {city}
-                          {", "}
+                          {state && ", "}
                           {state} {zip}
                         </>
                       }

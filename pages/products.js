@@ -5,11 +5,11 @@ import {
 } from "@components/ProductSearch";
 import { AppShell } from "@components/AppShell";
 import { useState } from "react";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 import useSWR from "swr";
 import { CHANNELS_QUERY } from "@graphql/channels";
 import { SHOPS_QUERY } from "@graphql/shops";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 
 export default function Products({ shops, channels }) {
   const [activeTab, setActiveTab] = useState(0);

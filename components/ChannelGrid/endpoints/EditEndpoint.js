@@ -11,7 +11,7 @@ import {
   Stack,
 } from "@mantine/core";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import request from "graphql-request";
 import { useNotifications } from "@mantine/notifications";
 import { CHANNELS_QUERY, UPDATE_CHANNEL_MUTATION } from "@graphql/channels";

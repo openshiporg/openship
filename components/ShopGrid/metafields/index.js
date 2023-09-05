@@ -17,7 +17,7 @@ import { PlusIcon, XIcon } from "@primer/octicons-react";
 import { SHOPS_QUERY, CREATE_SHOP_METAFIELD_MUTATION } from "@graphql/shops";
 import { useNotifications } from "@mantine/notifications";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import request from "graphql-request";
 
 export const Metafields = ({ shopId, metafields }) => {

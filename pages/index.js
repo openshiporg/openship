@@ -2,11 +2,11 @@ import { useState } from "react";
 import { AppShell } from "@components/AppShell";
 import { OSOrders } from "@components/OSOrders";
 import { ShopOrders } from "@components/ShopOrders";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { SHOPS_QUERY } from "@graphql/shops";
 import { ORDER_COUNT_QUERY } from "@graphql/orders";
 import useSWR from "swr";
-import { checkAuth, gqlClient } from "@lib/checkAuth";
+import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
 import { CHANNELS_QUERY } from "@graphql/channels";
 
 export default function HomePage({ shops, channels }) {

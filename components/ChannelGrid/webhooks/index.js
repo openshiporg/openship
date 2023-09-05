@@ -27,7 +27,7 @@ import {
 import { CHANNELS_QUERY, UPDATE_CHANNEL_MUTATION } from "@graphql/channels";
 import { useNotifications } from "@mantine/notifications";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import request from "graphql-request";
 
 export const Webhooks = ({

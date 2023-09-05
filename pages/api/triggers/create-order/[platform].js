@@ -1,7 +1,5 @@
-import { query } from ".keystone/api";
-import { placeMultipleOrders } from "@lib/placeMultipleOrders";
-import { removeEmpty } from "@lib/removeEmpty";
-import { getMatches } from "mutations/addMatchToCart";
+import { keystoneContext } from "@keystone/keystoneContext";
+import { removeEmpty } from "keystone/lib/removeEmpty";
 
 const handler = async (req, res) => {
   res.status(200).json({ received: true });
@@ -12,7 +10,7 @@ const handler = async (req, res) => {
     if (transformer[platform]) {
       const createOrderData = await transformer[platform](req, res);
 
-      const webhookOrder = await query.Order.createOne({
+      const webhookOrder = await keystoneContext.sudo().query.Order.createOne({
         // we remove null values since Keystone text fields don't like null values
         data: removeEmpty(createOrderData),
         query: `id shop { links { channel { id name } } }`,
@@ -30,7 +28,7 @@ export default handler;
 const transformer = {
   bigcommerce: async (req, res) => {
     if (req.body) {
-      const existingShop = await query.Shop.findOne({
+      const existingShop = await keystoneContext.sudo().query.Shop.findOne({
         where: {
           domain: req.body.producer.split("/")[1],
         },
@@ -202,7 +200,7 @@ const transformer = {
   },
   shopify: async (req, res) => {
     if (req.body) {
-      const existingShop = await query.Shop.findOne({
+      const existingShop = await keystoneContext.sudo().query.Shop.findOne({
         where: {
           domain: req.headers["x-shopify-shop-domain"],
         },
@@ -222,6 +220,7 @@ const transformer = {
         }
       `,
       });
+      console.log("order created", req.body);
       const lineItemsOutput = await Promise.all(
         req.body.line_items.map(
           async ({

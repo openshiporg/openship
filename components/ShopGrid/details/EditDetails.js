@@ -9,7 +9,7 @@ import {
   ActionIcon,
 } from "@mantine/core";
 import useSWR from "swr";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { PencilIcon, XIcon } from "@primer/octicons-react";
 import { SHOPS_QUERY, UPDATE_SHOP_MUTATION } from "@graphql/shops";
 import request from "graphql-request";

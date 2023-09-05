@@ -21,7 +21,7 @@ import { Option } from "@primitives/option";
 import { ArrowRightIcon, SearchIcon } from "@primer/octicons-react";
 import Link from "next/link";
 import { OrderList } from "./OrderList";
-import { useSharedState } from "@lib/useSharedState";
+import { useSharedState } from "keystone/lib/useSharedState";
 
 export const ShopOrders = ({ shops }) => {
   const theme = useMantineTheme();

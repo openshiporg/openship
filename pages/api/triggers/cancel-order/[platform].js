@@ -1,4 +1,4 @@
-import { query } from ".keystone/api";
+import { keystoneContext } from "@keystone/keystoneContext";
 
 const handler = async (req, res) => {
   res.status(200).json({ received: true });
@@ -10,7 +10,7 @@ const handler = async (req, res) => {
 
   const orderId = await transformer[platform](req, res);
 
-  const [foundOrder] = await query.Order.findMany({
+  const [foundOrder] = await keystoneContext.sudo().query.Order.findMany({
     where: {
       orderId: { equals: parseFloat(orderId) },
     },
@@ -18,7 +18,7 @@ const handler = async (req, res) => {
 
   console.log({ foundOrder });
   if (foundOrder) {
-    const updatedOrder = await query.Order.updateOne({
+    const updatedOrder = await keystoneContext.sudo().query.Order.updateOne({
       where: { id: foundOrder.id },
       data: { status: "CANCELLED" },
     });

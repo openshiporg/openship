@@ -16,7 +16,7 @@ import {
   ArrowRightIcon,
   SearchIcon,
 } from "@primer/octicons-react";
-import { useSharedState } from "@lib/useSharedState";
+import { useSharedState } from "keystone/lib/useSharedState";
 import Link from "next/link";
 
 const addFirstURL = {

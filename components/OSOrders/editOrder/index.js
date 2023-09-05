@@ -20,7 +20,7 @@ import { ChannelSelect } from "@components/CreateViews/CreateOrderView/ChannelSe
 import { LineItemSelect } from "@components/CreateViews/CreateOrderView/LineItemSelect";
 import { ShopSelect } from "@components/CreateViews/CreateOrderView/ShopSelect";
 import { SHOPS_QUERY } from "@graphql/shops";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { CHANNELS_QUERY } from "@graphql/channels";
 import { useForm, formList } from "@mantine/form";
 import { ChevronDownIcon } from "@primer/octicons-react";

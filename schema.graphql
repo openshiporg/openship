@@ -6,96 +6,31 @@ type User {
   name: String
   email: String
   password: PasswordState
-  shops(
-    where: ShopWhereInput! = {}
-    orderBy: [ShopOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Shop!]
+  shops(where: ShopWhereInput! = {}, orderBy: [ShopOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopWhereUniqueInput): [Shop!]
   shopsCount(where: ShopWhereInput! = {}): Int
-  channels(
-    where: ChannelWhereInput! = {}
-    orderBy: [ChannelOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Channel!]
+  channels(where: ChannelWhereInput! = {}, orderBy: [ChannelOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelWhereUniqueInput): [Channel!]
   channelsCount(where: ChannelWhereInput! = {}): Int
-  orders(
-    where: OrderWhereInput! = {}
-    orderBy: [OrderOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Order!]
+  orders(where: OrderWhereInput! = {}, orderBy: [OrderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OrderWhereUniqueInput): [Order!]
   ordersCount(where: OrderWhereInput! = {}): Int
-  lineItems(
-    where: LineItemWhereInput! = {}
-    orderBy: [LineItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [LineItem!]
+  lineItems(where: LineItemWhereInput! = {}, orderBy: [LineItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LineItemWhereUniqueInput): [LineItem!]
   lineItemsCount(where: LineItemWhereInput! = {}): Int
-  cartItems(
-    where: CartItemWhereInput! = {}
-    orderBy: [CartItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CartItem!]
+  cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItemsCount(where: CartItemWhereInput! = {}): Int
-  shopItems(
-    where: ShopItemWhereInput! = {}
-    orderBy: [ShopItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopItem!]
+  shopItems(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   shopItemsCount(where: ShopItemWhereInput! = {}): Int
-  channelItems(
-    where: ChannelItemWhereInput! = {}
-    orderBy: [ChannelItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelItem!]
+  channelItems(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   channelItemsCount(where: ChannelItemWhereInput! = {}): Int
-  apiKeys(
-    where: apiKeyWhereInput! = {}
-    orderBy: [apiKeyOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [apiKey!]
+  apiKeys(where: apiKeyWhereInput! = {}, orderBy: [apiKeyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: apiKeyWhereUniqueInput): [apiKey!]
   apiKeysCount(where: apiKeyWhereInput! = {}): Int
-  matches(
-    where: MatchWhereInput! = {}
-    orderBy: [MatchOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Match!]
+  matches(where: MatchWhereInput! = {}, orderBy: [MatchOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MatchWhereUniqueInput): [Match!]
   matchesCount(where: MatchWhereInput! = {}): Int
-  links(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
+  links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   linksCount(where: LinkWhereInput! = {}): Int
-  channelMetafields(
-    where: ChannelMetafieldWhereInput! = {}
-    orderBy: [ChannelMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelMetafield!]
+  channelMetafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
   channelMetafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
-  shopMetafields(
-    where: ShopMetafieldWhereInput! = {}
-    orderBy: [ShopMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopMetafield!]
+  shopMetafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
   shopMetafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
-  trackingDetails(
-    where: TrackingDetailWhereInput! = {}
-    orderBy: [TrackingDetailOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [TrackingDetail!]
+  trackingDetails(where: TrackingDetailWhereInput! = {}, orderBy: [TrackingDetailOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TrackingDetailWhereUniqueInput): [TrackingDetail!]
   trackingDetailsCount(where: TrackingDetailWhereInput! = {}): Int
   role: Role
   createdAt: DateTime
@@ -109,8 +44,7 @@ type PasswordState {
   isSet: Boolean!
 }
 
-scalar DateTime
-  @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
 
 input UserWhereUniqueInput {
   id: ID
@@ -602,12 +536,7 @@ type Role {
   canManageMatches: Boolean
   canSeeOtherLinks: Boolean
   canManageLinks: Boolean
-  assignedTo(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [User!]
+  assignedTo(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   assignedToCount(where: UserWhereInput! = {}): Int
 }
 
@@ -745,19 +674,9 @@ type Order {
   locationId: Float
   user: User
   shop: Shop
-  lineItems(
-    where: LineItemWhereInput! = {}
-    orderBy: [LineItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [LineItem!]
+  lineItems(where: LineItemWhereInput! = {}, orderBy: [LineItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LineItemWhereUniqueInput): [LineItem!]
   lineItemsCount(where: LineItemWhereInput! = {}): Int
-  cartItems(
-    where: CartItemWhereInput! = {}
-    orderBy: [CartItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CartItem!]
+  cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItemsCount(where: CartItemWhereInput! = {}): Int
   linkOrder: Boolean
   matchOrder: Boolean
@@ -937,12 +856,7 @@ type TrackingDetail {
   trackingCompany: String
   trackingNumber: String
   purchaseId: String
-  cartItems(
-    where: CartItemWhereInput! = {}
-    orderBy: [CartItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CartItem!]
+  cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItemsCount(where: CartItemWhereInput! = {}): Int
   user: User
   createdAt: DateTime
@@ -1126,12 +1040,7 @@ type CartItem {
   purchaseId: String
   status: String
   order: Order
-  trackingDetails(
-    where: TrackingDetailWhereInput! = {}
-    orderBy: [TrackingDetailOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [TrackingDetail!]
+  trackingDetails(where: TrackingDetailWhereInput! = {}, orderBy: [TrackingDetailOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TrackingDetailWhereUniqueInput): [TrackingDetail!]
   trackingDetailsCount(where: TrackingDetailWhereInput! = {}): Int
   user: User
   channel: Channel
@@ -1255,33 +1164,13 @@ type Channel {
   getWebhooksEndpoint: String
   createWebhookEndpoint: String
   deleteWebhookEndpoint: String
-  channelItems(
-    where: ChannelItemWhereInput! = {}
-    orderBy: [ChannelItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelItem!]
+  channelItems(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   channelItemsCount(where: ChannelItemWhereInput! = {}): Int
-  cartItems(
-    where: CartItemWhereInput! = {}
-    orderBy: [CartItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CartItem!]
+  cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItemsCount(where: CartItemWhereInput! = {}): Int
-  links(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
+  links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   linksCount(where: LinkWhereInput! = {}): Int
-  metafields(
-    where: ChannelMetafieldWhereInput! = {}
-    orderBy: [ChannelMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelMetafield!]
+  metafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
   metafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
   user: User
   createdAt: DateTime
@@ -1438,12 +1327,7 @@ type ChannelItem {
   variantId: String
   lineItemId: String
   price: String
-  matches(
-    where: MatchWhereInput! = {}
-    orderBy: [MatchOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Match!]
+  matches(where: MatchWhereInput! = {}, orderBy: [MatchOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MatchWhereUniqueInput): [Match!]
   matchesCount(where: MatchWhereInput! = {}): Int
   channel: Channel
   user: User
@@ -1526,33 +1410,13 @@ type Shop {
   getWebhooksEndpoint: String
   createWebhookEndpoint: String
   deleteWebhookEndpoint: String
-  orders(
-    where: OrderWhereInput! = {}
-    orderBy: [OrderOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Order!]
+  orders(where: OrderWhereInput! = {}, orderBy: [OrderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OrderWhereUniqueInput): [Order!]
   ordersCount(where: OrderWhereInput! = {}): Int
-  shopItems(
-    where: ShopItemWhereInput! = {}
-    orderBy: [ShopItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopItem!]
+  shopItems(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   shopItemsCount(where: ShopItemWhereInput! = {}): Int
-  links(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
+  links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   linksCount(where: LinkWhereInput! = {}): Int
-  metafields(
-    where: ShopMetafieldWhereInput! = {}
-    orderBy: [ShopMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopMetafield!]
+  metafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
   metafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
   user: User
   createdAt: DateTime
@@ -1713,12 +1577,7 @@ type ShopItem {
   productId: String
   variantId: String
   lineItemId: String
-  matches(
-    where: MatchWhereInput! = {}
-    orderBy: [MatchOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Match!]
+  matches(where: MatchWhereInput! = {}, orderBy: [MatchOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MatchWhereUniqueInput): [Match!]
   matchesCount(where: MatchWhereInput! = {}): Int
   shop: Shop
   user: User
@@ -1787,19 +1646,9 @@ input ShopItemCreateInput {
 
 type Match {
   id: ID!
-  input(
-    where: ShopItemWhereInput! = {}
-    orderBy: [ShopItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopItem!]
+  input(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   inputCount(where: ShopItemWhereInput! = {}): Int
-  output(
-    where: ChannelItemWhereInput! = {}
-    orderBy: [ChannelItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelItem!]
+  output(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   outputCount(where: ChannelItemWhereInput! = {}): Int
   user: User
   createdAt: DateTime
@@ -1907,10 +1756,7 @@ input LinkCreateInput {
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSON
-  @specifiedBy(
-    url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf"
-  )
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
   createUser(data: UserCreateInput!): User
@@ -1939,65 +1785,37 @@ type Mutation {
   deleteOrders(where: [OrderWhereUniqueInput!]!): [Order]
   createTrackingDetail(data: TrackingDetailCreateInput!): TrackingDetail
   createTrackingDetails(data: [TrackingDetailCreateInput!]!): [TrackingDetail]
-  updateTrackingDetail(
-    where: TrackingDetailWhereUniqueInput!
-    data: TrackingDetailUpdateInput!
-  ): TrackingDetail
+  updateTrackingDetail(where: TrackingDetailWhereUniqueInput!, data: TrackingDetailUpdateInput!): TrackingDetail
   updateTrackingDetails(data: [TrackingDetailUpdateArgs!]!): [TrackingDetail]
   deleteTrackingDetail(where: TrackingDetailWhereUniqueInput!): TrackingDetail
-  deleteTrackingDetails(
-    where: [TrackingDetailWhereUniqueInput!]!
-  ): [TrackingDetail]
+  deleteTrackingDetails(where: [TrackingDetailWhereUniqueInput!]!): [TrackingDetail]
   createLineItem(data: LineItemCreateInput!): LineItem
   createLineItems(data: [LineItemCreateInput!]!): [LineItem]
-  updateLineItem(
-    where: LineItemWhereUniqueInput!
-    data: LineItemUpdateInput!
-  ): LineItem
+  updateLineItem(where: LineItemWhereUniqueInput!, data: LineItemUpdateInput!): LineItem
   updateLineItems(data: [LineItemUpdateArgs!]!): [LineItem]
   deleteLineItem(where: LineItemWhereUniqueInput!): LineItem
   deleteLineItems(where: [LineItemWhereUniqueInput!]!): [LineItem]
   createCartItem(data: CartItemCreateInput!): CartItem
   createCartItems(data: [CartItemCreateInput!]!): [CartItem]
-  updateCartItem(
-    where: CartItemWhereUniqueInput!
-    data: CartItemUpdateInput!
-  ): CartItem
+  updateCartItem(where: CartItemWhereUniqueInput!, data: CartItemUpdateInput!): CartItem
   updateCartItems(data: [CartItemUpdateArgs!]!): [CartItem]
   deleteCartItem(where: CartItemWhereUniqueInput!): CartItem
   deleteCartItems(where: [CartItemWhereUniqueInput!]!): [CartItem]
   createChannel(data: ChannelCreateInput!): Channel
   createChannels(data: [ChannelCreateInput!]!): [Channel]
-  updateChannel(
-    where: ChannelWhereUniqueInput!
-    data: ChannelUpdateInput!
-  ): Channel
+  updateChannel(where: ChannelWhereUniqueInput!, data: ChannelUpdateInput!): Channel
   updateChannels(data: [ChannelUpdateArgs!]!): [Channel]
   deleteChannel(where: ChannelWhereUniqueInput!): Channel
   deleteChannels(where: [ChannelWhereUniqueInput!]!): [Channel]
   createChannelMetafield(data: ChannelMetafieldCreateInput!): ChannelMetafield
-  createChannelMetafields(
-    data: [ChannelMetafieldCreateInput!]!
-  ): [ChannelMetafield]
-  updateChannelMetafield(
-    where: ChannelMetafieldWhereUniqueInput!
-    data: ChannelMetafieldUpdateInput!
-  ): ChannelMetafield
-  updateChannelMetafields(
-    data: [ChannelMetafieldUpdateArgs!]!
-  ): [ChannelMetafield]
-  deleteChannelMetafield(
-    where: ChannelMetafieldWhereUniqueInput!
-  ): ChannelMetafield
-  deleteChannelMetafields(
-    where: [ChannelMetafieldWhereUniqueInput!]!
-  ): [ChannelMetafield]
+  createChannelMetafields(data: [ChannelMetafieldCreateInput!]!): [ChannelMetafield]
+  updateChannelMetafield(where: ChannelMetafieldWhereUniqueInput!, data: ChannelMetafieldUpdateInput!): ChannelMetafield
+  updateChannelMetafields(data: [ChannelMetafieldUpdateArgs!]!): [ChannelMetafield]
+  deleteChannelMetafield(where: ChannelMetafieldWhereUniqueInput!): ChannelMetafield
+  deleteChannelMetafields(where: [ChannelMetafieldWhereUniqueInput!]!): [ChannelMetafield]
   createChannelItem(data: ChannelItemCreateInput!): ChannelItem
   createChannelItems(data: [ChannelItemCreateInput!]!): [ChannelItem]
-  updateChannelItem(
-    where: ChannelItemWhereUniqueInput!
-    data: ChannelItemUpdateInput!
-  ): ChannelItem
+  updateChannelItem(where: ChannelItemWhereUniqueInput!, data: ChannelItemUpdateInput!): ChannelItem
   updateChannelItems(data: [ChannelItemUpdateArgs!]!): [ChannelItem]
   deleteChannelItem(where: ChannelItemWhereUniqueInput!): ChannelItem
   deleteChannelItems(where: [ChannelItemWhereUniqueInput!]!): [ChannelItem]
@@ -2009,21 +1827,13 @@ type Mutation {
   deleteShops(where: [ShopWhereUniqueInput!]!): [Shop]
   createShopMetafield(data: ShopMetafieldCreateInput!): ShopMetafield
   createShopMetafields(data: [ShopMetafieldCreateInput!]!): [ShopMetafield]
-  updateShopMetafield(
-    where: ShopMetafieldWhereUniqueInput!
-    data: ShopMetafieldUpdateInput!
-  ): ShopMetafield
+  updateShopMetafield(where: ShopMetafieldWhereUniqueInput!, data: ShopMetafieldUpdateInput!): ShopMetafield
   updateShopMetafields(data: [ShopMetafieldUpdateArgs!]!): [ShopMetafield]
   deleteShopMetafield(where: ShopMetafieldWhereUniqueInput!): ShopMetafield
-  deleteShopMetafields(
-    where: [ShopMetafieldWhereUniqueInput!]!
-  ): [ShopMetafield]
+  deleteShopMetafields(where: [ShopMetafieldWhereUniqueInput!]!): [ShopMetafield]
   createShopItem(data: ShopItemCreateInput!): ShopItem
   createShopItems(data: [ShopItemCreateInput!]!): [ShopItem]
-  updateShopItem(
-    where: ShopItemWhereUniqueInput!
-    data: ShopItemUpdateInput!
-  ): ShopItem
+  updateShopItem(where: ShopItemWhereUniqueInput!, data: ShopItemUpdateInput!): ShopItem
   updateShopItems(data: [ShopItemUpdateArgs!]!): [ShopItem]
   deleteShopItem(where: ShopItemWhereUniqueInput!): ShopItem
   deleteShopItems(where: [ShopItemWhereUniqueInput!]!): [ShopItem]
@@ -2040,43 +1850,20 @@ type Mutation {
   deleteLink(where: LinkWhereUniqueInput!): Link
   deleteLinks(where: [LinkWhereUniqueInput!]!): [Link]
   endSession: Boolean!
-  authenticateUserWithPassword(
-    email: String!
-    password: String!
-  ): UserAuthenticationWithPasswordResult
-  createInitialUser(
-    data: CreateInitialUserInput!
-  ): UserAuthenticationWithPasswordSuccess!
+  authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
+  createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   sendUserPasswordResetLink(email: String!): Boolean!
-  redeemUserPasswordResetToken(
-    email: String!
-    token: String!
-    password: String!
-  ): RedeemUserPasswordResetTokenResult
-  addToCart(
-    channelId: ID
-    image: String
-    name: String
-    price: String
-    productId: String
-    variantId: String
-    quantity: String
-    orderId: ID
-  ): Order
+  redeemUserPasswordResetToken(email: String!, token: String!, password: String!): RedeemUserPasswordResetTokenResult
+  addToCart(channelId: ID, image: String, name: String, price: String, productId: String, variantId: String, quantity: String, orderId: ID): Order
   placeOrders(ids: [ID!]!): [Order]
   addMatchToCart(orderId: ID!): Order
   matchOrder(orderId: ID!): Match
-  overwriteMatch(
-    input: [ShopItemWhereInput!]!
-    output: [ChannelItemWhereInput!]!
-  ): Match
+  overwriteMatch(input: [ShopItemWhereInput!]!, output: [ChannelItemWhereInput!]!): Match
   cancelPurchase(purchaseId: String!): String
   cancelOrder(orderId: String!): String
 }
 
-union UserAuthenticationWithPasswordResult =
-    UserAuthenticationWithPasswordSuccess
-  | UserAuthenticationWithPasswordFailure
+union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
 
 type UserAuthenticationWithPasswordSuccess {
   sessionToken: String!
@@ -2105,132 +1892,54 @@ enum PasswordResetRedemptionErrorCode {
 }
 
 type Query {
-  users(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [User!]
+  users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   user(where: UserWhereUniqueInput!): User
   usersCount(where: UserWhereInput! = {}): Int
-  apiKeys(
-    where: apiKeyWhereInput! = {}
-    orderBy: [apiKeyOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [apiKey!]
+  apiKeys(where: apiKeyWhereInput! = {}, orderBy: [apiKeyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: apiKeyWhereUniqueInput): [apiKey!]
   apiKey(where: apiKeyWhereUniqueInput!): apiKey
   apiKeysCount(where: apiKeyWhereInput! = {}): Int
-  roles(
-    where: RoleWhereInput! = {}
-    orderBy: [RoleOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Role!]
+  roles(where: RoleWhereInput! = {}, orderBy: [RoleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: RoleWhereUniqueInput): [Role!]
   role(where: RoleWhereUniqueInput!): Role
   rolesCount(where: RoleWhereInput! = {}): Int
-  orders(
-    where: OrderWhereInput! = {}
-    orderBy: [OrderOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Order!]
+  orders(where: OrderWhereInput! = {}, orderBy: [OrderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OrderWhereUniqueInput): [Order!]
   order(where: OrderWhereUniqueInput!): Order
   ordersCount(where: OrderWhereInput! = {}): Int
-  trackingDetails(
-    where: TrackingDetailWhereInput! = {}
-    orderBy: [TrackingDetailOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [TrackingDetail!]
+  trackingDetails(where: TrackingDetailWhereInput! = {}, orderBy: [TrackingDetailOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TrackingDetailWhereUniqueInput): [TrackingDetail!]
   trackingDetail(where: TrackingDetailWhereUniqueInput!): TrackingDetail
   trackingDetailsCount(where: TrackingDetailWhereInput! = {}): Int
-  lineItems(
-    where: LineItemWhereInput! = {}
-    orderBy: [LineItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [LineItem!]
+  lineItems(where: LineItemWhereInput! = {}, orderBy: [LineItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LineItemWhereUniqueInput): [LineItem!]
   lineItem(where: LineItemWhereUniqueInput!): LineItem
   lineItemsCount(where: LineItemWhereInput! = {}): Int
-  cartItems(
-    where: CartItemWhereInput! = {}
-    orderBy: [CartItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CartItem!]
+  cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItem(where: CartItemWhereUniqueInput!): CartItem
   cartItemsCount(where: CartItemWhereInput! = {}): Int
-  channels(
-    where: ChannelWhereInput! = {}
-    orderBy: [ChannelOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Channel!]
+  channels(where: ChannelWhereInput! = {}, orderBy: [ChannelOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelWhereUniqueInput): [Channel!]
   channel(where: ChannelWhereUniqueInput!): Channel
   channelsCount(where: ChannelWhereInput! = {}): Int
-  channelMetafields(
-    where: ChannelMetafieldWhereInput! = {}
-    orderBy: [ChannelMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelMetafield!]
+  channelMetafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
   channelMetafield(where: ChannelMetafieldWhereUniqueInput!): ChannelMetafield
   channelMetafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
-  channelItems(
-    where: ChannelItemWhereInput! = {}
-    orderBy: [ChannelItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChannelItem!]
+  channelItems(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   channelItem(where: ChannelItemWhereUniqueInput!): ChannelItem
   channelItemsCount(where: ChannelItemWhereInput! = {}): Int
-  shops(
-    where: ShopWhereInput! = {}
-    orderBy: [ShopOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Shop!]
+  shops(where: ShopWhereInput! = {}, orderBy: [ShopOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopWhereUniqueInput): [Shop!]
   shop(where: ShopWhereUniqueInput!): Shop
   shopsCount(where: ShopWhereInput! = {}): Int
-  shopMetafields(
-    where: ShopMetafieldWhereInput! = {}
-    orderBy: [ShopMetafieldOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopMetafield!]
+  shopMetafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
   shopMetafield(where: ShopMetafieldWhereUniqueInput!): ShopMetafield
   shopMetafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
-  shopItems(
-    where: ShopItemWhereInput! = {}
-    orderBy: [ShopItemOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ShopItem!]
+  shopItems(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   shopItem(where: ShopItemWhereUniqueInput!): ShopItem
   shopItemsCount(where: ShopItemWhereInput! = {}): Int
-  matches(
-    where: MatchWhereInput! = {}
-    orderBy: [MatchOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Match!]
+  matches(where: MatchWhereInput! = {}, orderBy: [MatchOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MatchWhereUniqueInput): [Match!]
   match(where: MatchWhereUniqueInput!): Match
   matchesCount(where: MatchWhereInput! = {}): Int
-  links(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
+  links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   link(where: LinkWhereUniqueInput!): Link
   linksCount(where: LinkWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
-  validateUserPasswordResetToken(
-    email: String!
-    token: String!
-  ): ValidateUserPasswordResetTokenResult
+  validateUserPasswordResetToken(email: String!, token: String!): ValidateUserPasswordResetTokenResult
   getMatch(input: [ShopItemWhereInput!]!): [ChannelItemPlus]!
   getMatchCount(input: [ShopItemWhereInput!]!): Int
   redirectToInit: Boolean
@@ -2248,8 +1957,6 @@ type KeystoneMeta {
 }
 
 type KeystoneAdminMeta {
-  enableSignout: Boolean!
-  enableSessionItem: Boolean!
   lists: [KeystoneAdminUIListMeta!]!
   list(key: String!): KeystoneAdminUIListMeta
 }
@@ -2269,8 +1976,10 @@ type KeystoneAdminUIListMeta {
   pageSize: Int!
   labelField: String!
   fields: [KeystoneAdminUIFieldMeta!]!
+  groups: [KeystoneAdminUIFieldGroupMeta!]!
   initialSort: KeystoneAdminUISort
   isHidden: Boolean!
+  isSingleton: Boolean!
 }
 
 type KeystoneAdminUIFieldMeta {
@@ -2279,6 +1988,7 @@ type KeystoneAdminUIFieldMeta {
   description: String
   isOrderable: Boolean!
   isFilterable: Boolean!
+  isNonNull: [KeystoneAdminUIFieldMetaIsNonNull!]
   fieldMeta: JSON
   viewsIndex: Int!
   customViewsIndex: Int
@@ -2286,6 +1996,12 @@ type KeystoneAdminUIFieldMeta {
   listView: KeystoneAdminUIFieldMetaListView!
   itemView(id: ID): KeystoneAdminUIFieldMetaItemView
   search: QueryMode
+}
+
+enum KeystoneAdminUIFieldMetaIsNonNull {
+  read
+  create
+  update
 }
 
 type KeystoneAdminUIFieldMetaCreateView {
@@ -2308,12 +2024,24 @@ enum KeystoneAdminUIFieldMetaListViewFieldMode {
 
 type KeystoneAdminUIFieldMetaItemView {
   fieldMode: KeystoneAdminUIFieldMetaItemViewFieldMode
+  fieldPosition: KeystoneAdminUIFieldMetaItemViewFieldPosition
 }
 
 enum KeystoneAdminUIFieldMetaItemViewFieldMode {
   edit
   read
   hidden
+}
+
+enum KeystoneAdminUIFieldMetaItemViewFieldPosition {
+  form
+  sidebar
+}
+
+type KeystoneAdminUIFieldGroupMeta {
+  label: String!
+  description: String
+  fields: [KeystoneAdminUIFieldMeta!]!
 }
 
 type KeystoneAdminUISort {

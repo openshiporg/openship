@@ -9,7 +9,7 @@ import {
 } from "@primer/octicons-react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
-import { gqlFetcher } from "@lib/gqlFetcher";
+import { gqlFetcher } from "keystone/lib/gqlFetcher";
 import { ORDER_COUNT_QUERY } from "@graphql/orders";
 import { ORDERS_QUERY } from "@graphql/orders";
 import { BULK_UPDATE_ORDERS } from "@graphql/orders";
@@ -31,7 +31,7 @@ import {
   Container,
 } from "@mantine/core";
 import { OsOrderList } from "./osOrderList";
-import { useSharedState } from "@lib/useSharedState";
+import { useSharedState } from "keystone/lib/useSharedState";
 import { useNotifications } from "@mantine/notifications";
 
 export const OSOrders = ({ shops, status, defaultPerPage = 1 }) => {
