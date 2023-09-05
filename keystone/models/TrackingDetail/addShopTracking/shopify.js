@@ -18,9 +18,23 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
                 edges {
                   node {
                     id
+                    status
+                    order {
+                      legacyResourceId
+                    }
                     assignedLocation {
-                      location {
-                        id
+                      name
+                    }
+                    fulfillments(first: 1) {
+                      edges {
+                        node {
+                          id
+                          status
+                          trackingInfo {
+                            company
+                            number
+                          }
+                        }
                       }
                     }
                   }
@@ -38,11 +52,7 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 
   const foResponseBody = await foResponse.json();
 
-  if (
-    !foResponseBody.data ||
-    !foResponseBody.data.order ||
-    !foResponseBody.data.order.fulfillmentOrders
-  ) {
+  if (foResponseBody.data?.order?.fulfillmentOrders.edges) {
     // Handle error or throw an error
     console.error("Unexpected response:", foResponseBody);
     throw new Error("Unexpected response from Shopify API");
@@ -51,50 +61,61 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
   const fulfillmentOrder =
     foResponseBody.data.order.fulfillmentOrders.edges[0].node;
 
-  // Accept the fulfillment order
-  const acceptResponse = await fetch(
-    `https://${order.shop.domain}/admin/api/graphql.json`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": order.shop.accessToken,
-      },
-      method: "POST",
-      body: JSON.stringify({
-        query: gql`
-          mutation ($id: ID!) {
-            fulfillmentOrderAcceptFulfillmentRequest(id: $id) {
-              fulfillmentOrder {
-                id
-              }
-              userErrors {
-                field
-                message
+  console.log({ fulfillmentOrder });
+
+  // if status of fulfillmentOrder is closed, it means the order has been fulfilled and we need to update the fulfillment to include the new tracking
+  if (fulfillmentOrder.status === "CLOSED") {
+    const fulfillment = fulfillmentOrder.fulfillments.edges[0].node;
+    const fulfillmentTrackingInfoUpdateV2Response = await fetch(
+      `https://${order.shop.domain}/admin/api/graphql.json`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": order.shop.accessToken,
+        },
+        method: "POST",
+        body: JSON.stringify({
+          query: gql`
+            mutation fulfillmentTrackingInfoUpdateV2(
+              $fulfillmentId: ID!
+              $trackingInfoInput: FulfillmentTrackingInput!
+            ) {
+              fulfillmentTrackingInfoUpdateV2(
+                fulfillmentId: $fulfillmentId
+                trackingInfoInput: $trackingInfoInput
+              ) {
+                fulfillment {
+                  id
+                }
+                userErrors {
+                  field
+                  message
+                }
               }
             }
-          }
-        `,
-        variables: {
-          id: fulfillmentOrder.id,
-        },
-      }),
-    }
-  );
+          `,
+          variables: {
+            fulfillmentId: fulfillment.id,
+            trackingInfoInput: {
+              numbers: [
+                trackingNumber,
+                ...fulfillment.trackingInfo.map(({ number }) => number),
+              ],
+            },
+          },
+        }),
+      }
+    );
 
-  const acceptResponseBody = await acceptResponse.json();
+    const fulfillmentTrackingInfoUpdateV2Body = await fulfillmentTrackingInfoUpdateV2Response.json();
 
-  console.log(acceptResponseBody.data.fulfillmentOrderAcceptFulfillmentRequest);
-
-  if (
-    acceptResponseBody.errors ||
-    acceptResponseBody.data.fulfillmentOrderAcceptFulfillmentRequest.userErrors.length > 0
-  ) {
-    console.error("Error accepting fulfillment order:", acceptResponseBody);
-    throw new Error("Error accepting fulfillment order");
+    console.log({ fulfillmentTrackingInfoUpdateV2Body });
+  
+    return fulfillmentTrackingInfoUpdateV2Body;
   }
 
-  // Fulfill the fulfillment order
-  const fulfillResponse = await fetch(
+  // else if fulfillmentOrder is open, we create a new fulfillment
+  const fulfillmentCreateV2Response = await fetch(
     `https://${order.shop.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -104,17 +125,8 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
       method: "POST",
       body: JSON.stringify({
         query: gql`
-          mutation fulfillmentOrderFulfill(
-            $id: ID!
-            $trackingCompany: String!
-            $trackingNumber: String!
-          ) {
-            fulfillmentOrderFulfill(
-              id: $id
-              fulfillmentInput: {
-                tracker: { company: $trackingCompany, number: $trackingNumber }
-              }
-            ) {
+          mutation fulfillmentCreateV2($fulfillment: FulfillmentV2Input!) {
+            fulfillmentCreateV2(fulfillment: $fulfillment) {
               fulfillment {
                 id
               }
@@ -126,25 +138,27 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
           }
         `,
         variables: {
-          id: fulfillmentOrder.id,
-          trackingCompany: trackingCompany,
-          trackingNumber: trackingNumber,
+          fulfillment: {
+            lineItemsByFulfillmentOrder: [
+              {
+                fulfillmentOrderId: fulfillmentOrder.id,
+              },
+            ],
+            trackingInfo: {
+              company: trackingCompany,
+              numbers: trackingNumber,
+            },
+          },
         },
       }),
     }
   );
 
-  const fulfillResponseBody = await fulfillResponse.json();
+  const fulfillmentCreateV2Body = await fulfillmentCreateV2Response.json();
 
-  console.log({ fulfillResponseBody });
+  console.log({ fulfillmentCreateV2Body });
 
-  if (
-    fulfillResponseBody.errors ||
-    fulfillResponseBody.data.fulfillmentOrderFulfill?.userErrors?.length > 0
-  ) {
-    console.error("Error fulfilling order:", fulfillResponseBody);
-    throw new Error("Error fulfilling order");
-  }
+  return fulfillmentCreateV2Body;
 }
 
 // import { gql } from "graphql-request";
