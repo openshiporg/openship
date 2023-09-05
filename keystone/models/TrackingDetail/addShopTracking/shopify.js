@@ -52,9 +52,9 @@ export async function shopify({ order, trackingCompany, trackingNumber }) {
 
   const foResponseBody = await foResponse.json();
 
-  if (foResponseBody.data?.order?.fulfillmentOrders.edges) {
+  if (!foResponseBody.data?.order?.fulfillmentOrders.edges) {
     // Handle error or throw an error
-    console.error("Unexpected response:", foResponseBody.data.order.fulfillmentOrders);
+    console.error("Unexpected response:", foResponseBody.data.order.fulfillmentOrders.edges[0].node);
     throw new Error("Unexpected response from Shopify API");
   }
 
