@@ -81,7 +81,7 @@ export function ProductSearch({
             paddingBottom: 10,
           }}
         >
-          <Link href={addFirstURL[optionName]}>
+          <Link href={addFirstURL[optionName]} legacyBehavior>
             <Button
               rightIcon={<ArrowRightIcon />}
               color={color}
