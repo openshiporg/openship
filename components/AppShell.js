@@ -320,7 +320,7 @@ export function AppShell({
       transitionDuration={0}
       key={link.label}
     >
-      <Link href={link.href} passHref>
+      <Link href={link.href} passHref legacyBehavior>
         <UnstyledButton
           // onClick={() => setActive(link.label)}
           component="a"
@@ -353,7 +353,7 @@ export function AppShell({
 
   const NavigationMap = {
     primary: mainLinksMockdata.map((link, index) => (
-      <Link key={link.label} href={link.href} passHref>
+      <Link key={link.label} href={link.href} passHref legacyBehavior>
         <a
           // href={link.href}
           className={cx(classes.mobileLink, {
@@ -436,7 +436,7 @@ export function AppShell({
                 transitionDuration={0}
                 color="green"
               >
-                <Link href="/dashboard" passHref>
+                <Link href="/dashboard" passHref legacyBehavior>
                   <ActionIcon
                     variant="light"
                     size={28}
@@ -479,7 +479,7 @@ export function AppShell({
                 transitionDuration={0}
                 color="pink"
               >
-                <Link href="/api/graphql" passHref>
+                <Link href="/api/graphql" passHref legacyBehavior>
                   <ActionIcon
                     variant="light"
                     size={28}

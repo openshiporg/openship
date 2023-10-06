@@ -213,7 +213,7 @@ export default function SignUp({ style, devMode }) {
             px={2}
           >
             Already have an account?{" "}
-            <NextLink href="/signin">
+            <NextLink href="/signin" legacyBehavior>
               <Text
                 component="a"
                 color={theme.colors.blue[5]}

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,48 +16,20 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@keystone/*": [
-        "keystone/*"
-      ],
-      "@assets/*": [
-        "assets/*"
-      ],
-      "@config/*": [
-        "config/*"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@utils/*": [
-        "utils/*"
-      ],
-      "@primitives/*": [
-        "primitives/*"
-      ],
-      "@pages/*": [
-        "pages/*"
-      ],
-      "@graphql/*": [
-        "graphql/*"
-      ],
-      "@svg": [
-        "svg"
-      ],
-      "@keystone/components/*": [
-        "keystone/themes/KeystoneUI/components/*"
-      ],
-      "@keystone/screens/*": [
-        "keystone/themes/KeystoneUI/screens/*"
-      ],
-      "@keystone/views/*": [
-        "keystone/themes/KeystoneUI/views/*"
-      ]
+      "@keystone/*": ["keystone/*"],
+      "@assets/*": ["assets/*"],
+      "@config/*": ["config/*"],
+      "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"],
+      "@primitives/*": ["primitives/*"],
+      "@pages/*": ["pages/*"],
+      "@graphql/*": ["graphql/*"],
+      "@svg": ["svg"],
+      "@keystone/components/*": ["keystone/themes/KeystoneUI/components/*"],
+      "@keystone/screens/*": ["keystone/themes/KeystoneUI/screens/*"],
+      "@keystone/views/*": ["keystone/themes/KeystoneUI/views/*"]
     }
   },
-  "include": [
-    "**/*.js"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.js"],
+  "exclude": ["node_modules"]
 }

@@ -159,7 +159,7 @@ export default function SignIn({ noSubmit, style, showRegister, devMode }) {
               label="Password"
               rightSectionWidth={120}
               rightSection={
-                <NextLink href="/reset">
+                <NextLink href="/reset" legacyBehavior>
                   <Anchor
                     // href="#"
                     // onClick={(event) => event.preventDefault()}
@@ -231,7 +231,7 @@ export default function SignIn({ noSubmit, style, showRegister, devMode }) {
               px={2}
             >
               Don't have an account?{" "}
-              <NextLink href="/signup">
+              <NextLink href="/signup" legacyBehavior>
                 <Text
                   component="a"
                   color={theme.colors.blue[5]}
