@@ -28,7 +28,11 @@ function updateJsconfigAliases() {
 }
 
 function configureWebpack(config, { isServer }) {
-  config.externals = [...(config.externals || []), ".prisma/client"];
+  config.externals = [
+    ...(config.externals || []),
+    ".prisma/client",
+    "@aws-sdk/signature-v4-multi-region",
+  ];
 
   config.resolve.alias = {
     ...config.resolve.alias,
