@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPLv3",
   "scripts": {
-    "dev": "next dev",
+    "dev": "yarn migrate && next dev",
     "build": "next build && keystone prisma migrate deploy",
     "start": "next start",
     "lint": "next lint",

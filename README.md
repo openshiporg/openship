@@ -55,9 +55,9 @@ Once the application is running, go to localhost:3000. If there are no users in 
 
 Use the playground to build and run queries/mutations against the API.
 
-### Keystone CMS: http://localhost:8000
+### Keystone CMS: http://localhost:3000/dashboard
 
-Openship uses [Keystone.js](https://github.com/keystonejs/keystone). Running Openship locally will give you access to the Keystone CMS at localhost:8000. It's a great way to see and interact with your database.
+Openship uses [Keystone.js](https://github.com/keystonejs/keystone). Openship mounts the Keystone Admin UI to /dashboard. It's a great way to see and interact with your database.
 
 ## Deployment
 
@@ -92,7 +92,7 @@ Go to site settings > build & deploy > environment and add these variables:
 ```bash
   FRONTEND_URL=http://localhost:3000
   DATABASE_URL=postgresql://postgres:example@url:3000/postgres
-  SESSION_SECRET=please_change_me
+  SESSION_SECRET=OH_PLEASE_PLEASE_CHANGE_ME
 ```
 
 Replace DATABASE_URL with a postgres database connection string and FRONTEND_URL with the url ending in netlify.app. Redeploy the site.

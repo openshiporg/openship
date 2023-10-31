@@ -19,12 +19,18 @@ function valueToArray(obj) {
 }
 
 function updateJsconfigAliases() {
+  const existingContent = JSON.stringify(jsconfig, null, 3);
+
   jsconfig.compilerOptions.paths = {
     ...jsconfig.compilerOptions.paths,
     ...valueToArray(themeAliases),
   };
 
-  fs.writeFileSync("jsconfig.json", JSON.stringify(jsconfig, null, 2));
+  const newContent = JSON.stringify(jsconfig, null, 3);
+
+  if (existingContent !== newContent) {
+    fs.writeFileSync("jsconfig.json", newContent);
+  }
 }
 
 function configureWebpack(config, { isServer }) {
