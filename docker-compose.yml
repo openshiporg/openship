@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: openship
+      POSTGRES_PASSWORD: openshipasswd
+      POSTGRES_DB: openship
+    ports:
+      - 5432:5432
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      FRONTEND_URL: http://localhost:3000
+      DATABASE_URL: postgresql://openship:openshipasswd@postgres:5432/openship
+      SESSION_SECRET: OH PLEASE PLEASE CHANGE ME
+      ALLOW_EXTERNAL_SIGNUPS: "true"
+      SMTP_HOST: 
+      SMTP_PORT: 
+      SMTP_USER: 
+      SMTP_PASSWORD: 
+      SMTP_FROM: 
+      SHOP_SHOPIFY_API_KEY: 
+      SHOP_SHOPIFY_SECRET: 
+      SHOP_BIGCOMMERCE_API_KEY: 
+      SHOP_BIGCOMMERCE_SECRET: 
+      CHANNEL_SHOPIFY_SECRET: 
+      CHANNEL_SHOPIFY_API_KEY: 
+      CHANNEL_BIGCOMMERCE_API_KEY: 
+      CHANNEL_BIGCOMMERCE_SECRET:
