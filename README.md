@@ -31,7 +31,7 @@ DATABASE_URL=postgresql://postgres:example@url:3000/postgres
 SESSION_SECRET=please_change_me
 ```
 
-Be sure to replace DATABASE_URL with a postgres connection string.
+Be sure to replace `DATABASE_URL` with a postgres connection string.
 
 You can run postgres locally or get a database online.
 
@@ -95,7 +95,31 @@ Go to site settings > build & deploy > environment and add these variables:
   SESSION_SECRET=OH_PLEASE_PLEASE_CHANGE_ME
 ```
 
-Replace DATABASE_URL with a postgres database connection string and FRONTEND_URL with the url ending in netlify.app. Redeploy the site.
+Replace `DATABASE_URL` with a postgres database connection string and `FRONTEND_URL` with the url ending in netlify.app. Redeploy the site.
+
+### Docker
+
+Create a copy of example.env named `.env` and cusotmize the session secret, as well as the postgres user/password/dbname as you wish:
+
+```
+cp example.env .env
+```
+
+The project datase init is coupled with the build system, so we have to start the postgres service before building:
+
+```
+mkdir ./volumes/postgres/data
+docker-compose up -d postgres
+```
+
+Now build and start the OpenShip container itself:
+```
+docker-compose up -d
+```
+
+The web app should be available at `curl localhost:3100`. If it is not, please check `docker-compose logs`.
+
+Finally, expose the `localhost:3100` to the desired public host.
 
 ## Credits
 

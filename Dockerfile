@@ -16,7 +16,7 @@ RUN yarn install --verbose
 COPY . .
 
 # Build the application
-RUN yarn run build --verbose
+RUN yarn run build
 
 # Expose the port on which the application will run
 EXPOSE 3000
