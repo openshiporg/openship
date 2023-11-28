@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - 172.17.0.1:5432:5432
+    volumes:
+      - "./volumes/postgres/data:/var/lib/postgresql/data:rw"
+
+  app:
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 127.0.0.1:3100:3000
