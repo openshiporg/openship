@@ -1,27 +1,27 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import FocusLock from "react-focus-lock";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react"
-import FocusLock from "react-focus-lock"
-import { jsx } from '@keystone-ui/core';
-import { PopoverDialog, useControlledPopover } from "@keystone-ui/popover"
-
-import { InputButton } from "@keystone/components/InputButton"
+import { InputButton } from "@keystone/components/InputButton";
 import { deserializeDate } from "@keystone/utils/deserializeDate";
 import { formatDate } from "@keystone/utils/formatDate";
 import { formatDateType } from "@keystone/utils/formatDateType";
 import { dateFormatPlaceholder } from "@keystone/utils/dateFormatPlaceholder";
 import { Calendar } from "@keystone/components/Calendar";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@keystone/primitives/default/ui/popover";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@keystone/utils/cn";
 
 export function useEventCallback(callback) {
-  const callbackRef = useRef(callback)
-  const cb = useCallback((...args) => {
-    return callbackRef.current(...args)
-  }, [])
+  const callbackRef = useRef(callback);
   useEffect(() => {
-    callbackRef.current = callback
-  })
-  return cb
+    callbackRef.current = callback;
+  });
+  return useCallback((...args) => callbackRef.current(...args), []);
 }
 
 export const DatePicker = ({
@@ -31,93 +31,54 @@ export const DatePicker = ({
   onBlur: _onBlur,
   ...props
 }) => {
-  const [isOpen, _setOpen] = useState(false)
+  const [isOpen, _setOpen] = useState(false);
   const onBlur = useEventCallback(() => {
-    _onBlur?.()
-  })
+    _onBlur?.();
+  });
   const setOpen = useCallback(
-    val => {
-      _setOpen(val)
+    (val) => {
+      _setOpen(val);
       if (!val) {
-        onBlur?.()
+        onBlur?.();
       }
     },
     [onBlur]
-  )
-  const { dialog, trigger, arrow } = useControlledPopover(
-    {
-      isOpen,
-      onClose: useCallback(() => {
-        setOpen(false)
-      }, [setOpen])
-    },
-    {
-      placement: "bottom-start",
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [0, 8]
-          }
-        }
-      ]
-    }
-  )
+  );
 
   const handleDayClick = useCallback(
-    day => {
-      onUpdate(formatDateType(day))
-      // wait a moment so the user has time to see the day become selected
+    (day) => {
+      onUpdate(formatDateType(day));
       setTimeout(() => {
-        setOpen(false)
-      }, 300)
+        setOpen(false);
+      }, 300);
     },
     [onUpdate, setOpen]
-  )
+  );
 
-  // We **can** memoize this, but its a trivial operation
-  // and in the opinion of the author not really something to do
-  // before other more important performance optimisations
-  const selectedDay = deserializeDate(value)
-  const formattedDate = value ? formatDate(selectedDay) : undefined
+  const selectedDay = deserializeDate(value);
+  const formattedDate = value ? formatDate(selectedDay) : undefined;
 
   return (
     <Fragment>
-      <InputButton
-        aria-label={
-          "Choose date" +
-          (formattedDate ? `, selected date is ${formattedDate}` : "")
-        }
-        onClick={() => setOpen(true)}
-        onClear={
-          value
-            ? () => {
-                onClear()
-                onBlur?.()
-              }
-            : undefined
-        }
-        isSelected={isOpen}
-        ref={trigger.ref}
-        {...props}
-        {...trigger.props}
-        // todo - magic number - align instead to parent Field ?
-        style={{ minWidth: 200 }}
-      >
-        {formattedDate || dateFormatPlaceholder}
-      </InputButton>
-      {isOpen && (
-        <PopoverDialog
-          arrow={arrow}
-          isVisible
-          ref={dialog.ref}
-          {...dialog.props}
-        >
-          <FocusLock autoFocus returnFocus disabled={!isOpen}>
-            <Calendar onDayClick={handleDayClick} selected={selectedDay} />
-          </FocusLock>
-        </PopoverDialog>
-      )}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            onClick={() => setOpen(true)}
+            className={cn(
+              "text-md bg-muted w-[280px] justify-start text-left font-normal",
+              !(formattedDate || dateFormatPlaceholder) &&
+                "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {formattedDate || dateFormatPlaceholder}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar onDayClick={handleDayClick} selected={selectedDay} />
+        </PopoverContent>
+      </Popover>
     </Fragment>
-  )
-}
+  );
+};

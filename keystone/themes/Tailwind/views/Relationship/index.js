@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { AdminLink } from "@keystone/components/AdminLink";
 
 import { Fragment, useState } from "react";
@@ -12,16 +9,12 @@ import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldDescription } from "@keystone/components/FieldDescription";
 import { FieldLabel } from "@keystone/components/FieldLabel";
 import { FieldLegend } from "@keystone/components/FieldLegend";
-import { DrawerController } from "@keystone/components/Modals";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
-
-import { Button } from "@keystone-ui/button";
-import { jsx, Stack, useTheme } from "@keystone-ui/core";
 
 import { Cards } from "@keystone/components/Cards";
 import { CreateItemDrawer } from "@keystone/components/CreateItemDrawer";
 import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
-
+import { Button } from "@keystone/primitives/default/ui/button";
 
 function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   function constructQuery({ refFieldKey, itemId, value }) {
@@ -33,29 +26,23 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
       .map(({ id }) => id)
       .join(",")}"`;
   }
-  const commonProps = {
-    size: "small",
-    tone: "active",
-    weight: "link",
-  };
-
   if (value.kind === "many") {
     const query = constructQuery({ refFieldKey, value, itemId });
     return (
-      <Button {...commonProps} as={AdminLink} href={`/${list.path}?${query}`}>
-        View related {list.plural}
+      <Button variant="link">
+        <AdminLink href={`/${list.path}?${query}`}>
+          View related {list.plural}
+        </AdminLink>
       </Button>
     );
   }
 
   return (
-    <Button
-      {...commonProps}
-      as={AdminLink}
-      href={`/${list.path}/${value.value?.id}`}
-    >
-      View {list.singular} details
-    </Button>
+    <AdminLink href={`/${list.path}/${value.value?.id}`}>
+      <Button variant="link" size="sm">
+        View {list.singular} details
+      </Button>
+    </AdminLink>
   );
 }
 
@@ -93,7 +80,7 @@ export const Field = ({
 
   if (value.kind === "count") {
     return (
-      <Stack as="fieldset" gap="medium">
+      <fieldset className="space-y-4">
         <FieldLegend>{field.label}</FieldLegend>
         <FieldDescription id={`${field.path}-description`}>
           {field.description}
@@ -104,7 +91,7 @@ export const Field = ({
             : `There are ${value.count} ${foreignList.plural} `}
           linked to this {localList.singular}
         </div>
-      </Stack>
+      </fieldset>
     );
   }
 
@@ -117,7 +104,7 @@ export const Field = ({
         {field.description}
       </FieldDescription>
       <Fragment>
-        <Stack gap="medium">
+        <div className="space-y-4">
           <RelationshipSelect
             controlShouldRenderValue
             aria-describedby={
@@ -157,18 +144,43 @@ export const Field = ({
                   }
             }
           />
-          <Stack across gap="small">
-            {onChange !== undefined && !field.hideCreate && (
-              <Button
-                size="small"
-                disabled={isDrawerOpen}
-                onClick={() => {
-                  setIsDrawerOpen(true);
-                }}
-              >
-                Create related {foreignList.singular}
-              </Button>
-            )}
+          <div className="flex space-x-2">
+            {onChange !== undefined &&
+              !field.hideCreate &&
+              onChange !== undefined && (
+                <CreateItemDrawer
+                  listKey={foreignList.key}
+                  trigger={
+                    <Button
+                      size="sm"
+                      // disabled={isDrawerOpen}
+                      // onClick={() => {
+                      //   setIsDrawerOpen(true);
+                      // }}
+                      variant="secondary"
+                    >
+                      Create related {foreignList.singular}
+                    </Button>
+                  }
+                  onClose={() => {
+                    setIsDrawerOpen(false);
+                  }}
+                  onCreate={(val) => {
+                    setIsDrawerOpen(false);
+                    if (value.kind === "many") {
+                      onChange({
+                        ...value,
+                        value: [...value.value, val],
+                      });
+                    } else if (value.kind === "one") {
+                      onChange({
+                        ...value,
+                        value: val,
+                      });
+                    }
+                  }}
+                />
+              )}
             {onChange !== undefined &&
               authenticatedItem.state === "authenticated" &&
               authenticatedItem.listKey === field.refListKey &&
@@ -177,7 +189,7 @@ export const Field = ({
                   undefined
                 : value.value?.id !== authenticatedItem.id) && (
                 <Button
-                  size="small"
+                  size="sm"
                   onClick={() => {
                     const val = {
                       label: authenticatedItem.label,
@@ -210,32 +222,8 @@ export const Field = ({
                 value={value}
               />
             )}
-          </Stack>
-        </Stack>
-        {onChange !== undefined && (
-          <DrawerController isOpen={isDrawerOpen}>
-            <CreateItemDrawer
-              listKey={foreignList.key}
-              onClose={() => {
-                setIsDrawerOpen(false);
-              }}
-              onCreate={(val) => {
-                setIsDrawerOpen(false);
-                if (value.kind === "many") {
-                  onChange({
-                    ...value,
-                    value: [...value.value, val],
-                  });
-                } else if (value.kind === "one") {
-                  onChange({
-                    ...value,
-                    value: val,
-                  });
-                }
-              }}
-            />
-          </DrawerController>
-        )}
+          </div>
+        </div>
       </Fragment>
     </FieldContainer>
   );
@@ -243,7 +231,6 @@ export const Field = ({
 
 export const Cell = ({ field, item }) => {
   const list = useList(field.refListKey);
-  const { colors } = useTheme();
 
   if (field.display === "count") {
     const count = item[`${field.path}Count`] ?? 0;
@@ -258,14 +245,6 @@ export const Cell = ({ field, item }) => {
   const items = (Array.isArray(data) ? data : [data]).filter((item) => item);
   const displayItems = items.length < 5 ? items : items.slice(0, 3);
   const overflow = items.length < 5 ? 0 : items.length - 3;
-  const styles = {
-    color: colors.foreground,
-    textDecoration: "none",
-
-    ":hover": {
-      textDecoration: "underline",
-    },
-  };
 
   return (
     <CellContainer>
@@ -275,7 +254,6 @@ export const Cell = ({ field, item }) => {
           <AdminLink
             href={`/${list.path}/[id]`}
             as={`/${list.path}/${item.id}`}
-            css={styles}
           >
             {item.label || item.id}
           </AdminLink>
@@ -297,7 +275,10 @@ export const CardValue = ({ field, item }) => {
         .map((item, index) => (
           <Fragment key={item.id}>
             {!!index ? ", " : ""}
-            <AdminLink href={`/${list.path}/[id]`} as={`/${list.path}/${item.id}`}>
+            <AdminLink
+              href={`/${list.path}/[id]`}
+              as={`/${list.path}/${item.id}`}
+            >
               {item.label || item.id}
             </AdminLink>
           </Fragment>

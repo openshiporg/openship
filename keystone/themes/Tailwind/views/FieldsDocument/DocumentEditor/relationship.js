@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@keystone-ui/core";
 import { createContext, Fragment, useContext } from "react";
 import { ReactEditor } from "slate-react";
 import { Transforms } from "slate";
@@ -75,24 +72,8 @@ export function RelationshipElement({ attributes, children, element }) {
   );
 
   return (
-    <span
-      {...attributes}
-      css={{
-        display: "inline-flex",
-        alignItems: "center",
-      }}
-    >
-      <span
-        contentEditable={false}
-        css={{
-          userSelect: "none",
-          width: 200,
-          display: "inline-block",
-          paddingLeft: 4,
-          paddingRight: 4,
-          flex: 1,
-        }}
-      >
+    <span {...attributes}>
+      <span contentEditable={false}>
         {relationship ? (
           <RelationshipSelect
             controlShouldRenderValue
@@ -124,7 +105,7 @@ export function RelationshipElement({ attributes, children, element }) {
           "Invalid relationship"
         )}
       </span>
-      <span css={{ flex: 0 }}>{children}</span>
+      <span>{children}</span>
     </span>
   );
 }

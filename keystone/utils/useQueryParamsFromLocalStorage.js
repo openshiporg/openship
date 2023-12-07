@@ -1,10 +1,11 @@
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function useQueryParamsFromLocalStorage(listKey) {
   const router = useRouter();
 
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Create a query object that behaves like the old query object
   const query = {};
@@ -17,7 +18,8 @@ export function useQueryParamsFromLocalStorage(listKey) {
   const storeableQueries = ["sortBy", "fields"];
   const resetToDefaults = () => {
     localStorage.removeItem(localStorageKey);
-    router.replace({ pathname: router.pathname });
+    // Assuming you are using 'router' from 'next/router'
+    router.push(pathname);
   };
 
   // GET QUERY FROM CACHE IF CONDITIONS ARE RIGHT

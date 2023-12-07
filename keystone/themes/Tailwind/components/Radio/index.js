@@ -1,9 +1,4 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { Fragment, forwardRef } from "react";
-import { jsx, VisuallyHidden } from "@keystone-ui/core";
-import { useIndicatorStyles, useIndicatorTokens } from "./hooks/indicators";
 import { ControlLabel } from "@keystone/components/ControlLabel";
 
 const dotSizeMap = {
@@ -18,14 +13,6 @@ const DotIcon = ({ size = "medium" }) => {
       aria-hidden="true"
       focusable="false"
       fill="currentColor"
-      css={{
-        verticalAlign: "text-bottom", // removes whitespace inside buttons
-        fill,
-        stroke,
-        strokeLinejoin: "round",
-        strokeLinecap: "round",
-        strokeWidth: 3,
-      }}
       height={`${dotSizeMap[size]}px`}
       width={`${dotSizeMap[size]}px`}
       role="img"
@@ -53,7 +40,7 @@ export const Radio = forwardRef(
 
 export const RadioControl = forwardRef(({ size, ...props }, ref) => (
   <Fragment>
-    <VisuallyHidden ref={ref} as="input" type="radio" {...props} />
+    <input ref={ref} type="radio" className="sr-only" {...props} />
     <Indicator size={size}>
       <DotIcon size={size} />
     </Indicator>
@@ -61,7 +48,5 @@ export const RadioControl = forwardRef(({ size, ...props }, ref) => (
 ));
 
 const Indicator = ({ size, ...props }) => {
-  const tokens = useIndicatorTokens({ type: "radio", size: size || "medium" });
-  const styles = useIndicatorStyles({ tokens });
-  return <div css={styles} {...props} />;
+  return <div {...props} />;
 };

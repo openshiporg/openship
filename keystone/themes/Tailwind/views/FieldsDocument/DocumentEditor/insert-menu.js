@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx, Portal } from "@keystone-ui/core";
-import { useControlledPopover } from "@keystone-ui/popover";
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { Transforms, Text, Editor, Path, Point, Node } from "slate";
 import { ReactEditor } from "slate-react";
@@ -11,11 +7,16 @@ import {
   ComponentBlockContext,
   insertComponentBlock,
 } from "./component-blocks";
-import { InlineDialog, ToolbarButton } from "./primitives";
+import { ToolbarButton } from "./primitives";
 import { useDocumentFieldRelationships } from "./relationship";
 import { useToolbarState } from "./toolbar-state";
 import { insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading } from "./utils";
 import { insertLayout } from "./layouts";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+} from "@keystone/primitives/default/ui/dialog";
 
 let noop = () => {};
 
@@ -132,10 +133,6 @@ export function InsertMenu({ children, text }) {
     editor,
     relationships: { isDisabled: relationshipsDisabled },
   } = toolbarState;
-  const { dialog, trigger } = useControlledPopover(
-    { isOpen: true, onClose: noop },
-    { placement: "bottom-start" }
-  );
   const componentBlocks = useContext(ComponentBlockContext);
   const relationships = useDocumentFieldRelationships();
   const options = matchSorter(
@@ -227,43 +224,24 @@ export function InsertMenu({ children, text }) {
   const DIALOG_HEIGHT = 300;
   return (
     <Fragment>
-      <span {...trigger.props} css={{ color: "blue" }} ref={trigger.ref}>
-        {children}
-      </span>
-      <Portal>
-        <InlineDialog
-          contentEditable={false}
-          {...dialog.props}
-          css={{
-            display: options.length ? undefined : "none",
-            userSelect: "none",
-            maxHeight: DIALOG_HEIGHT,
-            zIndex: 3,
-          }}
-          ref={dialog.ref}
-        >
-          <div
-            ref={dialogRef}
-            css={{ overflowY: "auto", maxHeight: DIALOG_HEIGHT - 8 * 2 }}
-          >
-            {options.map((option, index) => (
-              <ToolbarButton
-                key={option.label}
-                isPressed={index === selectedIndex}
-                onMouseEnter={() => {
-                  setSelectedIndex(index);
-                }}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  insertOption(editor, text, option);
-                }}
-              >
-                {option.label}
-              </ToolbarButton>
-            ))}
-          </div>
-        </InlineDialog>
-      </Portal>
+      <DialogTrigger asChild>
+        <button onClick={() => setIsDialogOpen(true)}>{children}</button>
+      </DialogTrigger>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent ref={dialogRef}>
+          {options.map((option, index) => (
+            <ToolbarButton
+              key={option.label}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                insertOption(option);
+              }}
+            >
+              {option.label}
+            </ToolbarButton>
+          ))}
+        </DialogContent>
+      </Dialog>
     </Fragment>
   );
 }

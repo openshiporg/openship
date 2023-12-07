@@ -1,31 +1,13 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx, useTheme } from "@keystone-ui/core";
 import { useState } from "react";
 import { InsertMenu } from "./insert-menu";
 
 function Placeholder({ placeholder, children }) {
   const [width, setWidth] = useState(0);
   return (
-    <span css={{ position: "relative", display: "inline-block", width }}>
+    <span className="relative inline-block w-1/2">
       <span
         contentEditable={false}
-        style={{
-          position: "absolute",
-          pointerEvents: "none",
-          display: "inline-block",
-          left: 0,
-          top: 0,
-          maxWidth: "100%",
-          whiteSpace: "nowrap",
-          opacity: "0.5",
-          userSelect: "none",
-          fontStyle: "normal",
-          fontWeight: "normal",
-          textDecoration: "none",
-          textAlign: "left",
-        }}
+        className="absolute pointer-events-none inline-block left-0 top-0 max-w-full whitespace-nowrap opacity-50 select-none no-underline text-left"
       >
         <span
           ref={(node) => {
@@ -46,7 +28,6 @@ function Placeholder({ placeholder, children }) {
 }
 
 const Leaf = ({ leaf, text, children, attributes }) => {
-  const { colors, radii, spacing, typography } = useTheme();
   const {
     underline,
     strikethrough,
@@ -70,16 +51,7 @@ const Leaf = ({ leaf, text, children, attributes }) => {
 
   if (code) {
     children = (
-      <code
-        css={{
-          backgroundColor: colors.backgroundDim,
-          borderRadius: radii.xsmall,
-          display: "inline-block",
-          fontFamily: typography.fontFamily.monospace,
-          fontSize: typography.fontSize.small,
-          padding: `0 ${spacing.xxsmall}px`,
-        }}
-      >
+      <code className="bg-gray-200 rounded-xs inline-block font-mono text-sm px-1">
         {children}
       </code>
     );

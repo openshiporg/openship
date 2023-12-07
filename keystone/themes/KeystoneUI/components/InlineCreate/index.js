@@ -45,8 +45,7 @@ export function InlineCreate({
 
   const [forceValidation, setForceValidation] = useState(false);
 
-  const onSubmit = (event) => {
-    event.preventDefault();
+  const onSubmit = () => {
     const newForceValidation = invalidFields.size !== 0;
     setForceValidation(newForceValidation);
 
@@ -97,7 +96,7 @@ export function InlineCreate({
   };
 
   return (
-    <form onSubmit={onSubmit}>
+    <section>
       <Stack gap="xlarge">
         {error && (
           <GraphQLErrorNotice
@@ -118,7 +117,7 @@ export function InlineCreate({
             size="small"
             tone="positive"
             weight="bold"
-            type="submit"
+            onClick={onSubmit}
           >
             Create {list.singular}
           </Button>
@@ -127,6 +126,6 @@ export function InlineCreate({
           </Button>
         </Stack>
       </Stack>
-    </form>
+    </section>
   );
 }

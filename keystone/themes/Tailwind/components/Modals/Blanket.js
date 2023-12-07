@@ -1,29 +1,10 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { forwardRef } from "react";
-import { jsx, keyframes } from "@keystone-ui/core";
-
-const fadeInAnim = keyframes({
-  from: {
-    opacity: 0,
-  },
-});
-const easing = "cubic-bezier(0.2, 0, 0, 1)";
 
 export const Blanket = forwardRef((props, ref) => {
   return (
     <div
       ref={ref}
-      css={{
-        animation: `${fadeInAnim} 320ms ${easing}`,
-        backgroundColor: "rgba(0, 0, 0, 0.3)", // TODO get this from the theme
-        bottom: 0,
-        left: 0,
-        position: "fixed",
-        right: 0,
-        top: 0,
-      }}
+      className="fixed inset-0 bg-black bg-opacity-30 animate-in fadeIn duration-300"
       {...props}
     />
   );

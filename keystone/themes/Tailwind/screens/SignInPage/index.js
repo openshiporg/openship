@@ -1,30 +1,26 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { useState, Fragment, FormEvent, useRef, useEffect } from "react";
-
-import {
-  jsx,
-  H1,
-  Stack,
-  VisuallyHidden,
-  useTheme,
-  Center,
-  Box,
-} from "@keystone-ui/core";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, gql } from "@keystone-6/core/admin-ui/apollo";
 import { useRouter } from "next/navigation";
-// import { useRawKeystone, useReinitContext } from "@keystone-6/core/admin-ui/context";
-import {
-  useReinitContext,
-  useRawKeystone,
-} from "@keystone/keystoneProvider";
+import { useReinitContext, useRawKeystone } from "@keystone/keystoneProvider";
 import { useRedirect } from "@keystone/utils/useRedirect";
 
-import { Button } from "@keystone-ui/button";
-import { TextInput } from "@keystone-ui/fields";
-import { Notice } from "@keystone-ui/notice";
-import { Head } from "@keystone-6/core/admin-ui/router";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@keystone/primitives/default/ui/card";
+
+import { Button } from "@keystone/primitives/default/ui/button";
+import { Input } from "@keystone/primitives/default/ui/input";
+import { Label } from "@keystone/primitives/default/ui/label";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@keystone/primitives/default/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export const SignInPage = ({
   identityField = "email",
@@ -107,7 +103,7 @@ export const SignInPage = ({
 
   return (
     <SignInTemplate
-      title="Keystone - Sign in"
+      title="Sign in"
       onSubmit={onSubmit}
       state={state}
       setState={setState}
@@ -122,6 +118,11 @@ export const SignInPage = ({
       mode={mode}
     />
   );
+};
+
+const placeholders = {
+  email: "m@example.com",
+  password: "supersecretpassword",
 };
 
 export function SignInTemplate({
@@ -139,111 +140,85 @@ export function SignInTemplate({
   failureTypename,
   mode,
 }) {
-  const { colors, shadow } = useTheme();
   return (
-    <div>
-      <Head>
-        <title>{title || "Keystone"}</title>
-      </Head>
-      <Center
-        css={{
-          minWidth: "100vw",
-          minHeight: "100vh",
-          backgroundColor: colors.backgroundMuted,
-        }}
-        rounding="medium"
-      >
-        <Box
-          css={{
-            background: colors.background,
-            width: 600,
-            boxShadow: shadow.s100,
-          }}
-          margin="medium"
-          padding="xlarge"
-          rounding="medium"
-        >
-          <Stack gap="xlarge" as="form" onSubmit={onSubmit}>
-            <H1>Sign In</H1>
-            {error && (
-              <Notice title="Error" tone="negative">
-                {error.message}
-              </Notice>
-            )}
-            {data?.authenticate?.__typename === failureTypename && (
-              <Notice title="Error" tone="negative">
-                {data?.authenticate.message}
-              </Notice>
-            )}
-            <Stack gap="medium">
-              <VisuallyHidden as="label" htmlFor="identity">
-                {identityField}
-              </VisuallyHidden>
-              <TextInput
-                id="identity"
-                name="identity"
-                value={state.identity}
-                onChange={(e) =>
-                  setState({ ...state, identity: e.target.value })
-                }
-                placeholder={identityField}
-                ref={identityFieldRef}
-              />
-              {mode === "signin" && (
-                <Fragment>
-                  <VisuallyHidden as="label" htmlFor="password">
-                    {secretField}
-                  </VisuallyHidden>
-                  <TextInput
-                    id="password"
-                    name="password"
-                    value={state.secret}
+    <div className="h-screen flex flex-col justify-center items-center bg-muted">
+      <div className="w-[350px]">
+        <form onSubmit={onSubmit}>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="identity" className="text-md capitalize">
+                    {identityField}
+                  </Label>
+                  <Input
+                    id="identity"
+                    name="identity"
+                    value={state.identity}
                     onChange={(e) =>
-                      setState({ ...state, secret: e.target.value })
+                      setState({ ...state, identity: e.target.value })
                     }
-                    placeholder={secretField}
-                    type="password"
+                    placeholder={placeholders[identityField] || identityField}
+                    ref={identityFieldRef}
+                    className="bg-muted"
                   />
-                </Fragment>
-              )}
-            </Stack>
+                </div>
+                {mode === "signin" && (
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="identity" className="text-md capitalize">
+                      {secretField}
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      value={state.secret}
+                      onChange={(e) =>
+                        setState({ ...state, secret: e.target.value })
+                      }
+                      placeholder={placeholders[secretField] || secretField}
+                      type="password"
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                className="w-full text-md"
+                color="blue"
+                size="lg"
+                isLoading={
+                  loading ||
+                  // this is for while the page is loading but the mutation has finished successfully
+                  data?.authenticate?.__typename === successTypename
+                }
+                type="submit"
+              >
+                Sign In
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
 
-            {mode === "forgot password" ? (
-              <Stack gap="medium" across>
-                <Button type="submit" weight="bold" tone="active">
-                  Log reset link
-                </Button>
-                <Button
-                  weight="none"
-                  tone="active"
-                  onClick={() => setMode("signin")}
-                >
-                  Go back
-                </Button>
-              </Stack>
-            ) : (
-              <Stack gap="medium" across>
-                <Button
-                  weight="bold"
-                  tone="active"
-                  isLoading={
-                    loading ||
-                    // this is for while the page is loading but the mutation has finished successfully
-                    data?.authenticate?.__typename === successTypename
-                  }
-                  type="submit"
-                >
-                  Sign in
-                </Button>
-                {/* Disabled until we come up with a complete password reset workflow */}
-                {/* <Button weight="none" tone="active" onClick={() => setMode('forgot password')}>
-            Forgot your password?
-          </Button> */}
-              </Stack>
-            )}
-          </Stack>
-        </Box>
-      </Center>
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+        {data?.authenticate?.__typename === failureTypename && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{data?.authenticate.message}</AlertDescription>
+          </Alert>
+        )}
+      </div>
     </div>
   );
 }

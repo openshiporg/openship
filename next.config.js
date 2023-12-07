@@ -1,4 +1,3 @@
-const withPreconstruct = require("@preconstruct/next");
 const fs = require("fs");
 const jsconfig = require("./jsconfig.json");
 
@@ -8,6 +7,7 @@ const themeAliases = {
   "@keystone/components": `keystone/themes/${theme}/components`,
   "@keystone/screens": `keystone/themes/${theme}/screens`,
   "@keystone/views": `keystone/themes/${theme}/views`,
+  "@keystone/primitives": `keystone/themes/${theme}/primitives`,
 };
 
 function valueToArray(obj) {
@@ -19,22 +19,20 @@ function valueToArray(obj) {
 }
 
 function updateJsconfigAliases() {
-  const existingContent = JSON.stringify(jsconfig, null, 3);
-
   jsconfig.compilerOptions.paths = {
     ...jsconfig.compilerOptions.paths,
     ...valueToArray(themeAliases),
   };
 
-  const newContent = JSON.stringify(jsconfig, null, 3);
-
-  if (existingContent !== newContent) {
-    fs.writeFileSync("jsconfig.json", newContent);
-  }
+  fs.writeFileSync("jsconfig.json", JSON.stringify(jsconfig, null, 2));
 }
 
 function configureWebpack(config, { isServer }) {
-  config.externals = [...(config.externals || []), ".prisma/client"];
+  config.externals = [
+    ...(config.externals || []),
+    ".prisma/client",
+    "@aws-sdk/signature-v4-multi-region",
+  ];
 
   config.resolve.alias = {
     ...config.resolve.alias,
@@ -64,4 +62,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPreconstruct(nextConfig);
+module.exports = nextConfig;

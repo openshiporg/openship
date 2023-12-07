@@ -1,91 +1,41 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
+import { forwardRef } from "react";
+import { Adornment, AdornmentWrapper } from "@keystone/components/Adornment";
 
-import { forwardRef } from "react"
-import { jsx, useTheme, VisuallyHidden } from "@keystone-ui/core"
-import { XIcon } from "@keystone-ui/icons/icons/XIcon"
-import { CalendarIcon } from "@keystone-ui/icons/icons/CalendarIcon"
-import { Adornment, AdornmentWrapper } from "@keystone/components/Adornment"
-import { useInputTokens, useInputStyles } from "@keystone/components/Fields/hooks/useInputTokens"
+import { CalendarIcon, XIcon } from "lucide-react";
 
 export const InputButton = forwardRef(
   ({ invalid = false, isSelected, onClear, ...props }, ref) => {
-    const { spacing } = useTheme()
-    const inputTokens = useInputTokens({ size: "medium" })
-    const inputStyles = useInputStyles({ invalid, tokens: inputTokens })
-    const focusStyles = isSelected
-      ? {
-          ...inputStyles[":focus"],
-          ":hover": inputStyles[":focus"],
-          ":focus": inputStyles[":focus"]
-        }
-      : null
-    const buttonStyles = {
-      ...inputStyles,
-      ...focusStyles,
-      cursor: "pointer",
-
-      // let the button vertically align its text; the have different native behaviour to inputs
-      lineHeight: "initial",
-
-      textAlign: "left"
-    }
-
     return (
       <AdornmentWrapper shape="square" size="medium">
-        <button
-          aria-invalid={invalid}
+        <Button
           ref={ref}
-          css={buttonStyles}
+          className={`cursor-pointer text-left ${
+            invalid ? "border-red-500" : ""
+          } ${isSelected ? "focus:ring focus:ring-indigo-300" : ""}`}
           type="button"
           {...props}
         />
         {onClear && <ClearButton onClick={onClear} />}
-        <Adornment
-          align="right"
-          css={{ paddingRight: spacing.small, pointerEvents: "none" }}
-        >
+        <Adornment align="right" className="pr-2 pointer-events-none">
           <CalendarIcon color="dim" />
         </Adornment>
       </AdornmentWrapper>
-    )
+    );
   }
-)
+);
 
-const ClearButton = props => {
-  const { colors } = useTheme()
-
+const ClearButton = (props) => {
   return (
     <Adornment
       as="button"
       align="right"
       type="button"
       tabIndex={-1}
-      css={{
-        alignItems: "center",
-        background: 0,
-        border: 0,
-        borderRadius: "50%",
-        color: colors.foregroundDim,
-        display: "flex",
-        justifyContent: "center",
-        outline: 0,
-        padding: 0,
-        right: "6px", // TODO ? sizes.medium.boxSize,
-        top: "6px", // TODO - magic number
-
-        // No focus styles because this button is not focusable
-        ":focus": {
-          color: "hotpink"
-        },
-        ":hover": {
-          color: colors.foregroundMuted
-        }
-      }}
+      className="align-center bg-transparent border-0 rounded-full flex justify-center outline-none p-0 right-6 top-6 hover:text-gray-500"
       {...props}
     >
-      <VisuallyHidden as="span">clear date value</VisuallyHidden>
+      <span className="sr-only">clear date value</span>
       <XIcon size="small" />
     </Adornment>
-  )
-}
+  );
+};

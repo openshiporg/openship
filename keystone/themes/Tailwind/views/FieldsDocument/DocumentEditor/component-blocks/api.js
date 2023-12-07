@@ -1,7 +1,4 @@
-/** @jsxRuntime classic */
-/* @jsx jsx */
 import { graphql } from '@keystone-6/core';
-import { jsx } from '@keystone-ui/core';
 import { FieldContainer } from '@keystone/components/FieldContainer';
 import { FieldLabel } from '@keystone/components/FieldLabel';
 import { Checkbox } from '@keystone/components/Checkbox';
@@ -67,7 +64,7 @@ export const fields = {
                 }
               }}
             />
-            {showValidation && <span css={{ color: 'red' }}>Please specify an integer</span>}
+            {showValidation && <span>Please specify an integer</span>}
           </FieldContainer>
         );
       },
@@ -101,7 +98,7 @@ export const fields = {
                 onChange(event.target.value);
               }}
             />
-            {showValidation && <span css={{ color: 'red' }}>Please provide a valid URL</span>}
+            {showValidation && <span>Please provide a valid URL</span>}
           </FieldContainer>
         );
       },
@@ -305,7 +302,7 @@ export function component(options) {
 }
 
 export const NotEditable = ({ children, ...props }) => (
-  <span css={{ userSelect: 'none' }} contentEditable={false} {...props}>
+  <span contentEditable={false} {...props}>
     {children}
   </span>
 );

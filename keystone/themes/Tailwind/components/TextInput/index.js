@@ -1,9 +1,9 @@
-import { TextInput as TI } from "@keystone-ui/fields";
+import { Input } from "@keystone/primitives/default/ui/input";
 
 export const TextInput = (props) => {
   if (props.children === null) {
     return null;
   }
 
-  return <TI {...props} />;
+  return <Input className="bg-muted" {...props} />;
 };

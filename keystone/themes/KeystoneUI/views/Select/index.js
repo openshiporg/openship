@@ -9,7 +9,7 @@ import { CellContainer } from "@keystone/components/CellContainer"
 import { FieldContainer } from "@keystone/components/FieldContainer"
 import { FieldDescription } from "@keystone/components/FieldDescription"
 import { FieldLabel } from "@keystone/components/FieldLabel"
-import { Select, MultiSelect } from "@keystone/components/Select"
+import { MultiSelect, Select } from '@keystone/components/Select';
 import { Radio } from "@keystone/components/Radio"
 
 export const Field = ({

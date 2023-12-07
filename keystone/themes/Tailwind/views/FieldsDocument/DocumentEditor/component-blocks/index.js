@@ -1,5 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
 
 import {
   Fragment,
@@ -12,8 +10,6 @@ import {
 } from "react"
 import { ReactEditor, useFocused, useSelected } from "slate-react"
 import { Editor, Transforms } from "slate"
-
-import { jsx, useTheme } from "@keystone-ui/core"
 
 import { ToolbarButton } from "../primitives"
 import {
@@ -84,7 +80,6 @@ export const ComponentBlocksElement = ({
     editor,
     __elementToGetPath
   )
-  const { spacing } = useTheme()
   const blockComponents = useContext(ComponentBlockContext)
   const componentBlock = blockComponents[currentElement.component]
 
@@ -132,8 +127,8 @@ export const ComponentBlocksElement = ({
 
   if (!componentBlock) {
     return (
-      <div css={{ border: "red 4px solid", padding: spacing.medium }}>
-        <pre contentEditable={false} css={{ userSelect: "none" }}>
+      <div>
+        <pre contentEditable={false}>
           {`The block "${currentElement.component}" no longer exists.
 
 Props:

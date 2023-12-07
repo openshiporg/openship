@@ -1,8 +1,4 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx, Stack, useTheme, Text } from "@keystone-ui/core";
-import { memo, useContext, useId, useMemo } from "react";
-import { ButtonContext } from "@keystone-ui/button";
+import { memo, useId, useMemo } from "react";
 import { FieldDescription } from "@keystone/components/FieldDescription";
 
 const RenderField = memo(function RenderField({
@@ -56,7 +52,7 @@ export function Fields({
           fieldKey,
           <div key={fieldKey}>
             {field.label}:{" "}
-            <span css={{ color: "red" }}>{val.errors[0].message}</span>
+            <span className="text-red-600 dark:text-red-500">{val.errors[0].message}</span>
           </div>,
         ];
       }
@@ -110,31 +106,19 @@ export function Fields({
   }
 
   return (
-    <Stack gap="xlarge">
-      {rendered.length === 0
+    <div className="flex flex-col items-stretch gap-2">
+      {console.log(rendered) && rendered.length === 0
         ? "There are no fields that you can read or edit"
         : rendered}
-    </Stack>
+    </div>
   );
 }
 
 function FieldGroup(props) {
   const descriptionId = useId();
   const labelId = useId();
-  const theme = useTheme();
-  const buttonSize = 24;
-  const { useButtonStyles, useButtonTokens, defaults } =
-    useContext(ButtonContext);
-  const buttonStyles = useButtonStyles({ tokens: useButtonTokens(defaults) });
-  const divider = (
-    <div
-      css={{
-        height: "100%",
-        width: 2,
-        backgroundColor: theme.colors.border,
-      }}
-    />
-  );
+
+  const divider = <div className="h-full w-px" />;
   return (
     <div
       role="group"
@@ -142,41 +126,19 @@ function FieldGroup(props) {
       aria-describedby={props.description === null ? undefined : descriptionId}
     >
       <details open>
-        <summary
-          css={{
-            listStyle: "none",
-            outline: 0,
-            "::-webkit-details-marker": { display: "none" },
-          }}
-        >
-          <Stack across gap="medium">
-            <div
-              css={{
-                ...buttonStyles,
-                "summary:focus &": buttonStyles[":focus"],
-                padding: 0,
-                height: buttonSize,
-                width: buttonSize,
-                "details[open] &": {
-                  transform: "rotate(90deg)",
-                },
-              }}
-            >
+        <summary className="list-none outline-none">
+          <div className="flex space-x-4">
+            <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
               {downChevron}
             </div>
             {divider}
-            <Text
-              id={labelId}
-              size="large"
-              weight="bold"
-              css={{ position: "relative" }}
-            >
+            <text id={labelId} className="relative text-lg font-bold">
               {props.label}
-            </Text>
-          </Stack>
+            </text>
+          </div>
         </summary>
-        <Stack across gap="medium">
-          <div css={{ width: buttonSize }} />
+        <div className="flex space-x-4">
+          <div />
           {divider}
           <div>
             {props.description !== null && (
@@ -184,11 +146,9 @@ function FieldGroup(props) {
                 {props.description}
               </FieldDescription>
             )}
-            <Stack marginTop="xlarge" gap="xlarge">
-              {props.children}
-            </Stack>
+            <div className="mt-12 space-y-12">{props.children}</div>
           </div>
-        </Stack>
+        </div>
       </details>
     </div>
   );

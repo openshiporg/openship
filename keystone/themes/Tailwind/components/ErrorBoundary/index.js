@@ -1,64 +1,42 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { Component } from "react"
-import { Button } from "@keystone-ui/button"
-import { jsx, Box, Center, Stack, useTheme } from "@keystone-ui/core"
-import { AlertTriangleIcon } from "@keystone-ui/icons/icons/AlertTriangleIcon"
+import { Component } from "react";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { AlertTriangleIcon } from "lucide-react";
 
 export class ErrorBoundary extends Component {
-  state = { hasError: false, isReloading: false }
+  state = { hasError: false, isReloading: false };
   static getDerivedStateFromError(error) {
-    return { error, hasError: true }
+    return { error, hasError: true };
   }
   reloadPage = () => {
-    this.setState({ isReloading: true })
-    window.location.reload()
-  }
+    this.setState({ isReloading: true });
+    window.location.reload();
+  };
   render() {
     if (this.state.hasError) {
       return (
         <ErrorContainer>
-          <Stack align="center" gap="medium">
+          <div className="flex flex-col items-center space-y-4">
             <AlertTriangleIcon size="large" />
             <div>Something went wrong.</div>
             <Button
-              size="small"
+              size="sm"
               isLoading={this.state.isReloading}
               onClick={this.reloadPage}
             >
               reload page
             </Button>
-          </Stack>
+          </div>
         </ErrorContainer>
-      )
+      );
     }
-    return this.props.children
+    return this.props.children;
   }
 }
 
 export const ErrorContainer = ({ children }) => {
-  const { colors, shadow } = useTheme()
   return (
-    <Center
-      css={{
-        minWidth: "100vw",
-        minHeight: "100vh",
-        backgroundColor: colors.backgroundMuted
-      }}
-      rounding="medium"
-    >
-      <Box
-        css={{
-          background: colors.background,
-          boxShadow: shadow.s100
-        }}
-        margin="medium"
-        padding="xlarge"
-        rounding="medium"
-      >
-        {children}
-      </Box>
-    </Center>
-  )
-}
+    <div className="flex items-center justify-center rounded-md">
+      <div className="m-4 p-8 rounded-md">{children}</div>
+    </div>
+  );
+};

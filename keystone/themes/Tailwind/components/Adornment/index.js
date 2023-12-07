@@ -1,8 +1,5 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { createContext, useContext } from "react"
-import { jsx, forwardRefWithAs, useTheme } from "@keystone-ui/core"
+import { createContext, useContext } from "react";
+import { forwardRefWithAs } from "@keystone/utils/forwardRefWithAs";
 
 /**
  * What is this thing?
@@ -14,68 +11,38 @@ import { jsx, forwardRefWithAs, useTheme } from "@keystone-ui/core"
 
 const AdornmentContext = createContext({
   shape: "square",
-  size: "medium"
-})
-const useAdornmentContext = () => useContext(AdornmentContext)
+  size: "medium",
+});
+const useAdornmentContext = () => useContext(AdornmentContext);
 
 export const AdornmentWrapper = ({ children, shape, size }) => {
   return (
     <AdornmentContext.Provider value={{ shape, size }}>
-      <div
-        css={{
-          alignItems: "center",
-          display: "flex",
-          position: "relative",
-          width: "100%"
-        }}
-      >
-        {children}
-      </div>
+      <div className="items-center flex relative w-full">{children}</div>
     </AdornmentContext.Provider>
-  )
-}
+  );
+};
 
 // Adornment Element
 // ------------------------------
 
 const alignmentPaddingMap = {
   left: "marginLeft",
-  right: "marginRight"
-}
+  right: "marginRight",
+};
 
 export const Adornment = forwardRefWithAs(
   ({ align, as: Tag = "div", ...props }, ref) => {
-    const { shape, size } = useAdornmentContext()
-    const { controlSizes } = useTheme()
-
-    const { indicatorBoxSize, paddingX } = controlSizes[size]
-
     // optical alignment shifts towards the middle of the container with the large
     // border radius on "round" inputs. use padding rather than margin to optimise
     // the hit-area of interactive elements
-    const offsetStyles =
-      shape === "round"
-        ? {
-            [alignmentPaddingMap[align]]: paddingX / 4
-          }
-        : null
 
     return (
       <Tag
         ref={ref}
-        css={{
-          [align]: 0,
-          alignItems: "center",
-          display: "flex",
-          height: indicatorBoxSize,
-          justifyContent: "center",
-          position: "absolute",
-          top: 0,
-          width: indicatorBoxSize,
-          ...offsetStyles
-        }}
+        className="items-center flex justify-center absolute top-0 left-0 rounded-md w-16 h-16 px-6"
         {...props}
       />
-    )
+    );
   }
-)
+);

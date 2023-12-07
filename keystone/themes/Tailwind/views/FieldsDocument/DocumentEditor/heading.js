@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from "@keystone-ui/core";
 import { Editor, Transforms, Range, Point, Path, Node, Text } from "slate";
 
 const headingStylesMap = {
@@ -16,17 +12,7 @@ const headingStylesMap = {
 export const HeadingElement = ({ attributes, children, element }) => {
   const Tag = `h${element.level}`;
   const headingStyle = headingStylesMap[Tag];
-  return (
-    <Tag
-      {...attributes}
-      css={{
-        ...headingStyle,
-        textAlign: element.textAlign,
-      }}
-    >
-      {children}
-    </Tag>
-  );
+  return <Tag {...attributes}>{children}</Tag>;
 };
 
 export function withHeading(editor) {

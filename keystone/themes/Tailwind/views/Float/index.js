@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from '@keystone-ui/core';
 import { useState } from "react";
 import { useFormattedInput } from "@keystone/utils/useFormattedInput";
 import { FieldContainer } from "@keystone/components/FieldContainer";
@@ -96,7 +92,7 @@ function FloatInput({
         {...props}
       />
       {(hasBlurred || forceValidation) && validationMessage && (
-        <span css={{ color: "red" }}>{validationMessage}</span>
+        <span className="text-red-600 dark:text-red-500">{validationMessage}</span>
       )}
     </span>
   );

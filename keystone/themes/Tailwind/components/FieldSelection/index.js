@@ -1,13 +1,16 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { Button } from "@keystone-ui/button";
-import { jsx, Box } from "@keystone-ui/core";
-import { ChevronDownIcon } from "@keystone-ui/icons/icons/ChevronDownIcon";
-import { CheckMark, OptionPrimitive, Options } from "@keystone-ui/options";
-import { Popover } from "@keystone-ui/popover";
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@keystone/primitives/default/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@keystone/primitives/default/ui/dropdown-menu";
+import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { CheckIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
+import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
 
 function isArrayEqual(arrA, arrB) {
   if (arrA.length !== arrB.length) return false;
@@ -19,16 +22,18 @@ function isArrayEqual(arrA, arrB) {
   return true;
 }
 
-const Option = (props) => {
+const Option = ({ children, isDisabled, isFocused, isSelected }) => {
+  // Replace with Shadcn UI's equivalent, if available
   return (
-    <OptionPrimitive {...props}>
-      {props.children}
-      <CheckMark
-        isDisabled={props.isDisabled}
-        isFocused={props.isFocused}
-        isSelected={props.isSelected}
-      />
-    </OptionPrimitive>
+    <div
+      className={`option ${isFocused ? "focused" : ""} ${
+        isSelected ? "selected" : ""
+      }`}
+    >
+      {children}
+      {/* Assuming Shadcn UI has an equivalent of CheckMark */}
+      {isSelected && !isDisabled && <CheckIcon name="check" />}
+    </div>
   );
 };
 
@@ -49,6 +54,7 @@ export function FieldSelection({ list, fieldModesByFieldPath }) {
   }
   const selectedFields = useSelectedFields(list, fieldModesByFieldPath);
 
+  console.log({ selectedFields });
   const setNewSelectedFields = (selectedFields) => {
     if (isArrayEqual(selectedFields, list.initialColumns)) {
       const { fields: _ignore, ...otherQueryFields } = query;
@@ -60,7 +66,6 @@ export function FieldSelection({ list, fieldModesByFieldPath }) {
           })
       );
     } else {
-   
       router.push(
         pathname +
           "?" +
@@ -83,39 +88,43 @@ export function FieldSelection({ list, fieldModesByFieldPath }) {
   });
 
   return (
-    <Popover
-      aria-label={`Columns options, list of column options to apply to the ${list.key} list`}
-      triggerRenderer={({ triggerProps }) => {
-        return (
-          <Button weight="link" css={{ padding: 4 }} {...triggerProps}>
-            <span
-              css={{
-                display: "inline-flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              {selectedFields.size} column{selectedFields.size === 1 ? "" : "s"}{" "}
-              <ChevronDownIcon size="smallish" />
-            </span>
-          </Button>
-        );
-      }}
-    >
-      <div css={{ width: 320 }}>
-        <Box padding="medium">
-          <Options
-            onChange={(options) => {
-              if (!Array.isArray(options)) return;
-              setNewSelectedFields(options.map((x) => x.value));
-            }}
-            isMulti
-            value={fields.filter((option) => selectedFields.has(option.value))}
-            options={fields}
-            components={fieldSelectionOptionsComponents}
-          />
-        </Box>
-      </div>
-    </Popover>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="border-dashed hidden lg:flex data-[state=open]:bg-muted"
+        >
+          <MixerHorizontalIcon className="mr-2 h-4 w-4" />
+          Viewing {selectedFields.size} column
+          {selectedFields.size === 1 ? "" : "s"}{" "}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[200px]">
+        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ScrollArea vpClassName="max-h-72">
+          {fields.map((field) => {
+            return (
+              <DropdownMenuCheckboxItem
+                key={field.value}
+                className="capitalize"
+                checked={selectedFields.has(field.value)}
+                onCheckedChange={(isChecked) => {
+                  const newSelectedFields = new Set(selectedFields);
+                  if (isChecked) {
+                    newSelectedFields.add(field.value);
+                  } else {
+                    newSelectedFields.delete(field.value);
+                  }
+                  setNewSelectedFields(Array.from(newSelectedFields));
+                }}
+              >
+                {field.label}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+        </ScrollArea>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -1,4 +1,3 @@
-import { useTheme } from "@keystone-ui/core";
 import { AdminLink } from "@keystone/components/AdminLink";
 
 /**
@@ -7,19 +6,9 @@ import { AdminLink } from "@keystone/components/AdminLink";
  */
 
 export const CellLink = (props) => {
-  const { colors, spacing } = useTheme();
   return (
     <AdminLink
-      css={{
-        color: colors.foreground,
-        display: "block",
-        padding: spacing.small,
-        textDecoration: "none",
-
-        ":hover": {
-          textDecoration: "underline",
-        },
-      }}
+      className="block no-underline hover:underline"
       {...props}
     />
   );

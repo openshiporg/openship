@@ -1,8 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx, Stack, Text } from "@keystone-ui/core";
-
 import { CellLink } from "@keystone/components/CellLink";
 import { CellContainer } from "@keystone/components/CellContainer";
 import { FieldContainer } from "@keystone/components/FieldContainer";
@@ -23,36 +18,24 @@ export const Field = ({
       <FieldDescription id={`${field.path}-description`}>
         {field.description}
       </FieldDescription>
-      <Stack>
+      <div>
         <TextArea
           id={field.path}
+          className="bg-muted mb-2"
           aria-describedby={
             field.description === null ? undefined : `${field.path}-description`
           }
           readOnly={onChange === undefined}
-          css={{
-            fontFamily: "monospace",
-            ...(!onChange && {
-              backgroundColor: "#eff3f6",
-              border: "1px solid transparent",
-              "&:focus-visible": {
-                outline: 0,
-                backgroundColor: "#eff3f6",
-                boxShadow: "0 0 0 2px #e1e5e9",
-                border: "1px solid #b1b5b9",
-              },
-            }),
-          }}
           autoFocus={autoFocus}
           onChange={(event) => onChange?.(event.target.value)}
           value={value}
         />
         {forceValidation && (
-          <Text color="red600" size="small">
+          <span className="text-red-600 dark:text-red-500">
             {"Invalid JSON"}
-          </Text>
+          </span>
         )}
-      </Stack>
+      </div>
     </FieldContainer>
   );
 };

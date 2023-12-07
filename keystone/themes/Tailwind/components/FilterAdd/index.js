@@ -1,87 +1,55 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { Fragment, useMemo, useState } from "react";
-import { Button } from "@keystone-ui/button";
-import {
-  Box,
-  Divider,
-  Heading,
-  Stack,
-  VisuallyHidden,
-  jsx,
-  useTheme,
-} from "@keystone-ui/core";
-import { Select } from "@keystone-ui/fields";
-import { ChevronLeftIcon } from "@keystone-ui/icons/icons/ChevronLeftIcon";
-import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
-import { ChevronDownIcon } from "@keystone-ui/icons/icons/ChevronDownIcon";
-import { OptionPrimitive, Options } from "@keystone-ui/options";
-import { PopoverDialog, usePopover } from "@keystone-ui/popover";
 import { useList } from "@keystone/keystoneProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@keystone/primitives/default/ui/button";
+import {
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  ListFilterIcon,
+  PlusIcon,
+} from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@keystone/primitives/default/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+} from "@keystone/primitives/default/ui/dropdown-menu";
+import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+import { Separator } from "@keystone/primitives/default/ui/separator";
 
-const fieldSelectComponents = {
-  Option: ({ children, ...props }) => {
-    let theme = useTheme();
-    let iconColor = props.isFocused
-      ? theme.colors.foreground
-      : theme.colors.foregroundDim;
-    return (
-      <OptionPrimitive {...props}>
-        <span>{children}</span>
-        <div
-          css={{
-            alignItems: "center",
-            display: "flex",
-            height: 24,
-            justifyContent: "center",
-            width: 24,
-          }}
-        >
-          <ChevronRightIcon css={{ color: iconColor }} />
-        </div>
-      </OptionPrimitive>
-    );
-  },
-};
 export function FilterAdd({ listKey, filterableFields }) {
-  const { isOpen, setOpen, trigger, dialog, arrow } = usePopover({
-    placement: "bottom",
-    modifiers: [{ name: "offset", options: { offset: [0, 8] } }],
-  });
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Fragment>
-      <Button
-        tone="active"
-        {...trigger.props}
-        ref={trigger.ref}
-        onClick={() => setOpen(!isOpen)}
-      >
-        <Box as="span" marginRight="xsmall">
-          Filter List
-        </Box>
-        <ChevronDownIcon size="small" />
-      </Button>
-      <PopoverDialog
-        aria-label={`Filters options, list of filters to apply to the ${listKey} list`}
-        arrow={arrow}
-        isVisible={isOpen}
-        {...dialog.props}
-        ref={dialog.ref}
-      >
-        {isOpen && (
-          <FilterAddPopoverContent
-            onClose={() => {
-              setOpen(false);
-            }}
-            listKey={listKey}
-            filterableFields={filterableFields}
-          />
-        )}
-      </PopoverDialog>
-    </Fragment>
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <Button
+          variant="secondary"
+          className="flex items-center border"
+          onClick={() => setIsOpen(true)}
+        >
+          <PlusIcon className="mr-2 w-4 h-4" />
+          Filter
+        </Button>
+      </DropdownMenuTrigger>
+      {isOpen && (
+        <FilterAddPopoverContent
+          onClose={() => setIsOpen(false)}
+          listKey={listKey}
+          filterableFields={filterableFields}
+        />
+      )}
+    </DropdownMenu>
   );
 }
 
@@ -126,136 +94,135 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
   }, [query, fieldsWithFilters]);
   const [state, setState] = useState({ kind: "selecting-field" });
 
+  const handleSelectField = (fieldPath) => {
+    const filterType = Object.keys(filtersByFieldThenType[fieldPath])[0];
+    setState({
+      kind: "filter-value",
+      fieldPath,
+      filterType,
+      filterValue:
+        fieldsWithFilters[fieldPath].controller.filter.types[filterType]
+          .initialValue,
+    });
+  };
+
   return (
-    <Stack
-      padding="medium"
-      as="form"
-      css={{ minWidth: 320 }}
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (state.kind === "filter-value") {
-          router.push(
-            pathname +
-              "?" +
-              new URLSearchParams({
-                ...query,
-                [`!${state.fieldPath}_${state.filterType}`]: JSON.stringify(
-                  state.filterValue
-                ),
-              })
-          );
-          onClose();
-        }
-      }}
-      gap="small"
-    >
-      {" "}
-      <div css={{ position: "relative" }}>
-        {state.kind !== "selecting-field" && (
-          <button
-            type="button"
-            onClick={() => {
-              setState({ kind: "selecting-field" });
-            }}
-            css={{
-              border: 0,
-              background: "transparent",
-              cursor: "pointer",
-              position: "absolute",
-            }}
-          >
-            <VisuallyHidden>Back</VisuallyHidden>
-            <ChevronLeftIcon size="smallish" />
-          </button>
-        )}
-        <Heading textAlign="center" type="h5">
-          {(() => {
-            switch (state.kind) {
-              case "selecting-field": {
-                return "Filter";
-              }
-              case "filter-value": {
-                return list.fields[state.fieldPath].label;
-              }
-            }
-          })()}
-        </Heading>
-      </div>
-      <Divider />
-      {state.kind === "selecting-field" && (
-        <Options
-          components={fieldSelectComponents}
-          onChange={(newVal) => {
-            const fieldPath = newVal.value;
-            const filterType = Object.keys(
-              filtersByFieldThenType[fieldPath]
-            )[0];
-            setState({
-              kind: "filter-value",
-              fieldPath,
-              filterType,
-              filterValue:
-                fieldsWithFilters[fieldPath].controller.filter.types[filterType]
-                  .initialValue,
-            });
-          }}
-          options={Object.keys(filtersByFieldThenType).map((fieldPath) => ({
-            label: fieldsWithFilters[fieldPath].label,
-            value: fieldPath,
-          }))}
-        />
-      )}
-      {state.kind === "filter-value" && (
-        <Select
-          width="full"
-          value={{
-            value: state.filterType,
-            label: filtersByFieldThenType[state.fieldPath][state.filterType],
-          }}
-          onChange={(newVal) => {
-            if (newVal) {
-              setState({
-                kind: "filter-value",
-                fieldPath: state.fieldPath,
-                filterValue:
-                  fieldsWithFilters[state.fieldPath].controller.filter.types[
-                    newVal.value
-                  ].initialValue,
-                filterType: newVal.value,
-              });
-            }
-          }}
-          options={Object.keys(filtersByFieldThenType[state.fieldPath]).map(
-            (filterType) => ({
-              label: filtersByFieldThenType[state.fieldPath][filterType],
-              value: filterType,
-            })
-          )}
-        />
-      )}
-      {state.kind == "filter-value" &&
-        (() => {
-          const { Filter } =
-            fieldsWithFilters[state.fieldPath].controller.filter;
-          return (
-            <Filter
-              type={state.filterType}
-              value={state.filterValue}
-              onChange={(value) => {
-                setState((state) => ({
-                  ...state,
-                  filterValue: value,
-                }));
+    <DropdownMenuContent align="end" className="w-[200px]">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (state.kind === "filter-value") {
+            router.push(
+              pathname +
+                "?" +
+                new URLSearchParams({
+                  ...query,
+                  [`!${state.fieldPath}_${state.filterType}`]: JSON.stringify(
+                    state.filterValue
+                  ),
+                })
+            );
+            onClose();
+          }
+        }}
+      >
+        <div className="flex justify-between">
+          {state.kind !== "selecting-field" && (
+            <Button
+              onClick={() => {
+                setState({ kind: "selecting-field" });
               }}
-            />
-          );
-        })()}
-      {state.kind == "filter-value" && (
-        <div css={{ display: "flex", justifyContent: "space-between" }}>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit">Apply</Button>
+              size="xs"
+              variant="outline"
+            >
+              <div className="sr-only">Back</div>
+              <ChevronLeftIcon className="w-4 h-4" />
+            </Button>
+          )}
+          <DropdownMenuLabel className="pb-0">
+            {(() => {
+              switch (state.kind) {
+                case "selecting-field": {
+                  return "Filter";
+                }
+                case "filter-value": {
+                  return list.fields[state.fieldPath].label;
+                }
+              }
+            })()}
+          </DropdownMenuLabel>
         </div>
-      )}
-    </Stack>
+        <DropdownMenuSeparator />
+        <ScrollArea vpClassName="max-h-72">
+          {state.kind === "selecting-field" &&
+            Object.keys(filtersByFieldThenType).map((fieldPath) => (
+              <button
+                key={fieldPath}
+                className="rounded-sm px-2 py-1.5 text-sm w-full text-left hover:bg-gray-100 dark:hover:bg-gray-900"
+                onClick={() => handleSelectField(fieldPath)}
+              >
+                {list.fields[fieldPath].label}
+              </button>
+            ))}
+          {state.kind === "filter-value" && (
+            <Select
+              onValueChange={(filterType) => {
+                setState({
+                  kind: "filter-value",
+                  fieldPath: state.fieldPath,
+                  filterValue:
+                    fieldsWithFilters[state.fieldPath].controller.filter.types[
+                      filterType
+                    ].initialValue,
+                  filterType: filterType,
+                });
+              }}
+            >
+              <SelectTrigger className="mb-2">
+                <SelectValue>
+                  {filtersByFieldThenType[state.fieldPath][state.filterType]}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(filtersByFieldThenType[state.fieldPath]).map(
+                  (filterType) => (
+                    <SelectItem key={filterType} value={filterType}>
+                      {filtersByFieldThenType[state.fieldPath][filterType]}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+          )}
+          {state.kind == "filter-value" &&
+            (() => {
+              const { Filter } =
+                fieldsWithFilters[state.fieldPath].controller.filter;
+              return (
+                <Filter
+                  type={state.filterType}
+                  value={state.filterValue}
+                  onChange={(value) => {
+                    setState((state) => ({
+                      ...state,
+                      filterValue: value,
+                    }));
+                  }}
+                />
+              );
+            })()}
+        </ScrollArea>
+        {state.kind == "filter-value" && (
+          <div className="flex justify-between mt-4 pt-2 pb-1 px-1 border-t">
+            <Button onClick={onClose} variant="ghost" size="xs">
+              Cancel
+            </Button>
+            <Button type="submit" size="xs">
+              Apply
+            </Button>
+          </div>
+        )}
+      </form>
+    </DropdownMenuContent>
   );
 }

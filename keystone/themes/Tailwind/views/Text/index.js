@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx, Stack, useTheme } from "@keystone-ui/core";
 import { CellContainer } from "@keystone/components/CellContainer";
 import { CellLink } from "@keystone/components/CellLink";
 import { Checkbox } from "@keystone/components/Checkbox";
@@ -18,7 +15,6 @@ export const Field = ({
   autoFocus,
   forceValidation,
 }) => {
-  const { typography, fields } = useTheme();
   const [shouldShowErrors, setShouldShowErrors] = useState(false);
   const validationMessages = validate(value, field.validation, field.label);
   return (
@@ -28,7 +24,7 @@ export const Field = ({
         {field.description}
       </FieldDescription>
       {onChange ? (
-        <Stack gap="small">
+        <div>
           {field.displayMode === "textarea" ? (
             <TextArea
               id={field.path}
@@ -97,24 +93,17 @@ export const Field = ({
               }}
               checked={value.inner.kind === "null"}
             >
-              <span
-                css={{
-                  fontWeight: typography.fontWeight.semibold,
-                  color: fields.labelColor,
-                }}
-              >
-                Set field as null
-              </span>
+              <span>Set field as null</span>
             </Checkbox>
           )}
           {!!validationMessages.length &&
             (shouldShowErrors || forceValidation) &&
             validationMessages.map((message, i) => (
-              <span key={i} css={{ color: "red" }}>
+              <span key={i} className="text-red-600 dark:text-red-500">
                 {message}
               </span>
             ))}
-        </Stack>
+        </div>
       ) : value.inner.kind === "null" ? null : (
         value.inner.value
       )}

@@ -1,7 +1,5 @@
 import { useCallback, useState } from "react";
 
-import { Button } from "@keystone-ui/button";
-import { Stack } from "@keystone-ui/core";
 import { useToasts } from "@keystone/components/Toast";
 import { useFieldsObj } from "@keystone/utils/useFieldObj";
 import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
@@ -13,6 +11,7 @@ import {
   useChangedFieldsAndDataForUpdate,
   makeDataGetter,
 } from "@keystone-6/core/admin-ui/utils";
+import { Button } from "@keystone/primitives/default/ui/button";
 
 export function InlineEdit({
   fields,
@@ -103,7 +102,7 @@ export function InlineEdit({
           });
       }}
     >
-      <Stack gap="xlarge">
+      <div className="space-y-10">
         {error && (
           <GraphQLErrorNotice
             networkError={error?.networkError}
@@ -127,21 +126,15 @@ export function InlineEdit({
           )}
           value={state.value}
         />
-        <Stack across gap="small">
-          <Button
-            isLoading={loading}
-            weight="bold"
-            size="small"
-            tone="active"
-            type="submit"
-          >
+        <div className="flex space-x-2">
+          <Button isLoading={loading} size="sm" type="submit">
             Save
           </Button>
-          <Button size="small" weight="none" onClick={onCancel}>
+          <Button size="sm" onClick={onCancel}>
             Cancel
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </div>
     </form>
   );
 }

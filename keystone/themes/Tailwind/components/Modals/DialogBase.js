@@ -1,70 +1,36 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { Fragment } from "react";
 import FocusLock from "react-focus-lock";
 import { RemoveScroll } from "react-remove-scroll";
-import { jsx, keyframes, Portal, useTheme } from "@keystone-ui/core";
 import { Blanket } from "./Blanket";
-
-const slideInAnim = keyframes({
-  from: {
-    transform: "translateY(20%)",
-    opacity: 0,
-  },
-});
-const easing = "cubic-bezier(0.2, 0, 0, 1)";
+import { Dialog } from "@keystone/primitives/default/ui/dialog";
 
 export const DialogBase = ({ children, isOpen, onClose, width, ...props }) => {
-  const theme = useTheme();
-
   const onKeyDown = (event) => {
     if (event.key === "Escape" && !event.defaultPrevented) {
-      event.preventDefault(); // Avoid potential drawer close
+      event.preventDefault();
       onClose();
     }
   };
 
   return isOpen ? (
-    <Portal>
-      <Fragment>
-        <Blanket onClick={onClose} />
-        <FocusLock autoFocus returnFocus>
-          <RemoveScroll enabled>
-            <div
-              css={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div
-                aria-modal="true"
-                role="dialog"
-                tabIndex={-1}
-                onKeyDown={onKeyDown}
-                css={{
-                  animation: `${slideInAnim} 320ms ${easing}`,
-                  backgroundColor: theme.colors.background,
-                  borderRadius: theme.radii.large,
-                  boxShadow: theme.shadow.s400,
-                  transition: `transform 150ms ${easing}`,
-                  width,
-                  zIndex: theme.elevation.e400,
-                }}
-                {...props}
-              >
-                {children}
-              </div>
-            </div>
-          </RemoveScroll>
-        </FocusLock>
-      </Fragment>
-    </Portal>
+    <Fragment>
+      <Blanket onClick={onClose} />
+      <FocusLock autoFocus returnFocus>
+        <RemoveScroll enabled>
+          <Dialog
+            isOpen={isOpen}
+            onClose={onClose}
+            aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
+            onKeyDown={onKeyDown}
+            className={`fixed top-0 left-0 w-full h-full flex justify-center items-center ${width} custom-slide-in-animation`} // width and custom animation class
+            {...props}
+          >
+            {children}
+          </Dialog>
+        </RemoveScroll>
+      </FocusLock>
+    </Fragment>
   ) : null;
 };

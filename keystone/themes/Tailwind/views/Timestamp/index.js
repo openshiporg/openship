@@ -1,8 +1,5 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
 import { useState } from "react";
 
-import { jsx, Inline, Stack, VisuallyHidden, Text } from "@keystone-ui/core";
 import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldLabel } from "@keystone/components/FieldLabel";
 import { TextInput } from "@keystone/components/TextInput";
@@ -64,90 +61,79 @@ export const Field = ({ field, value, onChange, forceValidation }) => {
 
   return (
     <FieldContainer as="fieldset">
-      <Stack>
-        <FieldLabel as="legend">{field.label}</FieldLabel>
-        <FieldDescription id={`${field.path}-description`}>
-          {field.description}
-        </FieldDescription>
-        {onChange ? (
-          <Inline gap="small">
-            <Stack>
-              <DatePicker
-                onUpdate={(date) => {
-                  onChange({
-                    ...value,
-                    value: {
-                      dateValue: date,
-                      timeValue:
-                        typeof value.value.timeValue === "object" &&
-                        value.value.timeValue.value === null
-                          ? { kind: "parsed", value: "00:00:00.000" }
-                          : value.value.timeValue,
-                    },
-                  });
-                }}
-                onClear={() => {
-                  onChange({
-                    ...value,
-                    value: { ...value.value, dateValue: null },
-                  });
-                }}
-                onBlur={() => setTouchedFirstInput(true)}
-                value={value.value.dateValue ?? ""}
-              />
-              {validationMessages?.date && (
-                <Text color="red600" size="small">
-                  {validationMessages.date}
-                </Text>
-              )}
-            </Stack>
-            <Stack>
-              <VisuallyHidden
-                as="label"
-                htmlFor={`${field.path}--time-input`}
-              >{`${field.label} time field`}</VisuallyHidden>
-              <TextInput
-                id={`${field.path}--time-input`}
-                {...timeInputProps}
-                aria-describedby={
-                  field.description === null
-                    ? undefined
-                    : `${field.path}-description`
-                }
-                disabled={onChange === undefined}
-                placeholder="00:00"
-              />
-              {validationMessages?.time && (
-                <Text color="red600" size="small">
-                  {validationMessages.time}
-                </Text>
-              )}
-            </Stack>
-          </Inline>
-        ) : (
-          value.value.dateValue !== null &&
-          typeof value.value.timeValue === "object" &&
-          value.value.timeValue.value !== null && (
-            <Text>
-              {formatOutput(
-                constructTimestamp({
-                  dateValue: value.value.dateValue,
-                  timeValue: value.value.timeValue.value,
-                })
-              )}
-            </Text>
-          )
-        )}
-        {((value.kind === "create" &&
-          typeof field.fieldMeta.defaultValue !== "string" &&
-          field.fieldMeta.defaultValue?.kind === "now") ||
-          field.fieldMeta.updatedAt) && (
-          <Text>
-            When this item is saved, this field will be set to the current date
-            and time
-          </Text>
-        )}
-      </Stack>
+      <FieldLabel as="legend">{field.label}</FieldLabel>
+      <FieldDescription id={`${field.path}-description`}>
+        {field.description}
+      </FieldDescription>
+      {onChange ? (
+        <div className="flex gap-2">
+          <div className="flex flex-col">
+            <DatePicker
+              onUpdate={(date) => {
+                onChange({
+                  ...value,
+                  value: {
+                    dateValue: date,
+                    timeValue:
+                      typeof value.value.timeValue === "object" &&
+                      value.value.timeValue.value === null
+                        ? { kind: "parsed", value: "00:00:00.000" }
+                        : value.value.timeValue,
+                  },
+                });
+              }}
+              onClear={() => {
+                onChange({
+                  ...value,
+                  value: { ...value.value, dateValue: null },
+                });
+              }}
+              onBlur={() => setTouchedFirstInput(true)}
+              value={value.value.dateValue ?? ""}
+            />
+            {validationMessages?.date && (
+              <p className="text-red-600 dark:text-red-500">{validationMessages.date}</p>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor={`${field.path}--time-input`} className="sr-only">
+              {`${field.label} time field`}
+            </label>
+            <TextInput
+              id={`${field.path}--time-input`}
+              {...timeInputProps}
+              aria-describedby={`${field.path}-description`}
+              disabled={onChange === undefined}
+              placeholder="00:00"
+            />
+            {validationMessages?.time && (
+              <p className="text-red-600 dark:text-red-500">{validationMessages.time}</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        value.value.dateValue !== null &&
+        typeof value.value.timeValue === "object" &&
+        value.value.timeValue.value !== null && (
+          <span>
+            {formatOutput(
+              constructTimestamp({
+                dateValue: value.value.dateValue,
+                timeValue: value.value.timeValue.value,
+              })
+            )}
+          </span>
+        )
+      )}
+      {((value.kind === "create" &&
+        typeof field.fieldMeta.defaultValue !== "string" &&
+        field.fieldMeta.defaultValue?.kind === "now") ||
+        field.fieldMeta.updatedAt) && (
+        <p>
+          When this item is saved, this field will be set to the current date
+          and time.
+        </p>
+      )}
     </FieldContainer>
   );
 };

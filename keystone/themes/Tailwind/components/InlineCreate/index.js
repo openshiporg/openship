@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Stack } from "@keystone-ui/core";
 import isDeepEqual from "fast-deep-equal";
-import { Button } from "@keystone-ui/button";
 import { useToasts } from "@keystone/components/Toast";
 import { useFieldsObj } from "@keystone/utils/useFieldObj";
 import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
@@ -12,6 +10,7 @@ import {
   serializeValueToObjByFieldKey,
   Fields,
 } from "@keystone-6/core/admin-ui/utils";
+import { Button } from "@keystone/primitives/default/ui/button";
 
 export function InlineCreate({
   list,
@@ -98,7 +97,7 @@ export function InlineCreate({
 
   return (
     <form onSubmit={onSubmit}>
-      <Stack gap="xlarge">
+      <div className="space-y-10">
         {error && (
           <GraphQLErrorNotice
             networkError={error?.networkError}
@@ -112,21 +111,15 @@ export function InlineCreate({
           onChange={setValue}
           value={value}
         />
-        <Stack gap="small" across>
-          <Button
-            isLoading={loading}
-            size="small"
-            tone="positive"
-            weight="bold"
-            type="submit"
-          >
+        <div className="flex space-x-2">
+          <Button isLoading={loading} size="sm" type="submit">
             Create {list.singular}
           </Button>
-          <Button size="small" weight="none" onClick={onCancel}>
+          <Button size="sm" onClick={onCancel}>
             Cancel
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </div>
     </form>
   );
 }

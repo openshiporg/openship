@@ -1,9 +1,13 @@
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Stack, useTheme } from "@keystone-ui/core";
-import { Select } from "@keystone-ui/fields";
-import { ChevronRightIcon, ChevronLeftIcon } from "@keystone-ui/icons";
 import { AdminLink } from "@keystone/components/AdminLink";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+} from "@keystone/primitives/default/ui/select";
 
 const getPaginationStats = ({ list, pageSize, currentPage, total }) => {
   let stats = "";
@@ -31,7 +35,6 @@ export function Pagination({ currentPage, total, pageSize, list }) {
   }
 
   const { stats } = getPaginationStats({ list, currentPage, total, pageSize });
-  const { opacity } = useTheme();
 
   const nextPage = currentPage + 1;
   const prevPage = currentPage - 1;
@@ -81,72 +84,41 @@ export function Pagination({ currentPage, total, pageSize, list }) {
   }
 
   return (
-    <Stack
-      as="nav"
-      role="navigation"
-      aria-label="Pagination"
-      paddingLeft="medium"
-      paddingRight="medium"
-      paddingTop="large"
-      paddingBottom="large"
-      across
-      align="center"
-      css={{
-        width: "100%",
-        justifyContent: "space-between",
-      }}
-    >
-      <Stack across gap="xxlarge" align="center">
+    <nav className="flex justify-between p-4" aria-label="Pagination">
+      <div className="flex gap-x-8 items-center">
         <span>{`${list.plural} per page: ${pageSize}`}</span>
         <span>
           <strong>{stats}</strong>
         </span>
-      </Stack>
+      </div>
 
-      <Stack gap="medium" across align="center">
+      <div className="flex gap-x-4 items-center">
         <Select
-          width="medium"
-          value={{ label: String(currentPage), value: String(currentPage) }}
-          options={pages}
-          styles={{
-            valueContainer: (provided) => ({
-              ...provided,
-              paddingLeft: "12px",
-              paddingRight: "16px",
-            }),
-          }}
-          menuPortalTarget={document.body}
-          onChange={onChange}
-        />
-        <span>of {limit}</span>
-        <AdminLink
-          aria-label="Previous page"
-          css={{
-            color: "#415269",
-            ...(prevPage < minPage && {
-              pointerEvents: "none",
-              opacity: opacity.disabled,
-            }),
-          }}
-          href={{ query: prevQuery }}
+          onValueChange={(newPage) =>
+            onChange({ label: String(newPage), value: newPage })
+          }
         >
+          <SelectTrigger className="w-medium ...">
+            <SelectValue>{String(currentPage)}</SelectValue>
+            <ChevronDown />
+          </SelectTrigger>
+          <SelectContent>
+            {pages.map((page) => (
+              <SelectItem key={page} value={page}>
+                {String(page)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span>of {limit}</span>
+        <AdminLink aria-label="Previous page" href={{ query: prevQuery }}>
           <ChevronLeftIcon />
         </AdminLink>
-        <AdminLink
-          aria-label="Next page"
-          css={{
-            color: "#415269",
-            ...(nextPage > limit && {
-              pointerEvents: "none",
-              opacity: opacity.disabled,
-            }),
-          }}
-          href={{ query: nxtQuery }}
-        >
+        <AdminLink aria-label="Next page" href={{ query: nxtQuery }}>
           <ChevronRightIcon />
         </AdminLink>
-      </Stack>
-    </Stack>
+      </div>
+    </nav>
   );
 }
 

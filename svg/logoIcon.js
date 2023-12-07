@@ -9,7 +9,7 @@ export default function Logo({ color = '#fff', ...props }) {
       <g
         id="Page-1"
         stroke="none"
-        strokeWidth="1"
+        strokeWidth="0"
         fill="none"
         fillRule="evenodd"
       >
@@ -17,27 +17,27 @@ export default function Logo({ color = '#fff', ...props }) {
           <g id="Network" transform="translate(483.000000, 2522.000000)">
             <polygon
               id="Fill-913"
-              style={{ fill: color }}
+              style={{ fill: "currentColor" }}
               points="27 28 29 28 29 46 27 46"
             />
             <polyline
               id="Fill-914"
-              style={{ fill: color }}
+              style={{ fill: "currentColor" }}
               points="31.707 21.707 30.293 20.293 45.293 5.293 46.707 6.707 31.707 21.707"
             />
             <polyline
               id="Fill-915"
-              style={{ fill: color }}
+              style={{ fill: "currentColor" }}
               points="6.707 46.707 5.293 45.293 25.293 25.293 26.707 26.707 6.707 46.707"
             />
             <polyline
               id="Fill-916"
-              style={{ fill: color }}
+              style={{ fill: "currentColor" }}
               points="23.293 20.707 12.293 9.707 13.707 8.293 24.707 19.293 23.293 20.707"
             />
             <polyline
               id="Fill-917"
-              style={{ fill: color }}
+              style={{ fill: "currentColor" }}
               points="44.293 41.707 29.293 26.707 30.707 25.293 45.707 40.293 44.293 41.707"
             />
             <path

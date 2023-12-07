@@ -1,14 +1,5 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { Fragment, useState } from "react";
 
-import { Button } from "@keystone-ui/button";
-import { jsx, Stack, Text, VisuallyHidden, useTheme } from "@keystone-ui/core";
-import { EyeIcon } from "@keystone-ui/icons/icons/EyeIcon";
-import { EyeOffIcon } from "@keystone-ui/icons/icons/EyeOffIcon";
-import { XIcon } from "@keystone-ui/icons/icons/XIcon";
-import { SegmentedControl } from "@keystone-ui/segmented-control";
 // @ts-ignore
 import dumbPasswords from "dumb-passwords";
 import { CellContainer } from "@keystone/components/CellContainer";
@@ -16,6 +7,12 @@ import { FieldDescription } from "@keystone/components/FieldDescription";
 import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldLabel } from "@keystone/components/FieldLabel";
 import { TextInput } from "@keystone/components/TextInput";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@keystone/primitives/default/ui/toggle-group";
 
 function validate(value, validation, fieldLabel) {
   if (
@@ -71,9 +68,9 @@ export const Field = ({
     ? validate(value, field.validation, field.label)
     : undefined;
   const validation = validationMessage && (
-    <Text color="red600" size="small">
+    <span className="text-red-600 dark:text-red-500">
       {validationMessage}
-    </Text>
+    </span>
   );
   const inputType = showInputValue ? "text" : "password";
   return (
@@ -88,6 +85,8 @@ export const Field = ({
         <Fragment>
           <Button
             autoFocus={autoFocus}
+            variant="outline"
+            className="shadow-xs"
             onClick={() => {
               onChange({
                 kind: "editing",
@@ -102,11 +101,11 @@ export const Field = ({
           {validation}
         </Fragment>
       ) : (
-        <Stack gap="small">
-          <div css={{ display: "flex" }}>
-            <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
+        <div className="space-y-1.5">
+          <div className="flex space-x-2">
+            {/* <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
               New Password
-            </VisuallyHidden>
+            </VisuallyHidden> */}
             <TextInput
               id={`${field.path}-new-password`}
               autoFocus
@@ -124,13 +123,12 @@ export const Field = ({
                 setTouchedFirstInput(true);
               }}
             />
-            <Spacer />
-            <VisuallyHidden
-              as="label"
+            <label
               htmlFor={`${field.path}-confirm-password`}
+              className="sr-only"
             >
               Confirm Password
-            </VisuallyHidden>
+            </label>
             <TextInput
               id={`${field.path}-confirm-password`}
               invalid={validationMessage !== undefined}
@@ -147,18 +145,22 @@ export const Field = ({
                 setTouchedSecondInput(true);
               }}
             />
-            <Spacer />
             <Button
               onClick={() => {
                 setShowInputValue(!showInputValue);
               }}
+              className="px-3 border-dashed"
+              variant="outline"
             >
-              <VisuallyHidden>
+              <span className="sr-only">
                 {showInputValue ? "Hide Text" : "Show Text"}
-              </VisuallyHidden>
-              {showInputValue ? <EyeOffIcon /> : <EyeIcon />}
+              </span>
+              {showInputValue ? (
+                <EyeOffIcon className="w-5 h-5" />
+              ) : (
+                <EyeIcon className="w-5 h-5" />
+              )}
             </Button>
-            <Spacer />
             <Button
               onClick={() => {
                 onChange({
@@ -166,13 +168,15 @@ export const Field = ({
                   isSet: value.isSet,
                 });
               }}
+              className="px-3 border-dashed"
+              variant="outline"
             >
-              <VisuallyHidden>Cancel</VisuallyHidden>
-              <XIcon />
+              <span className="sr-only">Cancel</span>
+              <XIcon className="w-5 h-5" />
             </Button>
           </div>
           {validation}
-        </Stack>
+        </div>
       )}
     </FieldContainer>
   );
@@ -231,13 +235,16 @@ export const controller = (config) => {
         : {
             Filter(props) {
               return (
-                <SegmentedControl
-                  selectedIndex={Number(props.value)}
-                  onChange={(value) => {
-                    props.onChange(!!value);
+                <ToggleGroup
+                  type="single"
+                  value={props.value.toString()}
+                  onValueChange={(value) => {
+                    props.onChange(Number(value));
                   }}
-                  segments={["Is Not Set", "Is Set"]}
-                />
+                >
+                  <ToggleGroupItem value="0">Is Not Set</ToggleGroupItem>
+                  <ToggleGroupItem value="1">Is Set</ToggleGroupItem>
+                </ToggleGroup>
               );
             },
             graphql: ({ value }) => {
@@ -254,9 +261,4 @@ export const controller = (config) => {
             },
           },
   };
-};
-
-const Spacer = () => {
-  const { spacing } = useTheme();
-  return <div css={{ width: spacing.small, flexShrink: 0 }} />;
 };

@@ -1,25 +1,20 @@
-import { Stack } from "@keystone-ui/core"
-import { Notice } from "@keystone-ui/notice"
-import React from "react"
+import React from "react";
+import { Alert } from "@keystone/primitives/default/ui/alert";
 
 export function GraphQLErrorNotice({ errors, networkError }) {
   if (networkError) {
-    return (
-      <Notice tone="negative" marginBottom="large">
-        {networkError.message}
-      </Notice>
-    )
+    return <Alert variant="destructive">{networkError.message}</Alert>;
   }
   if (errors?.length) {
     return (
-      <Stack gap="small" marginBottom="large">
+      <div className="mb-6 space-y-2">
         {errors.map((err, idx) => (
-          <Notice tone="negative" key={idx}>
+          <Alert key={idx} variant="destructive">
             {err.message}
-          </Notice>
+          </Alert>
         ))}
-      </Stack>
-    )
+      </div>
+    );
   }
-  return null
+  return null;
 }

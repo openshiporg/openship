@@ -1,9 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from "@keystone-ui/core";
-import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
-
 import { useEffect, useMemo, useRef } from "react";
 import { getInitialPropsValue } from "./DocumentEditor/component-blocks/initial-values";
 import {
@@ -12,6 +6,8 @@ import {
 } from "./DocumentEditor/component-blocks/utils";
 import { FormValueContentFromPreviewProps } from "./DocumentEditor/component-blocks/form-from-preview";
 import { createGetPreviewProps } from "./DocumentEditor/component-blocks/preview-props";
+import { FieldContainer } from "@keystone/components/FieldContainer";
+import { FieldLabel } from "@keystone/components/FieldLabel";
 
 export const Field = ({
   field,

@@ -1,59 +1,55 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import bytes from "bytes"
-import { Fragment, useEffect, useMemo, useRef, useState } from "react"
-import { jsx, Stack, Text } from "@keystone-ui/core"
+import bytes from "bytes";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldDescription } from "@keystone/components/FieldDescription";
 import { FieldLabel } from "@keystone/components/FieldLabel";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { Image as ImageIcon } from "lucide-react";
 
-import { Button } from "@keystone-ui/button"
-
-export const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'png', 'webp', 'gif'];
+export const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "png", "webp", "gif"];
 
 function useObjectURL(fileData) {
-  let [objectURL, setObjectURL] = useState(undefined)
+  let [objectURL, setObjectURL] = useState(undefined);
   useEffect(() => {
     if (fileData) {
-      let url = URL.createObjectURL(fileData)
-      setObjectURL(url)
+      let url = URL.createObjectURL(fileData);
+      setObjectURL(url);
       return () => {
-        URL.revokeObjectURL(url)
-      }
+        URL.revokeObjectURL(url);
+      };
     }
-  }, [fileData])
-  return objectURL
+  }, [fileData]);
+  return objectURL;
 }
 
 export function Field({ autoFocus, field, value, onChange }) {
-  const inputRef = useRef(null)
+  const inputRef = useRef(null);
 
-  const errorMessage = createErrorMessage(value)
+  const errorMessage = createErrorMessage(value);
 
   const onUploadChange = ({ currentTarget: { validity, files } }) => {
-    const file = files?.[0]
-    if (!file) return // bail if the user cancels from the file browser
+    const file = files?.[0];
+    if (!file) return; // bail if the user cancels from the file browser
     onChange?.({
       kind: "upload",
       data: { file, validity },
-      previous: value
-    })
-  }
+      previous: value,
+    });
+  };
 
   // Generate a random input key when the value changes, to ensure the file input is unmounted and
   // remounted (this is the only way to reset its value and ensure onChange will fire again if
   // the user selects the same file again)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const inputKey = useMemo(() => Math.random(), [value])
+  const inputKey = useMemo(() => Math.random(), [value]);
   const accept = useMemo(
     () =>
-      SUPPORTED_IMAGE_EXTENSIONS.map(ext =>
+      SUPPORTED_IMAGE_EXTENSIONS.map((ext) =>
         [`.${ext}`, `image/${ext}`].join(", ")
       ).join(", "),
     []
-  )
+  );
   return (
     <FieldContainer as="fieldset">
       <FieldLabel as="legend">{field.label}</FieldLabel>
@@ -68,7 +64,6 @@ export function Field({ autoFocus, field, value, onChange }) {
         inputRef={inputRef}
       />
       <input
-        css={{ display: "none" }}
         autoComplete="off"
         autoFocus={autoFocus}
         ref={inputRef}
@@ -81,37 +76,28 @@ export function Field({ autoFocus, field, value, onChange }) {
           field.description === null ? undefined : `${field.path}-description`
         }
         disabled={onChange === undefined}
+        className="hidden"
       />
-      {errorMessage && (
-        <span
-          css={{
-            display: "block",
-            marginTop: "8px",
-            color: "red"
-          }}
-        >
-          {errorMessage}
-        </span>
-      )}
+      {errorMessage && <span>{errorMessage}</span>}
     </FieldContainer>
-  )
+  );
 }
 
 function ImgView({ errorMessage, value, onChange, field, inputRef }) {
   const [imageDimensions, setImageDimensions] = useState({
     width: 0,
-    height: 0
-  })
+    height: 0,
+  });
   const imagePathFromUpload = useObjectURL(
     errorMessage === undefined && value.kind === "upload"
       ? value.data.file
       : undefined
-  )
+  );
   const imageSrc =
-    value.kind === "from-server" ? value.data.src : imagePathFromUpload
+    value.kind === "from-server" ? value.data.src : imagePathFromUpload;
 
   return (
-    <Stack gap="small" across align="end">
+    <div className="flex space-x-2 items-end">
       <ImageWrapper url={value.kind === "from-server" ? imageSrc : undefined}>
         {errorMessage ||
         (value.kind !== "from-server" && value.kind !== "upload") ? (
@@ -119,40 +105,18 @@ function ImgView({ errorMessage, value, onChange, field, inputRef }) {
         ) : (
           <Fragment>
             {value.kind === "upload" && (
-              <div
-                css={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  color: "white",
-                  textAlign: "center",
-                  wordWrap: "break-word",
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "25px",
-                  backgroundColor: "rgba(17, 24, 39, 0.65)",
-                  lineHeight: "1.15",
-                  fontWeight: 500
-                }}
-              >
+              <div className="bg-muted/60 absolute top-0 left-0 right-0 bottom-0 text-center break-words flex items-center p-6 font-medium">
                 Save to complete upload
               </div>
             )}
             <img
-              onLoad={event => {
+              onLoad={(event) => {
                 if (value.kind === "upload") {
                   setImageDimensions({
                     width: event.currentTarget.naturalWidth,
-                    height: event.currentTarget.naturalHeight
-                  })
+                    height: event.currentTarget.naturalHeight,
+                  });
                 }
-              }}
-              css={{
-                objectFit: "contain",
-                width: "100%",
-                height: "100%"
               }}
               alt={`Image uploaded to ${field.path} field`}
               src={imageSrc}
@@ -162,13 +126,7 @@ function ImgView({ errorMessage, value, onChange, field, inputRef }) {
       </ImageWrapper>
       {value.kind === "from-server" || value.kind === "upload" ? (
         onChange && (
-          <Stack
-            gap="small"
-            css={{
-              height: "120px",
-              justifyContent: "flex-end"
-            }}
-          >
+          <div className="justify-end h-[120px] space-y-2">
             {errorMessage === undefined ? (
               <ImageMeta
                 {...(value.kind === "from-server"
@@ -177,30 +135,31 @@ function ImgView({ errorMessage, value, onChange, field, inputRef }) {
                       height: value.data.height,
                       url: value.data.src,
                       name: `${value.data.id}.${value.data.extension}`,
-                      size: value.data.filesize
+                      size: value.data.filesize,
                     }
                   : {
                       width: imageDimensions.width,
                       height: imageDimensions.height,
-                      size: value.data.file.size
+                      size: value.data.file.size,
                     })}
               />
             ) : null}
-            <Stack across gap="small" align="center">
+            <div className="flex space-x-2 items-center">
               <Button
-                size="small"
+                size="sm"
+                variant="secondary"
                 onClick={() => {
-                  inputRef.current?.click()
+                  inputRef.current?.click();
                 }}
               >
                 Change
               </Button>
               {value.kind === "from-server" && (
                 <Button
-                  size="small"
-                  tone="negative"
+                  size="sm"
+                  variant="destructive"
                   onClick={() => {
-                    onChange({ kind: "remove", previous: value })
+                    onChange({ kind: "remove", previous: value });
                   }}
                 >
                   Remove
@@ -208,73 +167,72 @@ function ImgView({ errorMessage, value, onChange, field, inputRef }) {
               )}
               {value.kind === "upload" && (
                 <Button
-                  size="small"
-                  tone="negative"
+                  size="sm"
+                  variant="destructive"
                   onClick={() => {
-                    onChange(value.previous)
+                    onChange(value.previous);
                   }}
                 >
                   Cancel
                 </Button>
               )}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
         )
       ) : (
-        <Stack across gap="small" align="center">
+        <div className="flex space-x-2 items-center">
           <Button
-            size="small"
             disabled={onChange === undefined}
+            variant="secondary"
             onClick={() => {
-              inputRef.current?.click()
+              inputRef.current?.click();
             }}
           >
             Upload Image
           </Button>
           {value.kind === "remove" && value.previous && (
             <Button
-              size="small"
-              tone="negative"
+              variant="destrcutive"
               onClick={() => {
                 if (value.previous !== undefined) {
-                  onChange?.(value?.previous)
+                  onChange?.(value?.previous);
                 }
               }}
             >
               Undo removal
             </Button>
           )}
-        </Stack>
+        </div>
       )}
-    </Stack>
-  )
+    </div>
+  );
 }
 
 function createErrorMessage(value) {
   if (value.kind === "upload") {
-    return validateImage(value.data)
+    return validateImage(value.data);
   }
 }
 
 export function validateImage({ file, validity }) {
   if (!validity.valid) {
-    return "Something went wrong, please reload and try again."
+    return "Something went wrong, please reload and try again.";
   }
   // check if the file is actually an image
   if (!file.type.includes("image")) {
     return `Sorry, that file type isn't accepted. Please try ${SUPPORTED_IMAGE_EXTENSIONS.reduce(
       (acc, curr, currentIndex) => {
         if (currentIndex === SUPPORTED_IMAGE_EXTENSIONS.length - 1) {
-          acc += ` or .${curr}`
+          acc += ` or .${curr}`;
         } else if (currentIndex > 0) {
-          acc += `, .${curr}`
+          acc += `, .${curr}`;
         } else {
-          acc += `.${curr}`
+          acc += `.${curr}`;
         }
-        return acc
+        return acc;
       },
       ""
-    )}.`
+    )}.`;
   }
 }
 
@@ -284,64 +242,32 @@ export function validateImage({ file, validity }) {
 
 export const ImageMeta = ({ width = 0, height = 0, size }) => {
   return (
-    <Stack padding="xxsmall" gap="xxsmall">
-      <Text size="small">Size: {`${bytes(size)}`}</Text>
-      <Text size="small">Dimensions: {`${width} x ${height}`}</Text>
-    </Stack>
-  )
-}
+    <div className="space-y-1">
+      <div>Size: {`${bytes(size)}`}</div>
+      <div>Dimensions: {`${width} x ${height}`}</div>
+    </div>
+  );
+};
 
 export const ImageWrapper = ({ children, url }) => {
+  const wrapperClass =
+    "relative block overflow-hidden flex-shrink-0 line-height[0] rounded-lg text-center w-[120px] h-[120px] border";
+
   if (url) {
     return (
-      <a
-        css={{
-          position: "relative",
-          display: "block",
-          overflow: "hidden",
-          flexShrink: 0,
-          lineHeight: 0,
-          backgroundColor: "#fafbfc",
-          borderRadius: "6px",
-          textAlign: "center",
-          width: "120px", // 120px image + chrome
-          height: "120px",
-          border: "1px solid #e1e5e9"
-        }}
-        target="_blank"
-        href={url}
-      >
+      <a className={wrapperClass} target="_blank" href={url}>
         {children}
       </a>
-    )
+    );
   }
-  return (
-    <div
-      css={{
-        position: "relative",
-        overflow: "hidden",
-        flexShrink: 0,
-        lineHeight: 0,
-        backgroundColor: "#fafbfc",
-        borderRadius: "6px",
-        textAlign: "center",
-        width: "120px", // 120px image + chrome
-        height: "120px",
-        border: "1px solid #e1e5e9"
-      }}
-    >
-      {children}
-    </div>
-  )
-}
+
+  return <div className={wrapperClass}>{children}</div>;
+};
 
 export const Placeholder = () => {
   return (
     <svg
-      css={{
-        width: "100%",
-        height: "100%"
-      }}
+      className="w-full h-full bg-background"
       width="120"
       height="120"
       viewBox="0 0 121 121"
@@ -352,5 +278,5 @@ export const Placeholder = () => {
         fill="#b1b5b9"
       />
     </svg>
-  )
-}
+  );
+};

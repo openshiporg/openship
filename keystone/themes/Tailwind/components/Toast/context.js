@@ -1,14 +1,25 @@
-import { createContext, useContext } from "react"
+import { useToast as useNewToast } from "@keystone/primitives/default/ui/use-toast";
 
-function notInContext() {
-  throw new Error(
-    "This component must be used inside a <ToastProvider> component."
-  )
-}
+export const useToasts = () => {
+  const { toast } = useNewToast();
 
-export const ToastContext = createContext({
-  addToast: notInContext,
-  removeToast: notInContext
-})
+  const addToast = ({ title, tone, message }) => {
+    // Map the tone to the new API's status if needed
+    const status = tone === "negative" ? "error" : "success";
 
-export const useToasts = () => useContext(ToastContext)
+    // Call the new toast function with the adapted arguments
+    toast({
+      title: title,
+      description: message,
+      status: status,
+      // Include any other necessary properties for the new toast
+    });
+  };
+
+  // If you have other functions in the old API, add them here
+
+  return {
+    addToast,
+    // Include any other returned functions from the old useToasts
+  };
+};

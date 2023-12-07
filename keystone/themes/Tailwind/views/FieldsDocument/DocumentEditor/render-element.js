@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx, useTheme } from "@keystone-ui/core";
 import { useSelected } from "slate-react";
 
 import { LayoutArea, LayoutContainer } from "./layouts";
@@ -81,7 +77,7 @@ export const renderElement = (props) => {
       return <DividerElement {...props} />;
     default:
       return (
-        <p css={{ textAlign: props.element.textAlign }} {...props.attributes}>
+        <p {...props.attributes}>
           {props.children}
         </p>
       );
@@ -91,47 +87,17 @@ export const renderElement = (props) => {
 /* Block Elements */
 
 const CodeElement = ({ attributes, children }) => {
-  const { colors, radii, spacing, typography } = useTheme();
   return (
-    <pre
-      spellCheck="false"
-      css={{
-        backgroundColor: colors.backgroundDim,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radii.xsmall,
-        fontFamily: typography.fontFamily.monospace,
-        fontSize: typography.fontSize.small,
-        padding: `${spacing.small}px ${spacing.medium}px`,
-        overflowX: "auto",
-      }}
-      {...attributes}
-    >
-      <code css={{ fontFamily: "inherit" }}>{children}</code>
+    <pre spellCheck="false" {...attributes}>
+      <code>{children}</code>
     </pre>
   );
 };
 
 const DividerElement = ({ attributes, children }) => {
-  const { colors, spacing } = useTheme();
-  const selected = useSelected();
   return (
-    <div
-      {...attributes}
-      css={{
-        paddingBottom: spacing.medium,
-        paddingTop: spacing.medium,
-        marginBottom: spacing.medium,
-        marginTop: spacing.medium,
-        caretColor: "transparent",
-      }}
-    >
-      <hr
-        css={{
-          backgroundColor: selected ? colors.linkColor : colors.border,
-          border: 0,
-          height: 2,
-        }}
-      />
+    <div {...attributes}>
+      <hr />
       {children}
     </div>
   );

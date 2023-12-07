@@ -10,11 +10,18 @@ import {
 } from "@keystone-6/core/admin-ui/utils";
 import { useRedirect } from "@keystone/utils/useRedirect";
 import { useReinitContext, useKeystone } from "@keystone/keystoneProvider";
-import { Box, Center, H1, Stack, useTheme } from "@keystone-ui/core";
-import { Button } from "@keystone-ui/button";
 import Head from "next/head";
 import { Fields } from "@keystone/components/Fields";
 import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@keystone/primitives/default/ui/card";
+import { Button } from "@keystone/primitives/default/ui/button";
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],
@@ -106,68 +113,17 @@ export function InitPage({
   };
 
   return (
-    <InitTemplate
-      onSubmit={onSubmit}
-      error={error}
-      fields={fields}
-      forceValidation={forceValidation}
-      invalidFields={invalidFields}
-      setValue={setValue}
-      value={value}
-      loading={loading}
-      data={data}
-      listKey={listKey}
-    />
-  );
-}
-
-export function InitTemplate({
-  onSubmit,
-  error,
-  fields,
-  forceValidation,
-  invalidFields,
-  setValue,
-  value,
-  loading,
-  data,
-  listKey,
-  title,
-}) {
-  const { colors, shadow } = useTheme();
-
-  return (
-    <div>
-      <Head>
-        <title>{title || "Keystone"}</title>
-      </Head>
-      <Center
-        css={{
-          minWidth: "100vw",
-          minHeight: "100vh",
-          backgroundColor: colors.backgroundMuted,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        rounding="medium"
-      >
-        <Box
-          css={{
-            background: colors.background,
-            width: 600,
-            boxShadow: shadow.s100,
-            margin: 12,
-            padding: 24,
-            borderRadius: 8,
-          }}
-          margin="medium"
-          rounding="medium"
-        >
-          <H1>Welcome to KeystoneJS</H1>
-          <p>Create your first user to get started</p>
-          <form onSubmit={onSubmit}>
-            <Stack gap="large">
+    <div className="h-screen flex flex-col justify-center items-center bg-muted">
+      <div className="w-[350px]">
+        <form onSubmit={onSubmit}>
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle>Create Admin</CardTitle>
+              <CardDescription>
+                Create the first user on this instance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               {error && (
                 <GraphQLErrorNotice
                   errors={error?.graphQLErrors}
@@ -181,22 +137,25 @@ export function InitTemplate({
                 onChange={setValue}
                 value={value}
               />
+            </CardContent>
+            <CardFooter className="flex justify-between">
               <Button
+                className="w-full text-lg"
+                color="emerald"
+                size="lg"
                 isLoading={
                   loading ||
                   data?.authenticate?.__typename ===
                     `${listKey}AuthenticationWithPasswordSuccess`
                 }
                 type="submit"
-                weight="bold"
-                tone="active"
               >
-                Get started
+                Get Started
               </Button>
-            </Stack>
-          </form>
-        </Box>
-      </Center>
+            </CardFooter>
+          </Card>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import copyToClipboard from "clipboard-copy";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -13,11 +10,6 @@ import {
   useState,
 } from "react";
 
-import { Button } from "@keystone-ui/button";
-import { jsx, Box, Center, Heading, Stack, Text, useTheme } from "@keystone-ui/core";
-import { Notice } from "@keystone-ui/notice";
-import { Tooltip } from "@keystone-ui/tooltip";
-
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import {
   deserializeValue,
@@ -25,128 +17,138 @@ import {
   useChangedFieldsAndDataForUpdate,
   useInvalidFields,
 } from "@keystone-6/core/admin-ui/utils";
-import { Container } from "@keystone/components/Container";
 import { CreateButtonLink } from "@keystone/components/CreateButtonLink";
 import { FieldLabel } from "@keystone/components/FieldLabel";
 import { Fields } from "@keystone/components/Fields";
 import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
 import { AlertDialog } from "@keystone/components/Modals";
-import {
-  HEADER_HEIGHT,
-  PageContainer,
-} from "@keystone/components/PageContainer";
-import { TextInput } from "@keystone/components/TextInput";
 import { useToasts } from "@keystone/components/Toast";
 import { useList } from "@keystone/keystoneProvider";
 import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
-import { LoadingDots } from "@keystone-ui/loading";
 import { AdminLink } from "@keystone/components/AdminLink";
 
-import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
-import { ClipboardIcon } from '@keystone-ui/icons/icons/ClipboardIcon';
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { LoadingIcon } from "@keystone/components/LoadingIcon";
+import Link from "next/link";
+import { Skeleton } from "@keystone/primitives/default/ui/skeleton";
+import { ClipboardIcon } from "lucide-react";
+import { Alert } from "@keystone/primitives/default/ui/alert";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@keystone/primitives/default/ui/tooltip";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@keystone/primitives/default/ui/dialog";
 
 export function ItemPageHeader(props) {
-  const { palette, spacing } = useTheme();
-
   return (
-    <Container
-      css={{
-        alignItems: "center",
-        display: "flex",
-        flex: 1,
-        justifyContent: "space-between",
-      }}
-    >
-      <div
-        css={{
-          alignItems: "center",
-          display: "flex",
-          flex: 1,
-          minWidth: 0,
-        }}
-      >
-        {props.list.isSingleton ? (
-          <Heading type="h3">{props.list.label}</Heading>
-        ) : (
-          <Fragment>
-            <Heading type="h3">
-              <AdminLink
-                href={`/${props.list.path}`}
-                css={{ textDecoration: "none" }}
+    <div className="flex">
+      <nav className="pb-2 rounded-lg" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center text-md font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
+            >
+              <svg
+                className="w-3 h-3 mr-2.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
               >
-                {props.list.label}
-              </AdminLink>
-            </Heading>
-            <div
-              css={{
-                color: palette.neutral500,
-                marginLeft: spacing.xsmall,
-                marginRight: spacing.xsmall,
-              }}
-            >
-              <ChevronRightIcon />
-            </div>
-            <Heading
-              as="h1"
-              type="h3"
-              css={{
-                minWidth: 0,
-                maxWidth: "100%",
-                overflow: "hidden",
-                flex: 1,
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {props.label}
-            </Heading>
-          </Fragment>
-        )}
-      </div>
-    </Container>
+                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+              </svg>
+              Home
+            </Link>
+          </li>
+
+          {props.list.isSingleton ? (
+            <h3>{props.list.label}</h3>
+          ) : (
+            <Fragment>
+              <li>
+                <div className="flex items-center">
+                  <svg
+                    className="w-3 h-3 mx-1 text-gray-400"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                  <AdminLink
+                    href={`/${props.list.path}`}
+                    className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    {props.list.label}
+                  </AdminLink>
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg
+                    className="w-3 h-3 mx-1 text-gray-400"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                  <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                    {props.label}
+                  </div>
+                </div>
+              </li>
+            </Fragment>
+          )}
+        </ol>
+      </nav>
+    </div>
   );
 }
 
 export function ColumnLayout(props) {
-  const { spacing } = useTheme();
-
   return (
     // this container must be relative to catch absolute children
     // particularly the "expanded" document-field, which needs a height of 100%
-    <Container css={{ position: "relative", height: "100%" }}>
-      <div
-        css={{
-          alignItems: "start",
-          display: "grid",
-          gap: spacing.xlarge,
-          gridTemplateColumns: `2fr 1fr`,
-        }}
-        {...props}
-      />
-    </Container>
+    <div
+      className="items-start grid gap-8"
+      style={{ gridTemplateColumns: "2fr 1fr" }}
+      {...props}
+    />
   );
 }
 
 export function BaseToolbar(props) {
-  const { colors, spacing } = useTheme();
-
   return (
-    <div
-      css={{
-        background: colors.background,
-        borderTop: `1px solid ${colors.border}`,
-        bottom: 0,
-        display: "flex",
-        justifyContent: "space-between",
-        marginTop: spacing.xlarge,
-        paddingBottom: spacing.xlarge,
-        paddingTop: spacing.xlarge,
-        position: "sticky",
-        zIndex: 20,
-      }}
-    >
+    <div className="border-t-2 bottom-0 flex justify-between mt-16 pb-6 pt-12 sticky z-20 bg-background text-foreground">
       {props.children}
     </div>
   );
@@ -173,7 +175,6 @@ function ItemForm({
   item,
 }) {
   const list = useList(listKey);
-  const { spacing, typography } = useTheme();
 
   const [update, { loading, error, data }] = useMutation(
     gql`mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
@@ -263,7 +264,7 @@ function ItemForm({
   );
   return (
     <Fragment>
-      <Box marginTop="xlarge">
+      <div>
         <GraphQLErrorNotice
           networkError={error?.networkError}
           // we're checking for path.length === 1 because errors with a path larger than 1 will be field level errors
@@ -311,39 +312,35 @@ function ItemForm({
             [showDelete, list, labelFieldValue, itemId]
           )}
         />
-      </Box>
+      </div>
       <StickySidebar>
         <FieldLabel>Item ID</FieldLabel>
-        <div
-          css={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <TextInput
-            css={{
-              marginRight: spacing.medium,
-              fontFamily: typography.fontFamily.monospace,
-              fontSize: typography.fontSize.small,
-            }}
-            readOnly
-            value={item.id}
-          />
-          <Tooltip content="Copy ID">
-            {(props) => (
-              <Button
-                {...props}
-                aria-label="Copy ID"
-                onClick={() => {
-                  copyToClipboard(item.id);
-                }}
-              >
-                <ClipboardIcon size="small" />
-              </Button>
-            )}
-          </Tooltip>
+        <div className="mt-1.5">
+          <code className="border flex pl-4 items-center relative rounded-md bg-muted font-mono text-sm font-medium">
+            {item.id}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    aria-label="Copy ID"
+                    onClick={() => {
+                      copyToClipboard(item.id);
+                    }}
+                    size="icon"
+                    variant="secondary"
+                    className="ml-auto rounded-none rounded-r-md"
+                  >
+                    <ClipboardIcon className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy ID</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </code>
         </div>
-        <Box marginTop="xlarge">
+        <div>
           <Fields
             groups={list.groups}
             fieldModes={fieldModes}
@@ -363,7 +360,7 @@ function ItemForm({
             )}
             value={state.value}
           />
-        </Box>
+        </div>
       </StickySidebar>
     </Fragment>
   );
@@ -379,58 +376,58 @@ function DeleteButton({ itemLabel, itemId, list }) {
   }`,
     { variables: { id: itemId } }
   );
-  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
   const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
 
   return (
     <Fragment>
-      <Button
-        tone="negative"
-        onClick={() => {
-          setIsOpen(true);
-        }}
-      >
-        Delete
-      </Button>
-      <AlertDialog
-        // TODO: change the copy in the title and body of the modal
-        title="Delete Confirmation"
-        isOpen={isOpen}
-        tone="negative"
-        actions={{
-          confirm: {
-            label: "Delete",
-            action: async () => {
-              try {
-                await deleteItem();
-              } catch (err) {
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="secondary" color="red">
+            Delete
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Confirmation</DialogTitle>
+          </DialogHeader>
+          <text>
+            Are you sure you want to delete <strong>{itemLabel}</strong>?
+          </text>
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button variant="ghost">Close</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                try {
+                  await deleteItem();
+                } catch (err) {
+                  return toasts.addToast({
+                    title: `Failed to delete ${list.singular} item: ${itemLabel}`,
+                    message: err.message,
+                    tone: "negative",
+                  });
+                }
+                router.push(
+                  list.isSingleton
+                    ? `${adminPath}`
+                    : `${adminPath}/${list.path}`
+                );
                 return toasts.addToast({
-                  title: `Failed to delete ${list.singular} item: ${itemLabel}`,
-                  message: err.message,
-                  tone: "negative",
+                  title: itemLabel,
+                  message: `Deleted ${list.singular} item successfully`,
+                  tone: "positive",
                 });
-              }
-              router.push(list.isSingleton ? `${adminPath}` : `${adminPath}/${list.path}`);
-              return toasts.addToast({
-                title: itemLabel,
-                message: `Deleted ${list.singular} item successfully`,
-                tone: "positive",
-              });
-            },
-            loading,
-          },
-          cancel: {
-            label: "Cancel",
-            action: () => {
-              setIsOpen(false);
-            },
-          },
-        }}
-      >
-        Are you sure you want to delete <strong>{itemLabel}</strong>?
-      </AlertDialog>
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment>
   );
 }
@@ -534,34 +531,31 @@ export const ItemPageTemplate = ({ listKey, id }) => {
     : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
 
   return (
-    <PageContainer
-      title={pageTitle}
-      header={
-        <ItemPageHeader
-          list={list}
-          label={
-            loading
-              ? "Loading..."
-              : (data &&
-                  data.item &&
-                  (data.item[list.labelField] || data.item.id)) ||
-                id
-          }
-        />
-      }
-    >
+    <div>
+      <ItemPageHeader
+        list={list}
+        label={<ItemLabel skeletonClass={"h-5 w-[100px]"} />}
+      />
+      <div className="flex items-center justify-between pt-8 pb-4">
+        <div className="grid gap-1">
+          <h1 className="items-center flex font-bold text-3xl md:text-4xl">
+            Manage <ItemLabel skeletonClass={"ml-3 h-9 w-[150px]"} />
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Edit or delete this item
+          </p>
+        </div>
+      </div>
       {loading ? (
-        <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading item data" size="large" tone="passive" />
-        </Center>
+        <LoadingIcon label="Loading item data" />
       ) : metaQueryErrors ? (
-        <Box marginY="xlarge">
-          <Notice tone="negative">{metaQueryErrors[0].message}</Notice>
-        </Box>
+        <div>
+          <Alert variant="destructive">{metaQueryErrors[0].message}</Alert>
+        </div>
       ) : (
         <ColumnLayout>
           {data?.item == null ? (
-            <Box marginY="xlarge">
+            <div>
               {error?.graphQLErrors.length || error?.networkError ? (
                 <GraphQLErrorNotice
                   errors={error?.graphQLErrors}
@@ -569,26 +563,26 @@ export const ItemPageTemplate = ({ listKey, id }) => {
                 />
               ) : list.isSingleton ? (
                 id === "1" ? (
-                  <Stack gap="medium">
-                    <Notice tone="negative">
+                  <div className="space-y-4">
+                    <Alert variant="destructive">
                       {list.label} doesn't exist or you don't have access to it.
-                    </Notice>
+                    </Alert>
                     {!data.keystone.adminMeta.list.hideCreate && (
                       <CreateButtonLink list={list} />
                     )}
-                  </Stack>
+                  </div>
                 ) : (
-                  <Notice tone="negative">
+                  <Alert variant="destructive">
                     The item with id "{id}" does not exist
-                  </Notice>
+                  </Alert>
                 )
               ) : (
-                <Notice tone="negative">
+                <Alert variant="destructive">
                   The item with id "{id}" could not be found or you don't have
                   access to it.
-                </Notice>
+                </Alert>
               )}
-            </Box>
+            </div>
           ) : (
             <Fragment>
               <ItemForm
@@ -604,8 +598,16 @@ export const ItemPageTemplate = ({ listKey, id }) => {
           )}
         </ColumnLayout>
       )}
-    </PageContainer>
+    </div>
   );
+
+  function ItemLabel({ skeletonClass }) {
+    return loading ? (
+      <Skeleton className={skeletonClass} />
+    ) : (
+      (data && data.item && (data.item[list.labelField] || data.item.id)) || id
+    );
+  }
 };
 
 // Styled Components
@@ -623,22 +625,19 @@ const Toolbar = memo(function Toolbar({
       <Button
         isDisabled={!hasChangedFields}
         isLoading={loading}
-        weight="bold"
-        tone="active"
         onClick={onSave}
+        color="blue"
       >
         Save changes
       </Button>
-      <Stack align="center" across gap="small">
+      <div className="flex items-center gap-2">
         {hasChangedFields ? (
           <ResetChangesButton onReset={onReset} />
         ) : (
-          <Text weight="medium" paddingX="large" color="neutral600">
-            No changes
-          </Text>
+          <text className="font-medium px-5 text-sm">No changes</text>
         )}
         {deleteButton}
-      </Stack>
+      </div>
     </BaseToolbar>
   );
 });
@@ -648,46 +647,29 @@ function ResetChangesButton(props) {
 
   return (
     <Fragment>
-      <Button
-        weight="none"
-        onClick={() => {
-          setConfirmModalOpen(true);
-        }}
-      >
-        Reset changes
-      </Button>
-      <AlertDialog
-        actions={{
-          confirm: {
-            action: () => props.onReset(),
-            label: "Reset changes",
-          },
-          cancel: {
-            action: () => setConfirmModalOpen(false),
-            label: "Cancel",
-          },
-        }}
-        isOpen={isConfirmModalOpen}
-        title="Are you sure you want to reset changes?"
-        tone="negative"
-      >
-        {null}
-      </AlertDialog>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="link">Reset changes</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reset Confirmation</DialogTitle>
+          </DialogHeader>
+          <text>Are you sure you want to reset changes?</text>
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button variant="ghost">Close</Button>
+            </DialogClose>
+            <Button onClick={() => props.onReset()}>Reset Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Fragment>
   );
 }
 
 const StickySidebar = (props) => {
-  const { spacing } = useTheme();
   return (
-    <div
-      css={{
-        marginTop: spacing.xlarge,
-        marginBottom: spacing.xxlarge,
-        position: "sticky",
-        top: spacing.xlarge,
-      }}
-      {...props}
-    />
+    <div className="hidden lg:block mt-2 mb-20 sticky top-8" {...props} />
   );
 };

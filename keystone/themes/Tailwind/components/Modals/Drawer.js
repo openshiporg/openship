@@ -1,19 +1,16 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { Button } from "@keystone-ui/button"
+import { Button } from "@keystone/primitives/default/ui/button";
+import { DrawerBase } from "./DrawerBase";
 import {
-  jsx,
-  makeId,
-  useId,
-  useTheme,
-  Heading,
-  Stack,
-  Divider
-} from "@keystone-ui/core"
-
-import { DrawerBase } from "./DrawerBase"
-import { useDrawerControllerContext } from "./DrawerController"
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetHeader,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@keystone/primitives/default/ui/sheet";
+import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+import { useState } from "react";
 
 export const Drawer = ({
   actions,
@@ -21,65 +18,75 @@ export const Drawer = ({
   title,
   id,
   initialFocusRef,
-  width = "narrow"
+  width = "narrow",
+  trigger,
 }) => {
-  const transitionState = useDrawerControllerContext()
-  const { cancel, confirm } = actions
-  const { colors, spacing } = useTheme()
+  const [open, setOpen] = useState(false);
 
-  const safeClose = actions.confirm.loading ? () => {} : actions.cancel.action
+  const { cancel, confirm } = actions;
 
-  const instanceId = useId(id)
-  const headingId = makeId(instanceId, "heading")
+  const safeClose = actions.confirm.loading ? () => {} : actions.cancel.action;
 
   return (
     <DrawerBase
-      transitionState={transitionState}
-      aria-labelledby={headingId}
-      initialFocusRef={initialFocusRef}
       onSubmit={actions.confirm.action}
       onClose={safeClose}
       width={width}
+      initialFocusRef={initialFocusRef}
+      open={open}
+      onOpenChange={setOpen}
     >
-      <div
-        css={{
-          alignItems: "center",
-          borderBottom: `1px solid ${colors.border}`,
-          boxSizing: "border-box",
-          display: "flex",
-          flexShrink: 0,
-          height: 80,
-          padding: `${spacing.large}px ${spacing.xlarge}px`
-        }}
-      >
-        <Heading id={headingId} type="h3">
-          {title}
-        </Heading>
-      </div>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent className="flex flex-col">
+        <SheetHeader className="border-b">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>
+            Make changes to this item here. Click save when you're done.
+          </SheetDescription>
+        </SheetHeader>
 
-      <div css={{ overflowY: "auto", padding: `0 ${spacing.xlarge}px` }}>
-        {children}
-      </div>
-
-      <Divider marginX="xlarge" />
-      <Stack padding="xlarge" across gap="small">
-        <Button
-          tone="active"
-          weight="bold"
-          type="submit"
-          isLoading={confirm.loading}
-        >
-          {confirm.label}
-        </Button>
-        <Button
-          onClick={safeClose}
-          disabled={confirm.loading}
-          weight="none"
-          tone="passive"
-        >
-          {cancel.label}
-        </Button>
-      </Stack>
+        <ScrollArea className="overflow-auto flex-grow">
+          <div className="px-5">{children}</div>
+        </ScrollArea>
+        <SheetFooter className="flex justify-between border-t p-2">
+          <SheetClose>
+            {cancel && (
+              <Button
+                onClick={safeClose}
+                disabled={confirm.loading}
+                variant="ghost"
+                size="sm"
+              >
+                {cancel.label}
+              </Button>
+            )}
+          </SheetClose>
+          {confirm && (
+            <Button
+              disabled={confirm.loading}
+              isLoading={confirm.loading}
+              onClick={(e) => {
+                actions.confirm
+                  .action()
+                  .then(() => {
+                    // console.log("then");
+                    // Close the drawer only if the action is successful
+                    setOpen(false);
+                  })
+                  .catch((error) => {
+                    // Handle error if action fails
+                    // The drawer remains open
+                    console.error("Action failed:", error);
+                  });
+                e.preventDefault();
+              }}
+              size="sm"
+            >
+              {confirm.label}
+            </Button>
+          )}
+        </SheetFooter>
+      </SheetContent>
     </DrawerBase>
-  )
-}
+  );
+};

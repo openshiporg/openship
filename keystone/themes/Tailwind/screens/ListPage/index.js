@@ -1,20 +1,17 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 
-import { Button } from "@keystone-ui/button";
-import { jsx, Center, Stack, useTheme } from "@keystone-ui/core";
-import { TextInput } from "@keystone-ui/fields";
-import { LoadingDots } from "@keystone-ui/loading";
-
-import { SearchIcon } from "@keystone-ui/icons/icons/SearchIcon";
-
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { makeDataGetter } from "@keystone-6/core/admin-ui/utils";
-// import { HEADER_HEIGHT } from "@keystone-6/core/dist/declarations/src/admin-ui/components/PageContainer";
-// import { PaginationLabel } from "@keystone-6/core/dist/declarations/src/admin-ui/components/Pagination";
+
+import { useList } from "@keystone/keystoneProvider";
+import { useFilter } from "@keystone/utils/useFilter";
+import { useFilters } from "@keystone/utils/useFilters";
+import { useQueryParamsFromLocalStorage } from "@keystone/utils/useQueryParamsFromLocalStorage";
+import { useSelectedFields } from "@keystone/utils/useSelectedFields";
+import { useSort } from "@keystone/utils/useSort";
+import { models } from "@keystone/models";
+import { getNamesFromList } from "@keystone/utils/getNamesFromList";
 
 import { CreateButtonLink } from "@keystone/components/CreateButtonLink";
 import { DeleteManyButton } from "@keystone/components/DeleteManyButton";
@@ -25,16 +22,19 @@ import { ListPageHeader } from "@keystone/components/ListPageHeader";
 import { ListTable } from "@keystone/components/ListTable";
 import { ResultsSummaryContainer } from "@keystone/components/ResultsSummaryContainer";
 import { SortSelection } from "@keystone/components/SortSelection";
-import { useList } from "@keystone/keystoneProvider";
-import { useFilter } from "@keystone/utils/useFilter";
-import { useFilters } from "@keystone/utils/useFilters";
-import { useQueryParamsFromLocalStorage } from "@keystone/utils/useQueryParamsFromLocalStorage";
-import { useSelectedFields } from "@keystone/utils/useSelectedFields";
-import { useSort } from "@keystone/utils/useSort";
-import { PageContainer } from "@keystone/components/PageContainer";
 import { PaginationLabel } from "@keystone/components/Pagination";
-import { models } from "@keystone/models";
-import { getNamesFromList } from "@keystone/utils/getNamesFromList";
+import { Input } from "@keystone/primitives/default/ui/input";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { Ban, SlashIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@keystone/primitives/default/ui/tooltip";
+import { Card } from "@keystone/primitives/default/ui/card";
+import { LoadingIcon } from "@keystone/components/LoadingIcon";
+import Link from "next/link";
 
 const HEADER_HEIGHT = 80;
 
@@ -131,12 +131,22 @@ export const ListPageTemplate = ({ listKey }) => {
   const search = useFilter(searchParam, list, searchFields);
 
   const updateSearch = (value) => {
+    // Extract search and the rest of the queries from the current URL
     const { search, ...queries } = query;
 
+    // Construct the new query string
+    const newQueryString = new URLSearchParams(queries).toString();
+
     if (value.trim()) {
-      push({ query: { ...queries, search: value } });
+      // If there is a value, add it to the query string
+      const searchQuery = `search=${encodeURIComponent(value)}`;
+      const queryString = newQueryString
+        ? `${newQueryString}&${searchQuery}`
+        : searchQuery;
+      push(`?${queryString}`);
     } else {
-      push({ query: queries });
+      // If there is no value, just push the queries without 'search'
+      push(`?${newQueryString}`);
     }
   };
 
@@ -215,86 +225,125 @@ export const ListPageTemplate = ({ listKey }) => {
     });
   }
 
-  const theme = useTheme();
   const showCreate =
     !(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true) || null;
 
-  const selectedItemsPagination = () => {
-    const selectedItems = selectedItemsState.selectedItems;
-    const selectedItemsCount = selectedItems.size;
-    if (selectedItemsCount) {
-      return (
-        <Fragment>
-          <span css={{ marginRight: theme.spacing.small }}>
-            Selected {selectedItemsCount} of {data.items.length}
-          </span>
-          {!(metaQuery.data?.keystone.adminMeta.list?.hideDelete ?? true) && (
-            <DeleteManyButton
-              list={list}
-              selectedItems={selectedItems}
-              refetch={refetch}
-            />
-          )}
-        </Fragment>
-      );
-    }
-    return (
-      <Fragment>
-        <PaginationLabel
-          currentPage={currentPage}
-          pageSize={pageSize}
-          plural={list.plural}
-          singular={list.singular}
-          total={data.count}
-        />
-        , sorted by{" "}
-        <SortSelection list={list} orderableFields={orderableFields} />
-        with{" "}
-        <FieldSelection
-          list={list}
-          fieldModesByFieldPath={listViewFieldModesByField}
-        />{" "}
-      </Fragment>
-    );
-  };
   return (
-    <PageContainer
-      header={<ListPageHeader listKey={listKey} />}
-      title={list.label}
-    >
+    <>
       {metaQuery.error ? (
         // TODO: Show errors nicely and with information
         "Error..."
       ) : data && metaQuery.data ? (
-        <Fragment>
-          {list.description !== null && (
-            <p css={{ marginTop: "24px", maxWidth: "704px" }}>
-              {list.description}
-            </p>
-          )}
-          <Stack across gap="medium" align="center" marginTop="xlarge">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                updateSearch(searchString);
-              }}
-            >
-              <Stack across>
-                <TextInput
-                  css={{ borderRadius: "4px 0px 0px 4px" }}
-                  autoFocus
+        <div className="max-w-4xl">
+          <div className="flex">
+            <nav className="pb-2 rounded-lg" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1 md:space-x-3">
+                <li className="inline-flex items-center">
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center text-md font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    <svg
+                      className="w-3 h-3 mr-2.5"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+                    </svg>
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <div className="flex items-center">
+                    <svg
+                      className="w-3 h-3 mx-1 text-gray-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        strokeWidth="2"
+                        d="m1 9 4-4-4-4"
+                      />
+                    </svg>
+                    <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                      {list.label}
+                    </div>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+          </div>
+          <div className="flex items-center justify-between pt-8 pb-4">
+            <div className="grid gap-1">
+              <h1 className="font-bold text-3xl md:text-4xl">{list.label}</h1>
+              <p className="text-lg text-muted-foreground">
+                Create and manage {list.label}
+              </p>
+            </div>
+            {showCreate && <CreateButtonLink list={list} />}
+          </div>
+          {list.description !== null && <p>{list.description}</p>}
+
+          <div className="w-full flex flex-1 items-center">
+            <div className="flex-1 space-x-4 items-center mr-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateSearch(searchString);
+                }}
+              >
+                <Input
                   value={searchString}
                   onChange={(e) => updateSearchString(e.target.value)}
                   placeholder={`Search by ${
                     searchLabels.length ? searchLabels.join(", ") : "ID"
                   }`}
+                  className="max-w-sm"
                 />
-                <Button css={{ borderRadius: "0px 4px 4px 0px" }} type="submit">
-                  <SearchIcon />
-                </Button>
-              </Stack>
-            </form>
-            {showCreate && <CreateButtonLink list={list} />}
+              </form>
+            </div>
+            <div className="ml-auto flex space-x-4 items-center">
+              <SortSelection list={list} orderableFields={orderableFields} />
+              <FieldSelection
+                list={list}
+                fieldModesByFieldPath={listViewFieldModesByField}
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className="border-dashed"
+                      size="icon"
+                      variant="outline"
+                      onClick={resetToDefaults}
+                      isDisabled={
+                        !Boolean(
+                          filters.filters.length ||
+                            query.sortBy ||
+                            query.fields ||
+                            query.search
+                        )
+                      }
+                    >
+                      <Ban className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Reset columns to default</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+
+          <div className="flex mt-4 mb-2 gap-3">
             {data.count || filters.filters.length ? (
               <FilterAdd
                 listKey={listKey}
@@ -304,51 +353,51 @@ export const ListPageTemplate = ({ listKey }) => {
             {filters.filters.length ? (
               <FilterList filters={filters.filters} list={list} />
             ) : null}
-            {Boolean(
-              filters.filters.length ||
-                query.sortBy ||
-                query.fields ||
-                query.search
-            ) && (
-              <Button size="small" onClick={resetToDefaults}>
-                Reset to defaults
-              </Button>
-            )}
-          </Stack>
-          {data.count ? (
-            <Fragment>
-              <ResultsSummaryContainer>
-                {selectedItemsPagination()}
-              </ResultsSummaryContainer>
-              <ListTable
-                count={data.count}
-                currentPage={currentPage}
-                itemsGetter={dataGetter.get("items")}
-                listKey={listKey}
-                pageSize={pageSize}
-                selectedFields={selectedFields}
-                sort={sort}
-                selectedItems={selectedItemsState.selectedItems}
-                onSelectedItemsChange={(selectedItems) => {
-                  setSelectedItems({
-                    itemsFromServer: selectedItemsState.itemsFromServer,
-                    selectedItems,
-                  });
-                }}
-                orderableFields={orderableFields}
-              />
-            </Fragment>
-          ) : (
-            <ResultsSummaryContainer>
-              No {list.plural} found.
-            </ResultsSummaryContainer>
+          </div>
+          {selectedItemsState.selectedItems.size > 0 && (
+            <div className="flex gap-6 items-center bg-muted/50 border mb-2 px-4 py-2 rounded-md">
+              <span className="text-sm text-muted-foreground font-medium">
+                {selectedItemsState.selectedItems.size} of {data.items.length}{" "}
+                {list.label} selected
+              </span>
+              {!(
+                metaQuery.data?.keystone.adminMeta.list?.hideDelete ?? true
+              ) && (
+                <DeleteManyButton
+                  list={list}
+                  selectedItems={selectedItemsState.selectedItems}
+                  refetch={refetch}
+                />
+              )}
+            </div>
           )}
-        </Fragment>
+          {data.count ? (
+            <ListTable
+              count={data.count}
+              currentPage={currentPage}
+              itemsGetter={dataGetter.get("items")}
+              listKey={listKey}
+              pageSize={pageSize}
+              selectedFields={selectedFields}
+              sort={sort}
+              selectedItems={selectedItemsState.selectedItems}
+              onSelectedItemsChange={(selectedItems) => {
+                setSelectedItems({
+                  itemsFromServer: selectedItemsState.itemsFromServer,
+                  selectedItems,
+                });
+              }}
+              orderableFields={orderableFields}
+            />
+          ) : (
+            <Card className="text-lg bg-muted shadow-inner border-dashed flex justify-center py-[100px] mt-6 text-foreground/60 font-medium">
+              {list.plural} will appear here
+            </Card>
+          )}
+        </div>
       ) : (
-        <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading item data" size="large" tone="passive" />
-        </Center>
+        <LoadingIcon label="Loading item data" />
       )}
-    </PageContainer>
+    </>
   );
 };

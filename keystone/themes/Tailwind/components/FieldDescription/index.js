@@ -1,9 +1,11 @@
-import { FieldDescription as FD } from "@keystone-ui/fields";
-
-export const FieldDescription = (props) => {
-  if (props.children === null) {
+export const FieldDescription = ({ id, children, ...props }) => {
+  if (children === null) {
     return null;
   }
 
-  return <FD {...props} />;
+  return (
+    <div className="mb-2 min-w-32 whitespace-pre-wrap" id={id} {...props}>
+      {children}
+    </div>
+  );
 };

@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from '@keystone-ui/core';
 import { validateImage, ImageWrapper } from "./Field";
 import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldLabel } from "@keystone/components/FieldLabel";
@@ -12,20 +8,8 @@ export const Cell = ({ item, field }) => {
   const data = item[field.path];
   if (!data) return null;
   return (
-    <div
-      css={{
-        alignItems: "center",
-        display: "flex",
-        height: 24,
-        lineHeight: 0,
-        width: 24,
-      }}
-    >
-      <img
-        alt={data.filename}
-        css={{ maxHeight: "100%", maxWidth: "100%" }}
-        src={data.url}
-      />
+    <div>
+      <img alt={data.filename} src={data.url} />
     </div>
   );
 };
@@ -37,7 +21,7 @@ export const CardValue = ({ item, field }) => {
       <FieldLabel>{field.label}</FieldLabel>
       {data && (
         <ImageWrapper>
-          <img css={{ width: "100%" }} alt={data.filename} src={data.url} />
+          <img alt={data.filename} src={data.url} />
         </ImageWrapper>
       )}
     </FieldContainer>

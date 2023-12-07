@@ -1,7 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from '@keystone-ui/core';
 import { forwardRef, useMemo } from "react"
 import { Editor, Element, Node, Path, Transforms, Range } from "slate"
 

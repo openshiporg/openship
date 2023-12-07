@@ -1,103 +1,60 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { createContext, useContext } from "react";
-import { jsx, Box, forwardRefWithAs, useTheme } from "@keystone-ui/core";
+import { createContext, forwardRef, useContext } from "react";
 
 // Spacers and Separators
 // ------------------------------
 
 export const ToolbarSpacer = () => {
-  const { spacing } = useTheme();
-
-  return <span css={{ display: "inline-block", width: spacing.large }} />;
+  return <span className="inline-block w-4" />;
 };
+
 export const ToolbarSeparator = () => {
-  const { colors, spacing } = useTheme();
-
-  return (
-    <span
-      css={{
-        alignSelf: "stretch",
-        background: colors.border,
-        display: "inline-block",
-        marginLeft: spacing.xsmall,
-        marginRight: spacing.xsmall,
-        width: 1,
-      }}
-    />
-  );
+  return <span className="inline-block self-stretch bg-gray-300 mx-1 w-px" />;
 };
+
 
 const directionToAlignment = {
   row: "center",
   column: "start",
 };
 
-const ToolbarGroupContext = createContext({ direction: "row" });
+const ToolbarGroupContext = createContext({ direction: 'row' });
 const useToolbarGroupContext = () => useContext(ToolbarGroupContext);
 
-export const ToolbarGroup = forwardRefWithAs(
-  ({ children, direction = "row", ...props }, ref) => {
-    const { spacing } = useTheme();
-    return (
-      <ToolbarGroupContext.Provider value={{ direction }}>
-        <Box
-          ref={ref}
-          css={{
-            display: "flex",
-            gap: spacing.xxsmall,
-            flexDirection: direction,
-            justifyContent: "start",
-            alignItems: directionToAlignment[direction],
-            height: "100%",
-          }}
-          {...props}
-        >
-          {children}
-        </Box>
-      </ToolbarGroupContext.Provider>
-    );
-  }
-);
+export const ToolbarGroup = forwardRef(({ children, direction = 'row', ...props }, ref) => {
+  return (
+    <ToolbarGroupContext.Provider value={{ direction }}>
+      <div
+        ref={ref}
+        className={`flex ${direction === 'row' ? 'flex-row' : 'flex-col'} items-${directionToAlignment[direction]} gap-1 h-full`}
+        {...props}
+      >
+        {children}
+      </div>
+    </ToolbarGroupContext.Provider>
+  );
+});
 
-export const ToolbarButton = forwardRefWithAs(function ToolbarButton(
-  {
-    as: Tag = "button",
-    isDisabled,
-    isPressed,
-    isSelected,
-    variant = "default",
-    ...props
-  },
-  ref
-) {
+export const ToolbarButton = forwardRef(({
+  as: Tag = 'button',
+  isDisabled,
+  isPressed,
+  isSelected,
+  variant = 'default',
+  ...props
+}, ref) => {
   const extraProps = {};
   const { direction: groupDirection } = useToolbarGroupContext();
-  const { colors, palette, radii, sizing, spacing, typography } = useTheme();
 
-  if (Tag === "button") {
-    extraProps.type = "button";
+  if (Tag === 'button') {
+    extraProps.type = 'button';
   }
 
-  const variants = {
-    default: {
-      bgHover: palette.neutral200,
-      bgActive: palette.neutral300,
-      fg: palette.neutral800,
-    },
-    action: {
-      bgHover: palette.blue50,
-      bgActive: palette.blue100,
-      fg: palette.blue600,
-    },
-    destructive: {
-      bgHover: palette.red50,
-      bgActive: palette.red100,
-      fg: palette.red600,
-    },
+  const variantClasses = {
+    default: 'text-gray-800 hover:bg-gray-200 active:bg-gray-300',
+    action: 'text-blue-600 hover:bg-blue-50 active:bg-blue-100',
+    destructive: 'text-red-600 hover:bg-red-50 active:bg-red-100',
   };
-  const style = variants[variant];
+  const style = variantClasses[variant];
 
   return (
     <Tag
@@ -107,69 +64,20 @@ export const ToolbarButton = forwardRefWithAs(function ToolbarButton(
       data-pressed={isPressed}
       data-selected={isSelected}
       data-display-mode={groupDirection}
-      css={{
-        alignItems: "center",
-        background: 0,
-        border: 0,
-        borderRadius: radii.xsmall,
-        color: style.fg,
-        cursor: "pointer",
-        display: "flex",
-        fontSize: typography.fontSize.small,
-        fontWeight: typography.fontWeight.medium,
-        height: sizing.medium,
-        whiteSpace: "nowrap",
-
-        ":hover": {
-          background: style.bgHover,
-        },
-        ":active": {
-          background: style.bgActive,
-        },
-
-        "&:disabled": {
-          color: colors.foregroundDisabled,
-          pointerEvents: "none",
-        },
-
-        "&[data-pressed=true]": {
-          background: style.bgActive,
-        },
-        "&[data-selected=true]": {
-          background: colors.foregroundMuted,
-          color: colors.background,
-        },
-
-        // alternate styles within button group
-        "&[data-display-mode=row]": {
-          paddingLeft: spacing.small,
-          paddingRight: spacing.small,
-        },
-        "&[data-display-mode=column]": {
-          paddingLeft: spacing.medium,
-          paddingRight: spacing.medium,
-          width: "100%",
-        },
-      }}
+      className={`align-center bg-transparent border-0 rounded cursor-pointer flex font-medium h-8 whitespace-nowrap ${style} ${
+        groupDirection === 'row' ? 'px-2' : 'px-4 w-full'
+      } ${isDisabled ? 'text-gray-400 pointer-events-none' : ''}
+      ${isPressed ? 'bg-gray-300' : ''}
+      ${isSelected ? 'bg-gray-500 text-white' : ''}`}
       {...props}
     />
   );
 });
 
+
 export function KeyboardInTooltip({ children }) {
-  const theme = useTheme();
   return (
-    <kbd
-      css={{
-        margin: 2,
-        padding: theme.spacing.xxsmall,
-        fontFamily: "inherit",
-        backgroundColor: theme.colors.foreground,
-        borderRadius: theme.radii.xsmall,
-        color: theme.colors.background,
-        whiteSpace: "pre",
-      }}
-    >
+    <kbd className="m-0.5 px-1 rounded whitespace-pre">
       {children}
     </kbd>
   );

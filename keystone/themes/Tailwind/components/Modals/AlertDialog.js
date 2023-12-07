@@ -1,22 +1,14 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { Button } from "@keystone-ui/button";
-import { jsx, Box, Heading, useTheme, makeId, useId } from "@keystone-ui/core";
 import { DialogBase } from "./DialogBase";
+import { Button } from "@keystone/primitives/default/ui/button";
 
-export const AlertDialog = ({
-  actions,
-  isOpen,
-  children,
-  title,
-  id,
-  tone = "active",
-}) => {
+function randomId(prefix = "") {
+  return `${prefix}${Math.random().toString(36).substr(2, 9)}`;
+}
+
+export const AlertDialog = ({ actions, isOpen, children, title, id }) => {
   const { cancel, confirm } = actions;
-  const theme = useTheme();
-  const instanceId = useId(id);
-  const headingId = makeId("heading", instanceId);
+  const instanceId = id || randomId();
+  const headingId = `${instanceId}-heading`;
 
   const onClose = () => {
     if (actions.cancel) {
@@ -33,31 +25,26 @@ export const AlertDialog = ({
       width={440}
       aria-labelledby={headingId}
     >
-      <div css={{ padding: theme.spacing.xlarge }}>
-        <Heading id={headingId} type="h4">
-          {title}
-        </Heading>
+      <div className="p-10">
+        <h4 id={headingId}>{title}</h4>
 
-        <Box marginY="large">{children}</Box>
+        <div className="my-8">{children}</div>
 
-        <div css={{ display: "flex", justifyContent: "flex-end" }}>
+        <div className="flex justify-end">
           {cancel && (
             <Button
               disabled={confirm.loading}
               key={cancel.label}
               onClick={cancel.action}
-              weight="none"
-              tone="passive"
             >
               {cancel.label}
             </Button>
           )}
           <Button
-            css={{ marginLeft: theme.spacing.medium }}
+            className="ml-3"
             key={confirm.label}
             isLoading={confirm.loading}
             onClick={confirm.action}
-            tone={tone}
           >
             {confirm.label}
           </Button>

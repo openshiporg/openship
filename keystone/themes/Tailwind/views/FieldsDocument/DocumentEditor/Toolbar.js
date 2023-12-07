@@ -1,21 +1,6 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { Fragment, forwardRef, useState, useMemo, useContext } from "react";
 import { Editor, Transforms } from "slate";
 import { applyRefs } from "apply-ref";
-
-import { jsx, useTheme } from "@keystone-ui/core";
-import { useControlledPopover } from "@keystone-ui/popover";
-import { Tooltip } from "@keystone-ui/tooltip";
-
-import { BoldIcon } from "@keystone-ui/icons/icons/BoldIcon";
-import { ItalicIcon } from "@keystone-ui/icons/icons/ItalicIcon";
-import { PlusIcon } from "@keystone-ui/icons/icons/PlusIcon";
-import { ChevronDownIcon } from "@keystone-ui/icons/icons/ChevronDownIcon";
-import { Maximize2Icon } from "@keystone-ui/icons/icons/Maximize2Icon";
-import { Minimize2Icon } from "@keystone-ui/icons/icons/Minimize2Icon";
-import { MoreHorizontalIcon } from "@keystone-ui/icons/icons/MoreHorizontalIcon";
 
 import {
   InlineDialog,
@@ -41,6 +26,21 @@ import { codeButton } from "./code-block";
 import { TextAlignMenu } from "./alignment";
 import { dividerButton } from "./divider";
 import { useToolbarState } from "./toolbar-state";
+import {
+  BoldIcon,
+  ChevronDownIcon,
+  ItalicIcon,
+  Maximize2Icon,
+  Minimize2Icon,
+  MoreHorizontalIcon,
+  PlusIcon,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@keystone/primitives/default/ui/tooltip";
 
 export function Toolbar({ documentFeatures, viewState }) {
   const relationship = useContext(DocumentFieldRelationshipsContext);
@@ -52,94 +52,94 @@ export function Toolbar({ documentFeatures, viewState }) {
   );
   return (
     <ToolbarContainer>
-      <ToolbarGroup>
-        {!!documentFeatures.formatting.headingLevels.length && (
-          <HeadingMenu
-            headingLevels={documentFeatures.formatting.headingLevels}
-          />
-        )}
-        {hasMarks && (
-          <InlineMarks marks={documentFeatures.formatting.inlineMarks} />
-        )}
-        {hasMarks && <ToolbarSeparator />}
-        {(documentFeatures.formatting.alignment.center ||
-          documentFeatures.formatting.alignment.end) && (
-          <TextAlignMenu alignment={documentFeatures.formatting.alignment} />
-        )}
-        {documentFeatures.formatting.listTypes.unordered && (
-          <Tooltip
-            content={
-              <Fragment>
-                Bullet List <KeyboardInTooltip>- </KeyboardInTooltip>
-              </Fragment>
-            }
-            weight="subtle"
-          >
-            {(attrs) => (
-              <ListButton type="unordered-list" {...attrs}>
-                <BulletListIcon />
-              </ListButton>
-            )}
-          </Tooltip>
-        )}
-        {documentFeatures.formatting.listTypes.ordered && (
-          <Tooltip
-            content={
-              <Fragment>
-                Numbered List <KeyboardInTooltip>1. </KeyboardInTooltip>
-              </Fragment>
-            }
-            weight="subtle"
-          >
-            {(attrs) => (
-              <ListButton type="ordered-list" {...attrs}>
-                <NumberedListIcon />
-              </ListButton>
-            )}
-          </Tooltip>
-        )}
-        {(documentFeatures.formatting.alignment.center ||
-          documentFeatures.formatting.alignment.end ||
-          documentFeatures.formatting.listTypes.unordered ||
-          documentFeatures.formatting.listTypes.ordered) && (
-          <ToolbarSeparator />
-        )}
+      <TooltipProvider>
+        <ToolbarGroup>
+          {!!documentFeatures.formatting.headingLevels.length && (
+            <HeadingMenu
+              headingLevels={documentFeatures.formatting.headingLevels}
+            />
+          )}
+          {hasMarks && (
+            <InlineMarks marks={documentFeatures.formatting.inlineMarks} />
+          )}
+          {hasMarks && <ToolbarSeparator />}
+          {(documentFeatures.formatting.alignment.center ||
+            documentFeatures.formatting.alignment.end) && (
+            <TextAlignMenu alignment={documentFeatures.formatting.alignment} />
+          )}
+          {documentFeatures.formatting.listTypes.unordered && (
+            <Tooltip>
+              <TooltipTrigger>
+                <ListButton type="unordered-list">
+                  <BulletListIcon />
+                </ListButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                <Fragment>
+                  Bullet List <KeyboardInTooltip>- </KeyboardInTooltip>
+                </Fragment>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {documentFeatures.formatting.listTypes.ordered && (
+            <Tooltip>
+              <TooltipTrigger>
+                <ListButton type="ordered-list">
+                  <NumberedListIcon />
+                </ListButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                <Fragment>
+                  Numbered List <KeyboardInTooltip>1. </KeyboardInTooltip>
+                </Fragment>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {(documentFeatures.formatting.alignment.center ||
+            documentFeatures.formatting.alignment.end ||
+            documentFeatures.formatting.listTypes.unordered ||
+            documentFeatures.formatting.listTypes.ordered) && (
+            <ToolbarSeparator />
+          )}
 
-        {documentFeatures.dividers && dividerButton}
-        {documentFeatures.links && linkButton}
-        {documentFeatures.formatting.blockTypes.blockquote && blockquoteButton}
-        {!!documentFeatures.layouts.length && (
-          <LayoutsButton layouts={documentFeatures.layouts} />
-        )}
-        {documentFeatures.formatting.blockTypes.code && codeButton}
-        {!!hasBlockItems && <InsertBlockMenu />}
-      </ToolbarGroup>
-      {useMemo(() => {
-        const ExpandIcon = viewState?.expanded ? Minimize2Icon : Maximize2Icon;
-        return (
-          viewState && (
-            <ToolbarGroup>
-              <ToolbarSeparator />
-              <Tooltip
-                content={viewState.expanded ? "Collapse" : "Expand"}
-                weight="subtle"
-              >
-                {(attrs) => (
-                  <ToolbarButton
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      viewState.toggle();
-                    }}
-                    {...attrs}
-                  >
-                    <ExpandIcon size="small" />
-                  </ToolbarButton>
-                )}
-              </Tooltip>
-            </ToolbarGroup>
-          )
-        );
-      }, [viewState])}
+          {documentFeatures.dividers && dividerButton}
+          {documentFeatures.links && linkButton}
+          {documentFeatures.formatting.blockTypes.blockquote &&
+            blockquoteButton}
+          {!!documentFeatures.layouts.length && (
+            <LayoutsButton layouts={documentFeatures.layouts} />
+          )}
+          {documentFeatures.formatting.blockTypes.code && codeButton}
+          {!!hasBlockItems && <InsertBlockMenu />}
+        </ToolbarGroup>
+        {useMemo(() => {
+          const ExpandIcon = viewState?.expanded
+            ? Minimize2Icon
+            : Maximize2Icon;
+          return (
+            viewState && (
+              <ToolbarGroup>
+                <ToolbarSeparator />
+                <Tooltip>
+                  <TooltipTrigger>
+                    <ToolbarButton
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        viewState.toggle();
+                      }}
+                    >
+                      <ExpandIcon size="small" />
+                    </ToolbarButton>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {viewState.expanded ? "Collapse" : "Expand"}
+                  </TooltipContent>
+                </Tooltip>
+              </ToolbarGroup>
+            )
+          );
+        }, [viewState])}
+      </TooltipProvider>
     </ToolbarContainer>
   );
 }
@@ -175,112 +175,55 @@ const MarkButton = forwardRef(function MarkButton(props, ref) {
 });
 
 const ToolbarContainer = ({ children }) => {
-  const { colors, spacing } = useTheme();
-
   return (
-    <div
-      css={{
-        borderBottom: `1px solid ${colors.border}`,
-        background: colors.background,
-        position: "sticky",
-        top: 0,
-        zIndex: 2,
-        borderTopLeftRadius: "inherit",
-        borderTopRightRadius: "inherit",
-      }}
-    >
-      <div
-        css={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          height: 40,
-          paddingLeft: spacing.xsmall,
-          paddingRight: spacing.xsmall,
-        }}
-      >
-        {children}
-      </div>
+    <div>
+      <div>{children}</div>
     </div>
   );
 };
 
 const downIcon = <ChevronDownIcon size="small" />;
 
-function HeadingButton({ trigger, onToggleShowMenu, showMenu }) {
+function HeadingButton({ onToggleShowMenu, showMenu }) {
   const { textStyles } = useToolbarState();
   let buttonLabel =
     textStyles.selected === "normal"
       ? "Normal text"
       : "Heading " + textStyles.selected;
   const isDisabled = textStyles.allowedHeadingLevels.length === 0;
-  return useMemo(
-    () => (
-      <ToolbarButton
-        ref={trigger.ref}
-        isPressed={showMenu}
-        isDisabled={isDisabled}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          onToggleShowMenu();
-        }}
-        style={{ textAlign: "left", width: 116 }}
-        {...trigger.props}
-      >
-        <span css={{ flex: 1 }}>{buttonLabel}</span>
-        {downIcon}
-      </ToolbarButton>
-    ),
-    [buttonLabel, trigger, showMenu, onToggleShowMenu, isDisabled]
+  return (
+    <Tooltip>
+      <TooltipTrigger as={Fragment}>
+        <ToolbarButton
+          onClick={onToggleShowMenu}
+          isPressed={showMenu}
+          isDisabled={isDisabled}
+        >
+          <span>{buttonLabel}</span>
+          <ChevronDownIcon />
+        </ToolbarButton>
+      </TooltipTrigger>
+      <TooltipContent>Choose heading level</TooltipContent>
+    </Tooltip>
   );
 }
 
 const HeadingMenu = ({ headingLevels }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const { dialog, trigger } = useControlledPopover(
-    {
-      isOpen: showMenu,
-      onClose: () => setShowMenu(false),
-    },
-    {
-      placement: "bottom-start",
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [0, 8],
-          },
-        },
-      ],
-    }
-  );
 
   return (
-    <div
-      css={{
-        display: "inline-block",
-        position: "relative",
-      }}
-    >
+    <div>
       <HeadingButton
+        headingLevels={headingLevels}
         showMenu={showMenu}
-        trigger={trigger}
-        onToggleShowMenu={() => {
-          setShowMenu((x) => !x);
-        }}
+        onToggleShowMenu={() => setShowMenu(!showMenu)}
       />
-
-      {showMenu ? (
-        <InlineDialog ref={dialog.ref} {...dialog.props}>
-          <HeadingDialog
-            headingLevels={headingLevels}
-            onCloseMenu={() => {
-              setShowMenu(false);
-            }}
-          />
-        </InlineDialog>
-      ) : null}
+      {showMenu && (
+        <HeadingDialog
+          headingLevels={headingLevels}
+          onCloseMenu={() => setShowMenu(false)}
+        />
+      )}
     </div>
   );
 };
@@ -326,144 +269,67 @@ function HeadingDialog({ headingLevels, onCloseMenu }) {
 
 function InsertBlockMenu() {
   const [showMenu, setShowMenu] = useState(false);
-  const { dialog, trigger } = useControlledPopover(
-    {
-      isOpen: showMenu,
-      onClose: () => setShowMenu(false),
-    },
-    {
-      placement: "bottom-start",
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [0, 8],
-          },
-        },
-      ],
-    }
-  );
 
   return (
-    <div
-      css={{
-        display: "inline-block",
-        position: "relative",
-      }}
-    >
-      <Tooltip
-        content={
-          <Fragment>
-            Insert <KeyboardInTooltip>/</KeyboardInTooltip>
-          </Fragment>
-        }
-        weight="subtle"
-      >
-        {({ ref, ...attrs }) => (
-          <ToolbarButton
-            ref={applyRefs(ref, trigger.ref)}
-            isPressed={showMenu}
-            onMouseDown={(event) => {
-              event.preventDefault();
-              setShowMenu((v) => !v);
-            }}
-            {...trigger.props}
-            {...attrs}
-          >
+    <div>
+      <Popover open={showMenu} onOpenChange={setShowMenu}>
+        <PopoverTrigger as={Fragment}>
+          <ToolbarButton onClick={() => setShowMenu((v) => !v)}>
             <PlusIcon size="small" style={{ strokeWidth: 3 }} />
             <ChevronDownIcon size="small" />
           </ToolbarButton>
-        )}
-      </Tooltip>
-      {showMenu ? (
-        <InlineDialog ref={dialog.ref} {...dialog.props}>
+        </PopoverTrigger>
+        <PopoverContent>
           <ToolbarGroup direction="column">
             <RelationshipButton onClose={() => setShowMenu(false)} />
             <BlockComponentsButtons onClose={() => setShowMenu(false)} />
           </ToolbarGroup>
-        </InlineDialog>
-      ) : null}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
 
 function InlineMarks({ marks }) {
   const [showMenu, setShowMenu] = useState(false);
-  const { dialog, trigger } = useControlledPopover(
-    {
-      isOpen: showMenu,
-      onClose: () => setShowMenu(false),
-    },
-    {
-      placement: "bottom-start",
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [0, 8],
-          },
-        },
-      ],
-    }
-  );
+
   return (
     <Fragment>
-      {marks.bold && (
-        <Tooltip
-          content={
-            <Fragment>
-              Bold
-              <KeyboardInTooltip>{modifierKeyText}B</KeyboardInTooltip>
-            </Fragment>
-          }
-          weight="subtle"
-        >
-          {(attrs) => (
-            <MarkButton type="bold" {...attrs}>
-              <BoldIcon size="small" style={{ strokeWidth: 3 }} />
-            </MarkButton>
-          )}
-        </Tooltip>
-      )}
-      {marks.italic && (
-        <Tooltip
-          content={
-            <Fragment>
-              Italic
-              <KeyboardInTooltip>{modifierKeyText}I</KeyboardInTooltip>
-            </Fragment>
-          }
-          weight="subtle"
-        >
-          {(attrs) => (
-            <MarkButton type="italic" {...attrs}>
-              <ItalicIcon size="small" />
-            </MarkButton>
-          )}
-        </Tooltip>
-      )}
-
-      <Tooltip content="More formatting" weight="subtle">
-        {(attrs) => (
-          <MoreFormattingButton
-            isOpen={showMenu}
-            onToggle={() => {
-              setShowMenu((v) => !v);
-            }}
-            trigger={trigger}
-            attrs={attrs}
-          />
+      <TooltipProvider>
+        {marks.bold && (
+          <Tooltip>
+            <TooltipTrigger>
+              <MarkButton type="bold">
+                <BoldIcon size="small" />
+              </MarkButton>
+            </TooltipTrigger>
+            <TooltipContent>
+              Bold {/* Keyboard Shortcut can be added here if needed */}
+            </TooltipContent>
+          </Tooltip>
         )}
-      </Tooltip>
-      {showMenu && (
-        <MoreFormattingDialog
-          onCloseMenu={() => {
-            setShowMenu(false);
-          }}
-          dialog={dialog}
-          marks={marks}
-        />
-      )}
+        {marks.italic && (
+          <Tooltip>
+            <TooltipTrigger>
+              <MarkButton type="italic">
+                <ItalicIcon size="small" />
+              </MarkButton>
+            </TooltipTrigger>
+            <TooltipContent>
+              Italic {/* Keyboard Shortcut can be added here if needed */}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        <Popover open={showMenu} onOpenChange={setShowMenu}>
+          <PopoverTrigger as={Fragment}>
+            <MoreFormattingButton isOpen={showMenu} />
+          </PopoverTrigger>
+          <PopoverContent>
+            <MoreFormattingDialog marks={marks} onCloseMenu={() => setShowMenu(false)} />
+          </PopoverContent>
+        </Popover>
+      </TooltipProvider>
     </Fragment>
   );
 }
@@ -524,32 +390,10 @@ function MoreFormattingDialog({ dialog, marks, onCloseMenu }) {
 }
 
 function ContentInButtonWithShortcut({ content, shortcut }) {
-  const theme = useTheme();
   return (
-    <span
-      css={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
+    <span>
       <span>{content}</span>
-      <kbd
-        css={{
-          fontFamily: "inherit",
-          marginLeft: theme.spacing.small,
-          padding: theme.spacing.xxsmall,
-          paddingLeft: theme.spacing.xsmall,
-          paddingRight: theme.spacing.xsmall,
-          backgroundColor: theme.palette.neutral400,
-          borderRadius: theme.radii.xsmall,
-          color: theme.colors.foregroundDim,
-          whiteSpace: "pre",
-        }}
-      >
-        {shortcut}
-      </kbd>
+      <kbd>{shortcut}</kbd>
     </span>
   );
 }

@@ -1,26 +1,14 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { Button } from "@keystone-ui/button";
-import { jsx } from "@keystone-ui/core";
 import { AdminLink } from "@keystone/components/AdminLink";
+import { Button } from "@keystone/primitives/default/ui/button";
+import { Plus } from "lucide-react";
 
 export const CreateButtonLink = (props) => {
   return (
-    <Button
-      css={{
-        textDecoration: "none",
-        ":hover": {
-          color: "white",
-        },
-      }}
-      as={AdminLink}
-      href={`/${props.list.path}/create`}
-      tone="active"
-      size="small"
-      weight="bold"
-    >
-      Create {props.list.singular}
-    </Button>
+    <AdminLink href={`/${props.list.path}/create`}>
+      <Button>
+        <Plus className="mr-2 h-4 w-4" /> Create{" "}
+        {props.list.singular}
+      </Button>
+    </AdminLink>
   );
 };

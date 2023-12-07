@@ -43,7 +43,7 @@ export const apiKey = list({
       create: isSignedIn,
       read: canManageKeys,
       update: canManageKeys,
-      delete: canManageKeys,
+      delete: ({ session }) => canManageKeys({ session }) !== false,
     },
   },
   fields: {

@@ -1,16 +1,6 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import { createContext, useContext, useMemo } from "react";
 import { Editor, Element, Node, Transforms, Range, Point } from "slate";
 import { ReactEditor, useFocused, useSelected } from "slate-react";
-
-import { jsx, useTheme } from "@keystone-ui/core";
-import { Tooltip } from "@keystone-ui/tooltip";
-import { Trash2Icon } from "@keystone-ui/icons/icons/Trash2Icon";
-
-import { ColumnsIcon } from "@keystone-ui/icons/icons/ColumnsIcon";
-import { useControlledPopover } from "@keystone-ui/popover";
 import {
   InlineDialog,
   ToolbarButton,
@@ -25,6 +15,13 @@ import {
   useStaticEditor,
 } from "./utils";
 import { useToolbarState } from "./toolbar-state";
+import { ColumnsIcon, Trash2Icon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@keystone/primitives/default/ui/tooltip";
 
 const LayoutOptionsContext = createContext([]);
 
@@ -32,39 +29,18 @@ export const LayoutOptionsProvider = LayoutOptionsContext.Provider;
 
 // UI Components
 export const LayoutContainer = ({ attributes, children, element }) => {
-  const { spacing } = useTheme();
   const focused = useFocused();
   const selected = useSelected();
   const editor = useStaticEditor();
 
   const layout = element.layout;
   const layoutOptions = useContext(LayoutOptionsContext);
-  const { dialog, trigger } = useControlledPopover(
-    { isOpen: focused && selected, onClose: () => {} },
-    { modifiers: [{ name: "offset", options: { offset: [0, 8] } }] }
-  );
+
   return (
-    <div
-      css={{
-        marginBottom: spacing.medium,
-        marginTop: spacing.medium,
-        position: "relative",
-      }}
-      {...attributes}
-    >
-      <div
-        {...trigger.props}
-        ref={trigger.ref}
-        css={{
-          columnGap: spacing.small,
-          display: "grid",
-          gridTemplateColumns: layout.map((x) => `${x}fr`).join(" "),
-        }}
-      >
-        {children}
-      </div>
+    <div {...attributes}>
+      <div>{children}</div>
       {focused && selected && (
-        <InlineDialog ref={dialog.ref} {...dialog.props}>
+        <InlineDialog>
           <ToolbarGroup>
             {layoutOptions.map((layoutOption, i) => (
               <ToolbarButton
@@ -87,21 +63,24 @@ export const LayoutContainer = ({ attributes, children, element }) => {
               </ToolbarButton>
             ))}
             <ToolbarSeparator />
-            <Tooltip content="Remove" weight="subtle">
-              {(attrs) => (
-                <ToolbarButton
-                  variant="destructive"
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    const path = ReactEditor.findPath(editor, element);
-                    Transforms.removeNodes(editor, { at: path });
-                  }}
-                  {...attrs}
-                >
-                  <Trash2Icon size="small" />
-                </ToolbarButton>
-              )}
-            </Tooltip>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <ToolbarButton
+                    variant="destructive"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      const path = ReactEditor.findPath(editor, element);
+                      Transforms.removeNodes(editor, { at: path });
+                    }}
+                  >
+                    <Trash2Icon size="small" />
+                  </ToolbarButton>
+                </TooltipTrigger>
+                <TooltipContent>Remove</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </ToolbarGroup>
         </InlineDialog>
       )}
@@ -110,20 +89,7 @@ export const LayoutContainer = ({ attributes, children, element }) => {
 };
 
 export const LayoutArea = ({ attributes, children }) => {
-  const { colors, radii, spacing } = useTheme();
-  return (
-    <div
-      css={{
-        border: `2px dashed ${colors.border}`,
-        borderRadius: radii.small,
-        paddingLeft: spacing.medium,
-        paddingRight: spacing.medium,
-      }}
-      {...attributes}
-    >
-      {children}
-    </div>
-  );
+  return <div {...attributes}>{children}</div>;
 };
 
 export const insertLayout = (editor, layout) => {
@@ -231,26 +197,10 @@ export function withLayouts(editor) {
 // ------------------------------
 
 function makeLayoutIcon(ratios) {
-  const size = 16;
-
   const element = (
-    <div
-      role="img"
-      css={{
-        display: "grid",
-        gridTemplateColumns: ratios.map((r) => `${r}fr`).join(" "),
-        gap: 2,
-        width: size,
-        height: size,
-      }}
-    >
+    <div role="img">
       {ratios.map((_, i) => {
-        return (
-          <div
-            key={i}
-            css={{ backgroundColor: "currentcolor", borderRadius: 1 }}
-          />
-        );
+        return <div key={i} />;
       })}
     </div>
   );

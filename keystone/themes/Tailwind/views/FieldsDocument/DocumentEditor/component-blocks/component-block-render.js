@@ -1,51 +1,48 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@keystone-ui/core";
-import React, { useContext } from "react"
-import { useMemo } from "react"
-import { createGetPreviewProps, getKeysForArrayValue } from "./preview-props"
+import React, { useContext } from "react";
+import { useMemo } from "react";
+import { createGetPreviewProps, getKeysForArrayValue } from "./preview-props";
 
-export const ChildrenByPathContext = React.createContext({})
+export const ChildrenByPathContext = React.createContext({});
 
 export function ChildFieldEditable({ path }) {
-  const childrenByPath = useContext(ChildrenByPathContext)
-  const child = childrenByPath[JSON.stringify(path)]
+  const childrenByPath = useContext(ChildrenByPathContext);
+  const child = childrenByPath[JSON.stringify(path)];
   if (child === undefined) {
-    return null
+    return null;
   }
-  return child
+  return child;
 }
 
 export function ComponentBlockRender({
   componentBlock,
   element,
   onChange,
-  children
+  children,
 }) {
   const getPreviewProps = useMemo(() => {
     return createGetPreviewProps(
       { kind: "object", fields: componentBlock.schema },
       onChange,
-      path => <ChildFieldEditable path={path} />
-    )
-  }, [onChange, componentBlock])
+      (path) => <ChildFieldEditable path={path} />
+    );
+  }, [onChange, componentBlock]);
 
-  const previewProps = getPreviewProps(element.props)
+  const previewProps = getPreviewProps(element.props);
 
-  const childrenByPath = {}
-  let maybeChild
-  children.forEach(child => {
-    const propPath = child.props.children.props.element.propPath
+  const childrenByPath = {};
+  let maybeChild;
+  children.forEach((child) => {
+    const propPath = child.props.children.props.element.propPath;
     if (propPath === undefined) {
-      maybeChild = child
+      maybeChild = child;
     } else {
       childrenByPath[
         JSON.stringify(propPathWithIndiciesToKeys(propPath, element.props))
-      ] = child
+      ] = child;
     }
-  })
+  });
 
-  const ComponentBlockPreview = componentBlock.preview
+  const ComponentBlockPreview = componentBlock.preview;
 
   return (
     <ChildrenByPathContext.Provider value={childrenByPath}>
@@ -55,16 +52,9 @@ export function ComponentBlockRender({
         ),
         [previewProps, ComponentBlockPreview]
       )}
-      <span
-        css={{
-          caretColor: "transparent",
-          "& ::selection": { backgroundColor: "transparent" }
-        }}
-      >
-        {maybeChild}
-      </span>
+      <span>{maybeChild}</span>
     </ChildrenByPathContext.Provider>
-  )
+  );
 }
 
 // note this is written to avoid crashing when the given prop path doesn't exist in the value
@@ -74,17 +64,17 @@ export function ComponentBlockRender({
 // this means that sometimes the child elements will be inconsistent with the values
 // so to deal with this, we return a prop path this is "wrong" but won't break anything
 function propPathWithIndiciesToKeys(propPath, val) {
-  return propPath.map(key => {
+  return propPath.map((key) => {
     if (typeof key === "string") {
-      val = val?.[key]
-      return key
+      val = val?.[key];
+      return key;
     }
     if (!Array.isArray(val)) {
-      val = undefined
-      return ""
+      val = undefined;
+      return "";
     }
-    const keys = getKeysForArrayValue(val)
-    val = val?.[key]
-    return keys[key]
-  })
+    const keys = getKeysForArrayValue(val);
+    val = val?.[key];
+    return keys[key];
+  });
 }

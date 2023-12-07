@@ -1,12 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
-import { jsx } from "@keystone-ui/core";
-import {
-  FieldContainer,
-  FieldDescription,
-  FieldLabel,
-} from "@keystone-ui/fields";
 import { Editor, Node, Text } from "slate";
 import { DocumentRenderer } from "@keystone-6/document-renderer";
 
@@ -16,6 +7,9 @@ import { createDocumentEditor, DocumentEditor } from "./DocumentEditor";
 import { clientSideValidateProp } from "./DocumentEditor/component-blocks/utils";
 import { ForceValidationProvider } from "./DocumentEditor/utils";
 import { isValidURL } from "./DocumentEditor/isValidURL";
+import { FieldContainer } from "@keystone/components/FieldContainer";
+import { FieldDescription } from "@keystone/components/FieldDescription";
+import { FieldLabel } from "@keystone/components/FieldLabel";
 
 export const Field = ({
   field,
