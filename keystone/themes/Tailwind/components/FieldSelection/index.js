@@ -11,6 +11,7 @@ import {
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+import { Badge } from "../../primitives/default/ui/badge";
 
 function isArrayEqual(arrA, arrB) {
   if (arrA.length !== arrB.length) return false;
@@ -42,7 +43,7 @@ export const fieldSelectionOptionsComponents = {
   Option,
 };
 
-export function FieldSelection({ list, fieldModesByFieldPath }) {
+export function FieldSelection({ list, fieldModesByFieldPath, rightSection }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -91,16 +92,19 @@ export function FieldSelection({ list, fieldModesByFieldPath }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
-          className="border-dashed hidden lg:flex data-[state=open]:bg-muted"
+          variant="secondary"
+          className="border shadow-xs hidden lg:flex data-[state=open]:bg-muted/20"
         >
-          <MixerHorizontalIcon className="mr-2 h-4 w-4" />
-          Viewing {selectedFields.size} column
+          {/* <MixerHorizontalIcon className="mr-2 h-4 w-4" /> */}
+          Column
           {selectedFields.size === 1 ? "" : "s"}{" "}
+          <Badge className="ml-2 px-1.5">{selectedFields.size}</Badge>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center">
+          Columns<div className="ml-auto">{rightSection}</div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea vpClassName="max-h-72">
           {fields.map((field) => {

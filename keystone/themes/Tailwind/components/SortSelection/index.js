@@ -34,8 +34,8 @@ export function SortSelection({ list, orderableFields }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
-          className="ml-auto hidden lg:flex border-dashed data-[state=open]:bg-muted"
+          variant="secondary"
+          className="border shadow-xs ml-auto hidden lg:flex data-[state=open]:bg-muted/20"
         >
           {sort ? (
             <>

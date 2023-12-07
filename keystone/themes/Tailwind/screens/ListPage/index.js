@@ -305,7 +305,6 @@ export const ListPageTemplate = ({ listKey }) => {
                   placeholder={`Search by ${
                     searchLabels.length ? searchLabels.join(", ") : "ID"
                   }`}
-                  className="max-w-sm"
                 />
               </form>
             </div>
@@ -314,32 +313,25 @@ export const ListPageTemplate = ({ listKey }) => {
               <FieldSelection
                 list={list}
                 fieldModesByFieldPath={listViewFieldModesByField}
+                rightSection={
+                  <Button
+                    variant="link"
+                    size="xs"
+                    onClick={resetToDefaults}
+                    className="opacity-85"
+                    isDisabled={
+                      !Boolean(
+                        filters.filters.length ||
+                          query.sortBy ||
+                          query.fields ||
+                          query.search
+                      )
+                    }
+                  >
+                    Reset
+                  </Button>
+                }
               />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="border-dashed"
-                      size="icon"
-                      variant="outline"
-                      onClick={resetToDefaults}
-                      isDisabled={
-                        !Boolean(
-                          filters.filters.length ||
-                            query.sortBy ||
-                            query.fields ||
-                            query.search
-                        )
-                      }
-                    >
-                      <Ban className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Reset columns to default</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
 

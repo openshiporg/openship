@@ -107,7 +107,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
   };
 
   return (
-    <DropdownMenuContent align="end" className="w-[200px]">
+    <DropdownMenuContent align="start" className="w-[200px]">
       <form
         onSubmit={(event) => {
           event.preventDefault();
