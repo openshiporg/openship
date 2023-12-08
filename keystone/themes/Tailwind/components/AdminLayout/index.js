@@ -5,7 +5,7 @@ import { MainNav } from "./MainNav";
 import { DashboardNav } from "./DashboardNav";
 import { useKeystone } from "@keystone/keystoneProvider";
 import { ArrowRightIcon, Home, LayoutDashboard, StoreIcon } from "lucide-react";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button, buttonVariants } from "@keystone/primitives/default/ui/button";
 import { Collapse } from "./Collapse";
 import { Badge } from "@keystone/primitives/default/ui/badge";
 import Link from "next/link";
@@ -80,9 +80,9 @@ export const AdminLayout = ({ children }) => {
         <aside className="w-[240px] min-w-[240px] hidden md:flex overflow-auto">
           <SideData />
         </aside>
-        <main className="flex-grow overflow-hidden">
-          <ScrollArea className="h-full overflow-auto py-4 px-2 md:px-4">
-            {children}
+        <main className="flex-grow overflow-hidden py-10">
+          <ScrollArea className="h-full overflow-auto">
+            <div className="px-4">{children}</div>
           </ScrollArea>
         </main>
       </div>
@@ -91,15 +91,16 @@ export const AdminLayout = ({ children }) => {
 
   function SideData() {
     return (
-      <div className="flex flex-col h-full">
-        <Link href="/dashboard">
-          <Button
-            variant="ghost"
-            className="w-full mt-6 text-md text-muted-foreground justify-start"
-          >
-            <Home className="shadow-xs mr-3 w-6 h-6 p-[.3rem] rounded bg-gradient-to-r from-amber-200 to-amber-300 stroke-amber-700 shadow-xs dark:bg-gradient-to-r dark:from-amber-800/40 dark:to-amber-900 dark:stroke-amber-300" />{" "}
-            Home
-          </Button>
+      <div className="flex flex-col h-full w-full">
+        <Link
+          href="/dashboard"
+          className={cn(
+            buttonVariants({ variant: "ghost" }),
+            "w-full mt-6 text-md text-muted-foreground justify-start"
+          )}
+        >
+          <Home className="shadow-xs mr-3 w-6 h-6 p-[.3rem] rounded bg-gradient-to-r from-amber-200 to-amber-300 stroke-amber-700 shadow-xs dark:bg-gradient-to-r dark:from-amber-800/40 dark:to-amber-900 dark:stroke-amber-300" />{" "}
+          Home
         </Link>
         <Button
           variant="ghost"
@@ -111,40 +112,44 @@ export const AdminLayout = ({ children }) => {
             SOON
           </Badge>
         </Button>
-        <Link href="/api/graphql">
-          <Button
-            variant="ghost"
-            className="w-full text-md text-muted-foreground justify-start"
+        {/* <Link href="/api/graphql"> */}
+        <Link
+          href="/api/graphql"
+          // className="w-full text-md text-muted-foreground justify-start"
+          className={cn(
+            buttonVariants({ variant: "ghost" }),
+            "w-full text-md text-muted-foreground justify-start"
+          )}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="shadow-xs mr-3 w-6 h-6 p-[.3rem] rounded bg-gradient-to-r from-fuchsia-200 to-fuchsia-300 stroke-fuchsia-700 shadow-xs dark:bg-gradient-to-r dark:from-fuchsia-800/40 dark:to-fuchsia-900 dark:stroke-fuchsia-300"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="shadow-xs mr-3 w-6 h-6 p-[.3rem] rounded bg-gradient-to-r from-fuchsia-200 to-fuchsia-300 stroke-fuchsia-700 shadow-xs dark:bg-gradient-to-r dark:from-fuchsia-800/40 dark:to-fuchsia-900 dark:stroke-fuchsia-300"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M5.308 7.265l5.385 -3.029"></path>
-              <path d="M13.308 4.235l5.384 3.03"></path>
-              <path d="M20 9.5v5"></path>
-              <path d="M18.693 16.736l-5.385 3.029"></path>
-              <path d="M10.692 19.765l-5.384 -3.03"></path>
-              <path d="M4 14.5v-5"></path>
-              <path d="M12.772 4.786l6.121 10.202"></path>
-              <path d="M18.5 16h-13"></path>
-              <path d="M5.107 14.988l6.122 -10.201"></path>
-              <path d="M12 3.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-              <path d="M12 20.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-              <path d="M4 8m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-              <path d="M4 16m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-              <path d="M20 16m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-              <path d="M20 8m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
-            </svg>
-            GraphQL API
-          </Button>
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M5.308 7.265l5.385 -3.029"></path>
+            <path d="M13.308 4.235l5.384 3.03"></path>
+            <path d="M20 9.5v5"></path>
+            <path d="M18.693 16.736l-5.385 3.029"></path>
+            <path d="M10.692 19.765l-5.384 -3.03"></path>
+            <path d="M4 14.5v-5"></path>
+            <path d="M12.772 4.786l6.121 10.202"></path>
+            <path d="M18.5 16h-13"></path>
+            <path d="M5.107 14.988l6.122 -10.201"></path>
+            <path d="M12 3.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+            <path d="M12 20.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+            <path d="M4 8m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+            <path d="M4 16m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+            <path d="M20 16m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+            <path d="M20 8m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+          </svg>
+          GraphQL API
         </Link>
+        {/* </Link> */}
         <Button
           variant="ghost"
           className="w-full text-md text-muted-foreground justify-start"

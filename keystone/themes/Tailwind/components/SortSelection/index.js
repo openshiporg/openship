@@ -35,7 +35,7 @@ export function SortSelection({ list, orderableFields }) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
-          className="border shadow-xs ml-auto hidden lg:flex data-[state=open]:bg-muted/20"
+          className="border shadow-xs ml-auto data-[state=open]:bg-muted/20"
         >
           {sort ? (
             <>
@@ -57,7 +57,7 @@ export function SortSelection({ list, orderableFields }) {
       <DropdownMenuContent align="end" className="w-[200px]">
         <DropdownMenuLabel>Sort by</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <ScrollArea vpClassName="max-h-72">
+        <ScrollArea vpClassName="max-h-72 pr-3">
           {[...orderableFields, noFieldOption.value].map((fieldPath) => {
             const isNoFieldOption = fieldPath === noFieldOption.value;
             const option = isNoFieldOption

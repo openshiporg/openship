@@ -93,7 +93,7 @@ export function FieldSelection({ list, fieldModesByFieldPath, rightSection }) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
-          className="border shadow-xs hidden lg:flex data-[state=open]:bg-muted/20"
+          className="border shadow-xs data-[state=open]:bg-muted/20"
         >
           {/* <MixerHorizontalIcon className="mr-2 h-4 w-4" /> */}
           Column
@@ -106,7 +106,7 @@ export function FieldSelection({ list, fieldModesByFieldPath, rightSection }) {
           Columns<div className="ml-auto">{rightSection}</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <ScrollArea vpClassName="max-h-72">
+        <ScrollArea vpClassName="max-h-72 pr-3">
           {fields.map((field) => {
             return (
               <DropdownMenuCheckboxItem

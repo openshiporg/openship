@@ -234,7 +234,7 @@ export const ListPageTemplate = ({ listKey }) => {
         // TODO: Show errors nicely and with information
         "Error..."
       ) : data && metaQuery.data ? (
-        <div className="max-w-4xl">
+        <div className="w-4xl max-w-full">
           <div className="flex">
             <nav className="pb-2 rounded-lg" aria-label="Breadcrumb">
               <ol className="inline-flex items-center space-x-1 md:space-x-3">
@@ -291,8 +291,8 @@ export const ListPageTemplate = ({ listKey }) => {
           </div>
           {list.description !== null && <p>{list.description}</p>}
 
-          <div className="w-full flex flex-1 items-center">
-            <div className="flex-1 space-x-4 items-center mr-4">
+          <div className="w-full flex flex-1 items-center gap-3">
+            <div className="flex-1 space-x-4 items-center">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -308,7 +308,7 @@ export const ListPageTemplate = ({ listKey }) => {
                 />
               </form>
             </div>
-            <div className="ml-auto flex space-x-4 items-center">
+            <div className="gap-3 hidden lg:flex">
               <SortSelection list={list} orderableFields={orderableFields} />
               <FieldSelection
                 list={list}
@@ -318,7 +318,7 @@ export const ListPageTemplate = ({ listKey }) => {
                     variant="link"
                     size="xs"
                     onClick={resetToDefaults}
-                    className="opacity-85"
+                    className="opacity-85 text-red-800"
                     isDisabled={
                       !Boolean(
                         filters.filters.length ||
@@ -336,6 +336,31 @@ export const ListPageTemplate = ({ listKey }) => {
           </div>
 
           <div className="flex mt-4 mb-2 gap-3">
+            <div className="gap-3 flex lg:hidden">
+              <SortSelection list={list} orderableFields={orderableFields} />
+              <FieldSelection
+                list={list}
+                fieldModesByFieldPath={listViewFieldModesByField}
+                rightSection={
+                  <Button
+                    variant="link"
+                    size="xs"
+                    onClick={resetToDefaults}
+                    className="opacity-85 text-red-800"
+                    isDisabled={
+                      !Boolean(
+                        filters.filters.length ||
+                          query.sortBy ||
+                          query.fields ||
+                          query.search
+                      )
+                    }
+                  >
+                    Reset
+                  </Button>
+                }
+              />
+            </div>
             {data.count || filters.filters.length ? (
               <FilterAdd
                 listKey={listKey}

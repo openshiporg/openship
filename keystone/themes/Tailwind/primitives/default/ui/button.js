@@ -20,12 +20,19 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
+      // size: {
+      //   default: "h-10 px-4 py-2",
+      //   xs: "h-7 rounded-md px-2 text-xs",
+      //   sm: "h-9 rounded-md px-3",
+      //   lg: "h-11 rounded-md px-8",
+      //   icon: "h-10 w-10",
+      // },
       size: {
-        default: "h-10 px-4 py-2",
-        xs: "h-7 rounded-md px-2 text-xs",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-8 px-3 py-1 text-sm md:h-10 md:px-4 md:py-2 md:text-base", // Adjusted default size
+        xs: "h-5 px-1 text-xs md:h-7 md:px-2 md:text-sm", // Extra small size
+        sm: "h-6 px-2 text-sm md:h-9 md:px-3 md:text-base", // Small size
+        lg: "h-9 px-5 text-lg md:h-11 md:px-8 md:text-xl", // Large size
+        icon: "h-8 w-8 md:h-10 md:w-10", // Icon size
       },
       color: {
         slate:

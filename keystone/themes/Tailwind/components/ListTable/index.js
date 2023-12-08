@@ -22,6 +22,8 @@ import { Checkbox, CheckboxControl } from "@keystone/components/Checkbox";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@keystone/primitives/default/ui/input";
 import { SortDirectionArrow } from "@keystone/themes/KeystoneUI/components/SortDirectionArrow";
+import { ScrollArea, ScrollBar } from "../../primitives/default/ui/scroll-area";
+import Image from "next/image";
 
 export function ListTable({
   selectedFields,
@@ -207,42 +209,69 @@ export function ListTable({
   });
 
   return (
-    <div className="w-full">
-      <div className="rounded-md border">
-        {/* Table UI */}
-        <Table className="shadow-md">
-          <TableHeader className="bg-muted">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {/* Pagination UI */}
-        {/* ... */}
-      </div>
-    </div>
+    <ScrollArea className="rounded-md border">
+      {/* Table UI */}
+      <Table className="shadow-md">
+        <TableHeader className="bg-muted">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <ScrollBar orientation="horizontal" />
+      {/* Pagination UI */}
+      {/* ... */}
+    </ScrollArea>
+    // <ScrollArea vpClassName="max-w-full" className="whitespace-nowrap rounded-md border">
+    //   <div className="flex w-full space-x-4 p-4">
+    //     {[
+    //       {
+    //         artist: "Ornella Binni",
+    //         art: "https://images.unsplash.com/photo-1465869185982-5a1a7522cbcb?auto=format&fit=crop&w=300&q=80",
+    //       },
+    //       {
+    //         artist: "Tom Byrom",
+    //         art: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&fit=crop&w=300&q=80",
+    //       },
+    //       {
+    //         artist: "Vladimir Malyavko",
+    //         art: "https://images.unsplash.com/photo-1494337480532-3725c85fd2ab?auto=format&fit=crop&w=300&q=80",
+    //       },
+    //     ].map((artwork) => (
+    //       <figure key={artwork.artist} className="shrink-0">
+    //         <figcaption className="pt-2 text-xs text-muted-foreground">
+    //           Photo by{" "}
+    //           <span className="font-semibold text-foreground">
+    //             {artwork.artist}
+    //           </span>
+    //         </figcaption>
+    //       </figure>
+    //     ))}
+    //   </div>
+    //   <ScrollBar orientation="horizontal" />
+    // </ScrollArea>
   );
 }
 
