@@ -13,11 +13,8 @@ export const Logo = () => {
     <h3>
       <Link href="/">
         <div className="flex items-center tracking-wide">
-          <LogoIconSVG
-            width={20}
-            className="stroke-slate-500 mr-2"
-          />
-          <h1 className={`mb-1 text-xl md:text-2xl font-medium text-center`}>
+          <LogoIconSVG className="w-5 h-5 stroke-slate-500 mr-2" />
+          <h1 className={`mb-1 text-2xl font-medium text-center`}>
             open
             <span className="font-light">ship</span>{" "}
           </h1>

@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "migrate:gen": "keystone build --no-ui && keystone prisma migrate dev",
-    "migrate": "keystone prisma migrate deploy"
+    "migrate": "keystone prisma migrate deploy",
+    "generate-field-views": "tsx keystone/scripts/generate-field-views.js"
   },
   "dependencies": {
     "@hapi/iron": "^7.0.1",
@@ -84,6 +85,7 @@
     "eslint": "8.22.0",
     "eslint-config-next": "12.2.5",
     "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.0"
+    "tailwindcss": "^3.3.0",
+    "tsx": "^4.6.2"
   }
 }

@@ -281,9 +281,11 @@ export const ListPageTemplate = ({ listKey }) => {
             </nav>
           </div>
           <div className="flex items-center justify-between pt-8 pb-4">
-            <div className="grid gap-1">
-              <h1 className="font-bold text-3xl md:text-4xl">{list.label}</h1>
-              <p className="text-lg text-muted-foreground">
+            <div className="grid gap-0.5 md:gap-1">
+              <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl">
+                {list.label}
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
                 Create and manage {list.label}
               </p>
             </div>

@@ -2,7 +2,6 @@ import pluralize from "pluralize";
 import { labelToPath } from "./labelToPath";
 import { labelToClass } from "./labelToClass";
 import { humanize } from "./humanize";
-
 export function getNamesFromList(listKey, { graphql, ui, isSingleton }) {
   if (ui?.path !== undefined && !/^[a-z-_][a-z0-9-_]*$/.test(ui.path)) {
     throw new Error(
@@ -23,12 +22,52 @@ export function getNamesFromList(listKey, { graphql, ui, isSingleton }) {
   }
 
   return {
-    pluralGraphQLName,
+    graphql: {
+      names: getGqlNames({ listKey, pluralGraphQLName }),
+      namePlural: pluralGraphQLName,
+    },
+    ui: {
+      labels: {
+        label: ui?.label || computedLabel,
+        singular: ui?.singular || computedSingular,
+        plural: ui?.plural || computedPlural,
+        path,
+      },
+    },
     adminUILabels: {
       label: ui?.label || computedLabel,
       singular: ui?.singular || computedSingular,
       plural: ui?.plural || computedPlural,
       path,
     },
+  };
+}
+
+export function getGqlNames({ listKey, pluralGraphQLName }) {
+  const lowerPluralName =
+    pluralGraphQLName.slice(0, 1).toLowerCase() + pluralGraphQLName.slice(1);
+  const lowerSingularName =
+    listKey.slice(0, 1).toLowerCase() + listKey.slice(1);
+  return {
+    outputTypeName: listKey,
+    itemQueryName: lowerSingularName,
+    listQueryName: lowerPluralName,
+    listQueryCountName: `${lowerPluralName}Count`,
+    listOrderName: `${listKey}OrderByInput`,
+    deleteMutationName: `delete${listKey}`,
+    updateMutationName: `update${listKey}`,
+    createMutationName: `create${listKey}`,
+    deleteManyMutationName: `delete${pluralGraphQLName}`,
+    updateManyMutationName: `update${pluralGraphQLName}`,
+    createManyMutationName: `create${pluralGraphQLName}`,
+    whereInputName: `${listKey}WhereInput`,
+    whereUniqueInputName: `${listKey}WhereUniqueInput`,
+    updateInputName: `${listKey}UpdateInput`,
+    createInputName: `${listKey}CreateInput`,
+    updateManyInputName: `${listKey}UpdateArgs`,
+    relateToManyForCreateInputName: `${listKey}RelateToManyForCreateInput`,
+    relateToManyForUpdateInputName: `${listKey}RelateToManyForUpdateInput`,
+    relateToOneForCreateInputName: `${listKey}RelateToOneForCreateInput`,
+    relateToOneForUpdateInputName: `${listKey}RelateToOneForUpdateInput`,
   };
 }
