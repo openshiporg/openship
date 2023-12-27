@@ -409,8 +409,8 @@ export const ListPageTemplate = ({ listKey }) => {
               orderableFields={orderableFields}
             />
           ) : (
-            <Card className="text-lg bg-muted shadow-inner border-dashed flex justify-center py-[100px] mt-6 text-foreground/60 font-medium">
-              {list.plural} will appear here
+            <Card className="text-lg bg-muted shadow-sm flex justify-center py-[100px] mt-6 text-foreground/60 font-medium">
+              No {list.plural} found
             </Card>
           )}
         </div>

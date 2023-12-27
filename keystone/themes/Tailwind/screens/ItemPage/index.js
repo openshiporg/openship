@@ -139,8 +139,8 @@ export function ColumnLayout(props) {
     // this container must be relative to catch absolute children
     // particularly the "expanded" document-field, which needs a height of 100%
     <div
-      className="items-start grid gap-8"
-      style={{ gridTemplateColumns: "2fr 1fr" }}
+      className="items-start grid"
+      style={{ gridTemplateColumns: "3fr 0fr" }}
       {...props}
     />
   );
@@ -315,7 +315,7 @@ function ItemForm({
       </div>
       <StickySidebar>
         <FieldLabel>Item ID</FieldLabel>
-        <div className="mt-1.5">
+        <div className="mt-1.5 ml-4">
           <code className="border flex pl-4 items-center relative rounded-md bg-muted font-mono text-sm font-medium">
             {item.id}
             <TooltipProvider>

@@ -11,6 +11,7 @@ import { useLazyMetadata } from "./utils/useLazyMetadata";
 import { LoadingIcon } from "@keystone/components/LoadingIcon";
 import { ErrorBoundary } from "@keystone/components/ErrorBoundary";
 import { fieldViews } from "./fieldViews";
+import { Logo } from "./logo";
 
 const KeystoneContext = createContext(undefined);
 
@@ -33,6 +34,7 @@ function InternalKeystoneProvider({
   if (adminMeta.state === "loading") {
     return <LoadingIcon label="Loading Admin Metadata" size="large" />;
   }
+
   return (
     <KeystoneContext.Provider
       value={{
@@ -82,7 +84,7 @@ export const KeystoneProvider = ({ children }) => {
       lazyMetadataQuery={lazyMetadataQuery}
       fieldViews={fieldViews}
       adminMetaHash="p7mmo"
-      adminConfig={{}}
+      adminConfig={{ components: { Logo } }}
       apiPath="/api/graphql"
     >
       <ErrorBoundary>{children}</ErrorBoundary>

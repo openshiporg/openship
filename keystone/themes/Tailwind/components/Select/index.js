@@ -1,5 +1,5 @@
 import { cn } from "@keystone/utils/cn";
-import { ChevronDownIcon, X } from "lucide-react";
+import { ChevronDownIcon, Loader2, X } from "lucide-react";
 import ReactSelect, { components, mergeStyles } from "react-select";
 export { components as selectComponents } from "react-select";
 
@@ -23,7 +23,8 @@ const singleValueStyles =
 const multiValueStyles =
   "overflow-hidden flex min-w-0 border bg-background rounded items-center pl-2 gap-1 mr-1";
 const multiValueLabelStyles = "leading-6";
-const multiValueRemoveStyles = "border-l px-1 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-600 dark:hover:bg-red-500/20";
+const multiValueRemoveStyles =
+  "border-l px-1 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-600 dark:hover:bg-red-500/20";
 const indicatorsContainerStyles =
   "items-center self-stretch flex flex-shrink-0 box-border p-1 gap-1";
 const clearIndicatorStyles =
@@ -134,6 +135,11 @@ export function Select({
         noOptionsMessage: () => noOptionsMessageStyles,
       }}
       styles={styleProxy}
+      components={{
+        LoadingIndicator: () => (
+          <Loader2 className="h-5 w-5 animate-spin opacity-45" />
+        ),
+      }}
     />
   );
 }
@@ -193,6 +199,11 @@ export function MultiSelect({
         noOptionsMessage: () => noOptionsMessageStyles,
       }}
       styles={styleProxy}
+      components={{
+        LoadingIndicator: () => (
+          <Loader2 className="h-5 w-5 animate-spin opacity-45" />
+        ),
+      }}
     />
   );
 }

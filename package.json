@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@hapi/iron": "^7.0.1",
+    "@headlessui/react": "^1.7.17",
     "@keystone-6/auth": "^7.0.0",
     "@keystone-6/cloudinary": "^7.0.1",
     "@keystone-6/core": "^5.7.1",

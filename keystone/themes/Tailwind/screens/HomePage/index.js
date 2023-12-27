@@ -76,7 +76,7 @@ export const HomePage = () => {
 
   return (
     <div>
-      <h1 className="relative z-40 mb-10 text-4xl font-extrabold tracking-tight lg:text-5xl">
+      <h1 className="relative mb-10 text-4xl font-extrabold tracking-tight lg:text-5xl">
         Dashboard
       </h1>
       {visibleLists.state === "loading" ? (

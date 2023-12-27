@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const UIProvider = ({ children }) => {
   return (
-    <body className={inter.className}>
+    <body className={`${inter.className} dark:bg-slate-900 `}>
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
