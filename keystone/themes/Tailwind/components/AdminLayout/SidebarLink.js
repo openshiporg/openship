@@ -11,7 +11,7 @@ export function SidebarLink({ children, href }) {
       className={`flex items-center space-x-3 font-medium ${
         pathname === href
           ? "text-blue-600"
-          : "text-slate-800 dark:text-slate-200"
+          : "text-zinc-800 dark:text-zinc-200"
       }`}
       href={href}
       onClick={() => setSidebarOpen(false)}

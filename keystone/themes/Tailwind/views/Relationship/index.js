@@ -157,7 +157,8 @@ export const Field = ({
                       // onClick={() => {
                       //   setIsDrawerOpen(true);
                       // }}
-                      variant="secondary"
+                      // variant="secondary"
+                      color="zinc"
                     >
                       Create related {foreignList.singular}
                     </Button>
@@ -190,6 +191,8 @@ export const Field = ({
                 : value.value?.id !== authenticatedItem.id) && (
                 <Button
                   size="sm"
+                  color="emerald"
+                  className="border"
                   onClick={() => {
                     const val = {
                       label: authenticatedItem.label,

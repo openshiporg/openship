@@ -10,7 +10,7 @@ export default function Header() {
   return (
     <header className="fixed w-full z-30">
       <div
-        className="absolute inset-0 bg-white bg-opacity-70 border-b border-slate-200 backdrop-blur -z-10 dark:bg-slate-900 dark:border-slate-800"
+        className="absolute inset-0 bg-white bg-opacity-70 border-b border-zinc-200 backdrop-blur -z-10 dark:bg-zinc-900 dark:border-zinc-800"
         aria-hidden="true"
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">

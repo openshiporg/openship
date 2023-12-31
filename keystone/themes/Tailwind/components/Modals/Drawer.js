@@ -41,7 +41,7 @@ export const Drawer = ({
         <SheetHeader className="border-b">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>
-            Make changes to this item here. Click save when you're done.
+            Use this form to create an item of this type. Click save when you're done.
           </SheetDescription>
         </SheetHeader>
 
@@ -54,8 +54,7 @@ export const Drawer = ({
               <Button
                 onClick={safeClose}
                 disabled={confirm.loading}
-                variant="ghost"
-                size="sm"
+                variant="outline"
               >
                 {cancel.label}
               </Button>
@@ -80,7 +79,8 @@ export const Drawer = ({
                   });
                 e.preventDefault();
               }}
-              size="sm"
+              color="blue"
+              className="border shadow-sm"
             >
               {confirm.label}
             </Button>

@@ -110,7 +110,7 @@ export const CreateItemPage = ({ params }) => {
         <div className="flex items-center justify-between pt-8 pb-4">
           <div className="grid gap-1">
             <h1 className="items-center flex font-bold text-3xl md:text-4xl">
-              Create {list.label}
+              Create {list.singular}
             </h1>
             <p className="text-lg text-muted-foreground">Create new items</p>
           </div>
@@ -153,7 +153,7 @@ export const CreateItemPage = ({ params }) => {
                   router.push(`${adminPath}/${list.path}/${item.id}`);
                 }
               }}
-              size="lg"
+              // size="lg"
               className="ml-auto"
             >
               Create {list.singular}

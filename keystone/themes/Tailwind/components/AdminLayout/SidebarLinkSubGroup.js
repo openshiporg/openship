@@ -6,7 +6,7 @@ export function SidebarLinkSubgroup({ children, title, open }) {
   return (
     <li className="mt-3">
       <a
-        className="flex items-center space-x-3 text-slate-800 font-medium dark:text-slate-200"
+        className="flex items-center space-x-3 text-zinc-800 font-medium dark:text-zinc-200"
         href="#0"
         onClick={e => {
           e.preventDefault()
@@ -15,7 +15,7 @@ export function SidebarLinkSubgroup({ children, title, open }) {
         aria-expanded={linkOpen}
       >
         <svg
-          className={`fill-slate-400 shrink-0 ml-2 ${linkOpen && "rotate-90"}`}
+          className={`fill-zinc-400 shrink-0 ml-2 ${linkOpen && "rotate-90"}`}
           width="8"
           height="10"
           xmlns="http://www.w3.org/2000/svg"
@@ -25,7 +25,7 @@ export function SidebarLinkSubgroup({ children, title, open }) {
         <span>{title}</span>
       </a>
       <ul
-        className={`mb-3 ml-1 pl-4 border-l border-slate-200 dark:border-slate-800 ${!linkOpen &&
+        className={`mb-3 ml-1 pl-4 border-l border-zinc-200 dark:border-zinc-800 ${!linkOpen &&
           "hidden"}`}
       >
         {children}

@@ -58,7 +58,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
     <>
       {/* Backdrop */}
       <Transition
-        className="md:hidden fixed inset-0 z-10 bg-slate-900 bg-opacity-20 transition-opacity"
+        className="md:hidden fixed inset-0 z-10 bg-zinc-900 bg-opacity-20 transition-opacity"
         show={sidebarOpen}
         enter="transition ease-out duration-200"
         enterFrom="opacity-0"
@@ -76,7 +76,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
           unmount={false}
           as="aside"
           id="sidebar"
-          className="fixed left-0 top-0 bottom-0 w-64 h-screen border-r border-slate-200 md:left-auto md:shrink-0 z-10 md:!opacity-100 md:!block dark:border-slate-800 dark:bg-slate-900"
+          className="fixed left-0 top-0 bottom-0 w-64 h-screen border-r border-zinc-200 md:left-auto md:shrink-0 z-10 md:!opacity-100 md:!block dark:border-zinc-800 dark:bg-zinc-900"
           enter="transition ease-out duration-200 transform"
           enterFrom="opacity-0 -translate-x-full"
           enterTo="opacity-100 translate-x-0"
@@ -86,7 +86,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
         >
           {/* Gradient bg displaying on light layout only */}
           <div
-            className="absolute inset-0 -left-[9999px] bg-gradient-to-b from-slate-50 to-white pointer-events-none -z-10 dark:hidden"
+            className="absolute inset-0 -left-[9999px] bg-gradient-to-b from-zinc-50 to-white pointer-events-none -z-10 dark:hidden"
             aria-hidden="true"
           ></div>
 
@@ -98,7 +98,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/dashboard"
-                      className={`relative flex items-center font-[650] text-slate-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-slate-200 ${
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
                         !segments.includes("help") && "before:hidden"
                       }`}
                       onClick={() => setSidebarOpen(false)}
@@ -129,7 +129,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/"
-                      className={`relative flex items-center font-[650] text-slate-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-slate-200 ${
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
                         !segments.includes("help") && "before:hidden"
                       }`}
                       onClick={() => setSidebarOpen(false)}
@@ -160,7 +160,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/api/graphql"
-                      className={`relative flex items-center font-[650] text-slate-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-slate-200 ${
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
                         !segments.includes("help") && "before:hidden"
                       }`}
                       onClick={() => setSidebarOpen(false)}
@@ -195,7 +195,7 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                         <>
                           <a
                             href="#0"
-                            className={`relative flex items-center font-[650] text-slate-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-300 before:to-indigo-400 dark:before:from-blue-600 dark:before:to-indigo-700 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-slate-200 ${
+                            className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-300 before:to-indigo-400 dark:before:from-blue-600 dark:before:to-indigo-700 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
                               pathname.startsWith("dashboard") &&
                               "before:hidden"
                             }`}
@@ -226,14 +226,14 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                             </svg>
                             <span>Admin UI</span>
                           </a>
-                          <ScrollArea vpClassName="max-h-72">
+                          <ScrollArea vpClassName="h-[24vh]">
                             <ul
-                              className={`mb-3 ml-4 pl-6 border-l border-slate-200 dark:border-slate-800 ${
+                              className={`mb-3 ml-4 pl-6 border-l border-zinc-200 dark:border-zinc-800 ${
                                 !open && "hidden"
                               }`}
                             >
                               {sidebarNav.map(({ title, href }) => (
-                                <li className="mt-3">
+                                <li className="max-h-full mt-3">
                                   <SidebarLink href={`/dashboard${href}`}>
                                     {title}
                                   </SidebarLink>
@@ -248,9 +248,9 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   {/* 1st level */}
                   <li className="mt-auto">
                     <div
-                      className={`relative flex items-center text-slate-800 px-4 py-2 mb-5 before:absolute before:shadow-sm dark:before:border-slate-800 before:border before:inset-0 before:rounded before:bg-white dark:before:bg-slate-950/50 before:-z-10 before:pointer-events-none dark:text-slate-200`}
+                      className={`shadow-sm border bg-muted/25 rounded-lg relative flex items-center text-zinc-800 px-4 py-2 mb-5 dark:text-zinc-200`}
                     >
-                      <div class="mr-4 h-7 w-7 rounded-full bg-gradient-to-br from-indigo-600 via-indigo-700 to-rose-600 dark:from-indigo-800 dark:via-fuchsia-900 dark:to-green-700" />
+                      <div class="mr-4 h-7 w-7 rounded-full bg-gradient-to-br from-indigo-400 via-indigo-500 to-rose-400 dark:from-indigo-800 dark:via-fuchsia-900 dark:to-green-700" />
                       <div className="flex flex-col">
                         <span className="text-xs">Signed in as</span>
                         <span className="text-sm font-[650]">
