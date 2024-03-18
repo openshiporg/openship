@@ -16,7 +16,7 @@ const listKey = "User";
 const sessionConfig = {
   maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?
   secret:
-    process.env.COOKIE_SECRET || "this secret should only be used in testing",
+    process.env.SESSION_SECRET || "this secret should only be used in testing",
 };
 
 export function statelessSessions({
