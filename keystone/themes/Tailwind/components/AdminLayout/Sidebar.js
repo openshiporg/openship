@@ -98,9 +98,8 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/dashboard"
-                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
-                        !segments.includes("help") && "before:hidden"
-                      }`}
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${!segments.includes("help") && "before:hidden"
+                        }`}
                       onClick={() => setSidebarOpen(false)}
                     >
                       <svg
@@ -129,9 +128,8 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/"
-                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
-                        !segments.includes("help") && "before:hidden"
-                      }`}
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${!segments.includes("help") && "before:hidden"
+                        }`}
                       onClick={() => setSidebarOpen(false)}
                     >
                       <svg
@@ -160,9 +158,8 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                   <li className="mb-1">
                     <Link
                       href="/api/graphql"
-                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
-                        !segments.includes("help") && "before:hidden"
-                      }`}
+                      className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-400 before:to-purple-500 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${!segments.includes("help") && "before:hidden"
+                        }`}
                       onClick={() => setSidebarOpen(false)}
                     >
                       <svg
@@ -195,10 +192,9 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                         <>
                           <a
                             href="#0"
-                            className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-300 before:to-indigo-400 dark:before:from-blue-600 dark:before:to-indigo-700 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${
-                              pathname.startsWith("dashboard") &&
+                            className={`relative flex items-center font-[650] text-zinc-800 p-1 before:absolute before:inset-0 before:rounded before:bg-gradient-to-tr before:from-blue-300 before:to-indigo-400 dark:before:from-blue-600 dark:before:to-indigo-700 before:opacity-20 before:-z-10 before:pointer-events-none dark:text-zinc-200 ${pathname.startsWith("dashboard") &&
                               "before:hidden"
-                            }`}
+                              }`}
                             onClick={(e) => {
                               e.preventDefault();
                               handleClick();
@@ -226,11 +222,10 @@ export function Sidebar({ sidebarNav, authenticatedItem }) {
                             </svg>
                             <span>Admin UI</span>
                           </a>
-                          <ScrollArea vpClassName="h-[24vh]">
+                          <ScrollArea vpClassName="max-h-[calc(100vh-400px)]">
                             <ul
-                              className={`mb-3 ml-4 pl-6 border-l border-zinc-200 dark:border-zinc-800 ${
-                                !open && "hidden"
-                              }`}
+                              className={`mb-3 ml-4 pl-6 border-l border-zinc-200 dark:border-zinc-800 ${!open && "hidden"
+                                }`}
                             >
                               {sidebarNav.map(({ title, href }) => (
                                 <li className="max-h-full mt-3">
