@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import { useToasts } from "@keystone/components/Toast";
 import { Button } from "@keystone/primitives/default/ui/button";
-import { Trash } from "lucide-react";
+import { Loader2, Trash } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -96,8 +96,7 @@ export function DeleteManyButton({
                         acc.successMessage =
                           acc.successMessage === ""
                             ? (acc.successMessage += curr[list.labelField])
-                            : (acc.successMessage += `, ${
-                                curr[list.labelField]
+                            : (acc.successMessage += `, ${curr[list.labelField]
                               }`);
                       } else {
                         acc.unsuccessfulItems++;
@@ -117,9 +116,8 @@ export function DeleteManyButton({
                   // Reduce error messages down to unique instances, and append to the toast as a message.
                   toasts.addToast({
                     tone: "negative",
-                    title: `Failed to delete ${unsuccessfulItems} of ${
-                      data[list.gqlNames.deleteManyMutationName].length
-                    } ${list.plural}`,
+                    title: `Failed to delete ${unsuccessfulItems} of ${data[list.gqlNames.deleteManyMutationName].length
+                      } ${list.plural}`,
                     message: errors
                       .reduce((acc, error) => {
                         if (acc.indexOf(error.message) < 0) {
@@ -134,9 +132,8 @@ export function DeleteManyButton({
                 if (successfulItems) {
                   toasts.addToast({
                     tone: "positive",
-                    title: `Deleted ${successfulItems} of ${
-                      data[list.gqlNames.deleteManyMutationName].length
-                    } ${list.plural} successfully`,
+                    title: `Deleted ${successfulItems} of ${data[list.gqlNames.deleteManyMutationName].length
+                      } ${list.plural} successfully`,
                     message: successMessage,
                   });
                 }
@@ -144,9 +141,12 @@ export function DeleteManyButton({
                 setIsOpen(false);
                 return refetch();
               }}
+              disabled={deleteItemsState.loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {deleteItemsState.loading && (
+                <Loader2 className="mr-2 h-3 w-3 md:h-4 md:w-4 animate-spin" />
+              )} Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
