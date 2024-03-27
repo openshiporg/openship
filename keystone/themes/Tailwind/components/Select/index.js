@@ -15,9 +15,9 @@ const controlStyles = {
 const placeholderStyles =
   "col-start-1 col-end-3 row-start-1 row-end-2 text-muted-foreground pl-1 py-0.5";
 const selectInputStyles =
-  "inline-grid [grid-template-columns:0_min-content] col-start-1 col-end-3 row-start-1 row-end-2 pl-1 py-0.5";
+  "inline-grid [grid-template-columns:min-content_auto] col-start-1 col-end-3 row-start-1 row-end-2 pl-1 py-0.5";
 const singleValueContainerStyles = "items-center flex grid flex-1 flex-wrap";
-const multiValueContainerStyles = "items-center flex flex-1 flex-wrap";
+const multiValueContainerStyles = "items-center flex flex-1 flex-wrap py-2.5";
 const singleValueStyles =
   "col-start-1 col-end-3 row-start-1 row-end-2 leading-7 ml-1";
 const multiValueStyles =

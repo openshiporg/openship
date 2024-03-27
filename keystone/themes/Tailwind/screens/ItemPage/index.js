@@ -314,8 +314,8 @@ function ItemForm({
         />
       </div>
       <StickySidebar>
-        <FieldLabel>Item ID</FieldLabel>
         <div className="mt-1.5 ml-4">
+          <FieldLabel>Item ID</FieldLabel>
           <code className="border flex pl-4 items-center relative rounded-md bg-muted font-mono text-sm font-medium">
             {item.id}
             <TooltipProvider>
@@ -527,8 +527,9 @@ export const ItemPageTemplate = ({ listKey, id }) => {
   const pageTitle = list.isSingleton
     ? list.label
     : loading
-    ? undefined
-    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
+      ? undefined
+      : (data && data.item && (data.item[list.labelField] || data.item.id)) ||
+        id;
 
   return (
     <div>
@@ -622,21 +623,22 @@ const Toolbar = memo(function Toolbar({
 }) {
   return (
     <BaseToolbar>
-      <Button
-        isDisabled={!hasChangedFields}
-        isLoading={loading}
-        onClick={onSave}
-        color="blue"
-      >
-        Save changes
-      </Button>
+      {deleteButton}
+
       <div className="flex items-center gap-2">
         {hasChangedFields ? (
           <ResetChangesButton onReset={onReset} />
         ) : (
           <text className="font-medium px-5 text-sm">No changes</text>
         )}
-        {deleteButton}
+        <Button
+          isDisabled={!hasChangedFields}
+          isLoading={loading}
+          onClick={onSave}
+          color="blue"
+        >
+          Save changes
+        </Button>
       </div>
     </BaseToolbar>
   );
@@ -669,7 +671,5 @@ function ResetChangesButton(props) {
 }
 
 const StickySidebar = (props) => {
-  return (
-    <div className="hidden lg:block mt-2 mb-20 sticky top-8" {...props} />
-  );
+  return <div className="hidden lg:block mt-2 mb-20 sticky top-8" {...props} />;
 };

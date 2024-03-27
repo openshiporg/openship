@@ -28,10 +28,10 @@ const buttonVariants = cva(
       //   icon: "h-10 w-10",
       // },
       size: {
-        default: "h-8 px-3 py-1 text-sm md:h-10 md:px-4 md:py-2 md:text-base", // Adjusted default size
-        xs: "h-5 px-1 text-xs md:h-7 md:px-2 md:text-sm", // Extra small size
-        sm: "h-6 px-2 text-sm md:h-9 md:px-3 md:text-base", // Small size
-        lg: "h-9 px-5 text-lg md:h-11 md:px-8 md:text-xl", // Large size
+        default: "px-3 py-1 text-sm md:px-4 md:py-2 md:text-base", // Adjusted default size
+        xs: "px-1 text-xs md:px-2 md:text-sm", // Extra small size
+        sm: "px-2 text-sm md:px-3 md:text-base", // Small size
+        lg: "px-5 text-lg md:px-8 md:text-xl", // Large size
         icon: "h-8 w-8 md:h-10 md:w-10", // Icon size
       },
       color: {
@@ -39,8 +39,10 @@ const buttonVariants = cva(
           "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-900 dark:hover:text-slate-300",
         gray: "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-900 dark:hover:text-gray-300",
         zinc: "bg-zinc-100 text-zinc-700 hover:bg-zinc-300 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900 dark:hover:text-zinc-300",
-        neutral: "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-900 dark:hover:text-neutral-300",
-        stone: "bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-stone-800 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-900 dark:hover:text-stone-300",
+        neutral:
+          "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-900 dark:hover:text-neutral-300",
+        stone:
+          "bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-stone-800 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-900 dark:hover:text-stone-300",
         red: "bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-600 dark:hover:bg-red-500/20",
         orange:
           "bg-orange-50 text-orange-500 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-600 dark:hover:bg-orange-500/20",
