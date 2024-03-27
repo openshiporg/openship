@@ -29,9 +29,9 @@ const buttonVariants = cva(
       // },
       size: {
         default: "px-3 py-1 text-sm md:px-4 md:py-2 md:text-base", // Adjusted default size
-        xs: "px-1 text-xs md:px-2 md:text-sm", // Extra small size
-        sm: "px-2 text-sm md:px-3 md:text-base", // Small size
-        lg: "px-5 text-lg md:px-8 md:text-xl", // Large size
+        xs: "px-1 py-1 text-xs md:px-2 md:text-sm", // Extra small size
+        sm: "px-2 py-1 text-sm md:px-3 md:text-base", // Small size
+        lg: "px-5 py-1 text-lg md:px-8 md:text-xl", // Large size
         icon: "h-8 w-8 md:h-10 md:w-10", // Icon size
       },
       color: {
