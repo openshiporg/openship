@@ -48,16 +48,16 @@
         "svg"
       ],
       "@keystone/components/*": [
-        "keystone/themes/Tailwind/components/*"
+        "keystone/themes/Tailwind/atlas/components/*"
       ],
       "@keystone/screens/*": [
-        "keystone/themes/Tailwind/screens/*"
+        "keystone/themes/Tailwind/atlas/screens/*"
       ],
       "@keystone/views/*": [
-        "keystone/themes/Tailwind/views/*"
+        "keystone/themes/Tailwind/atlas/views/*"
       ],
       "@keystone/primitives/*": [
-        "keystone/themes/Tailwind/primitives/*"
+        "keystone/themes/Tailwind/atlas/primitives/*"
       ]
     }
   },

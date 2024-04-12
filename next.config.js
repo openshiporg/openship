@@ -1,7 +1,7 @@
 const fs = require("fs");
 const jsconfig = require("./jsconfig.json");
 
-const theme = process.env.ADMIN_THEME || "KeystoneUI";
+const theme = process.env.ADMIN_THEME || "Tailwind/atlas";
 
 const themeAliases = {
   "@keystone/components": `keystone/themes/${theme}/components`,

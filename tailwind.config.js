@@ -5,7 +5,7 @@ module.exports = {
   content: [
     "./components/**/*.{js,ts,jsx,tsx}",
     "./app/**/*.{js,ts,jsx,tsx}",
-    "./keystone/themes/Tailwind/**/**/*.{js,ts,jsx,tsx}",
+    "./keystone/**/**/**/**/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     container: {
