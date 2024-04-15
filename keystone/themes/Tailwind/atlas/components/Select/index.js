@@ -7,13 +7,13 @@ const portalTarget =
   typeof document !== "undefined" ? document.body : undefined;
 
 const controlStyles = {
-  base: "shadow-sm flex align-center wrap justify-between rounded-md border border-input bg-muted/40 pl-2 ring-offset-background",
+  base: "shadow-sm flex align-center wrap justify-between rounded-md border border-input bg-muted/40 p-1.5 ring-offset-background",
   focus: "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   nonFocus: "disabled:cursor-not-allowed disabled:opacity-50",
 };
 
 const placeholderStyles =
-  "col-start-1 col-end-3 row-start-1 row-end-2 text-muted-foreground pl-1 py-0.5";
+  "col-start-1 col-end-3 row-start-1 row-end-2 text-muted-foreground pl-1";
 const selectInputStyles =
   "inline-grid [grid-template-columns:min-content_auto] col-start-1 col-end-3 row-start-1 row-end-2 pl-1 py-0.5";
 const singleValueContainerStyles = "items-center flex grid flex-1 flex-wrap";
@@ -26,7 +26,7 @@ const multiValueLabelStyles = "pr-1 leading-6 text-sm";
 const multiValueRemoveStyles =
   "border-l-[1.5px] hover:bg-slate-50 dark:bg-slate-500/10 text-slate-500 dark:text-slate-600 dark:hover:bg-slate-500/20";
 const indicatorsContainerStyles =
-  "items-center self-stretch flex flex-shrink-0 box-border p-1";
+  "items-center self-stretch flex flex-shrink-0 box-border";
 const clearIndicatorStyles =
   "p-1 hover:bg-background border border-transparent hover:border-muted/90 text-muted-foreground rounded-md hover:text-foreground/50";
 const indicatorSeparatorStyles = "bg-muted";

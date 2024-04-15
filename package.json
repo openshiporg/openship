@@ -8,7 +8,7 @@
     "build": "next build && keystone prisma migrate deploy",
     "start": "next start",
     "lint": "next lint",
-    "migrate:gen": "keystone build --no-ui && keystone prisma migrate dev",
+    "migrate:gen": "keystone build --no-ui && keystone prisma migrate dev && yarn run generate-field-views",
     "migrate": "keystone prisma migrate deploy",
     "generate-field-views": "tsx keystone/scripts/generate-field-views.js"
   },

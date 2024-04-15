@@ -118,16 +118,16 @@ export function InitPage({
   };
 
   return (
-    <div className={`${montserrat.className} h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}>
-      <div className="flex flex-col gap-4 w-[350px]">
+    <div className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}>
+      <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
         <div className="mx-auto">
           <Logo size="lg" />
         </div>
         <form onSubmit={onSubmit}>
           <Card className="shadow-sm dark:bg-gray-900/25">
             <CardHeader>
-              <CardTitle className="text-gray-700 dark:text-white">Create Admin</CardTitle>
-              <CardDescription className="text-base">
+              <CardTitle className="text-slate-700 dark:text-white text-xl">Create Admin</CardTitle>
+              <CardDescription className="text-sm">
                 Create the first user on this instance
               </CardDescription>
             </CardHeader>
@@ -148,7 +148,7 @@ export function InitPage({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full tracking-wider"
+                className="w-full tracking-wider h-11 md:h-12"
                 color="emerald"
                 isLoading={
                   loading ||

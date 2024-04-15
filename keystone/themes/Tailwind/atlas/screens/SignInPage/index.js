@@ -147,17 +147,19 @@ export function SignInTemplate({
 }) {
   return (
     <div
-      className={`${montserrat.className} h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}
+      className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}
     >
-      <div className="flex flex-col gap-4 w-[350px]">
+      <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
         <div className="mx-auto">
           <Logo size="lg" />
         </div>
         <form onSubmit={onSubmit}>
           <Card className="shadow-sm dark:bg-gray-900/25">
             <CardHeader>
-              <CardTitle className="text-gray-700 dark:text-white">{title}</CardTitle>
-              <CardDescription className="text-base">
+              <CardTitle className="text-slate-700 dark:text-white text-xl">
+                {title}
+              </CardTitle>
+              <CardDescription className="text-sm">
                 Credentials required to access dashboard
               </CardDescription>
             </CardHeader>
@@ -202,7 +204,7 @@ export function SignInTemplate({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full text-md tracking-wider"
+                className="w-full text-md tracking-wider h-11 md:h-12"
                 color="blue"
                 isLoading={
                   loading ||

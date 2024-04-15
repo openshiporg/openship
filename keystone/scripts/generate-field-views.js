@@ -17,6 +17,7 @@ const viewMappings = {
   "@keystone-6/core/fields/types/integer/views": "@keystone/views/Integer",
   "@keystone-6/core/fields/types/float/views": "@keystone/views/Float",
   "@keystone-6/core/fields/types/image/views": "@keystone/views/Image",
+  "@keystone-6/core/fields/types/virtual/views": "@keystone/views/Virtual",
 };
 
 // console.log(viewMappings["@keystone-6/core/fields/types/timestamp/views"]);

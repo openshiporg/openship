@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import React from "react";
 import { cva } from "class-variance-authority";
 import { Button as HeadlessButton } from "@headlessui/react";
+import { Loader2 } from "lucide-react";
 
 const colorStyles = {
   "dark/slate": [
@@ -173,12 +174,23 @@ export const buttonVariants = cva(
 );
 
 export const Button = React.forwardRef(function Button(
-  { variant, size, color, outline, plain, className, children, ...props },
+  {
+    variant,
+    size,
+    color,
+    outline,
+    plain,
+    className,
+    isDisabled,
+    isLoading,
+    children,
+    ...props
+  },
   ref
 ) {
   const classes = clsx(
-    className,
-    buttonVariants({ variant, size, color, outline, plain })
+    buttonVariants({ variant, size, color, outline, plain }),
+    className
   );
 
   return "href" in props ? (
@@ -186,8 +198,21 @@ export const Button = React.forwardRef(function Button(
       <TouchTarget>{children}</TouchTarget>
     </Link>
   ) : (
-    <button {...props} className={classes} ref={ref}>
-      <TouchTarget>{children}</TouchTarget>
+    <button
+      {...props}
+      className={classes}
+      ref={ref}
+      disabled={isDisabled || isLoading}
+    >
+      <TouchTarget>
+        {isLoading && (
+          <Loader2
+            strokeWidth={3}
+            className="mr-2 h-3 w-3 md:h-5 md:w-5 animate-spin"
+          />
+        )}
+        {children}
+      </TouchTarget>
     </button>
   );
 });
