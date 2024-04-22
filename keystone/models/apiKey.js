@@ -9,12 +9,28 @@ import { list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
-const canManageKeys = ({ session }) => {
+const canReadKeys = ({ session }) => {
   if (!session) {
     // No session? No Users.
     return false;
   }
-  return { user: { id: session.itemId } };
+  if (permissions.canSeeOtherUsers({ session })) {
+    return true; // They can read everything!
+  }
+  // Can only see yourself
+  return { user: { id: { equals: session.itemId } } };
+};
+
+const canUpdateKeys = ({ session }) => {
+  if (!session) {
+    // No session? No Users.
+    return false;
+  }
+  if (permissions.canManageUsers({ session })) {
+    return true; // They can read everything!
+  }
+  // Can only see yourself
+  return { user: { id: { equals: session.itemId } } };
 };
 
 export const apiKey = list({
@@ -39,11 +55,26 @@ export const apiKey = list({
     },
   },
   access: {
+    // operation: {
+    //   create: isSignedIn,
+    //   query: isSignedIn,
+    //   delete: isSignedIn,
+    // },
+    // filter: {
+    //   query: canManageKeys,
+    //   update: canManageKeys,
+    // },
     operation: {
       create: isSignedIn,
-      read: canManageKeys,
-      update: canManageKeys,
-      delete: ({ session }) => canManageKeys({ session }) !== false,
+      query: isSignedIn,
+      delete: isSignedIn,
+      update: isSignedIn,
+    },
+    filter: {
+      // we use user rules since ApiKey is connected to the user
+      query: canReadKeys,
+      update: canUpdateKeys,
+      delete: canUpdateKeys,
     },
   },
   fields: {

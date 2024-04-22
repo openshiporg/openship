@@ -1,6 +1,6 @@
 import { list } from "@keystone-6/core";
 import { text, password, relationship } from "@keystone-6/core/fields";
-import { permissions, rules } from "../access";
+import { isSignedIn, permissions, rules } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const User = list({
@@ -9,7 +9,9 @@ export const User = list({
       create: process.env.ALLOW_EXTERNAL_SIGNUPS
         ? () => true
         : permissions.canManageUsers,
-      delete: permissions.canManageUsers,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadUsers,

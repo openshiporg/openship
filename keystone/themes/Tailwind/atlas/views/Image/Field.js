@@ -216,7 +216,7 @@ function createErrorMessage(value) {
 
 export function validateImage({ file, validity }) {
   if (!validity.valid) {
-    return "Something went wrong, please reload and try again.";
+    return "System Error, please reload and try again.";
   }
   // check if the file is actually an image
   if (!file.type.includes("image")) {

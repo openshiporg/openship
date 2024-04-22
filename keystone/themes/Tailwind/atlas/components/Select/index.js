@@ -36,14 +36,20 @@ const groupHeadingStyles = "ml-3 mt-2 mb-1 text-muted-foreground text-sm";
 const noOptionsMessageStyles =
   "text-muted-foreground py-2 px-5 bg-background border border-dashed border-input rounded-sm";
 
+// const optionStyles = {
+//   base: "relative cursor-pointer flex w-full items-center pr-2 py-2 pl-4",
+//   focus: "text-white dark:text-blue-600 bg-blue-600 dark:bg-blue-500/20",
+//   selected: "text-white dark:text-blue-600 bg-blue-500 dark:bg-blue-500/10",
+// };
+
 const optionStyles = {
-  base: "relative cursor-pointer flex w-full items-center pr-2 py-2 pl-4",
-  focus: "text-white dark:text-blue-600 bg-blue-600 dark:bg-blue-500/20",
-  selected: "text-white dark:text-blue-600 bg-blue-500 dark:bg-blue-500/10",
+  base: "text-slate-900 dark:text-slate-200 relative rounded-sm cursor-pointer flex w-full items-center pr-2 py-2 pl-4",
+  focus: "bg-slate-50 dark:bg-slate-700",
+  selected: "font-bold bg-slate-100 dark:bg-slate-800",
 };
 
 const menuStyles =
-  "overflow-hidden z-10 mt-2 top-full absolute w-full box-border rounded-md border bg-popover shadow-md";
+  "border p-1 overflow-hidden z-10 mt-2 top-full absolute w-full box-border rounded-md border bg-popover shadow-md";
 
 const ClearIndicator = (props) => {
   return (

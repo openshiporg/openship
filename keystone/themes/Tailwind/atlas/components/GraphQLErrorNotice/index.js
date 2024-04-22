@@ -1,5 +1,9 @@
 import React from "react";
-import { Alert } from "@keystone/primitives/default/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@keystone/primitives/default/ui/alert";
 
 export function GraphQLErrorNotice({ errors, networkError }) {
   if (networkError) {
@@ -10,7 +14,8 @@ export function GraphQLErrorNotice({ errors, networkError }) {
       <div className="mb-6 space-y-2">
         {errors.map((err, idx) => (
           <Alert key={idx} variant="destructive">
-            {err.message}
+            <AlertTitle>System Error</AlertTitle>
+            <AlertDescription>{err.message}</AlertDescription>
           </Alert>
         ))}
       </div>

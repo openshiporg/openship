@@ -27,7 +27,7 @@ export function statelessSessions({
   ironOptions = Iron.defaults,
   domain,
   sameSite = "lax",
-  cookieName = 'keystonejs-session',
+  cookieName = "keystonejs-session",
 }) {
   if (!secret) {
     throw new Error("You must specify a session secret to use sessions");
@@ -157,10 +157,12 @@ export default withAuth(
       useMigrations: true,
     },
     lists: models,
-    extendGraphqlSchema,
+    graphql: {
+      extendGraphqlSchema,
+    },
     ui: {
       isAccessAllowed: ({ session }) => !!session,
-      basePath: "/dashboard"
+      basePath: "/dashboard",
     },
     session: statelessSessions(sessionConfig),
     experimental: {

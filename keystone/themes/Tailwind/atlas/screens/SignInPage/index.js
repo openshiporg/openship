@@ -221,14 +221,14 @@ export function SignInTemplate({
 
         {error && (
           <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
         )}
         {data?.authenticate?.__typename === failureTypename && (
           <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{data?.authenticate.message}</AlertDescription>
           </Alert>

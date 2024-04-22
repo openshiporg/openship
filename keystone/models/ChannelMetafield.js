@@ -17,6 +17,9 @@ export const ChannelMetafield = list({
     // delete: rules.canUpdateMatches,
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadChannels,

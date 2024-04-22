@@ -135,6 +135,9 @@ export const Order = list({
     // delete: rules.canUpdateOrders,
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadOrders,

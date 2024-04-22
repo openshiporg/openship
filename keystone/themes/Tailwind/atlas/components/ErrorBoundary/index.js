@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component {
         <ErrorContainer>
           <div className="flex flex-col items-center space-y-4">
             <AlertTriangleIcon size="large" />
-            <div>Something went wrong.</div>
+            <div>System Error.</div>
             <Button
               size="sm"
               isLoading={this.state.isReloading}

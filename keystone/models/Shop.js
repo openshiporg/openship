@@ -17,6 +17,9 @@ export const Shop = list({
     // delete: rules.canUpdateShops,
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadShops,

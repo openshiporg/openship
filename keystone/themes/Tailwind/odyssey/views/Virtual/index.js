@@ -1,6 +1,9 @@
 import { FieldContainer } from "@keystone/components/FieldContainer";
 import { FieldDescription } from "@keystone/components/FieldDescription";
 import { FieldLabel } from "@keystone/components/FieldLabel";
+import { CellContainer } from "@keystone/components/CellContainer";
+import { CellLink } from "@keystone/components/CellLink";
+import { Badge } from "@keystone/primitives/default/ui/badge";
 
 import { PrettyData } from "./prettyData";
 
@@ -11,13 +14,29 @@ export const Field = ({ field, value }) =>
       <FieldDescription id={`${field.path}-description`}>
         {field.description}
       </FieldDescription>
-      <PrettyData data={value} />
+      <div className="flex justify-between border shadow-sm py-2 px-2.5 rounded-md bg-muted/40">
+        <PrettyData data={value} />
+        <Badge color="sky" className="rounded-sm">
+          Virtual
+        </Badge>
+      </div>
     </FieldContainer>
   );
 
-export const Cell = ({ item, field }) => {
-  return <PrettyData data={item[field.path]} />;
+export const Cell = ({ item, field, linkTo }) => {
+  let value = item[field.path];
+  return linkTo ? (
+    <CellLink {...linkTo}>
+      <PrettyData data={item[field.path]} />
+    </CellLink>
+  ) : (
+    <CellContainer>
+      <PrettyData data={item[field.path]} />
+    </CellContainer>
+  );
 };
+
+Cell.supportsLinkTo = true;
 
 export const CardValue = ({ item, field }) => {
   return (

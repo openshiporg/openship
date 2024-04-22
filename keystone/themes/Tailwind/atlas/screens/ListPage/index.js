@@ -18,11 +18,8 @@ import { DeleteManyButton } from "@keystone/components/DeleteManyButton";
 import { FieldSelection } from "@keystone/components/FieldSelection";
 import { FilterAdd } from "@keystone/components/FilterAdd";
 import { FilterList } from "@keystone/components/FilterList";
-import { ListPageHeader } from "@keystone/components/ListPageHeader";
 import { ListTable } from "@keystone/components/ListTable";
-import { ResultsSummaryContainer } from "@keystone/components/ResultsSummaryContainer";
 import { SortSelection } from "@keystone/components/SortSelection";
-import { PaginationLabel } from "@keystone/components/Pagination";
 import { Input } from "@keystone/primitives/default/ui/input";
 import { Button } from "@keystone/primitives/default/ui/button";
 import {
@@ -30,31 +27,13 @@ import {
   ChevronRight,
   Circle,
   Columns3,
-  EllipsisVertical,
-  File,
-  GripVertical,
-  Home,
-  LineChart,
-  ListFilter,
-  MoreHorizontal,
-  Package,
-  Package2,
-  PanelLeft,
-  PlusCircle,
   PlusIcon,
   Search,
-  Settings,
-  ShoppingCart,
   Square,
+  SquareArrowRight,
   Triangle,
-  Users2,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+
 import { LoadingIcon } from "@keystone/components/LoadingIcon";
 import Link from "next/link";
 import {
@@ -65,47 +44,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@keystone/primitives/default/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@keystone/primitives/default/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@keystone/primitives/default/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@keystone/primitives/default/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@keystone/primitives/default/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@keystone/primitives/default/ui/card";
-import { Badge } from "@keystone/primitives/default/ui/badge";
-import Image from "next/image";
-import { Separator } from "../../primitives/default/ui/separator";
-
-const HEADER_HEIGHT = 80;
+import { Pagination } from "../../components/Pagination";
 
 let listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
@@ -345,7 +284,7 @@ export const ListPageTemplate = ({ listKey }) => {
                   )}
                 </p>
               </div>
-              {data.count || searchString || filters.filters.length ? (
+              {data.count || query.search || filters.filters.length ? (
                 <div className="ml-auto">
                   {showCreate && <CreateButtonLink list={list} />}
                 </div>
@@ -353,7 +292,7 @@ export const ListPageTemplate = ({ listKey }) => {
             </div>
             <div class="no-scrollbar overflow-x-auto border rounded-lg divide-y">
               <div class="flex gap-3 py-3 px-3">
-                <div className="relative flex-1 md:grow-0">
+                <div className="relative w-full">
                   <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
                   <form
                     onSubmit={(e) => {
@@ -363,7 +302,7 @@ export const ListPageTemplate = ({ listKey }) => {
                   >
                     <Input
                       type="search"
-                      className="w-full rounded-md bg-muted/40 pl-10 md:w-[300px] lg:w-[350px]"
+                      className="w-full rounded-md bg-muted/40 pl-10"
                       value={searchString}
                       onChange={(e) => updateSearchString(e.target.value)}
                       placeholder={`Search by ${
@@ -374,48 +313,9 @@ export const ListPageTemplate = ({ listKey }) => {
                     />
                   </form>
                 </div>
-                {/* <div className="gap-3 hidden lg:flex">
-                  <SortSelection
-                    list={list}
-                    orderableFields={orderableFields}
-                  />
-                  <FieldSelection
-                    list={list}
-                    fieldModesByFieldPath={listViewFieldModesByField}
-                    rightSection={
-                      <Button
-                        variant="plain"
-                        size="xs"
-                        onClick={resetToDefaults}
-                        className="opacity-85 text-red-800"
-                        isDisabled={
-                          !Boolean(
-                            filters.filters.length ||
-                              query.sortBy ||
-                              query.fields ||
-                              query.search
-                          )
-                        }
-                      >
-                        Reset
-                      </Button>
-                    }
-                  />
-                </div> */}
               </div>
-              {/* {data.count || filters.filters.length ? (
-                <FilterAdd
-                  listKey={listKey}
-                  filterableFields={filterableFields}
-                />
-              ) : null}
-              {filters.filters.length ? (
-                <FilterList filters={filters.filters} list={list} />
-              ) : null} */}
+
               <div className="flex gap-2 items-center bg-slate-300/20 dark:bg-muted/10 px-3 py-2">
-                {/* <span className="py-0.5 my-1.5 border-r-[1.5px] pr-3 mr-1.5 text-zinc-400 font-medium text-sm">
-                  Filter
-                </span> */}
                 <SortSelection
                   list={list}
                   orderableFields={orderableFields}
@@ -481,9 +381,11 @@ export const ListPageTemplate = ({ listKey }) => {
                     }
                   />
                 ) : null}
-                <ChevronRight className="min-w-4 min-h-4 -mr-2 mt-[1px] stroke-muted-foreground" />
                 {filters.filters.length ? (
-                  <FilterList filters={filters.filters} list={list} />
+                  <>
+                    <SquareArrowRight className="w-4 h-4 -mr-1 stroke-muted-foreground/60" />
+                    <FilterList filters={filters.filters} list={list} />
+                  </>
                 ) : null}
               </div>
               {selectedItemsState.selectedItems.size > 0 && (
@@ -506,6 +408,12 @@ export const ListPageTemplate = ({ listKey }) => {
                   </div>
                 </div>
               )}
+              <Pagination
+                list={list}
+                total={data.count}
+                currentPage={currentPage}
+                pageSize={pageSize}
+              />
               {data.count ? (
                 <ListTable
                   count={data.count}
@@ -532,14 +440,14 @@ export const ListPageTemplate = ({ listKey }) => {
                       <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
                       <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
                     </div>
-                    {searchString || filters.filters.length ? (
+                    {query.search || filters.filters.length ? (
                       <>
                         <span className="pt-4 font-semibold">
                           No <span className="lowercase"> {list.label} </span>{" "}
                         </span>
                         <span className="text-muted-foreground pb-4">
                           Found{" "}
-                          {searchString
+                          {searchParam
                             ? `matching your search`
                             : `matching your filters`}{" "}
                         </span>

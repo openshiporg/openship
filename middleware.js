@@ -7,17 +7,14 @@ export async function middleware(req) {
   const isSignInPage = req.nextUrl.pathname.startsWith('/dashboard/signin');
 
   if (redirectToInit && !isInitPage) {
-    console.log("1")
     return NextResponse.redirect(new URL('/dashboard/init', req.url));
   }
 
   if (!redirectToInit && isInitPage) {
-    console.log("2")
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   if (isSignInPage) {
-    console.log("3")
     if (isAuth) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
@@ -25,12 +22,10 @@ export async function middleware(req) {
   }
 
   if (!isAuth && !isInitPage) {
-    console.log("4")
     let from = req.nextUrl.pathname;
     if (req.nextUrl.search) {
       from += req.nextUrl.search;
     }
-    console.log("5")
 
     return NextResponse.redirect(
       new URL(`/dashboard/signin?from=${encodeURIComponent(from)}`, req.url)

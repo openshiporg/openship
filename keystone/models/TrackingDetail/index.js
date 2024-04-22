@@ -22,6 +22,9 @@ export const TrackingDetail = list({
   access: {
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadOrders,

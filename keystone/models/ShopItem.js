@@ -13,6 +13,9 @@ export const ShopItem = list({
   access: {
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadMatches,

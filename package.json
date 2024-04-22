@@ -15,10 +15,10 @@
   "dependencies": {
     "@hapi/iron": "^7.0.1",
     "@headlessui/react": "^1.7.17",
-    "@keystone-6/auth": "^7.0.0",
+    "@keystone-6/auth": "^8.0.0",
     "@keystone-6/cloudinary": "^7.0.1",
-    "@keystone-6/core": "^5.7.1",
-    "@keystone-6/fields-document": "^8.0.0",
+    "@keystone-6/core": "^6.0.0",
+    "@keystone-6/fields-document": "^9.0.0",
     "@keystone-ui/core": "^5.0.2",
     "@mantine/core": "^4.2.9",
     "@mantine/dates": "^4.2.9",
@@ -79,7 +79,8 @@
     "tailwind-merge": "^2.1.0",
     "tailwindcss-animate": "^1.0.7",
     "tinycolor2": "^1.6.0",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "@prisma/client": "^5.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
@@ -87,6 +88,7 @@
     "eslint": "8.22.0",
     "eslint-config-next": "12.2.5",
     "postcss": "^8.4.21",
+    "prisma": "^5.0.0",
     "tailwindcss": "^3.3.0",
     "tsx": "^4.6.2"
   }

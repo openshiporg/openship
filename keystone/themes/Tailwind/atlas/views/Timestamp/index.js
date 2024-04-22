@@ -6,6 +6,7 @@ import { TextInput } from "@keystone/components/TextInput";
 import { FieldDescription } from "@keystone/components/FieldDescription";
 import { DatePicker } from "@keystone/components/DatePicker";
 import { CellContainer } from "@keystone/components/CellContainer";
+import { CellLink } from "@keystone/components/CellLink";
 import {
   constructTimestamp,
   deconstructTimestamp,

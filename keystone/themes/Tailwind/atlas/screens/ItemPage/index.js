@@ -33,8 +33,12 @@ import { Button } from "@keystone/primitives/default/ui/button";
 import { LoadingIcon } from "@keystone/components/LoadingIcon";
 import Link from "next/link";
 import { Skeleton } from "@keystone/primitives/default/ui/skeleton";
-import { ClipboardIcon } from "lucide-react";
-import { Alert } from "@keystone/primitives/default/ui/alert";
+import { AlertCircle, AlertTriangle, ClipboardIcon } from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@keystone/primitives/default/ui/alert";
 import {
   Tooltip,
   TooltipContent,
@@ -324,7 +328,7 @@ function ItemForm({
       <StickySidebar>
         <div className="ml-4 w-72">
           <FieldLabel>Item ID</FieldLabel>
-          <code className="py-[9px] mt-1 border flex px-4 items-center relative rounded-md shadow-sm bg-muted/40 font-mono text-sm font-medium">
+          <code className="py-[10px] mt-1 border flex px-4 items-center relative rounded-md shadow-sm bg-muted/40 font-mono text-sm font-medium">
             {item.id}
           </code>
         </div>
@@ -513,9 +517,8 @@ export const ItemPageTemplate = ({ listKey, id }) => {
   const pageTitle = list.isSingleton
     ? list.label
     : loading
-      ? undefined
-      : (data && data.item && (data.item[list.labelField] || data.item.id)) ||
-        id;
+    ? undefined
+    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
 
   return (
     <div>
@@ -582,7 +585,11 @@ export const ItemPageTemplate = ({ listKey, id }) => {
                 id === "1" ? (
                   <div className="space-y-4">
                     <Alert variant="destructive">
-                      {list.label} doesn't exist or you don't have access to it.
+                      <AlertTitle>System Error</AlertTitle>
+                      <AlertDescription>
+                        {list.label} doesn't exist or you don't have access to
+                        it.
+                      </AlertDescription>
                     </Alert>
                     {!data.keystone.adminMeta.list.hideCreate && (
                       <CreateButtonLink list={list} />
@@ -590,13 +597,21 @@ export const ItemPageTemplate = ({ listKey, id }) => {
                   </div>
                 ) : (
                   <Alert variant="destructive">
-                    The item with id "{id}" does not exist
+                    <AlertTitle>System Error</AlertTitle>
+                    <AlertDescription>
+                      The item with id "{id}" does not exist
+                    </AlertDescription>
                   </Alert>
                 )
               ) : (
                 <Alert variant="destructive">
-                  The item with id "{id}" could not be found or you don't have
-                  access to it.
+                  <AlertTriangle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
+
+                  <AlertTitle>System Error</AlertTitle>
+                  <AlertDescription>
+                    The item with id "{id}" could not be found or you don't have
+                    access to it.
+                  </AlertDescription>
                 </Alert>
               )}
             </div>
@@ -687,5 +702,7 @@ function ResetChangesButton(props) {
 }
 
 const StickySidebar = (props) => {
-  return <div className="hidden lg:block mt-0.5 mb-20 sticky top-8" {...props} />;
+  return (
+    <div className="hidden lg:block mt-0.5 mb-20 sticky top-8" {...props} />
+  );
 };

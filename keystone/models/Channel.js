@@ -17,6 +17,9 @@ export const Channel = list({
     // delete: rules.canUpdateChannels,
     operation: {
       create: isSignedIn,
+      query: isSignedIn,
+      update: isSignedIn,
+      delete: isSignedIn
     },
     filter: {
       query: rules.canReadChannels,
@@ -48,7 +51,11 @@ export const Channel = list({
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
           // Default to the currently logged in user on create.
-          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+          if (
+            operation === "create" &&
+            !resolvedData.user &&
+            context.session?.itemId
+          ) {
             return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;

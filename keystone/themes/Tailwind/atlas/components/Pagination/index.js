@@ -1,13 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AdminLink } from "@keystone/components/AdminLink";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-} from "@keystone/primitives/default/ui/select";
+import { MoveLeft, MoveRight } from "lucide-react";
 
 const getPaginationStats = ({ list, pageSize, currentPage, total }) => {
   let stats = "";
@@ -26,6 +19,9 @@ const getPaginationStats = ({ list, pageSize, currentPage, total }) => {
 };
 
 export function Pagination({ currentPage, total, pageSize, list }) {
+  const [currentPageInput, setCurrentPageInput] = useState(currentPage);
+  const [pageSizeInput, setPageSizeInput] = useState(pageSize.toString());
+
   const { push } = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,110 +35,138 @@ export function Pagination({ currentPage, total, pageSize, list }) {
   const nextPage = currentPage + 1;
   const prevPage = currentPage - 1;
   const minPage = 1;
+  const limit = Math.ceil(total / pageSize);
 
   const nxtQuery = { ...query, page: nextPage };
   const prevQuery = { ...query, page: prevPage };
 
-  const limit = Math.ceil(total / pageSize);
-  const pages = [];
-
-  useEffect(() => {
-    // Check if the current page is larger than
-    // the maximal page given the total and associated page size value.
-    // (This could happen due to a deletion event, in which case we want to reroute the user to a previous page).
-    if (currentPage > Math.ceil(total / pageSize)) {
-      // push({
-      //   pathname,
-      //   query: {
-      //     ...query,
-      //     page: Math.ceil(total / pageSize),
-      //   },
-      // });
-      push(`${pathname}?${searchParams}&page=${Math.ceil(total / pageSize)}`);
-    }
-  }, [total, pageSize, currentPage, pathname, query, push]);
-
-  // Don't render the pagiantion component if the pageSize is greater than the total number of items in the list.
-  if (total <= pageSize) return null;
-
-  const onChange = (selectedOption) => {
-    // push({
-    //   pathname,
-    //   query: {
-    //     ...query,
-    //     page: selectedOption.value,
-    //   },
-    // });
-    push(`${pathname}?${searchParams}&page=${selectedOption.value}`);
+  const getQueryString = (newParams) => {
+    const allParams = new URLSearchParams(query);
+    Object.keys(newParams).forEach((key) => {
+      allParams.set(key, newParams[key]); // Use `set` to ensure unique keys
+    });
+    return allParams.toString();
   };
 
-  for (let page = minPage; page <= limit; page++) {
-    pages.push({
-      label: String(page),
-      value: String(page),
-    });
-  }
+  if (total <= pageSize) return null;
+
+  const handlePageChange = (newPage) => {
+    const page = Math.max(minPage, Math.min(limit, Number(newPage)));
+    const newQuery = getQueryString({ page });
+    push(`${pathname}?${newQuery}`);
+    setCurrentPageInput(page.toString());
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    const size = Math.max(1, Number(newSize));
+    const newQuery = getQueryString({ pageSize: size });
+    push(`${pathname}?${newQuery}`);
+    setPageSizeInput(size.toString());
+  };
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    if (newValue === "" || /^\d+$/.test(newValue)) {
+      setCurrentPageInput(newValue);
+    }
+  };
+
+  const handleInputBlur = () => {
+    if (currentPageInput === "") {
+      setCurrentPageInput(currentPage.toString());
+    } else {
+      handlePageChange(currentPageInput);
+    }
+  };
+
+  const handlePageSizeInputChange = (e) => {
+    const newValue = e.target.value;
+    if (newValue === "" || /^\d+$/.test(newValue)) {
+      setPageSizeInput(newValue);
+    }
+  };
+
+  const handlePageSizeInputCommit = (value) => {
+    const newSize = Math.max(1, parseInt(value, 10) || 1);
+    handlePageSizeChange(newSize);
+    setPageSizeInput(newSize.toString());
+  };
+
+  const handlePageSizeInputBlur = () => {
+    if (pageSizeInput === "") {
+      setPageSizeInput(pageSize.toString());
+    } else {
+      handlePageSizeInputCommit(pageSizeInput);
+    }
+  };
 
   return (
-    <nav className="flex justify-between p-4" aria-label="Pagination">
-      <div className="flex gap-x-8 items-center">
-        <span>{`${list.plural} per page: ${pageSize}`}</span>
-        <span>
-          <strong>{stats}</strong>
-        </span>
-      </div>
-
-      <div className="flex gap-x-4 items-center">
-        <Select
-          onValueChange={(newPage) =>
-            onChange({ label: String(newPage), value: newPage })
-          }
-        >
-          <SelectTrigger className="w-medium ...">
-            <SelectValue>{String(currentPage)}</SelectValue>
-            <ChevronDown />
-          </SelectTrigger>
-          <SelectContent>
-            {pages.map((page) => (
-              <SelectItem key={page} value={page}>
-                {String(page)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span>of {limit}</span>
-        <AdminLink aria-label="Previous page" href={{ query: prevQuery }}>
-          <ChevronLeftIcon />
-        </AdminLink>
-        <AdminLink aria-label="Next page" href={{ query: nxtQuery }}>
-          <ChevronRightIcon />
-        </AdminLink>
+    <nav className="flex gap-4 px-4 py-1.5" aria-label="Pagination">
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center text-xs">
+          <div className="flex items-center">
+            <input
+              className={`-ml-[0.02rem] mr-1 bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 text-center appearance-none`}
+              style={{
+                width: `${Math.max(1.2, pageSizeInput.length * 0.6)}em`, // Adjust width dynamically based on input length
+              }}
+              type="text"
+              value={pageSizeInput}
+              onChange={handlePageSizeInputChange}
+              onBlur={handlePageSizeInputBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handlePageSizeInputCommit(e.target.value);
+                }
+              }}
+            />
+            <span className="text-gray-500 dark:text-gray-400 lowercase">
+              {pageSizeInput === 1 ? list.singular : list.plural} per page
+            </span>
+          </div>
+        </div>
+        <text className="text-xs text-muted-foreground">Showing {stats}</text>
+        <div className="flex items-center text-xs uppercase tracking-wide">
+          <span className="text-gray-500 dark:text-gray-400">Page</span>
+          <div className="flex items-center">
+            <input
+              className={`mx-1 bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 text-center appearance-none`}
+              style={{
+                width: `${Math.max(
+                  0.5,
+                  Math.max(currentPageInput.toString().length) * 0.75
+                )}em`,
+              }}
+              type="text"
+              value={currentPageInput}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handlePageChange(e.target.value);
+                }
+              }}
+            />
+            <span className="text-gray-500 dark:text-gray-400">of {limit}</span>
+            <div className="px-3 flex gap-0.5">
+              <button
+                type="button"
+                className="rounded-sm border h-4 px-1 inline-flex justify-center items-center gap-x-2 text-sm font-medium bg-slate-50 text-slate-800 hover:bg-slate-100 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                onClick={() => handlePageChange(parseInt(currentPageInput) - 1)}
+              >
+                <MoveLeft className="w-3 h-3 flex-shrink-0 size-3.5" />
+              </button>
+              <button
+                type="button"
+                className="rounded-sm border h-4 px-1 inline-flex justify-center items-center gap-x-2 text-sm font-medium bg-slate-50 text-slate-800 hover:bg-slate-100 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                onClick={() => handlePageChange(parseInt(currentPageInput) + 1)}
+              >
+                <MoveRight className="w-3 h-3 flex-shrink-0 size-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
-  );
-}
-
-export function PaginationLabel({
-  currentPage,
-  pageSize,
-  plural,
-  singular,
-  total,
-}) {
-  const { stats } = getPaginationStats({
-    list: { plural, singular },
-    currentPage,
-    total,
-    pageSize,
-  });
-
-  if (!total) {
-    return <span>No {plural}</span>;
-  }
-
-  return (
-    <span>
-      Showing <strong>{stats}</strong>
-    </span>
   );
 }
