@@ -103,6 +103,7 @@ export function Pagination({ currentPage, total, pageSize, list }) {
   return (
     <nav className="flex gap-4 px-4 py-1.5" aria-label="Pagination">
       <div className="flex flex-col gap-0.5">
+        <text className="text-xs text-muted-foreground">Showing {stats}</text>
         <div className="flex items-center text-xs">
           <div className="flex items-center">
             <input
@@ -125,7 +126,6 @@ export function Pagination({ currentPage, total, pageSize, list }) {
             </span>
           </div>
         </div>
-        <text className="text-xs text-muted-foreground">Showing {stats}</text>
         <div className="flex items-center text-xs uppercase tracking-wide">
           <span className="text-gray-500 dark:text-gray-400">Page</span>
           <div className="flex items-center">
