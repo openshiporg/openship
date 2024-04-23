@@ -9,7 +9,7 @@ export const Cell = ({ item, field }) => {
   if (!data) return null;
   return (
     <div>
-      <img alt={data.filename} src={data.url} />
+      <img className="w-36 h-36 rounded-sm" alt={data.filename} src={data.url} />
     </div>
   );
 };

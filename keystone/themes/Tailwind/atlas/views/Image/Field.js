@@ -7,7 +7,7 @@ import { FieldLabel } from "@keystone/components/FieldLabel";
 import { Button } from "@keystone/primitives/default/ui/button";
 import { Image as ImageIcon } from "lucide-react";
 
-export const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "png", "webp", "gif"];
+export const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "png", "webp", "gif", "svg"];
 
 function useObjectURL(fileData) {
   let [objectURL, setObjectURL] = useState(undefined);
