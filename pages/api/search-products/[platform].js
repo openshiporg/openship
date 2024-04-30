@@ -30,62 +30,208 @@ export default handler;
 const transformer = {
   bigcommerce: async (req, res) => {
     const arr = [];
+    if (req.query.productId && req.query.variantId) {
+      // Handle case when both productId and variantId are provided
+      const response = await fetch(
+        `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${req.query.productId}/variants/${req.query.variantId}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": req.query.accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const variant = await response.json();
 
-    const response = await fetch(
-      `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=images,variants&name:like=${req.query.searchEntry}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": req.query.accessToken,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+      const productResponse = await fetch(
+        `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${req.query.productId}?include=images`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": req.query.accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const product = await productResponse.json();
 
-    const { data } = await response.json();
+      const mergedData = { ...variant.data, ...product.data };
+      const newData = {
+        image:
+          mergedData.image_url || mergedData.images[0]?.url_thumbnail || "",
+        title: `${mergedData.name} ${
+          mergedData.option_values?.length > 0
+            ? `(${mergedData.option_values.map((o) => o.label).join("/")})`
+            : ""
+        }`,
+        productId: mergedData.id.toString(),
+        variantId: mergedData.product_id.toString(),
+        price: mergedData.price?.toString() || 0,
+        availableForSale: mergedData.availability === "available",
+      };
+      arr.push(newData);
 
-    // console.log(data[0].variants);
+      return { products: arr };
+    } else if (req.query.variantId) {
+      // Handle case when only variantId is provided
+      const response = await fetch(
+        `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=variants&variant_ids:in=${req.query.variantId}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": req.query.accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const responseData = await response.json();
+      const data = responseData.data;
 
-    data.forEach(
-      ({
-        id,
-        base_variant_id,
-        price,
-        primary_image,
-        name,
-        availability,
-        images,
-        variants,
-      }) => {
-        variants.forEach(
-          ({
-            id,
-            product_id,
-            image_url,
-            price: variantPrice,
-            option_values,
-          }) => {
-            // console.log({ option_values });
-            const newData = {
-              image: image_url || images[0]?.url_thumbnail || "",
-              title: `${name} ${
-                option_values.length > 0
-                  ? `(${option_values.map((o) => o.label).join("/")})`
-                  : ""
-              }`,
-              productId: product_id.toString(),
-              variantId: id.toString(),
-              price: variantPrice?.toString() || price?.toString() || 0,
-              availableForSale: availability === "available",
-            };
-            // console.log({ newData });
-            arr.push(newData);
-          }
-        );
-      }
-    );
+      data.forEach(
+        ({
+          id,
+          base_variant_id,
+          price,
+          primary_image,
+          name,
+          availability,
+          images,
+          variants,
+        }) => {
+          variants.forEach(
+            ({
+              id,
+              product_id,
+              image_url,
+              price: variantPrice,
+              option_values,
+            }) => {
+              const newData = {
+                image: image_url || images[0]?.url_thumbnail || "",
+                title: `${name} ${
+                  option_values.length > 0
+                    ? `(${option_values.map((o) => o.label).join("/")})`
+                    : ""
+                }`,
+                productId: product_id.toString(),
+                variantId: id.toString(),
+                price: variantPrice?.toString() || price?.toString() || 0,
+                availableForSale: availability === "available",
+              };
+              arr.push(newData);
+            }
+          );
+        }
+      );
 
-    return { products: arr };
+      return { products: arr };
+    } else if (req.query.productId) {
+      // Handle case when only productId is provided
+      const response = await fetch(
+        `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products/${req.query.productId}?include=images,variants`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": req.query.accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = [await response.json()];
+
+      data.forEach(
+        ({
+          id,
+          base_variant_id,
+          price,
+          primary_image,
+          name,
+          availability,
+          images,
+          variants,
+        }) => {
+          variants.forEach(
+            ({
+              id,
+              product_id,
+              image_url,
+              price: variantPrice,
+              option_values,
+            }) => {
+              const newData = {
+                image: image_url || images[0]?.url_thumbnail || "",
+                title: `${name} ${
+                  option_values.length > 0
+                    ? `(${option_values.map((o) => o.label).join("/")})`
+                    : ""
+                }`,
+                productId: product_id.toString(),
+                variantId: id.toString(),
+                price: variantPrice?.toString() || price?.toString() || 0,
+                availableForSale: availability === "available",
+              };
+              arr.push(newData);
+            }
+          );
+        }
+      );
+
+      return { products: arr };
+    } else {
+      // Handle case when searchEntry is provided
+      const response = await fetch(
+        `https://api.bigcommerce.com/stores/${req.query.domain}/v3/catalog/products?include=images,variants&name:like=${req.query.searchEntry}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": req.query.accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const responseData = await response.json();
+      const data = responseData.data;
+
+      data.forEach(
+        ({
+          id,
+          base_variant_id,
+          price,
+          primary_image,
+          name,
+          availability,
+          images,
+          variants,
+        }) => {
+          variants.forEach(
+            ({
+              id,
+              product_id,
+              image_url,
+              price: variantPrice,
+              option_values,
+            }) => {
+              const newData = {
+                image: image_url || images[0]?.url_thumbnail || "",
+                title: `${name} ${
+                  option_values.length > 0
+                    ? `(${option_values.map((o) => o.label).join("/")})`
+                    : ""
+                }`,
+                productId: product_id.toString(),
+                variantId: id.toString(),
+                price: variantPrice?.toString() || price?.toString() || 0,
+                availableForSale: availability === "available",
+              };
+              arr.push(newData);
+            }
+          );
+        }
+      );
+
+      return { products: arr };
+    }
   },
   shopify: async (req, res) => {
     const shopifyClient = new GraphQLClient(
@@ -249,7 +395,6 @@ const transformer = {
       variations,
       purchasable,
     } of allProducts) {
-      // console.log({ variations });
       if (variations.length === 0) {
         products.push({
           image: images[0].src,
