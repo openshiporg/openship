@@ -8,8 +8,12 @@ type User {
   password: PasswordState
   shops(where: ShopWhereInput! = {}, orderBy: [ShopOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopWhereUniqueInput): [Shop!]
   shopsCount(where: ShopWhereInput! = {}): Int
+  shopPlatforms(where: ShopPlatformWhereInput! = {}, orderBy: [ShopPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopPlatformWhereUniqueInput): [ShopPlatform!]
+  shopPlatformsCount(where: ShopPlatformWhereInput! = {}): Int
   channels(where: ChannelWhereInput! = {}, orderBy: [ChannelOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelWhereUniqueInput): [Channel!]
   channelsCount(where: ChannelWhereInput! = {}): Int
+  channelPlatforms(where: ChannelPlatformWhereInput! = {}, orderBy: [ChannelPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelPlatformWhereUniqueInput): [ChannelPlatform!]
+  channelPlatformsCount(where: ChannelPlatformWhereInput! = {}): Int
   orders(where: OrderWhereInput! = {}, orderBy: [OrderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OrderWhereUniqueInput): [Order!]
   ordersCount(where: OrderWhereInput! = {}): Int
   lineItems(where: LineItemWhereInput! = {}, orderBy: [LineItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LineItemWhereUniqueInput): [LineItem!]
@@ -59,7 +63,9 @@ input UserWhereInput {
   name: StringFilter
   email: StringFilter
   shops: ShopManyRelationFilter
+  shopPlatforms: ShopPlatformManyRelationFilter
   channels: ChannelManyRelationFilter
+  channelPlatforms: ChannelPlatformManyRelationFilter
   orders: OrderManyRelationFilter
   lineItems: LineItemManyRelationFilter
   cartItems: CartItemManyRelationFilter
@@ -130,10 +136,22 @@ input ShopManyRelationFilter {
   none: ShopWhereInput
 }
 
+input ShopPlatformManyRelationFilter {
+  every: ShopPlatformWhereInput
+  some: ShopPlatformWhereInput
+  none: ShopPlatformWhereInput
+}
+
 input ChannelManyRelationFilter {
   every: ChannelWhereInput
   some: ChannelWhereInput
   none: ChannelWhereInput
+}
+
+input ChannelPlatformManyRelationFilter {
+  every: ChannelPlatformWhereInput
+  some: ChannelPlatformWhereInput
+  none: ChannelPlatformWhereInput
 }
 
 input OrderManyRelationFilter {
@@ -248,7 +266,9 @@ input UserUpdateInput {
   email: String
   password: String
   shops: ShopRelateToManyForUpdateInput
+  shopPlatforms: ShopPlatformRelateToManyForUpdateInput
   channels: ChannelRelateToManyForUpdateInput
+  channelPlatforms: ChannelPlatformRelateToManyForUpdateInput
   orders: OrderRelateToManyForUpdateInput
   lineItems: LineItemRelateToManyForUpdateInput
   cartItems: CartItemRelateToManyForUpdateInput
@@ -275,11 +295,25 @@ input ShopRelateToManyForUpdateInput {
   connect: [ShopWhereUniqueInput!]
 }
 
+input ShopPlatformRelateToManyForUpdateInput {
+  disconnect: [ShopPlatformWhereUniqueInput!]
+  set: [ShopPlatformWhereUniqueInput!]
+  create: [ShopPlatformCreateInput!]
+  connect: [ShopPlatformWhereUniqueInput!]
+}
+
 input ChannelRelateToManyForUpdateInput {
   disconnect: [ChannelWhereUniqueInput!]
   set: [ChannelWhereUniqueInput!]
   create: [ChannelCreateInput!]
   connect: [ChannelWhereUniqueInput!]
+}
+
+input ChannelPlatformRelateToManyForUpdateInput {
+  disconnect: [ChannelPlatformWhereUniqueInput!]
+  set: [ChannelPlatformWhereUniqueInput!]
+  create: [ChannelPlatformCreateInput!]
+  connect: [ChannelPlatformWhereUniqueInput!]
 }
 
 input OrderRelateToManyForUpdateInput {
@@ -375,7 +409,9 @@ input UserCreateInput {
   email: String
   password: String
   shops: ShopRelateToManyForCreateInput
+  shopPlatforms: ShopPlatformRelateToManyForCreateInput
   channels: ChannelRelateToManyForCreateInput
+  channelPlatforms: ChannelPlatformRelateToManyForCreateInput
   orders: OrderRelateToManyForCreateInput
   lineItems: LineItemRelateToManyForCreateInput
   cartItems: CartItemRelateToManyForCreateInput
@@ -400,9 +436,19 @@ input ShopRelateToManyForCreateInput {
   connect: [ShopWhereUniqueInput!]
 }
 
+input ShopPlatformRelateToManyForCreateInput {
+  create: [ShopPlatformCreateInput!]
+  connect: [ShopPlatformWhereUniqueInput!]
+}
+
 input ChannelRelateToManyForCreateInput {
   create: [ChannelCreateInput!]
   connect: [ChannelWhereUniqueInput!]
+}
+
+input ChannelPlatformRelateToManyForCreateInput {
+  create: [ChannelPlatformCreateInput!]
+  connect: [ChannelPlatformWhereUniqueInput!]
 }
 
 input OrderRelateToManyForCreateInput {
@@ -1159,6 +1205,7 @@ type Channel {
   type: String
   domain: String
   accessToken: String
+  platform: ChannelPlatform
   searchProductsEndpoint: String
   createPurchaseEndpoint: String
   getWebhooksEndpoint: String
@@ -1190,6 +1237,7 @@ input ChannelWhereInput {
   type: StringFilter
   domain: StringFilter
   accessToken: StringFilter
+  platform: ChannelPlatformWhereInput
   searchProductsEndpoint: StringFilter
   createPurchaseEndpoint: StringFilter
   getWebhooksEndpoint: StringFilter
@@ -1224,6 +1272,7 @@ input ChannelUpdateInput {
   type: String
   domain: String
   accessToken: String
+  platform: ChannelPlatformRelateToOneForUpdateInput
   searchProductsEndpoint: String
   createPurchaseEndpoint: String
   getWebhooksEndpoint: String
@@ -1238,6 +1287,12 @@ input ChannelUpdateInput {
   updatedAt: DateTime
 }
 
+input ChannelPlatformRelateToOneForUpdateInput {
+  create: ChannelPlatformCreateInput
+  connect: ChannelPlatformWhereUniqueInput
+  disconnect: Boolean
+}
+
 input ChannelUpdateArgs {
   where: ChannelWhereUniqueInput!
   data: ChannelUpdateInput!
@@ -1248,6 +1303,7 @@ input ChannelCreateInput {
   type: String
   domain: String
   accessToken: String
+  platform: ChannelPlatformRelateToOneForCreateInput
   searchProductsEndpoint: String
   createPurchaseEndpoint: String
   getWebhooksEndpoint: String
@@ -1257,6 +1313,90 @@ input ChannelCreateInput {
   cartItems: CartItemRelateToManyForCreateInput
   links: LinkRelateToManyForCreateInput
   metafields: ChannelMetafieldRelateToManyForCreateInput
+  user: UserRelateToOneForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ChannelPlatformRelateToOneForCreateInput {
+  create: ChannelPlatformCreateInput
+  connect: ChannelPlatformWhereUniqueInput
+}
+
+type ChannelPlatform {
+  id: ID!
+  name: String
+  createPurchaseFunction: String
+  searchProductsFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  channels(where: ChannelWhereInput! = {}, orderBy: [ChannelOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelWhereUniqueInput): [Channel!]
+  channelsCount(where: ChannelWhereInput! = {}): Int
+  user: User
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ChannelPlatformWhereUniqueInput {
+  id: ID
+}
+
+input ChannelPlatformWhereInput {
+  AND: [ChannelPlatformWhereInput!]
+  OR: [ChannelPlatformWhereInput!]
+  NOT: [ChannelPlatformWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  createPurchaseFunction: StringFilter
+  searchProductsFunction: StringFilter
+  getWebhooksFunction: StringFilter
+  deleteWebhookFunction: StringFilter
+  createWebhookFunction: StringFilter
+  channels: ChannelManyRelationFilter
+  user: UserWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ChannelPlatformOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  createPurchaseFunction: OrderDirection
+  searchProductsFunction: OrderDirection
+  getWebhooksFunction: OrderDirection
+  deleteWebhookFunction: OrderDirection
+  createWebhookFunction: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input ChannelPlatformUpdateInput {
+  name: String
+  createPurchaseFunction: String
+  searchProductsFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  channels: ChannelRelateToManyForUpdateInput
+  user: UserRelateToOneForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ChannelPlatformUpdateArgs {
+  where: ChannelPlatformWhereUniqueInput!
+  data: ChannelPlatformUpdateInput!
+}
+
+input ChannelPlatformCreateInput {
+  name: String
+  createPurchaseFunction: String
+  searchProductsFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  channels: ChannelRelateToManyForCreateInput
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1404,6 +1544,7 @@ type Shop {
   type: String
   domain: String
   accessToken: String
+  platform: ShopPlatform
   searchProductsEndpoint: String
   searchOrdersEndpoint: String
   updateProductEndpoint: String
@@ -1437,6 +1578,7 @@ input ShopWhereInput {
   type: StringFilter
   domain: StringFilter
   accessToken: StringFilter
+  platform: ShopPlatformWhereInput
   searchProductsEndpoint: StringFilter
   searchOrdersEndpoint: StringFilter
   updateProductEndpoint: StringFilter
@@ -1473,6 +1615,7 @@ input ShopUpdateInput {
   type: String
   domain: String
   accessToken: String
+  platform: ShopPlatformRelateToOneForUpdateInput
   searchProductsEndpoint: String
   searchOrdersEndpoint: String
   updateProductEndpoint: String
@@ -1488,6 +1631,12 @@ input ShopUpdateInput {
   updatedAt: DateTime
 }
 
+input ShopPlatformRelateToOneForUpdateInput {
+  create: ShopPlatformCreateInput
+  connect: ShopPlatformWhereUniqueInput
+  disconnect: Boolean
+}
+
 input ShopUpdateArgs {
   where: ShopWhereUniqueInput!
   data: ShopUpdateInput!
@@ -1498,6 +1647,7 @@ input ShopCreateInput {
   type: String
   domain: String
   accessToken: String
+  platform: ShopPlatformRelateToOneForCreateInput
   searchProductsEndpoint: String
   searchOrdersEndpoint: String
   updateProductEndpoint: String
@@ -1508,6 +1658,95 @@ input ShopCreateInput {
   shopItems: ShopItemRelateToManyForCreateInput
   links: LinkRelateToManyForCreateInput
   metafields: ShopMetafieldRelateToManyForCreateInput
+  user: UserRelateToOneForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ShopPlatformRelateToOneForCreateInput {
+  create: ShopPlatformCreateInput
+  connect: ShopPlatformWhereUniqueInput
+}
+
+type ShopPlatform {
+  id: ID!
+  name: String
+  updateProductFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  searchProductsFunction: String
+  searchOrdersFunction: String
+  shops(where: ShopWhereInput! = {}, orderBy: [ShopOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopWhereUniqueInput): [Shop!]
+  shopsCount(where: ShopWhereInput! = {}): Int
+  user: User
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ShopPlatformWhereUniqueInput {
+  id: ID
+}
+
+input ShopPlatformWhereInput {
+  AND: [ShopPlatformWhereInput!]
+  OR: [ShopPlatformWhereInput!]
+  NOT: [ShopPlatformWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  updateProductFunction: StringFilter
+  getWebhooksFunction: StringFilter
+  deleteWebhookFunction: StringFilter
+  createWebhookFunction: StringFilter
+  searchProductsFunction: StringFilter
+  searchOrdersFunction: StringFilter
+  shops: ShopManyRelationFilter
+  user: UserWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ShopPlatformOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  updateProductFunction: OrderDirection
+  getWebhooksFunction: OrderDirection
+  deleteWebhookFunction: OrderDirection
+  createWebhookFunction: OrderDirection
+  searchProductsFunction: OrderDirection
+  searchOrdersFunction: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input ShopPlatformUpdateInput {
+  name: String
+  updateProductFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  searchProductsFunction: String
+  searchOrdersFunction: String
+  shops: ShopRelateToManyForUpdateInput
+  user: UserRelateToOneForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ShopPlatformUpdateArgs {
+  where: ShopPlatformWhereUniqueInput!
+  data: ShopPlatformUpdateInput!
+}
+
+input ShopPlatformCreateInput {
+  name: String
+  updateProductFunction: String
+  getWebhooksFunction: String
+  deleteWebhookFunction: String
+  createWebhookFunction: String
+  searchProductsFunction: String
+  searchOrdersFunction: String
+  shops: ShopRelateToManyForCreateInput
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1807,6 +2046,12 @@ type Mutation {
   updateChannels(data: [ChannelUpdateArgs!]!): [Channel]
   deleteChannel(where: ChannelWhereUniqueInput!): Channel
   deleteChannels(where: [ChannelWhereUniqueInput!]!): [Channel]
+  createChannelPlatform(data: ChannelPlatformCreateInput!): ChannelPlatform
+  createChannelPlatforms(data: [ChannelPlatformCreateInput!]!): [ChannelPlatform]
+  updateChannelPlatform(where: ChannelPlatformWhereUniqueInput!, data: ChannelPlatformUpdateInput!): ChannelPlatform
+  updateChannelPlatforms(data: [ChannelPlatformUpdateArgs!]!): [ChannelPlatform]
+  deleteChannelPlatform(where: ChannelPlatformWhereUniqueInput!): ChannelPlatform
+  deleteChannelPlatforms(where: [ChannelPlatformWhereUniqueInput!]!): [ChannelPlatform]
   createChannelMetafield(data: ChannelMetafieldCreateInput!): ChannelMetafield
   createChannelMetafields(data: [ChannelMetafieldCreateInput!]!): [ChannelMetafield]
   updateChannelMetafield(where: ChannelMetafieldWhereUniqueInput!, data: ChannelMetafieldUpdateInput!): ChannelMetafield
@@ -1825,6 +2070,12 @@ type Mutation {
   updateShops(data: [ShopUpdateArgs!]!): [Shop]
   deleteShop(where: ShopWhereUniqueInput!): Shop
   deleteShops(where: [ShopWhereUniqueInput!]!): [Shop]
+  createShopPlatform(data: ShopPlatformCreateInput!): ShopPlatform
+  createShopPlatforms(data: [ShopPlatformCreateInput!]!): [ShopPlatform]
+  updateShopPlatform(where: ShopPlatformWhereUniqueInput!, data: ShopPlatformUpdateInput!): ShopPlatform
+  updateShopPlatforms(data: [ShopPlatformUpdateArgs!]!): [ShopPlatform]
+  deleteShopPlatform(where: ShopPlatformWhereUniqueInput!): ShopPlatform
+  deleteShopPlatforms(where: [ShopPlatformWhereUniqueInput!]!): [ShopPlatform]
   createShopMetafield(data: ShopMetafieldCreateInput!): ShopMetafield
   createShopMetafields(data: [ShopMetafieldCreateInput!]!): [ShopMetafield]
   updateShopMetafield(where: ShopMetafieldWhereUniqueInput!, data: ShopMetafieldUpdateInput!): ShopMetafield
@@ -1858,9 +2109,15 @@ type Mutation {
   placeOrders(ids: [ID!]!): [Order]
   addMatchToCart(orderId: ID!): Order
   matchOrder(orderId: ID!): Match
-  overwriteMatch(input: [ShopItemWhereInput!]!, output: [ChannelItemWhereInput!]!): Match
+  overwriteMatch(input: [ShopItemWhereInput!], output: [ChannelItemWhereInput!]): Match
   cancelPurchase(purchaseId: String!): String
   cancelOrder(orderId: String!): String
+  createShopWebhook(shopId: ID!, topic: String!, endpoint: String!): CreateWebhookResponse
+  deleteShopWebhook(shopId: ID!, webhookId: ID!): DeleteWebhookResponse
+  updateShopProduct(shopId: ID!, variantId: ID!, price: String!): UpdateProductResponse
+  createChannelWebhook(channelId: ID!, topic: String!, endpoint: String!): CreateWebhookResponse
+  deleteChannelWebhook(channelId: ID!, webhookId: ID!): DeleteWebhookResponse
+  createChannelPurchase(input: CreatePurchaseInput!): CreatePurchaseResponse
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1916,6 +2173,9 @@ type Query {
   channels(where: ChannelWhereInput! = {}, orderBy: [ChannelOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelWhereUniqueInput): [Channel!]
   channel(where: ChannelWhereUniqueInput!): Channel
   channelsCount(where: ChannelWhereInput! = {}): Int
+  channelPlatforms(where: ChannelPlatformWhereInput! = {}, orderBy: [ChannelPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelPlatformWhereUniqueInput): [ChannelPlatform!]
+  channelPlatform(where: ChannelPlatformWhereUniqueInput!): ChannelPlatform
+  channelPlatformsCount(where: ChannelPlatformWhereInput! = {}): Int
   channelMetafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
   channelMetafield(where: ChannelMetafieldWhereUniqueInput!): ChannelMetafield
   channelMetafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
@@ -1925,6 +2185,9 @@ type Query {
   shops(where: ShopWhereInput! = {}, orderBy: [ShopOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopWhereUniqueInput): [Shop!]
   shop(where: ShopWhereUniqueInput!): Shop
   shopsCount(where: ShopWhereInput! = {}): Int
+  shopPlatforms(where: ShopPlatformWhereInput! = {}, orderBy: [ShopPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopPlatformWhereUniqueInput): [ShopPlatform!]
+  shopPlatform(where: ShopPlatformWhereUniqueInput!): ShopPlatform
+  shopPlatformsCount(where: ShopPlatformWhereInput! = {}): Int
   shopMetafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
   shopMetafield(where: ShopMetafieldWhereUniqueInput!): ShopMetafield
   shopMetafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
@@ -1940,9 +2203,14 @@ type Query {
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   validateUserPasswordResetToken(email: String!, token: String!): ValidateUserPasswordResetTokenResult
-  getMatch(input: [ShopItemWhereInput!]!): [ChannelItemPlus]!
-  getMatchCount(input: [ShopItemWhereInput!]!): Int
+  getMatch(input: [ShopItemWhereInput!]): [ChannelItemPlus!]
+  getMatchCount(input: [ShopItemWhereInput!]): Int
   redirectToInit: Boolean
+  searchShopProducts(shopId: ID!, searchEntry: String, variantId: String, productId: String): [ShopProduct]
+  searchShopOrders(shopId: ID!, searchEntry: String): [ShopOrder]
+  getShopWebhooks(shopId: ID!): [Webhook]
+  searchChannelProducts(channelId: ID!, searchEntry: String, variantId: String, productId: String): [ChannelProduct]
+  getChannelWebhooks(channelId: ID!): [Webhook]
 }
 
 union AuthenticatedItem = User
@@ -2068,4 +2336,115 @@ type ChannelItemPlus {
   name: String
   channelName: String
   channelId: String
+}
+
+type ShopProduct {
+  image: String
+  title: String
+  productId: ID
+  variantId: ID
+  price: String
+  availableForSale: Boolean
+  productLink: String
+  inventory: Int
+  inventoryTracked: Boolean
+}
+
+type ChannelProduct {
+  image: String
+  title: String
+  productId: ID
+  variantId: ID
+  price: String
+  availableForSale: Boolean
+  productLink: String
+  inventory: Int
+  inventoryTracked: Boolean
+}
+
+type ShopOrder {
+  orderId: ID!
+  orderName: String
+  link: String
+  date: String
+  first_name: String
+  last_name: String
+  streetAddress1: String
+  streetAddress2: String
+  city: String
+  state: String
+  zip: String
+  country: String
+  email: String
+  cartItems: [CartItem]
+  cursor: String
+  lineItems: [LineItem]
+  fulfillments: [Fulfillment]
+  note: String
+  totalPrice: String
+}
+
+type Fulfillment {
+  company: String
+  number: String
+  url: String
+}
+
+type Webhook {
+  id: ID!
+  callbackUrl: String!
+  createdAt: DateTime!
+  topic: String!
+  includeFields: [String!]
+}
+
+type CreateWebhookResponse {
+  success: Boolean
+  error: String
+  webhookId: ID
+}
+
+type DeleteWebhookResponse {
+  success: Boolean
+  error: String
+}
+
+type UpdateProductResponse {
+  success: Boolean
+  error: String
+  updatedVariant: ProductVariant
+}
+
+type ProductVariant {
+  price: String
+}
+
+input CreatePurchaseInput {
+  shopId: ID!
+  cartItems: [CartItemInput!]!
+  email: String!
+  address: AddressInput!
+  orderId: ID!
+}
+
+input CartItemInput {
+  variantId: ID!
+  quantity: Int!
+}
+
+input AddressInput {
+  first_name: String!
+  last_name: String!
+  streetAddress1: String!
+  streetAddress2: String
+  city: String!
+  state: String!
+  zip: String!
+  country: String!
+}
+
+type CreatePurchaseResponse {
+  success: Boolean
+  error: String
+  purchaseId: ID
 }

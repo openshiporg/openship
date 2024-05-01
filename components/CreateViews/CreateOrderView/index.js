@@ -96,6 +96,13 @@ export const CreateOrderView = ({
 
     const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
+    // Check if processOrder is "TRUE" and cartItems are not empty
+    const processOrderConditions = values.processOrder === "TRUE" && {
+      linkOrder: values.cartItems.length === 0, // Set to false if cartItems exist
+      matchOrder: values.cartItems.length === 0, // Set to false if cartItems exist
+      processOrder: true,
+    };
+
     const res = await request("/api/graphql", CREATE_ORDER, {
       data: removeEmpty({
         orderId: initialOrder?.orderId
@@ -147,11 +154,7 @@ export const CreateOrderView = ({
             })
           ),
         },
-        ...(values.processOrder === "TRUE" && {
-          linkOrder: true,
-          matchOrder: true,
-          processOrder: true,
-        }),
+        ...processOrderConditions,
       }),
     })
       .then(async () => {

@@ -387,10 +387,13 @@ function DeleteButton({ itemLabel, itemId, list }) {
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="ghost">Close</Button>
+              <Button size="sm" variant="ghost">
+                Close
+              </Button>
             </DialogClose>
             <Button
-              variant="destructive"
+              size="sm"
+              color="red"
               onClick={async () => {
                 try {
                   await deleteItem();
@@ -517,8 +520,9 @@ export const ItemPageTemplate = ({ listKey, id }) => {
   const pageTitle = list.isSingleton
     ? list.label
     : loading
-    ? undefined
-    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
+      ? undefined
+      : (data && data.item && (data.item[list.labelField] || data.item.id)) ||
+        id;
 
   return (
     <div>
@@ -691,9 +695,11 @@ function ResetChangesButton(props) {
           <text>Are you sure you want to reset changes?</text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button>Close</Button>
+              <Button size="sm">Close</Button>
             </DialogClose>
-            <Button onClick={() => props.onReset()}>Reset Changes</Button>
+            <Button size="sm" color="blue" onClick={() => props.onReset()}>
+              Reset Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

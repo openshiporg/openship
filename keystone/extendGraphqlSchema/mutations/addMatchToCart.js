@@ -1,5 +1,6 @@
 export async function getMatches({ orderId, context }) {
   async function createCartItems({ matches }) {
+    console.log({ matches });
     if (matches.length > 0) {
       let result;
       for (const existingMatch of matches) {

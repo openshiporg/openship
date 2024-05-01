@@ -1,9 +1,6 @@
-import { LineItem } from "./LineItem";
 import {
-  integer,
   text,
   relationship,
-  virtual,
   float,
   json,
   checkbox,
@@ -12,7 +9,7 @@ import { list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 import { placeMultipleOrders } from "../lib/placeMultipleOrders";
-import { getMatches } from "../mutations/addMatchToCart";
+import { getMatches } from "../extendGraphqlSchema/mutations/addMatchToCart";
 
 export const Order = list({
   hooks: {
@@ -62,6 +59,7 @@ export const Order = list({
               variantId
               sku
             }
+            cartItemsCount
           `,
         });
 
@@ -92,7 +90,7 @@ export const Order = list({
               query: sudoContext.query,
             });
           }
-        } else {
+        } else if (item.matchOrder) {
           console.log("else");
           console.log({ item });
 
@@ -124,20 +122,22 @@ export const Order = list({
               }
             }
           }
+            } else if (order.cartItemsCount > 0 && item.processOrder) {
+          // Process the order if there are cart items and processOrder is true
+          const processedOrder = await placeMultipleOrders({
+            ids: [item.id],
+            query: sudoContext.query,
+          });
         }
       }
     },
   },
   access: {
-    // create: isSignedIn,
-    // read: rules.canReadOrders,
-    // update: rules.canUpdateOrders,
-    // delete: rules.canUpdateOrders,
     operation: {
       create: isSignedIn,
       query: isSignedIn,
       update: isSignedIn,
-      delete: isSignedIn
+      delete: isSignedIn,
     },
     filter: {
       query: rules.canReadOrders,

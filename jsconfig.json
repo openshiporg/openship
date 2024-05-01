@@ -23,6 +23,12 @@
       "@keystone/*": [
         "keystone/*"
       ],
+      "@shopFunctions/*": [
+        "shopFunctions/*"
+      ],
+      "@channelFunctions/*": [
+        "channelFunctions/*"
+      ],
       "@assets/*": [
         "assets/*"
       ],

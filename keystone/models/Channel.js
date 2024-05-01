@@ -32,6 +32,15 @@ export const Channel = list({
     type: text(),
     domain: text(),
     accessToken: text(),
+
+    platform: relationship({
+      ref: 'ChannelPlatform.channels',
+      ui: {
+        displayMode: 'select',
+        labelField: 'name',
+      },
+    }),
+
     searchProductsEndpoint: text(),
     createPurchaseEndpoint: text(),
 

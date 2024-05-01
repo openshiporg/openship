@@ -13,7 +13,8 @@ import { ShopMetafield } from "./ShopMetafield";
 import { ShopItem } from "./ShopItem";
 import { Match } from "./Match";
 import { Link } from "./Link";
-
+import { ShopPlatform } from "./ShopPlatform";
+import { ChannelPlatform } from "./ChannelPlatform";
 // Add other imports here if needed
 
 export const models = {
@@ -25,9 +26,11 @@ export const models = {
   LineItem,
   CartItem,
   Channel,
+  ChannelPlatform,
   ChannelMetafield,
   ChannelItem,
   Shop,
+  ShopPlatform,
   ShopMetafield,
   ShopItem,
   Match,

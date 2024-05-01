@@ -1,5 +1,5 @@
-import { findChannelItems } from "../lib/findChannelItems";
-import { findShopItems } from "../lib/findShopItems";
+import { findChannelItems } from "../../lib/findChannelItems";
+import { findShopItems } from "../../lib/findShopItems";
 
 async function overwriteMatch(root, { input, output }, context) {
   // 1. Query the current user see if they are signed in

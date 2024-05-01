@@ -5,7 +5,7 @@ import {
   virtual,
   float,
 } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { graphql, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -19,7 +19,7 @@ export const Shop = list({
       create: isSignedIn,
       query: isSignedIn,
       update: isSignedIn,
-      delete: isSignedIn
+      delete: isSignedIn,
     },
     filter: {
       query: rules.canReadShops,
@@ -32,8 +32,18 @@ export const Shop = list({
     type: text(),
     domain: text({ isIndexed: "unique" }),
     accessToken: text(),
+
+    platform: relationship({
+      ref: 'ShopPlatform.shops',
+      ui: {
+        displayMode: 'select',
+        labelField: 'name',
+      },
+    }),
+
     searchProductsEndpoint: text(),
     searchOrdersEndpoint: text(),
+
     updateProductEndpoint: text(),
 
     getWebhooksEndpoint: text(),
@@ -51,7 +61,11 @@ export const Shop = list({
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
           // Default to the currently logged in user on create.
-          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+          if (
+            operation === "create" &&
+            !resolvedData.user &&
+            context.session?.itemId
+          ) {
             return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;

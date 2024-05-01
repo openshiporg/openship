@@ -30,7 +30,9 @@
     "@mantine/prism": "^4.2.9",
     "@preconstruct/next": "^4.0.0",
     "@primer/octicons-react": "^16.3.1",
+    "@prisma/client": "^5.0.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
+    "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
@@ -79,8 +81,7 @@
     "tailwind-merge": "^2.1.0",
     "tailwindcss-animate": "^1.0.7",
     "tinycolor2": "^1.6.0",
-    "xml2js": "^0.4.23",
-    "@prisma/client": "^5.0.0"
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

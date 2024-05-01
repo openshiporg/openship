@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useAppProvider } from "./AppProvider";
 import { SidebarLink } from "./SidebarLink";
 import { SidebarLinkGroup } from "./SidebarLinkGroup";
-import { Home, Package2, LayoutDashboard } from "lucide-react";
+import { Home, Package2, LayoutDashboard, RefreshCcwDot } from "lucide-react";
 import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import { Logo } from "@keystone/logo";
@@ -121,7 +121,16 @@ export function SideBarUI({
           <div className="bg-emerald-50/50 dark:bg-emerald-900/20 shadow-sm border-[1.5px] border-emerald-200 dark:border-emerald-800 rounded-lg p-1.5">
             <Home className="h-4 w-4 stroke-emerald-500" />
           </div>
-          Dashboard
+          Orders
+        </Link>
+        <Link
+          href="/dashboard/oms/inventory-sync"
+          className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary"
+        >
+          <div className="bg-rose-50/50 dark:bg-rose-900/20 shadow-sm border-[1.5px] border-rose-200 dark:border-rose-800 rounded-lg p-1.5">
+            <RefreshCcwDot className="h-4 w-4 stroke-rose-500" />
+          </div>
+          Inventory Sync
         </Link>
         <Link
           href="/api/graphql"
@@ -163,11 +172,13 @@ export function SideBarUI({
                 <div className="bg-blue-50/50 dark:bg-blue-900/20 shadow-sm border-[1.5px] border-blue-200 dark:border-blue-800 rounded-lg p-1.5">
                   <LayoutDashboard className="h-4 w-4 stroke-blue-500" />
                 </div>
-                Admin UI
+                Dashboard
               </a>
               <ScrollArea vpClassName={`ml-3 ${scrollHeight}`}>
                 <ul
-                  className={`mb-3 ml-[.95rem] pl-4 border-l-2 border-blue-100 dark:border-blue-900 ${!open && "hidden"}`}
+                  className={`mb-3 ml-[.95rem] pl-4 border-l-2 border-blue-100 dark:border-blue-900 ${
+                    !open && "hidden"
+                  }`}
                 >
                   {sidebarNav.map(({ title, href }) => (
                     <li className="max-h-full">

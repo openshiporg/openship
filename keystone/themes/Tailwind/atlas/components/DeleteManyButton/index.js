@@ -74,6 +74,7 @@ export function DeleteManyButton({
               onClick={() => {
                 setIsOpen(false);
               }}
+
             >
               Cancel
             </AlertDialogCancel>
@@ -144,7 +145,7 @@ export function DeleteManyButton({
                 return refetch();
               }}
               disabled={deleteItemsState.loading}
-              buttonProps={{ color: "red" }}
+              buttonProps={{ color: "red", size: "sm" }}
               // className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteItemsState.loading && (

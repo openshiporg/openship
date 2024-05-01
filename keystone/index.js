@@ -5,7 +5,7 @@ import * as cookie from "cookie";
 // import { statelessSessions } from "@keystone-6/core/session";
 import { permissionsList } from "./models/fields";
 import "dotenv/config";
-import { extendGraphqlSchema } from "./mutations";
+import { extendGraphqlSchema } from "./extendGraphqlSchema";
 import { models } from "./models";
 import { sendPasswordResetEmail } from "./utils/mail";
 

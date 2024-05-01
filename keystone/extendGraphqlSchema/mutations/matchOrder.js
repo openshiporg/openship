@@ -1,7 +1,5 @@
-import { findChannelItems } from "../lib/findChannelItems";
-import { findShopItems } from "../lib/findShopItems";
-import { gql } from "graphql-request";
-const graphql = String.raw;
+import { findChannelItems } from "../../lib/findChannelItems";
+import { findShopItems } from "../../lib/findShopItems";
 
 async function matchOrder(root, { orderId }, context) {
   const sesh = context.session;
