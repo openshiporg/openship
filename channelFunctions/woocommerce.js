@@ -1,40 +1,5 @@
-export async function searchProducts({
-  domain,
-  accessToken,
-  searchEntry,
-  productId,
-  variantId,
-}) {
-  if (productId && variantId) {
-    const response = await fetch(
-      `${domain}/wp-json/wc/v3/products/${productId}/variations/${variantId}`,
-      {
-        headers: {
-          Authorization: "Basic " + btoa(accessToken),
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const product = await response.json();
-
-    if (!product) {
-      throw new Error("Product not found");
-    }
-
-    return {
-      products: [
-        {
-          image: product.image.src,
-          title: product.name,
-          productId: productId.toString(),
-          variantId: variantId.toString(),
-          price: product.price,
-          availableForSale: product.purchasable && true,
-        },
-      ],
-    };
-  }
-
+// Function to search products in WooCommerce
+export async function searchProducts({ domain, accessToken, searchEntry }) {
   const response = await fetch(
     `${domain}/wp-json/wc/v3/products?search=${searchEntry}`,
     {
@@ -98,6 +63,34 @@ export async function searchProducts({
 
   return { products };
 }
+
+// Function to get a specific product by variantId and productId in WooCommerce
+export async function getProduct({ domain, accessToken, variantId, productId }) {
+  const response = await fetch(
+    `${domain}/wp-json/wc/v3/products/${productId}/variations/${variantId}`,
+    {
+      headers: {
+        Authorization: "Basic " + btoa(accessToken),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const product = await response.json();
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  return {
+    image: product.image.src,
+    title: product.name,
+    productId: productId.toString(),
+    variantId: variantId.toString(),
+    price: product.price,
+    availableForSale: product.purchasable && true,
+  };
+}
+
 
 // Create Purchase
 export async function createPurchase({
@@ -256,4 +249,24 @@ export async function getWebhooks({ domain, accessToken }) {
   }));
 
   return { webhooks };
+}
+
+export async function createTrackingWebhookHandler(req, res) {
+  const { shippingOrder } = req.body;
+  if (!shippingOrder?.trackingNumber?.length || !shippingOrder?.carrier?.name || !shippingOrder?.purchaseOrder) {
+    return { error: true };
+  }
+  return {
+    purchaseId: shippingOrder.purchaseOrder,
+    trackingNumber: shippingOrder.trackingNumber[0],
+    trackingCompany: shippingOrder.carrier.name,
+  };
+}
+
+export async function cancelPurchaseWebhookHandler(req, res) {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: "Missing fields needed to cancel cart item" });
+  }
+  return id.toString();
 }

@@ -19,6 +19,7 @@ export const ShopPlatform = list({
   },
   fields: {
     name: text({ isRequired: true }),
+    key: text({ isIndexed: "unique", isRequired: true }),
     updateProductFunction: text({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
@@ -39,7 +40,23 @@ export const ShopPlatform = list({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
     }),
+    getProductFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
     searchOrdersFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
+    addTrackingFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
+    addCartToPlatformOrderFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
+    oAuthFunction: text({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
     }),

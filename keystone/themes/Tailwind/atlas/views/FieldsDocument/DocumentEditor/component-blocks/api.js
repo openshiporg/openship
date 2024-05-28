@@ -1,9 +1,9 @@
 import { graphql } from '@keystone-6/core';
-import { FieldContainer } from '@keystone/components/FieldContainer';
-import { FieldLabel } from '@keystone/components/FieldLabel';
-import { Checkbox } from '@keystone/components/Checkbox';
-import { TextInput } from '@keystone/components/TextInput';
-import { MultiSelect, Select } from '@keystone/components/Select';
+import { FieldContainer } from '../../../../components/FieldContainer';
+import { FieldLabel } from '../../../../components/FieldLabel';
+import { Checkbox } from '../../../../components/Checkbox';
+import { TextInput } from '../../../../components/TextInput';
+import { MultiSelect, Select } from '../../../../components/Select';
 import { useState } from 'react';
 import { isValidURL } from '../isValidURL';
 

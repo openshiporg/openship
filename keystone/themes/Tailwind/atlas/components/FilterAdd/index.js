@@ -1,7 +1,7 @@
 import { Fragment, cloneElement, useMemo, useState } from "react";
 import { useList } from "@keystone/keystoneProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@keystone/primitives/default/ui/select";
+} from "../../primitives/default/ui/select";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,9 +23,9 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from "@keystone/primitives/default/ui/dropdown-menu";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
-import { Separator } from "@keystone/primitives/default/ui/separator";
+} from "../../primitives/default/ui/dropdown-menu-depracated";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
+import { Separator } from "../../primitives/default/ui/separator";
 
 export function FilterAdd({ listKey, filterableFields, dropdownTrigger }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -138,8 +138,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
               onClick={() => {
                 setState({ kind: "selecting-field" });
               }}
-              size="xs"
-              variant="outline"
+              variant="secondary"
             >
               <div className="sr-only">Back</div>
               <ChevronLeftIcon className="w-4 h-4" />
@@ -222,10 +221,10 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
           <>
             <DropdownMenuSeparator />
             <div className="flex justify-between px-1">
-              <Button onClick={onClose} variant="plain" size="xs">
+              <Button onClick={onClose} variant="light">
                 Cancel
               </Button>
-              <Button type="submit" size="xs">
+              <Button type="submit">
                 Apply
               </Button>
             </div>

@@ -6,20 +6,18 @@ import { writeFile, mkdir } from "fs";
 import { join } from "path";
 
 const viewMappings = {
-  "@keystone-6/core/fields/types/text/views": "@keystone/views/Text",
-  "@keystone-6/core/fields/types/password/views": "@keystone/views/Password",
-  "@keystone-6/core/fields/types/relationship/views":
-    "@keystone/views/Relationship",
-  "@keystone-6/core/fields/types/json/views": "@keystone/views/JSON",
-  "@keystone-6/core/fields/types/timestamp/views": "@keystone/views/Timestamp",
-  "@keystone-6/core/fields/types/checkbox/views": "@keystone/views/Checkbox",
-  "@keystone-6/core/fields/types/select/views": "@keystone/views/Select",
-  "@keystone-6/core/fields/types/integer/views": "@keystone/views/Integer",
-  "@keystone-6/core/fields/types/float/views": "@keystone/views/Float",
-  "@keystone-6/core/fields/types/image/views": "@keystone/views/Image",
-  "@keystone-6/core/fields/types/virtual/views": "@keystone/views/Virtual",
+  [`@keystone-6/core/fields/types/text/views`]: `@keystone/views/Text`,
+  [`@keystone-6/core/fields/types/password/views`]: `@keystone/views/Password`,
+  [`@keystone-6/core/fields/types/relationship/views`]: `@keystone/views/Relationship`,
+  [`@keystone-6/core/fields/types/json/views`]: `@keystone/views/JSON`,
+  [`@keystone-6/core/fields/types/timestamp/views`]: `@keystone/views/Timestamp`,
+  [`@keystone-6/core/fields/types/checkbox/views`]: `@keystone/views/Checkbox`,
+  [`@keystone-6/core/fields/types/select/views`]: `@keystone/views/Select`,
+  [`@keystone-6/core/fields/types/integer/views`]: `@keystone/views/Integer`,
+  [`@keystone-6/core/fields/types/float/views`]: `@keystone/views/Float`,
+  [`@keystone-6/core/fields/types/image/views`]: `@keystone/views/Image`,
+  [`@keystone-6/core/fields/types/virtual/views`]: `@keystone/views/Virtual`,
 };
-
 // console.log(viewMappings["@keystone-6/core/fields/types/timestamp/views"]);
 
 const lists = initialiseLists(config);
@@ -646,8 +644,8 @@ function getListsWithInitialisedFields(
             fieldMode: _isEnabled.update
               ? fieldModes.item
               : _isEnabled.read && fieldModes.item !== "hidden"
-                ? "read"
-                : "hidden",
+              ? "read"
+              : "hidden",
           },
 
           listView: {
@@ -673,10 +671,10 @@ function getListsWithInitialisedFields(
       (list.fields.label
         ? "label"
         : list.fields.name
-          ? "name"
-          : list.fields.title
-            ? "title"
-            : "id");
+        ? "name"
+        : list.fields.title
+        ? "title"
+        : "id");
 
     const searchFields = new Set(list.ui?.searchFields ?? []);
     if (searchFields.has("id")) {

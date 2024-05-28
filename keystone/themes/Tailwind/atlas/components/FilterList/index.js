@@ -4,8 +4,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@keystone/primitives/default/ui/popover";
-import { Button } from "@keystone/primitives/default/ui/button";
+} from "../../primitives/default/ui/popover";
+import { Button } from "../../primitives/default/ui/button";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import { Separator } from "../../primitives/default/ui/separator";
 
@@ -122,10 +122,10 @@ function EditDialog({ filter, field, onClose }) {
       </div>
       <Separator />
       <div className="flex justify-between px-2 pb-2">
-        <Button variant="plain" onClick={onClose} size="xs">
+        <Button variant="light" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" size="xs">
+        <Button type="submit">
           Save
         </Button>
       </div>

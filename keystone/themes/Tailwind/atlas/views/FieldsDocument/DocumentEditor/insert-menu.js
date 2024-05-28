@@ -16,7 +16,7 @@ import {
   Dialog,
   DialogTrigger,
   DialogContent,
-} from "@keystone/primitives/default/ui/dialog";
+} from "../../primitives/default/ui/dialog";
 
 let noop = () => {};
 

@@ -9,7 +9,12 @@ import {
   useRef,
   useState,
 } from "react";
-
+import { models } from "@keystone/models";
+import { getNamesFromList } from "@keystone/utils/getNamesFromList";
+import { AlertTriangle } from "lucide-react";
+import { Link } from "next-view-transitions";
+import { useList } from "@keystone/keystoneProvider";
+import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import {
   deserializeValue,
@@ -17,34 +22,11 @@ import {
   useChangedFieldsAndDataForUpdate,
   useInvalidFields,
 } from "@keystone-6/core/admin-ui/utils";
-import { CreateButtonLink } from "@keystone/components/CreateButtonLink";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
-import { AlertDialog } from "@keystone/components/Modals";
-import { useToasts } from "@keystone/components/Toast";
-import { useList } from "@keystone/keystoneProvider";
-import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
-import { AdminLink } from "@keystone/components/AdminLink";
-
-import { models } from "@keystone/models";
-import { getNamesFromList } from "@keystone/utils/getNamesFromList";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
-import Link from "next/link";
-import { Skeleton } from "@keystone/primitives/default/ui/skeleton";
-import { AlertCircle, AlertTriangle, ClipboardIcon } from "lucide-react";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@keystone/primitives/default/ui/alert";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/alert";
 import {
   Dialog,
   DialogClose,
@@ -54,7 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@keystone/primitives/default/ui/dialog";
+} from "../../primitives/default/ui/dialog";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -62,7 +44,16 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@keystone/primitives/default/ui/breadcrumb";
+} from "../../primitives/default/ui/breadcrumb";
+import { CreateButtonLink } from "../../components/CreateButtonLink";
+import { FieldLabel } from "../../components/FieldLabel";
+import { Fields } from "../../components/Fields";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
+import { useToasts } from "../../components/Toast";
+import { AdminLink } from "../../components/AdminLink";
+import { Button } from "../../primitives/default/ui/button";
+import { LoadingIcon } from "../../components/LoadingIcon";
+import { Skeleton } from "../../primitives/default/ui/skeleton";
 
 export function ItemPageHeader(props) {
   return (
@@ -160,7 +151,8 @@ export function ColumnLayout(props) {
 
 export function BaseToolbar(props) {
   return (
-    <div className="border-t-2 bottom-0 flex justify-between mt-16 pb-6 pt-12 sticky z-20 bg-background text-foreground">
+    // <div className="border-t-2 bottom-0 flex justify-between mt-10 pb-2 pt-2 sticky z-20 bg-background text-foreground">
+    <div className="shadow-sm bottom-3 border flex justify-between p-2 rounded-lg sticky z-20 mt-5 bg-gray-200 dark:bg-gray-950">
       {props.children}
     </div>
   );
@@ -376,24 +368,22 @@ function DeleteButton({ itemLabel, itemId, list }) {
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button color="red">Delete</Button>
+          <Button variant="destructive">Delete</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete Confirmation</DialogTitle>
           </DialogHeader>
-          <text>
+          <text className="text-sm">
             Are you sure you want to delete <strong>{itemLabel}</strong>?
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button size="sm" variant="ghost">
-                Close
-              </Button>
+              <Button variant="secondary">Close</Button>
             </DialogClose>
             <Button
-              size="sm"
-              color="red"
+              variant="destructive"
+              isLoading={loading}
               onClick={async () => {
                 try {
                   await deleteItem();
@@ -520,9 +510,8 @@ export const ItemPageTemplate = ({ listKey, id }) => {
   const pageTitle = list.isSingleton
     ? list.label
     : loading
-      ? undefined
-      : (data && data.item && (data.item[list.labelField] || data.item.id)) ||
-        id;
+    ? undefined
+    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
 
   return (
     <div>
@@ -667,10 +656,9 @@ const Toolbar = memo(function Toolbar({
           <text className="font-medium px-5 text-sm">No changes</text>
         )}
         <Button
-          isDisabled={!hasChangedFields}
+          disabled={!hasChangedFields}
           isLoading={loading}
           onClick={onSave}
-          color="blue"
         >
           Save changes
         </Button>
@@ -686,18 +674,20 @@ function ResetChangesButton(props) {
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="plain">Reset changes</Button>
+          <Button variant="secondary">Reset changes</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Reset Confirmation</DialogTitle>
           </DialogHeader>
-          <text>Are you sure you want to reset changes?</text>
+          <text className="text-sm">
+            Are you sure you want to reset changes?
+          </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button size="sm">Close</Button>
+              <Button variant="secondary">Close</Button>
             </DialogClose>
-            <Button size="sm" color="blue" onClick={() => props.onReset()}>
+            <Button variant="destructive" onClick={() => props.onReset()}>
               Reset Changes
             </Button>
           </DialogFooter>

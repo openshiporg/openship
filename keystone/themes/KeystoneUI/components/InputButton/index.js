@@ -5,8 +5,8 @@ import { forwardRef } from "react"
 import { jsx, useTheme, VisuallyHidden } from "@keystone-ui/core"
 import { XIcon } from "@keystone-ui/icons/icons/XIcon"
 import { CalendarIcon } from "@keystone-ui/icons/icons/CalendarIcon"
-import { Adornment, AdornmentWrapper } from "@keystone/components/Adornment"
-import { useInputTokens, useInputStyles } from "@keystone/components/Fields/hooks/useInputTokens"
+import { Adornment, AdornmentWrapper } from "../Adornment"
+import { useInputTokens, useInputStyles } from "../Fields/hooks/useInputTokens"
 
 export const InputButton = forwardRef(
   ({ invalid = false, isSelected, onClear, ...props }, ref) => {

@@ -129,7 +129,6 @@ export const rules = {
     return { user: { id: { equals: session.itemId } } };
   },
   canUpdateChannels: ({ session }) => {
-    console.log("hello")
     if (!session) {
       // No session? No Users.
       return false;

@@ -1,17 +1,17 @@
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-} from "@keystone/primitives/default/ui/dropdown-menu";
+} from "../../primitives/default/ui/dropdown-menu-depracated";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
-import { Badge } from "@keystone/primitives/default/ui/badge";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
+import { Badge } from "../../primitives/default/ui/badge";
 import { cloneElement, useState } from "react";
 
 function isArrayEqual(arrA, arrB) {

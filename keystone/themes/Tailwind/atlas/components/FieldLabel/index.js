@@ -1,4 +1,4 @@
-import { Label } from "@keystone/primitives/default/ui/label";
+import { Label } from "../../primitives/default/ui/label";
 
 export const FieldLabel = (props) => {
   if (props.children === null) {

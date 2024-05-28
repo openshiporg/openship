@@ -1,20 +1,24 @@
 import { useRawKeystone } from "@keystone/keystoneProvider";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 
-export const Logo = () => {
+export const Logo = ({ className }) => {
   const { adminConfig } = useRawKeystone();
 
   // console.log({ adminConfig });
 
   if (adminConfig.components?.Logo) {
-    return <adminConfig.components.Logo />;
+    return <adminConfig.components.Logo className={className} />;
   }
 
   return (
     <h3>
-      <Link href="/">
+      <Link href="/" className={className}>
         <div className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" className="w-5 h-5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 220 220"
+            className="w-5 h-5"
+          >
             <defs>
               <linearGradient id="logo-a" x1="0%" x2="50%" y1="0%" y2="71.9%">
                 <stop offset="0%" stopColor="#5AE8FA" />

@@ -11,6 +11,7 @@ import updateShopProduct from "./shop/updateShopProduct";
 import createChannelWebhook from "./channel/createChannelWebhook";
 import deleteChannelWebhook from "./channel/deleteChannelWebhook";
 import createChannelPurchase from "./channel/createChannelPurchase";
+import upsertMatch from "./match/upsertMatch"
 
 export {
   addMatchToCart,
@@ -26,4 +27,5 @@ export {
   createChannelWebhook,
   deleteChannelWebhook,
   createChannelPurchase,
+  upsertMatch
 };

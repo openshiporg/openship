@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from 'next-view-transitions';
 
 export const AdminLink = ({ href, children, ...props }) => {
   const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";

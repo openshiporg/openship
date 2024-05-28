@@ -1,6 +1,6 @@
 async function searchChannelProducts(
   root,
-  { channelId, searchEntry, productId, variantId },
+  { channelId, searchEntry },
   context
 ) {
   // Fetch the channel using the provided channelId
@@ -26,8 +26,6 @@ async function searchChannelProducts(
   if (searchProductsFunction.startsWith("http")) {
     const params = new URLSearchParams({
       searchEntry: searchEntry || "",
-      variantId: variantId || "",
-      productId: productId || "",
       domain: channel.domain,
       accessToken: channel.accessToken,
     }).toString();
@@ -49,8 +47,6 @@ async function searchChannelProducts(
 
     const result = await channelFunctions.searchProducts({
       searchEntry,
-      variantId,
-      productId,
       domain: channel.domain,
       accessToken: channel.accessToken,
     });

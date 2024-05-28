@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import FocusLock from "react-focus-lock";
 import { RemoveScroll } from "react-remove-scroll";
 import { Blanket } from "./Blanket";
-import { Dialog } from "@keystone/primitives/default/ui/dialog";
+import { Dialog } from "../../primitives/default/ui/dialog";
 
 export const DialogBase = ({ children, isOpen, onClose, width, ...props }) => {
   const onKeyDown = (event) => {

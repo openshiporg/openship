@@ -1,6 +1,10 @@
 import { memo, useId, useMemo } from "react";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-
+import { FieldDescription } from "../FieldDescription";
+import { Separator } from "../../primitives/default/ui/separator";
+import { Button, buttonVariants } from "../../primitives/default/ui/button";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@keystone/utils/cn";
+FieldDescription;
 const RenderField = memo(function RenderField({
   field,
   value,
@@ -52,7 +56,9 @@ export function Fields({
           fieldKey,
           <div key={fieldKey}>
             {field.label}:{" "}
-            <span className="text-red-600 dark:text-red-500 text-sm">{val.errors[0].message}</span>
+            <span className="text-red-600 dark:text-red-500 text-sm">
+              {val.errors[0].message}
+            </span>
           </div>,
         ];
       }
@@ -118,7 +124,7 @@ function FieldGroup(props) {
   const descriptionId = useId();
   const labelId = useId();
 
-  const divider = <div className="h-full w-px" />;
+  const divider = <Separator orientation="vertical" />;
   return (
     <div
       role="group"
@@ -127,26 +133,34 @@ function FieldGroup(props) {
     >
       <details open>
         <summary className="list-none outline-none">
-          <div className="flex space-x-4">
-            <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
+          <div className="flex gap-1">
+            {/* <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
               {downChevron}
+            </div> */}
+            <div
+              variant="secondary"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "py-1 px-2"
+              )}
+            >
+              <ChevronRight className="size-4" />
             </div>
             {divider}
-            <text id={labelId} className="relative text-lg font-bold">
+            <text id={labelId} className="relative text-lg font-medium">
               {props.label}
             </text>
           </div>
         </summary>
-        <div className="flex space-x-4">
-          <div />
+        <div className="flex ml-[2.65rem]">
           {divider}
           <div>
             {props.description !== null && (
-              <FieldDescription id={descriptionId}>
+              <FieldDescription className="opacity-50" id={descriptionId}>
                 {props.description}
               </FieldDescription>
             )}
-            <div className="mt-12 space-y-12">{props.children}</div>
+            <div className="mt-2 space-y-2">{props.children}</div>
           </div>
         </div>
       </details>

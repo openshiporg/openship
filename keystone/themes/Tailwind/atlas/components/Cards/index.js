@@ -1,10 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
-import { InlineEdit } from "@keystone/components/InlineEdit";
-import { InlineCreate } from "@keystone/components/InlineCreate";
-import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
-
 import { forwardRefWithAs } from "@keystone/utils/forwardRefWithAs";
 import { useItemState } from "@keystone/utils/useItemState";
 
@@ -14,15 +8,20 @@ import {
   getRootGraphQLFieldsFromFieldController,
   makeDataGetter,
 } from "@keystone-6/core/admin-ui/utils";
-import { AdminLink } from "@keystone/components/AdminLink";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+import { cn } from "@keystone/utils/cn";
+import { LoadingIcon } from "../LoadingIcon";
+import { InlineEdit } from "../InlineEdit";
+import { InlineCreate } from "../InlineCreate";
+import { RelationshipSelect } from "../RelationshipSelect";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
+import { AdminLink } from "../AdminLink";
+import { Button, buttonVariants } from "../../primitives/default/ui/button";
+import { FieldContainer } from "../FieldContainer";
+import { FieldLabel } from "../FieldLabel";
 
 const CardContainer = forwardRefWithAs(({ mode = "view", ...props }, ref) => {
   return (
@@ -207,20 +206,24 @@ export function Cards({
                         onChange !== undefined && (
                           <Tooltip>
                             <TooltipTrigger>
-                              <Button
-                                disabled={onChange === undefined}
-                                onClick={() => {
-                                  const currentIds = new Set(value.currentIds);
-                                  currentIds.delete(id);
-                                  onChange({
-                                    ...value,
-                                    currentIds,
-                                  });
-                                }}
-                                {...props}
-                              >
-                                Remove
-                              </Button>
+                              {(props) => (
+                                <Button
+                                  disabled={onChange === undefined}
+                                  onClick={() => {
+                                    const currentIds = new Set(
+                                      value.currentIds
+                                    );
+                                    currentIds.delete(id);
+                                    onChange({
+                                      ...value,
+                                      currentIds,
+                                    });
+                                  }}
+                                  {...props}
+                                >
+                                  Remove
+                                </Button>
+                              )}
                             </TooltipTrigger>
                             <TooltipContent>
                               {/* Content of the tooltip */}
@@ -230,8 +233,14 @@ export function Cards({
                           </Tooltip>
                         )}
                       {displayOptions.linkToItem && (
-                        <AdminLink href={`/${foreignList.path}/${id}`}>
-                          <Button>View {foreignList.singular} details</Button>
+                        <AdminLink
+                          className={cn(
+                            buttonVariants({ variant: "light" }),
+                            "bg-transparent"
+                          )}
+                          href={`/${foreignList.path}/${id}`}
+                        >
+                          View {foreignList.singular} details
                         </AdminLink>
                       )}
                     </div>

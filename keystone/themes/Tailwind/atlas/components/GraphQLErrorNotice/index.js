@@ -3,7 +3,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@keystone/primitives/default/ui/alert";
+} from "../../primitives/default/ui/alert";
 
 export function GraphQLErrorNotice({ errors, networkError }) {
   if (networkError) {

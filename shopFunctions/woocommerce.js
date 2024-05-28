@@ -1,43 +1,7 @@
 // shopFunctions/woocommerce.js
 
-// Search Products
-export async function searchProducts({
-  domain,
-  accessToken,
-  searchEntry,
-  productId,
-  variantId,
-}) {
-  if (productId && variantId) {
-    const response = await fetch(
-      `${domain}/wp-json/wc/v3/products/${productId}/variations/${variantId}`,
-      {
-        headers: {
-          Authorization: "Basic " + btoa(accessToken),
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const product = await response.json();
-
-    if (!product) {
-      throw new Error("Product not found");
-    }
-
-    return {
-      products: [
-        {
-          image: product.image.src,
-          title: product.name,
-          productId: productId.toString(),
-          variantId: variantId.toString(),
-          price: product.price,
-          availableForSale: product.purchasable && true,
-        },
-      ],
-    };
-  }
-
+// Function to search products in WooCommerce
+export async function searchProducts({ domain, accessToken, searchEntry }) {
   const response = await fetch(
     `${domain}/wp-json/wc/v3/products?search=${searchEntry}`,
     {
@@ -102,6 +66,37 @@ export async function searchProducts({
   return { products };
 }
 
+// Function to get a specific product by variantId and productId in WooCommerce
+export async function getProduct({
+  domain,
+  accessToken,
+  variantId,
+  productId,
+}) {
+  const response = await fetch(
+    `${domain}/wp-json/wc/v3/products/${productId}/variations/${variantId}`,
+    {
+      headers: {
+        Authorization: "Basic " + btoa(accessToken),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const product = await response.json();
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  return {
+    image: product.image.src,
+    title: product.name,
+    productId: productId.toString(),
+    variantId: variantId.toString(),
+    price: product.price,
+    availableForSale: product.purchasable && true,
+  };
+}
 // Search Orders
 export async function searchOrders({ domain, accessToken, searchEntry }) {
   const response = await fetch(
@@ -241,4 +236,206 @@ export async function getWebhooks({ domain, accessToken }) {
   }));
 
   return { webhooks };
+}
+
+export async function addTracking({ order, trackingCompany, trackingNumber }) {
+  const url = `${order.shop.domain}/wp-json/wc/v3/orders/${order.orderId}/shipments`;
+
+  const orderResponse = await fetch(url, {
+    headers: new Headers({
+      "Authorization": `Basic ${btoa(`${order.shop.accessToken}`)}`,
+    }),
+  });
+
+  const orderDetails = await orderResponse.json();
+
+  const shipmentResponse = await fetch(url, {
+    headers: new Headers({
+      "Content-Type": "application/json",
+      "Authorization": `Basic ${btoa(`${order.shop.accessToken}`)}`,
+    }),
+    method: "POST",
+    body: JSON.stringify({
+      shipment: {
+        tracking_number: trackingNumber,
+        tracking_provider: trackingCompany,
+        date_created: new Date().toISOString(),
+      },
+    }),
+  });
+
+  const { shipment, errors: createErrors } = await shipmentResponse.json();
+
+  if (createErrors?.length > 0) {
+    const updateOrderResponse = await fetch(
+      `${order.shop.domain}/wp-json/wc/v3/orders/${order.orderId}`,
+      {
+        headers: new Headers({
+          "Content-Type": "application/json",
+          "Authorization": `Basic ${btoa(`${order.shop.accessToken}`)}`,
+        }),
+        method: "PUT",
+        body: JSON.stringify({
+          order: {
+            meta_data: orderDetails.meta_data.concat([
+              {
+                key: "tracking_number",
+                value: trackingNumber,
+              },
+              {
+                key: "tracking_company",
+                value: trackingCompany,
+              },
+            ]),
+          },
+        }),
+      }
+    );
+
+    const updatedOrder = await updateOrderResponse.json();
+    return {
+      fulfillment: null,
+      userErrors: updatedOrder.data.status === "processing" ? [] : updatedOrder.message,
+    };
+  } else {
+    const updateResponse = await fetch(
+      `${url}/${shipment.id}`,
+      {
+        headers: new Headers({
+          "Content-Type": "application/json",
+          "Authorization": `Basic ${btoa(`${order.shop.accessToken}`)}`,
+        }),
+        method: "PUT",
+        body: JSON.stringify({
+          shipment: {
+            tracking_number: trackingNumber,
+            tracking_provider: trackingCompany,
+            date_created: shipment.date_created,
+          },
+        }),
+      }
+    );
+
+    const { shipment: updatedShipment, errors: updateErrors } = await updateResponse.json();
+    return { fulfillment: { id: updatedShipment.id }, userErrors: updateErrors };
+  }
+}
+
+export async function cancelOrderWebhookHandler(req, res) {
+  if (!req.body.data.orderId) {
+    return res.status(400).json({ error: "Missing fields needed to cancel order" });
+  }
+  return req.body.data.orderId.toString();
+}
+
+export async function createOrderWebhookHandler(req, res) {
+  if (req.body) {
+    const existingShop = await keystoneContext.sudo().query.Shop.findOne({
+      where: {
+        domain: req.body.producer.split("/")[1],
+      },
+      query: `
+        id
+        domain
+        accessToken
+        user {
+          id
+          email
+        }
+        links {
+          channel {
+            id
+            name
+          }
+        }
+      `,
+    });
+
+    const headers = {
+      "X-Auth-Token": existingShop.accessToken,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    const orderId = req.body.data.id;
+    const orderRes = await fetch(
+      `https://api.woocommerce.com/stores/${existingShop.domain}/v2/orders/${orderId}`,
+      {
+        headers,
+      }
+    );
+
+    const orderData = await orderRes.json();
+
+    const shippingAddresses = await fetch(orderData.shipping_addresses.url, {
+      method: "GET",
+      headers,
+    }).then((res) => res.json());
+
+    const orderProducts = await fetch(`${orderData.products.url}?include=images`, {
+      method: "GET",
+      headers,
+    }).then((res) => res.json());
+
+    const images = await Promise.all(
+      orderProducts.map((value) => {
+        return fetch(
+          `https://api.woocommerce.com/stores/${existingShop.domain}/v3/catalog/products/${value.product_id}/images`,
+          {
+            method: "GET",
+            headers,
+          }
+        ).then((res) => res.json());
+      })
+    );
+
+    const lineItemsOutput = orderProducts.map(
+      ({ id, name, quantity, product_id, variant_id, base_price }, key) => ({
+        name,
+        quantity,
+        price: base_price,
+        image: images[key].data ? images[key].data[0].url_zoom : "",
+        productId: product_id.toString(),
+        variantId: variant_id.toString(),
+        lineItemId: id.toString(),
+        user: { connect: { id: existingShop.user.id } },
+      })
+    );
+
+    const {
+      first_name,
+      last_name,
+      street_1,
+      street_2,
+      city,
+      state,
+      zip,
+      email,
+      country,
+    } = shippingAddresses[0];
+
+    return {
+      orderId: orderData.id,
+      orderName: `#${orderData.id}`,
+      first_name,
+      last_name,
+      streetAddress1: street_1,
+      streetAddress2: street_2,
+      city,
+      state,
+      zip,
+      email,
+      country,
+      shippingMethod: orderData.shipping_methods,
+      currency: orderData.currency_code,
+      phoneNumber: orderData.billing_address.phone,
+      note: orderData.customer_message,
+      lineItems: { create: lineItemsOutput },
+      user: { connect: { id: existingShop.user.id } },
+      shop: { connect: { id: existingShop.id } },
+      status: "INPROCESS",
+      linkOrder: true,
+      matchOrder: true,
+      processOrder: true,
+    };
+  }
 }

@@ -3,8 +3,8 @@
 
 import { jsx } from '@keystone-ui/core';
 import { validateImage, ImageWrapper } from "./Field";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
 
 export { Field } from "./Field";
 

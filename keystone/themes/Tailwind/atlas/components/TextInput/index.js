@@ -1,4 +1,4 @@
-import { Input } from "@keystone/primitives/default/ui/input";
+import { Input } from "../../primitives/default/ui/input";
 
 export const TextInput = (props) => {
   if (props.children === null) {

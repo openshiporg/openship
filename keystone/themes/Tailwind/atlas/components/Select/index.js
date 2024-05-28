@@ -1,5 +1,6 @@
 import { cn } from "@keystone/utils/cn";
-import { ChevronDown, ChevronDownIcon, Loader2, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
+import { RiLoader2Fill } from "@remixicon/react";
 import ReactSelect, { components, mergeStyles } from "react-select";
 export { components as selectComponents } from "react-select";
 
@@ -77,7 +78,10 @@ const DropdownIndicator = (props) => {
 
 const LoadingIndicator = () => {
   return (
-    <Loader2 strokeWidth={2.5} className="h-5 w-5 animate-spin opacity-45" />
+    <RiLoader2Fill
+      className="size-5 shrink-0 animate-spin"
+      aria-hidden="true"
+    />
   );
 };
 

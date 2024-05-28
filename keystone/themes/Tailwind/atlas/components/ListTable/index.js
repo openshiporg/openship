@@ -4,10 +4,13 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  ColumnDef,
   flexRender,
 } from "@tanstack/react-table";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { useList } from "@keystone/keystoneProvider";
+import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
+import { useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { AdminLink } from "../AdminLink";
 import {
   Table,
   TableBody,
@@ -15,18 +18,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@keystone/primitives/default/ui/table";
-import { useList } from "@keystone/keystoneProvider";
-import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
-import { Checkbox, CheckboxControl } from "@keystone/components/Checkbox";
-import { useSearchParams } from "next/navigation";
-import { Input } from "@keystone/primitives/default/ui/input";
-import { SortDirectionArrow } from "@keystone/themes/KeystoneUI/components/SortDirectionArrow";
-
-import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
-import { cn } from "@keystone/utils/cn";
+} from "../../primitives/default/ui/table";
+import { CheckboxControl } from "../Checkbox";
 
 export function ListTable({
   selectedFields,

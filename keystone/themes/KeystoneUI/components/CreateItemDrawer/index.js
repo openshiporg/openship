@@ -2,11 +2,11 @@
 /** @jsx jsx */
 
 import { jsx, Box } from "@keystone-ui/core";
-import { Drawer } from "@keystone/components/Modals";
+import { Drawer } from "../Modals";
 import { LoadingDots } from "@keystone-ui/loading";
 
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { Fields } from "../Fields";
+import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
 
 import { useKeystone, useList } from "@keystone/keystoneProvider";
 import { useCreateItem } from "@keystone/utils/useCreateItem";

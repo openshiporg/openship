@@ -1,26 +1,26 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../../components/AdminLink";
 
 import { Fragment, useState } from "react";
 
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { FieldLegend } from "@keystone/components/FieldLegend";
-import { DrawerController } from "@keystone/components/Modals";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
+import { FieldLegend } from "../../components/FieldLegend";
+import { DrawerController } from "../../components/Modals";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
 
 import { Button } from "@keystone-ui/button";
 import { jsx, Stack, useTheme } from "@keystone-ui/core";
 
-import { Cards } from "@keystone/components/Cards";
-import { CreateItemDrawer } from "@keystone/components/CreateItemDrawer";
-import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
+import { Cards } from "../../components/Cards";
+import { CreateItemDrawer } from "../../components/CreateItemDrawer";
+import { RelationshipSelect } from "../../components/RelationshipSelect";
 
 
 function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {

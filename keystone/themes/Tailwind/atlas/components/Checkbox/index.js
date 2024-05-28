@@ -1,7 +1,7 @@
 import { Fragment, forwardRef } from "react";
 
 import { ControlLabel } from "../ControlLabel";
-import { Checkbox as CB } from "@keystone/primitives/default/ui/checkbox";
+import { Checkbox as CB } from "../../primitives/default/ui/checkbox";
 
 export const Checkbox = forwardRef(({ className, children, ...props }, ref) => {
   return (

@@ -10,8 +10,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
-import { Button } from "@keystone/primitives/default/ui/button";
+} from "../../primitives/default/ui/tooltip";
+import { Button } from "../../primitives/default/ui/button";
 
 export function ChromefulComponentBlockElement(props) {
   const selected = useSelected();

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import isDeepEqual from "fast-deep-equal";
-import { useToasts } from "@keystone/components/Toast";
 import { useFieldsObj } from "@keystone/utils/useFieldObj";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import {
   makeDataGetter,
@@ -10,7 +9,9 @@ import {
   serializeValueToObjByFieldKey,
   Fields,
 } from "@keystone-6/core/admin-ui/utils";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
+import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
+import { useToasts } from "../Toast";
 
 export function InlineCreate({
   list,

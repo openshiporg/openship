@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
-import { Adornment, AdornmentWrapper } from "@keystone/components/Adornment";
-
 import { CalendarIcon, XIcon } from "lucide-react";
+import { Adornment, AdornmentWrapper } from "../Adornment";
 
 export const InputButton = forwardRef(
   ({ invalid = false, isSelected, onClear, ...props }, ref) => {

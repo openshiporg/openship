@@ -29,7 +29,6 @@ export const Channel = list({
   },
   fields: {
     name: text(),
-    type: text(),
     domain: text(),
     accessToken: text(),
 
@@ -40,13 +39,6 @@ export const Channel = list({
         labelField: 'name',
       },
     }),
-
-    searchProductsEndpoint: text(),
-    createPurchaseEndpoint: text(),
-
-    getWebhooksEndpoint: text(),
-    createWebhookEndpoint: text(),
-    deleteWebhookEndpoint: text(),
 
     channelItems: relationship({ ref: "ChannelItem.channel", many: true }),
     cartItems: relationship({ ref: "CartItem.channel", many: true }),

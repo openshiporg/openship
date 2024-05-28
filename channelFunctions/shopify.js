@@ -1,12 +1,8 @@
 import { GraphQLClient, gql } from "graphql-request";
+import ShopifyToken from "shopify-token";
 
-export async function searchProducts({
-  domain,
-  accessToken,
-  variantId,
-  productId,
-  searchEntry,
-}) {
+// Function to search products
+export async function searchProducts({ domain, accessToken, searchEntry }) {
   const shopifyClient = new GraphQLClient(
     `https://${domain}/admin/api/graphql.json`,
     {
@@ -15,8 +11,6 @@ export async function searchProducts({
       },
     }
   );
-
-  const queryValue = variantId || searchEntry;
 
   const gqlQuery = gql`
     query SearchProducts($query: String) {
@@ -51,8 +45,14 @@ export async function searchProducts({
   `;
 
   const { productVariants } = await shopifyClient.request(gqlQuery, {
-    query: queryValue,
+    query: searchEntry,
   });
+
+  if (productVariants.edges.length < 1) {
+    throw new Error("No products found from Shopify");
+  }
+
+  console.log({ productVariants });
 
   const products = productVariants.edges.map(({ node }) => ({
     image:
@@ -63,13 +63,84 @@ export async function searchProducts({
     price: node.price,
     availableForSale: node.availableForSale,
     inventory: node.inventoryQuantity,
-    inventoryTracked: node.inventoryPolicy !== 'deny',
+    inventoryTracked: node.inventoryPolicy !== "deny",
     productLink: `https://${domain}/products/${node.product.handle}`,
   }));
 
   return { products };
 }
 
+// Function to get a specific product by variantId and productId
+export async function getProduct({
+  domain,
+  accessToken,
+  variantId,
+  productId,
+}) {
+  const shopifyClient = new GraphQLClient(
+    `https://${domain}/admin/api/graphql.json`,
+    {
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+      },
+    }
+  );
+
+  const gqlQuery = gql`
+    query GetProduct($variantId: ID!, $productId: ID!) {
+      productVariant(id: $variantId) {
+        id
+        availableForSale
+        image {
+          originalSrc
+        }
+        price
+        title
+        product {
+          id
+          handle
+          title
+          images(first: 1) {
+            edges {
+              node {
+                originalSrc
+              }
+            }
+          }
+        }
+        inventoryQuantity
+        inventoryPolicy
+      }
+    }
+  `;
+
+  const { productVariant } = await shopifyClient.request(gqlQuery, {
+    variantId: `gid://shopify/ProductVariant/${variantId}`,
+    productId: `gid://shopify/Product/${productId}`,
+  });
+
+  if (!productVariant) {
+    throw new Error("Product not found from Shopify");
+  }
+
+  console.log({ productVariant });
+
+  const product = {
+    image:
+      productVariant.image?.originalSrc ||
+      productVariant.product.images.edges[0]?.node.originalSrc,
+    title: `${productVariant.product.title} - ${productVariant.title}`,
+    productId: productVariant.product.id.split("/").pop(),
+    variantId: productVariant.id.split("/").pop(),
+    price: productVariant.price,
+    availableForSale: productVariant.availableForSale,
+    inventory: productVariant.inventoryQuantity,
+    inventoryTracked: productVariant.inventoryPolicy !== "deny",
+    productLink: `https://${domain}/products/${productVariant.product.handle}`,
+  };
+
+  return { product };
+}
 
 // Create Purchase
 export async function createPurchase({
@@ -311,4 +382,87 @@ export async function getWebhooks({ domain, accessToken }) {
       topic: mapTopic[node.topic],
     })),
   };
+}
+// Function to get config for Shopify
+export function getConfig() {
+  return {
+    apiKey: process.env.CHANNEL_SHOPIFY_API_KEY,
+    apiSecret:  process.env.CHANNEL_SHOPIFY_SECRET,
+    redirectUri: `${process.env.FRONTEND_URL}/api/o-auth/channel/callback/shopify`,
+    scopes: [
+      "write_orders", "write_products", "read_orders", "read_products", "read_fulfillments", 
+      "write_fulfillments", "write_draft_orders", "read_assigned_fulfillment_orders", 
+      "write_assigned_fulfillment_orders", "read_merchant_managed_fulfillment_orders", 
+      "write_merchant_managed_fulfillment_orders"
+    ],
+  };
+}
+
+// Shopify OAuth function
+export async function oauth(req, res, config) {
+  const shop = req.query.shop;
+  const state = req.query.state;
+  const redirectUri = config.redirectUri;
+  const scopes = config.scopes;
+
+  const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${config.apiKey}&scope=${scopes.join(",")}&state=${state}&redirect_uri=${redirectUri}`;
+  res.redirect(authUrl);
+}
+
+// Shopify callback function
+export async function callback(query, config) {
+  const { shop, hmac, code, timestamp } = query;
+
+  async function getToken() {
+    if (!code) {
+      return {
+        status: 422,
+        redirect: `${process.env.FRONTEND_URL}/api/o-auth/shop/shopify?shop=${shop}`
+      };
+    }
+
+    if (!hmac || !timestamp) {
+      return { status: 422, error: "Unprocessable Entity" };
+    }
+
+    const shopifyToken = new ShopifyToken({
+      redirectUri: `${config.redirectUri}/callback`,
+      sharedSecret: config.apiSecret,
+      apiKey: config.apiKey,
+      scopes: config.scopes,
+      accessMode: "offline",
+      timeout: 10000,
+    });
+
+    if (!shopifyToken.verifyHmac(query)) {
+      console.error("Error validating hmac");
+      throw new Error("Error validating hmac");
+    }
+
+    const data = await shopifyToken.getAccessToken(shop, code);
+    return data.access_token;
+  }
+
+  const accessToken = await getToken();
+  return accessToken;
+}
+
+export async function createTrackingWebhookHandler(req, res) {
+  const { tracking_numbers, tracking_company, order_id } = req.body;
+  if (!tracking_numbers?.length || !tracking_company || !order_id) {
+    return { error: true };
+  }
+  return {
+    purchaseId: order_id.toString(),
+    trackingNumber: tracking_numbers[0],
+    trackingCompany: tracking_company,
+  };
+}
+
+export async function cancelPurchaseWebhookHandler(req, res) {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: "Missing fields needed to cancel cart item" });
+  }
+  return id.toString();
 }

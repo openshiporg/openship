@@ -1,13 +1,13 @@
 import { useSort } from "@keystone/utils/useSort";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuItem,
-} from "@keystone/primitives/default/ui/dropdown-menu";
+} from "../../primitives/default/ui/dropdown-menu-depracated";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import {
   ArrowDown,
@@ -16,7 +16,7 @@ import {
   ArrowUp,
   ArrowUpDown,
 } from "lucide-react";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { cloneElement } from "react";
 
 export function SortSelection({ list, orderableFields, dropdownTrigger }) {

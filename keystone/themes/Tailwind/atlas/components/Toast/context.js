@@ -1,4 +1,4 @@
-import { useToast as useNewToast } from "@keystone/primitives/default/ui/use-toast";
+import { useToast as useNewToast } from "../../primitives/default/ui/use-toast";
 
 export const useToasts = () => {
   const { toast } = useNewToast();

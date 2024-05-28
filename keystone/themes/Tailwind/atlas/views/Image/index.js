@@ -1,6 +1,6 @@
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
 import { validateImage, ImageWrapper } from "./Field";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
 
 export { Field } from "./Field";
 
@@ -9,7 +9,11 @@ export const Cell = ({ item, field }) => {
   if (!data) return null;
   return (
     <div>
-      <img className="w-36 h-36 rounded-sm" alt={data.filename} src={data.url} />
+      <img
+        className="w-36 h-36 rounded-sm"
+        alt={data.filename}
+        src={data.url}
+      />
     </div>
   );
 };

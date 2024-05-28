@@ -25,22 +25,22 @@ import {
   useChangedFieldsAndDataForUpdate,
   useInvalidFields,
 } from "@keystone-6/core/admin-ui/utils";
-import { Container } from "@keystone/components/Container";
-import { CreateButtonLink } from "@keystone/components/CreateButtonLink";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
-import { AlertDialog } from "@keystone/components/Modals";
+import { Container } from "../../components/Container";
+import { CreateButtonLink } from "../../components/CreateButtonLink";
+import { FieldLabel } from "../../components/FieldLabel";
+import { Fields } from "../../components/Fields";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
+import { AlertDialog } from "../../components/Modals";
 import {
   HEADER_HEIGHT,
   PageContainer,
-} from "@keystone/components/PageContainer";
-import { TextInput } from "@keystone/components/TextInput";
-import { useToasts } from "@keystone/components/Toast";
+} from "../../components/PageContainer";
+import { TextInput } from "../../components/TextInput";
+import { useToasts } from "../../components/Toast";
 import { useList } from "@keystone/keystoneProvider";
 import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
 import { LoadingDots } from "@keystone-ui/loading";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../../components/AdminLink";
 
 import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
 import { ClipboardIcon } from '@keystone-ui/icons/icons/ClipboardIcon';

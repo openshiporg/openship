@@ -11,19 +11,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@keystone/primitives/default/ui/card";
+} from "../../primitives/default/ui/card";
 
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Input } from "@keystone/primitives/default/ui/input";
-import { Label } from "@keystone/primitives/default/ui/label";
+import { Button } from "../../primitives/default/ui/button";
+import { Input } from "../../primitives/default/ui/input";
+import { Label } from "../../primitives/default/ui/label";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@keystone/primitives/default/ui/alert";
+} from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Logo } from "@keystone/logo";
 import { Outfit } from "next/font/google";
+import { Logo } from "../../components/Logo";
 
 const montserrat = Outfit({ subsets: ["latin"] });
 
@@ -204,14 +204,14 @@ export function SignInTemplate({
             </CardContent>
             <CardFooter className="flex flex-col justify-between">
               <Button
-                className="w-full text-md tracking-wider h-11 md:h-12"
-                color="blue"
+                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold"
                 isLoading={
                   loading ||
                   // this is for while the page is loading but the mutation has finished successfully
                   data?.authenticate?.__typename === successTypename
                 }
                 type="submit"
+              
               >
                 SIGN IN
               </Button>

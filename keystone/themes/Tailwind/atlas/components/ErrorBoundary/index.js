@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import { AlertTriangleIcon } from "lucide-react";
 
 export class ErrorBoundary extends Component {

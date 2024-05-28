@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { TextInput } from "@keystone/components/TextInput";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { DatePicker } from "@keystone/components/DatePicker";
-import { CellContainer } from "@keystone/components/CellContainer";
-import { CellLink } from "@keystone/components/CellLink";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
+import { TextInput } from "../../components/TextInput";
+import { FieldDescription } from "../../components/FieldDescription";
+import { DatePicker } from "../../components/DatePicker";
+import { CellContainer } from "../../components/CellContainer";
+import { CellLink } from "../../components/CellLink";
 import {
   constructTimestamp,
   deconstructTimestamp,

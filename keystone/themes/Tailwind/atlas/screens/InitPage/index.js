@@ -10,9 +10,9 @@ import {
 } from "@keystone-6/core/admin-ui/utils";
 import { useRedirect } from "@keystone/utils/useRedirect";
 import { useReinitContext, useKeystone } from "@keystone/keystoneProvider";
-import Head from "next/head";
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { Outfit } from "next/font/google";
+import { Button } from "../../primitives/default/ui/button";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import {
   Card,
   CardContent,
@@ -20,13 +20,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@keystone/primitives/default/ui/card";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Logo } from "@keystone/logo";
-import { Outfit } from "next/font/google";
+} from "../../primitives/default/ui/card";
+import { Logo } from "../../components/Logo";
 
 const montserrat = Outfit({ subsets: ["latin"] });
-
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],
@@ -118,7 +115,9 @@ export function InitPage({
   };
 
   return (
-    <div className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}>
+    <div
+      className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}
+    >
       <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
         <div className="mx-auto">
           <Logo size="lg" />
@@ -126,7 +125,9 @@ export function InitPage({
         <form onSubmit={onSubmit}>
           <Card className="shadow-sm dark:bg-gray-900/25">
             <CardHeader>
-              <CardTitle className="text-slate-700 dark:text-white text-xl">Create Admin</CardTitle>
+              <CardTitle className="text-slate-700 dark:text-white text-xl">
+                Create Admin
+              </CardTitle>
               <CardDescription className="text-sm">
                 Create the first user on this instance
               </CardDescription>
@@ -148,8 +149,7 @@ export function InitPage({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full tracking-wider h-11 md:h-12"
-                color="emerald"
+                className="w-full text-md tracking-wider h-11 md:h-12 font-semibold"
                 isLoading={
                   loading ||
                   data?.authenticate?.__typename ===

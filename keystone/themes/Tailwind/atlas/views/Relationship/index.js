@@ -1,20 +1,19 @@
-import { AdminLink } from "@keystone/components/AdminLink";
-
 import { Fragment, useState } from "react";
 
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
-
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { FieldLegend } from "@keystone/components/FieldLegend";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
+import { cn } from "@keystone/utils/cn";
 
-import { Cards } from "@keystone/components/Cards";
-import { CreateItemDrawer } from "@keystone/components/CreateItemDrawer";
-import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
+import { FieldLegend } from "../../components/FieldLegend";
+import { AdminLink } from "../../components/AdminLink";
+import { CreateItemDrawer } from "../../components/CreateItemDrawer";
+import { RelationshipSelect } from "../../components/RelationshipSelect";
+import { Cards } from "../../components/Cards";
+import { Button, buttonVariants } from "../../primitives/default/ui/button";
 
 function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   function constructQuery({ refFieldKey, itemId, value }) {
@@ -29,7 +28,7 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   if (value.kind === "many") {
     const query = constructQuery({ refFieldKey, value, itemId });
     return (
-      <Button variant="plain">
+      <Button variant="light" className="bg-transparent">
         <AdminLink href={`/${list.path}?${query}`}>
           View related {list.plural}
         </AdminLink>
@@ -38,10 +37,16 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   }
 
   return (
-    <AdminLink href={`/${list.path}/${value.value?.id}`}>
-      <Button variant="plain">
-        View {list.singular} details
-      </Button>
+    // <AdminLink href={`/${list.path}/${value.value?.id}`}>
+    //   <Button variant="light">
+    //     View {list.singular} details
+    //   </Button>
+    // </AdminLink>
+    <AdminLink
+      className={cn(buttonVariants({ variant: "light" }), "bg-transparent")}
+      href={`/${list.path}/${value.value?.id}`}
+    >
+      View {list.singular} details
     </AdminLink>
   );
 }
@@ -157,7 +162,7 @@ export const Field = ({
                       //   setIsDrawerOpen(true);
                       // }}
                       // variant="secondary"
-                      // variant="plain"
+                      variant="secondary"
                     >
                       Create related {foreignList.singular}
                     </Button>
@@ -189,7 +194,6 @@ export const Field = ({
                   undefined
                 : value.value?.id !== authenticatedItem.id) && (
                 <Button
-                  color="emerald"
                   onClick={() => {
                     const val = {
                       label: authenticatedItem.label,
@@ -252,8 +256,8 @@ export const Cell = ({ field, item }) => {
         <Fragment key={item.id}>
           {!!index ? ", " : ""}
           <AdminLink
-            href={`/${list.path}/[id]`}
-            as={`/${list.path}/${item.id}`}
+            // href={`/${list.path}/[id]`}
+            href={`/${list.path}/${item.id}`}
           >
             {item.label || item.id}
           </AdminLink>
@@ -339,13 +343,13 @@ export const controller = (config) => {
             displayOptions: cardsDisplayOptions,
           }
         : config.fieldMeta.many
-          ? {
-              id: null,
-              kind: "many",
-              initialValue: [],
-              value: [],
-            }
-          : { id: null, kind: "one", value: null, initialValue: null },
+        ? {
+            id: null,
+            kind: "many",
+            initialValue: [],
+            value: [],
+          }
+        : { id: null, kind: "one", value: null, initialValue: null },
     deserialize: (data) => {
       if (config.fieldMeta.displayMode === "count") {
         return {
@@ -359,8 +363,8 @@ export const controller = (config) => {
           (Array.isArray(data[config.path])
             ? data[config.path]
             : data[config.path]
-              ? [data[config.path]]
-              : []
+            ? [data[config.path]]
+            : []
           ).map((x) => x.id)
         );
         return {

@@ -1,11 +1,11 @@
-import { CellContainer } from "@keystone/components/CellContainer";
-import { CellLink } from "@keystone/components/CellLink";
-import { Checkbox } from "@keystone/components/Checkbox";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { TextArea } from "@keystone/components/TextArea";
-import { TextInput } from "@keystone/components/TextInput";
+import { CellContainer } from "../../components/CellContainer";
+import { CellLink } from "../../components/CellLink";
+import { Checkbox } from "../../components/Checkbox";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
+import { TextArea } from "../../components/TextArea";
+import { TextInput } from "../../components/TextInput";
 import { useState } from "react";
 
 export const Field = ({

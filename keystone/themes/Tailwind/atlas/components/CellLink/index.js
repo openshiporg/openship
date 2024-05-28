@@ -1,4 +1,4 @@
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
 /**
  * This is the component you should use when linking a Cell to an item (i.e when the Cell supports
@@ -7,9 +7,6 @@ import { AdminLink } from "@keystone/components/AdminLink";
 
 export const CellLink = (props) => {
   return (
-    <AdminLink
-      className="block no-underline hover:underline"
-      {...props}
-    />
+    <AdminLink className="block no-underline hover:underline" {...props} />
   );
 };

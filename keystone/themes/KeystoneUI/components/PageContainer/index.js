@@ -2,8 +2,8 @@
 /** @jsx jsx */
 
 import { jsx, useTheme } from "@keystone-ui/core";
-import { Navigation } from "@keystone/components/Navigation";
-import { Logo } from "@keystone/components/Logo";
+import { Navigation } from "../Navigation";
+import { Logo } from "../Logo";
 import { Fragment } from "react";
 
 export const HEADER_HEIGHT = 80;

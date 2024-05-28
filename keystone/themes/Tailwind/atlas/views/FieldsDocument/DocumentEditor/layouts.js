@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 const LayoutOptionsContext = createContext([]);
 

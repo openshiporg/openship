@@ -18,8 +18,8 @@ import {
 
 
 import { cn } from "@keystone/utils/cn"
-import { focusRing } from "../../focusRing"
 import { ArrowRight, ArrowLeft } from "lucide-react"
+import { focusRing } from "./utils"
 
 const NavigationButton = React.forwardRef(
   ({ onClick, icon, disabled, ...props }, forwardedRef) => {

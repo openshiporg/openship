@@ -1,5 +1,5 @@
 import { Fragment, forwardRef } from "react";
-import { ControlLabel } from "@keystone/components/ControlLabel";
+import { ControlLabel } from "../ControlLabel";
 
 const dotSizeMap = {
   small: 12,

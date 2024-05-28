@@ -1,5 +1,5 @@
 import { DialogBase } from "./DialogBase";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 
 function randomId(prefix = "") {
   return `${prefix}${Math.random().toString(36).substr(2, 9)}`;

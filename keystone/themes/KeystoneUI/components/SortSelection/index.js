@@ -9,7 +9,7 @@ import { PopoverDialog, usePopover } from "@keystone-ui/popover";
 import { Fragment } from "react";
 import { useSort } from "@keystone/utils/useSort";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { fieldSelectionOptionsComponents } from "@keystone/components/FieldSelection";
+import { fieldSelectionOptionsComponents } from "../FieldSelection";
 
 export function SortSelection({ list, orderableFields }) {
   const sort = useSort(list, orderableFields);

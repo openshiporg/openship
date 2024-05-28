@@ -9,8 +9,8 @@ import {
   AlignRightIcon,
   AlignCenterIcon,
 } from "lucide-react";
-import { Popover } from "@keystone/primitives/default/ui/popover";
-import { Tooltip } from "@keystone/primitives/default/ui/tooltip";
+import { Popover } from "../../primitives/default/ui/popover";
+import { Tooltip } from "../../primitives/default/ui/tooltip";
 
 export const TextAlignMenu = ({ alignment }) => {
   const [showMenu, setShowMenu] = useState(false);

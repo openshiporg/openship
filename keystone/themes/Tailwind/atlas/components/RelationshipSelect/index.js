@@ -18,7 +18,7 @@ import {
   useApolloClient,
   useQuery,
 } from "@keystone-6/core/admin-ui/apollo";
-import { MultiSelect, Select, selectComponents } from "@keystone/components/Select";
+import { MultiSelect, Select, selectComponents } from "../Select";
 
 function useIntersectionObserver(cb, ref) {
   const cbRef = useRef(cb);

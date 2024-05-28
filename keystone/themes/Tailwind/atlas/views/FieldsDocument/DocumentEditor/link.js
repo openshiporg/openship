@@ -28,7 +28,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 const isLinkActive = (editor) => {
   return isElementActive(editor, "link");

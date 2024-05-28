@@ -1,8 +1,5 @@
 import { useCallback, useState } from "react";
-
-import { useToasts } from "@keystone/components/Toast";
 import { useFieldsObj } from "@keystone/utils/useFieldObj";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import {
   deserializeValue,
@@ -11,7 +8,9 @@ import {
   useChangedFieldsAndDataForUpdate,
   makeDataGetter,
 } from "@keystone-6/core/admin-ui/utils";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
+import { useToasts } from "../Toast";
+import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
 
 export function InlineEdit({
   fields,

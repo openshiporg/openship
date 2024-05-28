@@ -13,7 +13,7 @@ import {
   OrderableItem,
   OrderableList,
   RemoveButton
-} from "@keystone/primitives/orderable"
+} from "../primitives/orderable"
 import { previewPropsToValue, setValueToPreviewProps } from "./get-value"
 import { createGetPreviewProps } from "./preview-props"
 import { assertNever, clientSideValidateProp } from "./utils"

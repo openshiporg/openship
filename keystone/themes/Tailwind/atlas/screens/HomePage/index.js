@@ -3,58 +3,15 @@ import { useMemo } from "react";
 import { makeDataGetter } from "@keystone-6/core/admin-ui/utils";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
-import { AdminLink } from "@keystone/components/AdminLink";
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
-import { Card } from "@keystone/primitives/default/ui/card";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Skeleton } from "@keystone/primitives/default/ui/skeleton";
-import { ExternalLink, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
+import { Skeleton } from "../../primitives/default/ui/skeleton";
+import { LoadingIcon } from "../../components/LoadingIcon";
+import { AdminLink } from "../../components/AdminLink";
 
 const ListCard = ({ listKey, count, hideCreate }) => {
   const list = useList(listKey);
   return (
-    // <Card className="flex bg-muted/20 border-none">
-    //   <div className="h-full w-20 rounded-s-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-rose-400 dark:from-indigo-800 dark:via-fuchsia-900 dark:to-green-700" />
-
-    //   <AdminLink
-    //     className="flex-1 pr-4 p-3"
-    //     href={`/${list.path}${list.isSingleton ? "/1" : ""}`}
-    //   >
-    //     <h3 className="scroll-m-20 text-md font-bold tracking-tight lg:text-lg text-muted-foreground">
-    //       {list.label}{" "}
-    //     </h3>
-
-    //     {list.isSingleton ? null : count.type === "success" ? (
-    //       <span className="text-foreground/80 text-sm">
-    //         {count.count} item{count.count !== 1 ? "s" : ""}
-    //       </span>
-    //     ) : count.type === "error" ? (
-    //       count.message
-    //     ) : count.type === "loading" ? (
-    //       <Skeleton className="mt-2 h-4 w-24" />
-    //     ) : (
-    //       "No access"
-    //     )}
-    //   </AdminLink>
-    //   {hideCreate === false && !list.isSingleton && (
-    //     <AdminLink
-    //       className="ml-auto my-auto"
-    //       href={`/${list.path}${list.isSingleton ? "/1" : ""}/create`}
-    //     >
-    //       <Button variant="plain" size="icon" className="border">
-    //         <PlusIcon />
-    //       </Button>
-    //     </AdminLink>
-    //   )}
-    // </Card>
     <div class="shadow-sm flex items-center justify-between rounded-xl bg-slate-50 border py-2 pl-3 pr-2 dark:border-white/5 dark:bg-slate-900/30">
-      {/* <div class="h-8 md:h-4"></div> */}
-      {/* <div class="text-[38px] text-[#F2F2F2] transition-colors duration-300 group-hover:text-[#E8E8E8] dark:text-slate-400 dark:group-hover:text-[#2E2E2E] md:text-[56px]">
-        H1
-      </div> */}
-      {/* <div class="flex h-8 w-2/12 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-400 transition-colors duration-300 group-hover:bg-[#E8E8E8] group-hover:text-[#C2C2C2] dark:bg-slate-500 dark:text-[#1A1A1A] dark:group-hover:bg-[#2E2E2E] dark:group-hover:text-[#121212] md:h-10 md:w-1/3 md:text-lg">
-        Hello
-      </div> */}
       <div class="w-full self-end">
         <div class="text-sm text-slate-500 dark:text-slate-400">
           {list.isSingleton ? null : count.type === "success" ? (
@@ -142,88 +99,6 @@ export const HomePage = () => {
       {visibleLists.state === "loading" ? (
         <LoadingIcon label="Loading lists" size="large" tone="passive" />
       ) : (
-        // <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        //   <div class="grid gap-4">
-        //     <div>
-        //       <div class="flex flex-col items-center justify-between rounded-xl bg-white p-1 dark:border dark:border-white/5 dark:bg-[#1A1A1A]">
-        //         <div class="h-8 md:h-4"></div>
-        //         <div class="text-[38px] text-[#F2F2F2] transition-colors duration-300 group-hover:text-[#E8E8E8] dark:text-[#242424] dark:group-hover:text-[#2E2E2E] md:text-[56px]">
-        //           H1
-        //         </div>
-        //         <div class="w-full self-end p-2">
-        //           <div class="text-xs text-[#DEDEDE] dark:text-[#333333]">
-        //             02
-        //           </div>
-        //           <div class="text-xs font-medium text-[#171717] dark:text-[#D9D9D9] dark:group-hover:text-white">
-        //             Text
-        //           </div>
-        //         </div>
-        //         <div class="absolute top-24 h-10 w-full bg-transparent md:top-36"></div>
-        //       </div>
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-1.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-2.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //   </div>
-        //   <div class="grid gap-4">
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-3.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-4.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-5.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //   </div>
-        //   <div class="grid gap-4">
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-6.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-7.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //     <div>
-        //       <img
-        //         class="h-auto max-w-full rounded-lg"
-        //         src="https://flowbite.s3.amazonaws.com/docs/gallery/masonry/image-8.jpg"
-        //         alt=""
-        //       />
-        //     </div>
-        //   </div>
-        // </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 pb-12">
           {(() => {
             console.log({ lists });

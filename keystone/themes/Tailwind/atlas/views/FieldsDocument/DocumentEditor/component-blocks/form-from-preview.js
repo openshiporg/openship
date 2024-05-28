@@ -1,19 +1,19 @@
 import { useKeystone } from "@keystone-6/core/admin-ui/context";
 import { RelationshipSelect } from "@keystone-6/core/fields/types/relationship/views/RelationshipSelect";
 import { memo, useCallback, useMemo, useState } from "react";
+import { previewPropsToValue, setValueToPreviewProps } from "./get-value";
+import { createGetPreviewProps } from "./preview-props";
+import { assertNever, clientSideValidateProp } from "./utils";
+import { PlusCircleIcon } from "lucide-react";
 import {
   DragHandle,
   OrderableItem,
   OrderableList,
   RemoveButton,
-} from "@keystone/primitives/orderable";
-import { previewPropsToValue, setValueToPreviewProps } from "./get-value";
-import { createGetPreviewProps } from "./preview-props";
-import { assertNever, clientSideValidateProp } from "./utils";
-import { PlusCircleIcon } from "lucide-react";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+} from "../../primitives/orderable";
+import { Button } from "../../primitives/default/ui/button";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
 
 function ArrayFieldPreview(props) {
   return (

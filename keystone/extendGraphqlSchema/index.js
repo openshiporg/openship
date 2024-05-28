@@ -7,7 +7,10 @@ import {
   searchShopOrders,
   searchShopProducts,
   searchChannelProducts,
-  getChannelWebhooks
+  getChannelWebhooks,
+  getFilteredMatches,
+  getChannelProduct,
+  getShopProduct
 } from "./queries";
 import {
   addMatchToCart,
@@ -22,7 +25,8 @@ import {
   updateShopProduct,
   createChannelWebhook,
   deleteChannelWebhook,
-  createChannelPurchase
+  createChannelPurchase,
+  upsertMatch
 } from "./mutations";
 
 const graphql = String.raw;
@@ -57,7 +61,9 @@ const typeDefs = graphql`
     updateShopProduct(
       shopId: ID!
       variantId: ID!
-      price: String!
+      productId: ID!
+      price: String
+      inventoryDelta: Int
     ): UpdateProductResponse
     createChannelWebhook(
       channelId: ID!
@@ -66,6 +72,7 @@ const typeDefs = graphql`
     ): CreateWebhookResponse
     deleteChannelWebhook(channelId: ID!, webhookId: ID!): DeleteWebhookResponse
     createChannelPurchase(input: CreatePurchaseInput!): CreatePurchaseResponse
+    upsertMatch(data: MatchCreateInput!): Match
   }
 
   extend type Query {
@@ -75,18 +82,25 @@ const typeDefs = graphql`
     searchShopProducts(
       shopId: ID!
       searchEntry: String
+    ): [ShopProduct]
+    getShopProduct(
+      shopId: ID!
       variantId: String
       productId: String
-    ): [ShopProduct]
+    ): ShopProduct
     searchShopOrders(shopId: ID!, searchEntry: String): [ShopOrder]
     getShopWebhooks(shopId: ID!): [Webhook]
     searchChannelProducts(
       channelId: ID!
       searchEntry: String
+    ): [ChannelProduct]
+    getChannelProduct(
+      channelId: ID!
       variantId: String
       productId: String
-    ): [ChannelProduct]
+    ): ChannelProduct
     getChannelWebhooks(channelId: ID!): [Webhook]
+    getFilteredMatches: [Match]
   }
 
   type FoundMatch {
@@ -103,30 +117,6 @@ const typeDefs = graphql`
     name: String
     channelName: String
     channelId: String
-  }
-
-  type ShopProduct {
-    image: String
-    title: String
-    productId: ID
-    variantId: ID
-    price: String
-    availableForSale: Boolean
-    productLink: String
-    inventory: Int
-    inventoryTracked: Boolean
-  }
-
-  type ChannelProduct {
-    image: String
-    title: String
-    productId: ID
-    variantId: ID
-    price: String
-    availableForSale: Boolean
-    productLink: String
-    inventory: Int
-    inventoryTracked: Boolean
   }
 
   type ShopOrder {
@@ -203,6 +193,7 @@ const typeDefs = graphql`
 
   type ProductVariant {
     price: String
+    inventory: Int
   }
 
   input CreatePurchaseInput {
@@ -255,6 +246,7 @@ export const extendGraphqlSchema = (baseSchema) =>
         createChannelWebhook,
         deleteChannelWebhook,
         createChannelPurchase,
+        upsertMatch
       },
       Query: {
         getMatch,
@@ -264,7 +256,10 @@ export const extendGraphqlSchema = (baseSchema) =>
         searchShopOrders,
         getShopWebhooks,
         searchChannelProducts,
-        getChannelWebhooks
+        getChannelWebhooks,
+        getFilteredMatches,
+        getChannelProduct,
+        getShopProduct
       },
     },
   });

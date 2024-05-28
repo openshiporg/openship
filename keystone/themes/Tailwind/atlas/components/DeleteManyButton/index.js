@@ -1,14 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
-import { useToasts } from "@keystone/components/Toast";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Loader2, Trash } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+import { useToasts } from "../Toast";
+import { Button } from "../../primitives/default/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@keystone/primitives/default/ui/alert-dialog";
+} from "../../primitives/default/ui/alert-dialog";
 
 export function DeleteManyButton({
   selectedItems,
@@ -55,8 +48,7 @@ export function DeleteManyButton({
             }}
             isLoading={deleteItemsState.loading}
             isDisabled={isDisabled}
-            size="xs"
-            color="red"
+            variant="destructive"
           >
             Delete {list.label}
           </Button>
@@ -74,7 +66,6 @@ export function DeleteManyButton({
               onClick={() => {
                 setIsOpen(false);
               }}
-
             >
               Cancel
             </AlertDialogCancel>
@@ -145,12 +136,12 @@ export function DeleteManyButton({
                 return refetch();
               }}
               disabled={deleteItemsState.loading}
-              buttonProps={{ color: "red", size: "sm" }}
+              buttonProps={{
+                variant: "destructive",
+                isLoading: deleteItemsState.loading,
+              }}
               // className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteItemsState.loading && (
-                <Loader2 className="mr-2 h-3 w-3 md:h-4 md:w-4 animate-spin" />
-              )}{" "}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

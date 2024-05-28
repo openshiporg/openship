@@ -1,3 +1,5 @@
+import { gql, GraphQLClient } from "graphql-request";
+
 async function updateCartItems({
   query,
   cartItems,
@@ -60,6 +62,10 @@ export async function placeMultipleOrders({ ids, query }) {
         shop {
           domain
           accessToken
+          type
+          platform {
+            addCartToPlatformOrderFunction
+          }
         }
         orderId
         orderName
@@ -69,15 +75,7 @@ export async function placeMultipleOrders({ ids, query }) {
       `,
     });
 
-    // we use channel query because this groups cartItems per channel
     const cartChannels = await query.Channel.findMany({
-      // where: {
-      //   cartItems_every: {
-      //     order: {
-      //       orderId,
-      //     },
-      //   },
-      // },
       query: `
       domain
       accessToken
@@ -96,7 +94,7 @@ export async function placeMultipleOrders({ ids, query }) {
         quantity
         price
       }
-      createPurchaseEndpoint
+      createPurchaseFunction
       metafields {
         id
         key
@@ -105,21 +103,17 @@ export async function placeMultipleOrders({ ids, query }) {
       `,
     });
 
-    // console.log(cartChannels);
-
     for (const {
       domain,
       accessToken,
       cartItems,
-      createPurchaseEndpoint,
+      createPurchaseFunction,
       metafields,
     } of cartChannels.filter((channel) => channel.cartItems.length > 0)) {
       const metafieldsObject = Object.assign(
         {},
         ...metafields.map(({ key, value }) => ({ [key]: value }))
       );
-
-      console.log({ metafieldsObject });
 
       const body = {
         domain,
@@ -144,43 +138,71 @@ export async function placeMultipleOrders({ ids, query }) {
         shopOrderId,
         metafields: metafieldsObject,
       };
+
       try {
-        const response = await fetch(
-          createPurchaseEndpoint.includes("http")
-            ? createPurchaseEndpoint
-            : `${process.env.FRONTEND_URL}${createPurchaseEndpoint}`,
-          {
-            credentials: "same-origin",
-            mode: "cors",
+        if (createPurchaseFunction.startsWith("http")) {
+          // External API call
+          const response = await fetch(createPurchaseFunction, {
             method: "POST",
             headers: {
-              Accept: "application/json",
-              "Content-type": "application/json",
-              "X-Requested-With": "Fetch",
+              "Content-Type": "application/json",
             },
             body: JSON.stringify(body),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to create purchase: ${response.statusText}`);
           }
-        );
 
-        const orderPlacementRes = await response.json();
-        if (orderPlacementRes.error) {
-          const data = await updateCartItems({
-            cartItems,
-            error: orderPlacementRes.error,
-            query,
-          });
-        }
+          const orderPlacementRes = await response.json();
 
-        if (orderPlacementRes.url) {
-          const data = await updateCartItems({
-            cartItems,
-            url: orderPlacementRes.url,
-            purchaseId: orderPlacementRes.purchaseId,
-            query,
-          });
+          if (orderPlacementRes.error) {
+            await updateCartItems({
+              cartItems,
+              error: orderPlacementRes.error,
+              query,
+            });
+          }
+
+          if (orderPlacementRes.url) {
+            await updateCartItems({
+              cartItems,
+              url: orderPlacementRes.url,
+              purchaseId: orderPlacementRes.purchaseId,
+              query,
+            });
+          }
+        } else {
+          // Internal function call
+          const platformFunctions = await import(
+            `../../channelFunctions/${createPurchaseFunction}.js`
+          );
+
+          if (platformFunctions.createPurchase) {
+            const orderPlacementRes = await platformFunctions.createPurchase(body);
+
+            if (orderPlacementRes.error) {
+              await updateCartItems({
+                cartItems,
+                error: orderPlacementRes.error,
+                query,
+              });
+            }
+
+            if (orderPlacementRes.url) {
+              await updateCartItems({
+                cartItems,
+                url: orderPlacementRes.url,
+                purchaseId: orderPlacementRes.purchaseId,
+                query,
+              });
+            }
+          } else {
+            throw new Error("Create purchase function not implemented.");
+          }
         }
       } catch (error) {
-        const data = await updateCartItems({
+        await updateCartItems({
           cartItems,
           error: "Error on order placement. Order may have been placed.",
           query,
@@ -197,28 +219,7 @@ export async function placeMultipleOrders({ ids, query }) {
         },
       });
 
-      const cartLog = await query.CartItem.findMany({
-        where: {
-          order: {
-            id: { equals: orderId },
-          },
-          url: { equals: "" },
-          purchaseId: { equals: "" },
-        },
-      });
-
-      // console.log('cartCount', cartCount);
-      // console.log('cartCount', orderId);
-      // console.log('cartCount', cartLog);
-
-      // no cartItems found with url and purchaseId undefined
       if (cartCount === 0) {
-        // console.log('ORDERID inside cartCount if', orderId);
-
-        // console.log('cartCount if', cartCount);
-        // console.log('cartCount if', orderId);
-        // console.log('cartCount cart', cartLog);
-
         const updatedOrder = await query.Order.updateOne({
           where: { id: orderId },
           data: {
@@ -247,30 +248,55 @@ export async function placeMultipleOrders({ ids, query }) {
             }
             shop {
               type
+              platform {
+                addCartToPlatformOrderFunction
+              }
             }
           `,
         });
 
-        console.log("AWAITING", updatedOrder);
+        const { addCartToPlatformOrderFunction } = updatedOrder.shop.platform;
 
-        if (addCartToPlatformOrder[updatedOrder?.shop?.type]) {
-          const updatedOrderOnPlatform = await addCartToPlatformOrder[
-            updatedOrder?.shop?.type
-          ]({
-            cart: updatedOrder.cartItems,
-            orderId: updatedOrder.orderId,
-            domain: shop.domain,
-            accessToken: shop.accessToken,
+        if (addCartToPlatformOrderFunction.startsWith("http")) {
+          // External API call
+          const response = await fetch(addCartToPlatformOrderFunction, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              cart: updatedOrder.cartItems,
+              orderId: updatedOrder.orderId,
+              domain: shop.domain,
+              accessToken: shop.accessToken,
+            }),
           });
-          console.log(`Order updated on ${updatedOrder?.shop?.type}`);
+
+          if (!response.ok) {
+            throw new Error(`Failed to update order on platform: ${response.statusText}`);
+          }
+
+          await response.json();
+        } else {
+          // Internal function call
+          const platformFunctions = await import(
+            `../../channelFunctions/${addCartToPlatformOrderFunction}.js`
+          );
+
+          if (platformFunctions.addCartToPlatformOrder) {
+            await platformFunctions.addCartToPlatformOrder({
+              cart: updatedOrder.cartItems,
+              orderId: updatedOrder.orderId,
+              domain: shop.domain,
+              accessToken: shop.accessToken,
+            });
+          } else {
+            throw new Error("Add cart to platform order function not implemented.");
+          }
         }
 
         processed.push(updatedOrder);
       } else {
-        // console.log('cartCount else', cartCount);
-        // console.log('cartCount else', orderId);
-        // console.log('cartCount cart', cartLog);
-
         const updatedOrder = await query.Order.updateOne({
           where: { id: orderId },
           data: {
@@ -299,58 +325,3 @@ export async function placeMultipleOrders({ ids, query }) {
   }
   return processed;
 }
-
-import { gql, GraphQLClient } from "graphql-request";
-
-const addCartToPlatformOrder = {
-  shopify: async ({ cart, orderId, domain, accessToken }) => {
-    const shopifyClient = new GraphQLClient(
-      `https://${domain}/admin/api/graphql.json`,
-      {
-        headers: {
-          "X-Shopify-Access-Token": accessToken,
-        },
-      }
-    );
-
-    const { orderUpdate } = await shopifyClient.request(
-      gql`
-        mutation ($input: OrderInput!) {
-          orderUpdate(input: $input) {
-            order {
-              metafields(first: 100) {
-                edges {
-                  node {
-                    id
-                    namespace
-                    key
-                    value
-                  }
-                }
-              }
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }
-      `,
-      {
-        input: {
-          id: `gid://shopify/Order/${orderId}`,
-          metafields: [
-            {
-              namespace: "oscart",
-              key: "oscart",
-              value: JSON.stringify(cart),
-              type: "json_string",
-            },
-          ],
-        },
-      }
-    );
-
-    return { order: orderUpdate?.order };
-  },
-};

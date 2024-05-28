@@ -1,4 +1,4 @@
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import { DrawerBase } from "./DrawerBase";
 import {
   SheetContent,
@@ -8,8 +8,8 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@keystone/primitives/default/ui/sheet";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+} from "../../primitives/default/ui/sheet";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { useState } from "react";
 
 export const Drawer = ({
@@ -54,7 +54,7 @@ export const Drawer = ({
               <Button
                 onClick={safeClose}
                 disabled={confirm.loading}
-                variant="plain"
+                variant="light"
               >
                 {cancel.label}
               </Button>
@@ -79,7 +79,6 @@ export const Drawer = ({
                   });
                 e.preventDefault();
               }}
-              color="blue"
               className="border shadow-sm"
             >
               {confirm.label}

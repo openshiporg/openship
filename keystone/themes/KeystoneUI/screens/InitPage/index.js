@@ -13,8 +13,8 @@ import { useReinitContext, useKeystone } from "@keystone/keystoneProvider";
 import { Box, Center, H1, Stack, useTheme } from "@keystone-ui/core";
 import { Button } from "@keystone-ui/button";
 import Head from "next/head";
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { Fields } from "../../components/Fields";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],

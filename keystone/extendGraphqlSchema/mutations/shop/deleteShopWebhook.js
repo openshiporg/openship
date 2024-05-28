@@ -1,7 +1,8 @@
 async function deleteShopWebhook(root, { shopId, webhookId }, context) {
   // Fetch the shop using the provided shopId
-  const shop = await context.db.Shop.findOne({
+  const shop = await context.query.Shop.findOne({
     where: { id: shopId },
+    query: "id domain accessToken platform { id deleteWebhookFunction }",
   });
 
   if (!shop) {
@@ -12,26 +13,34 @@ async function deleteShopWebhook(root, { shopId, webhookId }, context) {
     throw new Error("Platform configuration not specified.");
   }
 
-  // Fetch the platform-specific function for deleting webhooks
-  const platformConfig = await context.query.ShopPlatform.findOne({
-    where: { id: shop.platform.id },
-    query: "deleteWebhookFunction",
-  });
-
-  if (!platformConfig.deleteWebhookFunction) {
+  if (!shop.platform.deleteWebhookFunction) {
     throw new Error("Delete webhook function not configured.");
   }
 
-  const { deleteWebhookFunction } = platformConfig;
+  const { deleteWebhookFunction } = shop.platform;
 
   if (deleteWebhookFunction.startsWith("http")) {
-    // External API call (not applicable in this case)
-    throw new Error("External API calls not supported for deleting webhooks.");
+    // External API call
+    const params = new URLSearchParams({
+      domain: shop.domain,
+      accessToken: shop.accessToken,
+      webhookId,
+    }).toString();
+
+    const response = await fetch(`${deleteWebhookFunction}?${params}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete webhook: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result;
   } else {
     // Internal function call
     const shopFunctions = await import(
       `../../../../shopFunctions/${deleteWebhookFunction}.js`
     );
+
     const result = await shopFunctions.deleteWebhook({
       domain: shop.domain,
       accessToken: shop.accessToken,

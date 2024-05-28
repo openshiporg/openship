@@ -1,4 +1,4 @@
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 
 export function SignoutButton({ loading, endSession, children }) {
   return (

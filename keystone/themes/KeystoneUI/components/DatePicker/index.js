@@ -6,12 +6,12 @@ import FocusLock from "react-focus-lock"
 import { jsx } from '@keystone-ui/core';
 import { PopoverDialog, useControlledPopover } from "@keystone-ui/popover"
 
-import { InputButton } from "@keystone/components/InputButton"
+import { InputButton } from "../InputButton"
 import { deserializeDate } from "@keystone/utils/deserializeDate";
 import { formatDate } from "@keystone/utils/formatDate";
 import { formatDateType } from "@keystone/utils/formatDateType";
 import { dateFormatPlaceholder } from "@keystone/utils/dateFormatPlaceholder";
-import { Calendar } from "@keystone/components/Calendar";
+import { Calendar } from "../Calendar";
 
 export function useEventCallback(callback) {
   const callbackRef = useRef(callback)

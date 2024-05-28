@@ -3,7 +3,7 @@
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "./themeProvider";
 import "./dashboard.css";
-import { TooltipProvider } from "@keystone/primitives/default/ui/tooltip";
+import { TooltipProvider } from "../../primitives/default/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 

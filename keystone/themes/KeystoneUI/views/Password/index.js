@@ -11,11 +11,11 @@ import { XIcon } from "@keystone-ui/icons/icons/XIcon";
 import { SegmentedControl } from "@keystone-ui/segmented-control";
 // @ts-ignore
 import dumbPasswords from "dumb-passwords";
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { TextInput } from "@keystone/components/TextInput";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
+import { TextInput } from "../../components/TextInput";
 
 function validate(value, validation, fieldLabel) {
   if (

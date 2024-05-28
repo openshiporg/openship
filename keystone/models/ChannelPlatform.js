@@ -19,11 +19,16 @@ export const ChannelPlatform = list({
   },
   fields: {
     name: text({ isRequired: true }),
+    key: text({ isIndexed: "unique", isRequired: true }),
     createPurchaseFunction: text({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
     }),
     searchProductsFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
+    getProductFunction: text({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
     }),
@@ -36,6 +41,10 @@ export const ChannelPlatform = list({
       isRequired: true,
     }),
     createWebhookFunction: text({
+      defaultValue: "shopify", // Default function or provide options as needed
+      isRequired: true,
+    }),
+    oAuthFunction: text({
       defaultValue: "shopify", // Default function or provide options as needed
       isRequired: true,
     }),

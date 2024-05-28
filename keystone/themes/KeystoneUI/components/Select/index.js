@@ -2,7 +2,7 @@
 /** @jsx jsx */
 import { jsx, useTheme } from "@keystone-ui/core"
 import ReactSelect, { mergeStyles } from "react-select"
-import { useInputTokens } from "@keystone/components/Fields/hooks/useInputTokens"
+import { useInputTokens } from "../Fields/hooks/useInputTokens"
 export { components as selectComponents } from "react-select"
 
 const useStyles = ({ tokens, multi = false }) => {

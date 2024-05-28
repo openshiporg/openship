@@ -1,19 +1,19 @@
 /** @jsxRuntime classic */
 /* @jsx jsx */
-import { graphql } from '@keystone-6/core';
-import { jsx } from '@keystone-ui/core';
-import { FieldContainer } from '@keystone/components/FieldContainer';
-import { FieldLabel } from '@keystone/components/FieldLabel';
-import { Checkbox } from '@keystone/components/Checkbox';
-import { TextInput } from '@keystone/components/TextInput';
-import { MultiSelect, Select } from '@keystone/components/Select';
-import { useState } from 'react';
-import { isValidURL } from '../isValidURL';
+import { graphql } from "@keystone-6/core";
+import { jsx } from "@keystone-ui/core";
+import { FieldContainer } from "../../../../components/FieldContainer";
+import { FieldLabel } from "../../../../components/FieldLabel";
+import { Checkbox } from "../../../../components/Checkbox";
+import { TextInput } from "../../../../components/TextInput";
+import { MultiSelect, Select } from "../../../../components/Select";
+import { useState } from "react";
+import { isValidURL } from "../isValidURL";
 
 export const fields = {
-  text({ label, defaultValue = '' }) {
+  text({ label, defaultValue = "" }) {
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus }) {
         return (
           <FieldContainer>
@@ -31,7 +31,7 @@ export const fields = {
       options: undefined,
       defaultValue,
       validate(value) {
-        return typeof value === 'string';
+        return typeof value === "string";
       },
       graphql: {
         input: graphql.String,
@@ -41,10 +41,10 @@ export const fields = {
   },
   integer({ label, defaultValue = 0 }) {
     const validate = (value) => {
-      return typeof value === 'number' && Number.isFinite(value);
+      return typeof value === "number" && Number.isFinite(value);
     };
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus, forceValidation }) {
         const [blurred, setBlurred] = useState(false);
         const [inputValue, setInputValue] = useState(String(value));
@@ -67,7 +67,9 @@ export const fields = {
                 }
               }}
             />
-            {showValidation && <span css={{ color: 'red' }}>Please specify an integer</span>}
+            {showValidation && (
+              <span css={{ color: "red" }}>Please specify an integer</span>
+            )}
           </FieldContainer>
         );
       },
@@ -80,12 +82,12 @@ export const fields = {
       },
     };
   },
-  url({ label, defaultValue = '' }) {
+  url({ label, defaultValue = "" }) {
     const validate = (value) => {
-      return typeof value === 'string' && (value === '' || isValidURL(value));
+      return typeof value === "string" && (value === "" || isValidURL(value));
     };
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus, forceValidation }) {
         const [blurred, setBlurred] = useState(false);
         const showValidation = forceValidation || (blurred && !validate(value));
@@ -101,7 +103,9 @@ export const fields = {
                 onChange(event.target.value);
               }}
             />
-            {showValidation && <span css={{ color: 'red' }}>Please provide a valid URL</span>}
+            {showValidation && (
+              <span css={{ color: "red" }}>Please provide a valid URL</span>
+            )}
           </FieldContainer>
         );
       },
@@ -117,10 +121,12 @@ export const fields = {
   select({ label, options, defaultValue }) {
     const optionValuesSet = new Set(options.map((x) => x.value));
     if (!optionValuesSet.has(defaultValue)) {
-      throw new Error(`A defaultValue of ${defaultValue} was provided to a select field but it does not match the value of one of the options provided`);
+      throw new Error(
+        `A defaultValue of ${defaultValue} was provided to a select field but it does not match the value of one of the options provided`
+      );
     }
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus }) {
         return (
           <FieldContainer>
@@ -141,7 +147,7 @@ export const fields = {
       options,
       defaultValue,
       validate(value) {
-        return typeof value === 'string' && optionValuesSet.has(value);
+        return typeof value === "string" && optionValuesSet.has(value);
       },
       graphql: {
         input: graphql.String,
@@ -157,7 +163,7 @@ export const fields = {
   multiselect({ label, options, defaultValue }) {
     const valuesToOption = new Map(options.map((x) => [x.value, x]));
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus }) {
         return (
           <FieldContainer>
@@ -178,7 +184,9 @@ export const fields = {
       validate(value) {
         return (
           Array.isArray(value) &&
-          value.every((value) => typeof value === 'string' && valuesToOption.has(value))
+          value.every(
+            (value) => typeof value === "string" && valuesToOption.has(value)
+          )
         );
       },
       graphql: {
@@ -194,7 +202,7 @@ export const fields = {
   },
   checkbox({ label, defaultValue = false }) {
     return {
-      kind: 'form',
+      kind: "form",
       Input({ value, onChange, autoFocus }) {
         return (
           <FieldContainer>
@@ -212,7 +220,7 @@ export const fields = {
       options: undefined,
       defaultValue,
       validate(value) {
-        return typeof value === 'boolean';
+        return typeof value === "boolean";
       },
       graphql: {
         input: graphql.Boolean,
@@ -222,7 +230,7 @@ export const fields = {
   },
   empty() {
     return {
-      kind: 'form',
+      kind: "form",
       Input() {
         return null;
       },
@@ -235,33 +243,33 @@ export const fields = {
   },
   child(options) {
     return {
-      kind: 'child',
+      kind: "child",
       options:
-        options.kind === 'block'
+        options.kind === "block"
           ? {
-              kind: 'block',
+              kind: "block",
               placeholder: options.placeholder,
               dividers: options.dividers,
               formatting:
-                options.formatting === 'inherit'
+                options.formatting === "inherit"
                   ? {
-                      blockTypes: 'inherit',
-                      headingLevels: 'inherit',
-                      inlineMarks: 'inherit',
-                      listTypes: 'inherit',
-                      alignment: 'inherit',
-                      softBreaks: 'inherit',
+                      blockTypes: "inherit",
+                      headingLevels: "inherit",
+                      inlineMarks: "inherit",
+                      listTypes: "inherit",
+                      alignment: "inherit",
+                      softBreaks: "inherit",
                     }
                   : options.formatting,
               links: options.links,
               relationships: options.relationships,
             }
           : {
-              kind: 'inline',
+              kind: "inline",
               placeholder: options.placeholder,
               formatting:
-                options.formatting === 'inherit'
-                  ? { inlineMarks: 'inherit', softBreaks: 'inherit' }
+                options.formatting === "inherit"
+                  ? { inlineMarks: "inherit", softBreaks: "inherit" }
                   : options.formatting,
               links: options.links,
               relationships: options.relationships,
@@ -269,26 +277,26 @@ export const fields = {
     };
   },
   object(fields) {
-    return { kind: 'object', fields };
+    return { kind: "object", fields };
   },
   conditional(discriminant, values) {
     if (
-      (discriminant.validate('true') || discriminant.validate('false')) &&
+      (discriminant.validate("true") || discriminant.validate("false")) &&
       (discriminant.validate(true) || discriminant.validate(false))
     ) {
       throw new Error(
-        'The discriminant of a conditional field only supports string values, or boolean values, not both.'
+        "The discriminant of a conditional field only supports string values, or boolean values, not both."
       );
     }
     return {
-      kind: 'conditional',
+      kind: "conditional",
       discriminant,
       values: values,
     };
   },
   relationship({ listKey, selection, label, many }) {
     return {
-      kind: 'relationship',
+      kind: "relationship",
       listKey,
       selection,
       label,
@@ -296,7 +304,12 @@ export const fields = {
     };
   },
   array(element, opts) {
-    return { kind: 'array', element, itemLabel: opts?.itemLabel, label: opts?.label };
+    return {
+      kind: "array",
+      element,
+      itemLabel: opts?.itemLabel,
+      label: opts?.label,
+    };
   },
 };
 
@@ -305,7 +318,7 @@ export function component(options) {
 }
 
 export const NotEditable = ({ children, ...props }) => (
-  <span css={{ userSelect: 'none' }} contentEditable={false} {...props}>
+  <span css={{ userSelect: "none" }} contentEditable={false} {...props}>
     {children}
   </span>
 );

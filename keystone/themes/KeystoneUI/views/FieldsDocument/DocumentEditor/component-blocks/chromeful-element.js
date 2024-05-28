@@ -6,7 +6,7 @@ import { Tooltip } from "@keystone-ui/tooltip"
 import { useMemo, useState, useCallback, Fragment } from "react"
 import { useSelected } from "slate-react"
 import { Stack } from "@keystone-ui/core"
-import { Button as KeystoneUIButton } from "@keystone-ui/button"
+import { Button as UIButton } from "@keystone-ui/button"
 import { ToolbarGroup, ToolbarButton, ToolbarSeparator } from "@keystone/primitives"
 import { NotEditable } from "./api"
 import { clientSideValidateProp } from "./utils"
@@ -150,7 +150,7 @@ function FormValue({ onClose, props, isValid }) {
         {...props}
         forceValidation={forceValidation}
       />
-      <KeystoneUIButton
+      <UIButton
         size="small"
         tone="active"
         weight="bold"
@@ -163,7 +163,7 @@ function FormValue({ onClose, props, isValid }) {
         }}
       >
         Done
-      </KeystoneUIButton>
+      </UIButton>
     </Stack>
   )
 }

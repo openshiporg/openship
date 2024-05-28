@@ -1,10 +1,5 @@
-export async function searchProducts({
-  domain,
-  accessToken,
-  variantId,
-  productId,
-  searchEntry,
-}) {
+// Function to search products in BigCommerce
+export async function searchProducts({ domain, accessToken, searchEntry }) {
   const products = [];
 
   // Helper function to format product data
@@ -13,7 +8,7 @@ export async function searchProducts({
       image: variant.image_url || product.images[0]?.url_thumbnail || "",
       title: `${product.name} ${
         variant.option_values?.length > 0
-          ? `(${variant.option_values.map(o => o.label).join(", ")})`
+          ? `(${variant.option_values.map((o) => o.label).join(", ")})`
           : ""
       }`,
       productId: product.id.toString(),
@@ -25,64 +20,96 @@ export async function searchProducts({
     };
   }
 
-  const includeFields = 'images,variants';
+  const includeFields = "images,variants";
 
-  if (productId && variantId) {
-    const variantResponse = await fetch(
-      `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}/variants/${variantId}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": accessToken,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const variant = await variantResponse.json();
+  const queryParams = new URLSearchParams({
+    include: includeFields,
+  });
+  if (searchEntry) queryParams.set("name:like", searchEntry);
 
-    const productResponse = await fetch(
-      `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}?include=${includeFields}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": accessToken,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const product = await productResponse.json();
+  const response = await fetch(
+    `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const responseData = await response.json();
 
-    products.push(formatProductData(variant.data, product.data));
-
-    return { products };
-  } else {
-    const queryParams = new URLSearchParams({
-      include: includeFields,
+  responseData.data.forEach((product) => {
+    product.variants.forEach((variant) => {
+      products.push(formatProductData(variant, product));
     });
-    if (variantId) queryParams.set('variant_ids:in', variantId);
-    if (productId) queryParams.set('id', productId);
-    if (searchEntry) queryParams.set('name:like', searchEntry);
+  });
 
-    const response = await fetch(
-      `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products?${queryParams.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "X-Auth-Token": accessToken,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const responseData = await response.json();
+  return { products };
+}
 
-    responseData.data.forEach(product => {
-      product.variants.forEach(variant => {
-        products.push(formatProductData(variant, product));
-      });
-    });
-
-    return { products };
+// Function to get a specific product by variantId and productId in BigCommerce
+export async function getProduct({
+  domain,
+  accessToken,
+  variantId,
+  productId,
+}) {
+  // Helper function to format product data
+  function formatProductData(variant, product) {
+    return {
+      image: variant.image_url || product.images[0]?.url_thumbnail || "",
+      title: `${product.name} ${
+        variant.option_values?.length > 0
+          ? `(${variant.option_values.map((o) => o.label).join(", ")})`
+          : ""
+      }`,
+      productId: product.id.toString(),
+      variantId: variant.id.toString(),
+      price: variant.price?.toString() || product.price?.toString() || "0",
+      availableForSale: product.availability === "available",
+      inventory: variant.inventory_level,
+      inventoryTracked: variant.inventory_tracking !== "none",
+    };
   }
+
+  const includeFields = "images,variants";
+
+  const variantResponse = await fetch(
+    `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}/variants/${variantId}`,
+    {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const variant = await variantResponse.json();
+
+  if (!variant || !variant.data) {
+    throw new Error("Variant not found from BigCommerce");
+  }
+
+  const productResponse = await fetch(
+    `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}?include=${includeFields}`,
+    {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const product = await productResponse.json();
+
+  if (!product || !product.data) {
+    throw new Error("Product not found from BigCommerce");
+  }
+
+  const formattedProduct = formatProductData(variant.data, product.data);
+
+  return formattedProduct;
 }
 
 // Create Purchase
@@ -254,210 +281,114 @@ export async function getWebhooks({ domain, accessToken }) {
   return { webhooks };
 }
 
-// export async function searchProducts({
-//   domain,
-//   accessToken,
-//   variantId,
-//   productId,
-//   searchEntry,
-// }) {
-//   const products = [];
+// Function to get config for BigCommerce
+export function getConfig() {
+  return {
+    clientId: process.env.CHANNEL_BIGCOMMERCE_API_KEY,
+    clientSecret: process.env.CHANNEL_BIGCOMMERCE_SECRET,
+    redirect_uri: `${process.env.FRONTEND_URL}/api/o-auth/channel/callback/bigcommerce`,
+    scopes: ["store_v2_orders", "store_v2_products"],
+  };
+}
 
-//   if (productId && variantId) {
-//     const variantResponse = await fetch(
-//       `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}/variants/${variantId}`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "X-Auth-Token": accessToken,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const variant = await variantResponse.json();
+// BigCommerce OAuth function
+export async function oauth(req, res, config) {
+  const clientId = config.clientId;
+  const redirectUri = config.redirectUri;
+  const scopes = config.scopes;
 
-//     const productResponse = await fetch(
-//       `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}?include=images`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "X-Auth-Token": accessToken,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const product = await productResponse.json();
+  const authUrl = `https://login.bigcommerce.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scopes.join(
+    " "
+  )}&redirect_uri=${redirectUri}`;
+  res.redirect(authUrl);
+}
 
-//     const mergedData = { ...variant.data, ...product.data };
-//     const newData = {
-//       image: mergedData.image_url || mergedData.images[0]?.url_thumbnail || "",
-//       title: `${mergedData.name} ${
-//         mergedData.option_values?.length > 0
-//           ? `(${mergedData.option_values.map((o) => o.label).join("/")})`
-//           : ""
-//       }`,
-//       productId,
-//       variantId,
-//       price: mergedData.price?.toString() || 0,
-//       availableForSale: mergedData.availability === "available",
-//     };
-//     products.push(newData);
+// BigCommerce callback function
+export async function callback(query, config) {
+  const accessTokenRequestUrl = "https://login.bigcommerce.com/oauth2/token";
+  const accessTokenPayload = {
+    client_id: config.clientId,
+    client_secret: config.clientSecret,
+    redirect_uri: config.redirectUri,
+    grant_type: "authorization_code",
+    ...query,
+  };
 
-//     return { products };
-//   } else if (variantId) {
-//     const response = await fetch(
-//       `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products?include=variants&variant_ids:in=${variantId}`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "X-Auth-Token": accessToken,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const responseData = await response.json();
-//     const data = responseData.data;
+  const response = await fetch(accessTokenRequestUrl, {
+    method: "POST",
+    body: JSON.stringify(accessTokenPayload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-//     data.forEach(
-//       ({
-//         id,
-//         base_variant_id,
-//         price,
-//         primary_image,
-//         name,
-//         availability,
-//         images,
-//         variants,
-//       }) => {
-//         variants.forEach(
-//           ({
-//             id,
-//             product_id,
-//             image_url,
-//             price: variantPrice,
-//             option_values,
-//           }) => {
-//             const newData = {
-//               image: image_url || images[0]?.url_thumbnail || "",
-//               title: `${name} ${
-//                 option_values.length > 0
-//                   ? `(${option_values.map((o) => o.label).join("/")})`
-//                   : ""
-//               }`,
-//               productId: product_id.toString(),
-//               variantId: id.toString(),
-//               price: variantPrice?.toString() || price?.toString() || 0,
-//               availableForSale: availability === "available",
-//             };
-//             products.push(newData);
-//           }
-//         );
-//       }
-//     );
+  const responseBody = await response.json();
+  const accessToken = responseBody.access_token;
+  const storeHash = responseBody.context.split("/")[1];
 
-//     return { products };
-//   } else if (productId) {
-//     const response = await fetch(
-//       `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products/${productId}?include=images,variants`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "X-Auth-Token": accessToken,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const data = [await response.json()];
+  return { storeHash, accessToken };
+}
 
-//     data.forEach(
-//       ({
-//         id,
-//         base_variant_id,
-//         price,
-//         primary_image,
-//         name,
-//         availability,
-//         images,
-//         variants,
-//       }) => {
-//         variants.forEach(
-//           ({
-//             id,
-//             product_id,
-//             image_url,
-//             price: variantPrice,
-//             option_values,
-//           }) => {
-//             const newData = {
-//               image: image_url || images[0]?.url_thumbnail || "",
-//               title: `${name} ${
-//                 option_values.length > 0
-//                   ? `(${option_values.map((o) => o.label).join("/")})`
-//                   : ""
-//               }`,
-//               productId: product_id.toString(),
-//               variantId: id.toString(),
-//               price: variantPrice?.toString() || price?.toString() || 0,
-//               availableForSale: availability === "available",
-//             };
-//             products.push(newData);
-//           }
-//         );
-//       }
-//     );
+export async function createTrackingWebhookHandler(req, res) {
+  const { id, orderId } = req.body.data;
+  const { producer } = req.body;
+  if (!id || !orderId) {
+    return { error: true };
+  }
+  const foundCartItems = await keystoneContext.sudo().query.CartItem.findMany({
+    where: {
+      purchaseId: { equals: orderId.toString() },
+      channel: { domain: { equals: producer.split("/")[1] } },
+    },
+    query: "id quantity channel { domain accessToken }",
+  });
 
-//     return { products };
-//   } else if (searchEntry) {
-//     const response = await fetch(
-//       `https://api.bigcommerce.com/stores/${domain}/v3/catalog/products?include=images,variants&name:like=${searchEntry}`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "X-Auth-Token": accessToken,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const responseData = await response.json();
-//     const data = responseData.data;
+  if (!foundCartItems[0]?.channel?.domain || !foundCartItems[0]?.channel?.accessToken) {
+    return { error: true };
+  }
 
-//     data.forEach(
-//       ({
-//         id,
-//         base_variant_id,
-//         price,
-//         primary_image,
-//         name,
-//         availability,
-//         images,
-//         variants,
-//       }) => {
-//         variants.forEach(
-//           ({
-//             id,
-//             product_id,
-//             image_url,
-//             price: variantPrice,
-//             option_values,
-//           }) => {
-//             const newData = {
-//               image: image_url || images[0]?.url_thumbnail || "",
-//               title: `${name} ${
-//                 option_values.length > 0
-//                   ? `(${option_values.map((o) => o.label).join("/")})`
-//                   : ""
-//               }`,
-//               productId: product_id.toString(),
-//               variantId: id.toString(),
-//               price: variantPrice?.toString() || price?.toString() || 0,
-//               availableForSale: availability === "available",
-//             };
-//             products.push(newData);
-//           }
-//         );
-//       }
-//     );
+  const response = await fetch(
+    `https://api.bigcommerce.com/stores/${foundCartItems[0]?.channel?.domain}/v2/orders/${orderId}/shipments/${id}`,
+    {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": foundCartItems[0]?.channel?.accessToken,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    }
+  );
 
-//     return { products };
-//   }
-// }
+  const data = await response.json();
+  return {
+    purchaseId: orderId.toString(),
+    trackingNumber: data.tracking_number,
+    trackingCompany: getShippingCarrier(data.tracking_number),
+    domain: producer.split("/")[1],
+  };
+}
+
+export async function cancelPurchaseWebhookHandler(req, res) {
+  const { data, producer } = req.body;
+  if (!data?.orderId) {
+    return res.status(400).json({ error: "Missing fields needed to cancel cart item" });
+  }
+  return data.orderId.toString();
+}
+
+function getShippingCarrier(trackingNumber) {
+  // Define your carrier logic here
+  if (/^[\d]{20,22}$/.test(trackingNumber)) {
+    return "USPS";
+  }
+  if (/^(\d{12}|\d{15})$/.test(trackingNumber)) {
+    return "FedEx";
+  }
+  if (/^1Z[\dA-Z]{16}$/i.test(trackingNumber)) {
+    return "UPS";
+  }
+  if (/^([0-9]{10}|[0-9]{12})$/.test(trackingNumber)) {
+    return "DHL";
+  }
+  return "Other";
+}

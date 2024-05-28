@@ -5,7 +5,7 @@ import {
   virtual,
   float,
 } from "@keystone-6/core/fields";
-import { graphql, list } from "@keystone-6/core";
+import { graphql, list, group } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -28,27 +28,26 @@ export const Shop = list({
     },
   },
   fields: {
+    // ...group({
+    //   label: "Credentials",
+    //   description: "Shop credentials",
+    //   fields: {
+    //     name: text(),
+    //     domain: text({ isIndexed: "unique" }),
+    //     accessToken: text(),
+    //   },
+    // }),
     name: text(),
-    type: text(),
     domain: text({ isIndexed: "unique" }),
     accessToken: text(),
 
     platform: relationship({
-      ref: 'ShopPlatform.shops',
+      ref: "ShopPlatform.shops",
       ui: {
-        displayMode: 'select',
-        labelField: 'name',
+        displayMode: "select",
+        labelField: "name",
       },
     }),
-
-    searchProductsEndpoint: text(),
-    searchOrdersEndpoint: text(),
-
-    updateProductEndpoint: text(),
-
-    getWebhooksEndpoint: text(),
-    createWebhookEndpoint: text(),
-    deleteWebhookEndpoint: text(),
 
     orders: relationship({ ref: "Order.shop", many: true }),
     shopItems: relationship({ ref: "ShopItem.shop", many: true }),

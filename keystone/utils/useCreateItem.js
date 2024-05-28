@@ -3,7 +3,7 @@ import isDeepEqual from "fast-deep-equal"
 import { usePreventNavigation } from "./usePreventNavigation"
 import { useMutation, gql } from "@keystone-6/core/admin-ui/apollo"
 import { useKeystone } from "@keystone/keystoneProvider"
-import { useToasts } from "@keystone/components/Toast"
+import { useToasts } from "@keystone/screens"
 
 export function useCreateItem(list) {
   const toasts = useToasts()

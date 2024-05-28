@@ -1,5 +1,112 @@
-import { findChannelItems } from "../../lib/findChannelItems";
-import { findShopItems } from "../../lib/findShopItems";
+export async function findShopItems({ lineItems, userId, context }) {
+  const arr = [];
+
+  // console.log(lineItems[0]);
+  for (const {
+    name,
+    image,
+    channelName,
+    price,
+    searchProductsEndpoint,
+    updateProductEndpoint,
+    quantity,
+    channelId,
+    productId,
+    variantId,
+    ...rest
+  } of lineItems) {
+    console.log({ channelId });
+    const [existingShopItem] = await context.query.ShopItem.findMany({
+      where: {
+        shop: { id: { equals: channelId } },
+        user: {
+          id: { equals: userId },
+        },
+        quantity: { equals: parseInt(quantity) },
+        productId: { equals: productId },
+        variantId: { equals: variantId },
+        ...rest,
+      },
+    });
+
+    // 3. Check if that item is already in their cart and increment by 1 if it is
+    if (existingShopItem) {
+      arr.push({ id: existingShopItem.id });
+    }
+
+    // 4. If its not, create a fresh CartItem for that user!
+    else {
+      const createShopItem = await context.query.ShopItem.createOne({
+        data: {
+          shop: { connect: { id: channelId } },
+          quantity: parseInt(quantity),
+          productId,
+          variantId,
+          ...rest,
+        },
+      });
+
+      arr.push({ id: createShopItem.id });
+    }
+  }
+
+  return arr;
+}
+
+export async function findChannelItems({ cartItems, userId, context }) {
+  const arr = [];
+  // console.log({ cartItems });
+
+  for (const {
+    name,
+    image,
+    channelName,
+    searchProductsEndpoint,
+    status,
+    quantity,
+    channelId,
+    productId,
+    variantId,
+    ...rest
+  } of cartItems) {
+    console.log({ rest });
+    console.log({ channelId });
+    const [existingChannelItem] = await context.query.ChannelItem.findMany({
+      where: {
+        channel: { id: { equals: channelId } },
+        user: { id: { equals: userId } },
+        quantity: { equals: parseInt(quantity) },
+        productId: { equals: productId },
+        variantId: { equals: variantId },
+        // ...rest,
+      },
+    });
+
+    console.log({ existingChannelItem });
+
+    // 3. Check if that item is already in their cart and increment by 1 if it is
+    if (existingChannelItem) {
+      arr.push({ id: existingChannelItem.id });
+    }
+
+    // 4. If its not, create a fresh CartItem for that user!
+    else {
+      const createChannelItem = await context.query.ChannelItem.createOne({
+        data: {
+          channel: { connect: { id: channelId } },
+          quantity: parseInt(quantity),
+          productId,
+          variantId,
+          ...rest,
+        },
+      });
+
+      arr.push({ id: createChannelItem.id });
+    }
+  }
+
+  return arr;
+}
 
 async function overwriteMatch(root, { input, output }, context) {
   // 1. Query the current user see if they are signed in

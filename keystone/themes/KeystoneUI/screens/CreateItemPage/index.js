@@ -4,18 +4,19 @@
 import { Heading, jsx, useTheme, Box } from "@keystone-ui/core";
 import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
 import { Button } from "@keystone-ui/button";
-import { Fields } from "@keystone/components/Fields";
-import { PageContainer } from "@keystone/components/PageContainer";
+// import { Fields } from "../../components/Fields";
+import { PageContainer } from "../../components/PageContainer";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
-import { Container } from "@keystone/components/Container";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { Container } from "../../components/Container";
+import { AdminLink } from "../../components/AdminLink";
 
 import { Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
+import { Fields } from "../../components/Fields";
 
 export const CreateItemPage = ({ params }) => {
   const listKey = params.listKey;

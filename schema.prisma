@@ -34,7 +34,7 @@ model User {
   role                    Role?              @relation("User_role", fields: [roleId], references: [id])
   roleId                  String?            @map("role")
   createdAt               DateTime           @default(now())
-  updatedAt               DateTime           @default(now()) @updatedAt
+  updatedAt               DateTime           @default(now())
   passwordResetToken      String?
   passwordResetIssuedAt   DateTime?
   passwordResetRedeemedAt DateTime?
@@ -47,7 +47,7 @@ model apiKey {
   user      User?    @relation("apiKey_user", fields: [userId], references: [id])
   userId    String?  @map("user")
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @default(now())
 
   @@index([userId])
 }
@@ -105,7 +105,7 @@ model Order {
   matchOrder     Boolean    @default(false)
   processOrder   Boolean    @default(false)
   createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @default(now()) @updatedAt
+  updatedAt      DateTime   @default(now())
 
   @@index([userId])
   @@index([shopId])
@@ -120,7 +120,7 @@ model TrackingDetail {
   user            User?      @relation("TrackingDetail_user", fields: [userId], references: [id])
   userId          String?    @map("user")
   createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @default(now()) @updatedAt
+  updatedAt       DateTime   @default(now())
 
   @@index([userId])
 }
@@ -140,7 +140,7 @@ model LineItem {
   user       User?    @relation("LineItem_user", fields: [userId], references: [id])
   userId     String?  @map("user")
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  updatedAt  DateTime @default(now())
 
   @@index([orderId])
   @@index([userId])
@@ -168,7 +168,7 @@ model CartItem {
   channel         Channel?         @relation("CartItem_channel", fields: [channelId], references: [id])
   channelId       String?          @map("channel")
   createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @default(now()) @updatedAt
+  updatedAt       DateTime         @default(now())
 
   @@index([orderId])
   @@index([userId])
@@ -176,26 +176,20 @@ model CartItem {
 }
 
 model Channel {
-  id                     String             @id @default(cuid())
-  name                   String             @default("")
-  type                   String             @default("")
-  domain                 String             @default("")
-  accessToken            String             @default("")
-  platform               ChannelPlatform?   @relation("Channel_platform", fields: [platformId], references: [id])
-  platformId             String?            @map("platform")
-  searchProductsEndpoint String             @default("")
-  createPurchaseEndpoint String             @default("")
-  getWebhooksEndpoint    String             @default("")
-  createWebhookEndpoint  String             @default("")
-  deleteWebhookEndpoint  String             @default("")
-  channelItems           ChannelItem[]      @relation("ChannelItem_channel")
-  cartItems              CartItem[]         @relation("CartItem_channel")
-  links                  Link[]             @relation("Link_channel")
-  metafields             ChannelMetafield[] @relation("ChannelMetafield_channel")
-  user                   User?              @relation("Channel_user", fields: [userId], references: [id])
-  userId                 String?            @map("user")
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @default(now()) @updatedAt
+  id           String             @id @default(cuid())
+  name         String             @default("")
+  domain       String             @default("")
+  accessToken  String             @default("")
+  platform     ChannelPlatform?   @relation("Channel_platform", fields: [platformId], references: [id])
+  platformId   String?            @map("platform")
+  channelItems ChannelItem[]      @relation("ChannelItem_channel")
+  cartItems    CartItem[]         @relation("CartItem_channel")
+  links        Link[]             @relation("Link_channel")
+  metafields   ChannelMetafield[] @relation("ChannelMetafield_channel")
+  user         User?              @relation("Channel_user", fields: [userId], references: [id])
+  userId       String?            @map("user")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now())
 
   @@index([platformId])
   @@index([userId])
@@ -204,16 +198,19 @@ model Channel {
 model ChannelPlatform {
   id                     String    @id @default(cuid())
   name                   String    @default("")
+  key                    String    @unique @default("")
   createPurchaseFunction String    @default("shopify")
   searchProductsFunction String    @default("shopify")
+  getProductFunction     String    @default("shopify")
   getWebhooksFunction    String    @default("shopify")
   deleteWebhookFunction  String    @default("shopify")
   createWebhookFunction  String    @default("shopify")
+  oAuthFunction          String    @default("shopify")
   channels               Channel[] @relation("Channel_platform")
   user                   User?     @relation("ChannelPlatform_user", fields: [userId], references: [id])
   userId                 String?   @map("user")
   createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @default(now()) @updatedAt
+  updatedAt              DateTime  @default(now())
 
   @@index([userId])
 }
@@ -227,7 +224,7 @@ model ChannelMetafield {
   user      User?    @relation("ChannelMetafield_user", fields: [userId], references: [id])
   userId    String?  @map("user")
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @default(now())
 
   @@index([channelId])
   @@index([userId])
@@ -246,53 +243,52 @@ model ChannelItem {
   user       User?    @relation("ChannelItem_user", fields: [userId], references: [id])
   userId     String?  @map("user")
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  updatedAt  DateTime @default(now())
 
+  @@unique([quantity, productId, variantId, channelId, userId])
   @@index([channelId])
   @@index([userId])
 }
 
 model Shop {
-  id                     String          @id @default(cuid())
-  name                   String          @default("")
-  type                   String          @default("")
-  domain                 String          @unique @default("")
-  accessToken            String          @default("")
-  platform               ShopPlatform?   @relation("Shop_platform", fields: [platformId], references: [id])
-  platformId             String?         @map("platform")
-  searchProductsEndpoint String          @default("")
-  searchOrdersEndpoint   String          @default("")
-  updateProductEndpoint  String          @default("")
-  getWebhooksEndpoint    String          @default("")
-  createWebhookEndpoint  String          @default("")
-  deleteWebhookEndpoint  String          @default("")
-  orders                 Order[]         @relation("Order_shop")
-  shopItems              ShopItem[]      @relation("ShopItem_shop")
-  links                  Link[]          @relation("Link_shop")
-  metafields             ShopMetafield[] @relation("ShopMetafield_shop")
-  user                   User?           @relation("Shop_user", fields: [userId], references: [id])
-  userId                 String?         @map("user")
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @default(now()) @updatedAt
+  id          String          @id @default(cuid())
+  name        String          @default("")
+  domain      String          @unique @default("")
+  accessToken String          @default("")
+  platform    ShopPlatform?   @relation("Shop_platform", fields: [platformId], references: [id])
+  platformId  String?         @map("platform")
+  orders      Order[]         @relation("Order_shop")
+  shopItems   ShopItem[]      @relation("ShopItem_shop")
+  links       Link[]          @relation("Link_shop")
+  metafields  ShopMetafield[] @relation("ShopMetafield_shop")
+  user        User?           @relation("Shop_user", fields: [userId], references: [id])
+  userId      String?         @map("user")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
 
   @@index([platformId])
   @@index([userId])
 }
 
 model ShopPlatform {
-  id                     String   @id @default(cuid())
-  name                   String   @default("")
-  updateProductFunction  String   @default("shopify")
-  getWebhooksFunction    String   @default("shopify")
-  deleteWebhookFunction  String   @default("shopify")
-  createWebhookFunction  String   @default("shopify")
-  searchProductsFunction String   @default("shopify")
-  searchOrdersFunction   String   @default("shopify")
-  shops                  Shop[]   @relation("Shop_platform")
-  user                   User?    @relation("ShopPlatform_user", fields: [userId], references: [id])
-  userId                 String?  @map("user")
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @default(now()) @updatedAt
+  id                             String   @id @default(cuid())
+  name                           String   @default("")
+  key                            String   @unique @default("")
+  updateProductFunction          String   @default("shopify")
+  getWebhooksFunction            String   @default("shopify")
+  deleteWebhookFunction          String   @default("shopify")
+  createWebhookFunction          String   @default("shopify")
+  searchProductsFunction         String   @default("shopify")
+  getProductFunction             String   @default("shopify")
+  searchOrdersFunction           String   @default("shopify")
+  addTrackingFunction            String   @default("shopify")
+  addCartToPlatformOrderFunction String   @default("shopify")
+  oAuthFunction                  String   @default("shopify")
+  shops                          Shop[]   @relation("Shop_platform")
+  user                           User?    @relation("ShopPlatform_user", fields: [userId], references: [id])
+  userId                         String?  @map("user")
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @default(now())
 
   @@index([userId])
 }
@@ -306,7 +302,7 @@ model ShopMetafield {
   user      User?    @relation("ShopMetafield_user", fields: [userId], references: [id])
   userId    String?  @map("user")
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @default(now())
 
   @@index([shopId])
   @@index([userId])
@@ -324,8 +320,9 @@ model ShopItem {
   user       User?    @relation("ShopItem_user", fields: [userId], references: [id])
   userId     String?  @map("user")
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  updatedAt  DateTime @default(now())
 
+  @@unique([quantity, productId, variantId, shopId, userId])
   @@index([shopId])
   @@index([userId])
 }
@@ -337,7 +334,7 @@ model Match {
   user      User?         @relation("Match_user", fields: [userId], references: [id])
   userId    String?       @map("user")
   createdAt DateTime      @default(now())
-  updatedAt DateTime      @default(now()) @updatedAt
+  updatedAt DateTime      @default(now())
 
   @@index([userId])
 }
@@ -352,7 +349,7 @@ model Link {
   user      User?    @relation("Link_user", fields: [userId], references: [id])
   userId    String?  @map("user")
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @default(now())
 
   @@index([shopId])
   @@index([channelId])

@@ -1,8 +1,4 @@
-async function searchShopProducts(
-  root,
-  { shopId, searchEntry, productId, variantId },
-  context
-) {
+async function searchShopProducts(root, { shopId, searchEntry }, context) {
   // Fetch the shop using the provided shopId
   const shop = await context.query.Shop.findOne({
     where: { id: shopId },
@@ -26,8 +22,6 @@ async function searchShopProducts(
   if (searchProductsFunction.startsWith("http")) {
     const params = new URLSearchParams({
       searchEntry: searchEntry || "",
-      variantId: variantId || "",
-      productId: productId || "",
       domain: shop.domain,
       accessToken: shop.accessToken,
     }).toString();
@@ -46,8 +40,6 @@ async function searchShopProducts(
     );
     const result = await shopFunctions.searchProducts({
       searchEntry,
-      variantId,
-      productId,
       domain: shop.domain,
       accessToken: shop.accessToken,
     });

@@ -7,7 +7,7 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 export function withCodeBlock(editor) {
   const { insertBreak, normalizeNode } = editor;

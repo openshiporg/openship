@@ -6,8 +6,8 @@ import {
 } from "./DocumentEditor/component-blocks/utils";
 import { FormValueContentFromPreviewProps } from "./DocumentEditor/component-blocks/form-from-preview";
 import { createGetPreviewProps } from "./DocumentEditor/component-blocks/preview-props";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+import { FieldLabel } from "../../components/FieldLabel";
+import { FieldContainer } from "../../components/FieldContainer";
 
 export const Field = ({
   field,
