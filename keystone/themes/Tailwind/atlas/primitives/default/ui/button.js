@@ -15,11 +15,11 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "border-transparent",
-          "text-white dark:text-gray-900",
-          "bg-gray-900 dark:bg-gray-50",
-          "hover:bg-gray-800 dark:hover:bg-gray-200",
-          "disabled:bg-gray-100 disabled:text-gray-400",
-          "disabled:dark:bg-gray-800 disabled:dark:text-gray-600",
+          "text-white dark:text-zinc-900",
+          "bg-zinc-900 dark:bg-zinc-50",
+          "hover:bg-zinc-800 dark:hover:bg-zinc-200",
+          "disabled:bg-zinc-100 disabled:text-zinc-400",
+          "disabled:dark:bg-zinc-800 disabled:dark:text-zinc-600",
         ],
         // primary: [
         //   "border-transparent",
@@ -30,30 +30,31 @@ const buttonVariants = cva(
         //   "disabled:dark:bg-blue-800 disabled:dark:text-blue-600"
         // ],
         secondary: [
-          "border border-gray-300 dark:border-gray-800",
-          "text-gray-900 dark:text-gray-50",
-          // "bg-white dark:bg-gray-950",
-          "bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-black",
-          "hover:bg-gray-50 dark:hover:bg-gray-900/60",
-          "disabled:text-gray-400",
-          "disabled:dark:text-gray-600",
+          "border border-zinc-300 dark:border-zinc-800",
+          "text-zinc-900 dark:text-zinc-50",
+          // "bg-white dark:bg-zinc-950",
+          "bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-950",
+          "hover:bg-zinc-50 dark:hover:bg-zinc-900/60",
+          "disabled:opacity-50",
+          "disabled:text-zinc-400",
+          "disabled:dark:text-zinc-600",
         ],
         light: [
           "shadow-none",
           "border-transparent",
-          "text-gray-900 dark:text-gray-50",
-          "bg-gray-200 dark:bg-gray-900",
-          "hover:bg-gray-300/70 dark:hover:bg-gray-800/80",
-          "disabled:bg-gray-100 disabled:text-gray-400",
-          "disabled:dark:bg-gray-800 disabled:dark:text-gray-600",
+          "text-zinc-900 dark:text-zinc-50",
+          "bg-zinc-200 dark:bg-zinc-900",
+          "hover:bg-zinc-300/70 dark:hover:bg-zinc-800/80",
+          "disabled:bg-zinc-100 disabled:text-zinc-400",
+          "disabled:dark:bg-zinc-800 disabled:dark:text-zinc-600",
         ],
         destructive: [
           "text-white",
           "border-transparent",
-          "bg-red-600 dark:bg-red-700",
+          // "bg-red-600 dark:bg-red-700",
+          "bg-gradient-to-b from-red-500 to-red-600 dark:from-red-800 dark:to-red-900",
           "hover:bg-red-700 dark:hover:bg-red-600",
-          "disabled:bg-red-300 disabled:text-white",
-          "disabled:dark:bg-red-950 disabled:dark:text-red-400",
+          "disabled:opacity-50"
         ],
       },
     },
@@ -114,7 +115,7 @@ function TouchTarget({ children }) {
       />
       {children}
     </>
-  )
+  );
 }
 
 Button.displayName = "Button";

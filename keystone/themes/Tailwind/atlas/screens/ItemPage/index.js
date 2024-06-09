@@ -63,7 +63,7 @@ export function ItemPageHeader(props) {
           <li className="inline-flex items-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center text-md font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
+              className="inline-flex items-center text-md font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-white"
             >
               <svg
                 className="w-3 h-3 mr-2.5"
@@ -85,7 +85,7 @@ export function ItemPageHeader(props) {
               <li>
                 <div className="flex items-center">
                   <svg
-                    className="w-3 h-3 mx-1 text-gray-400"
+                    className="w-3 h-3 mx-1 text-zinc-400"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -101,7 +101,7 @@ export function ItemPageHeader(props) {
                   </svg>
                   <AdminLink
                     href={`/${props.list.path}`}
-                    className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white"
+                    className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white"
                   >
                     {props.list.label}
                   </AdminLink>
@@ -110,7 +110,7 @@ export function ItemPageHeader(props) {
               <li>
                 <div className="flex items-center">
                   <svg
-                    className="w-3 h-3 mx-1 text-gray-400"
+                    className="w-3 h-3 mx-1 text-zinc-400"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -124,7 +124,7 @@ export function ItemPageHeader(props) {
                       d="m1 9 4-4-4-4"
                     />
                   </svg>
-                  <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
                     {props.label}
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export function ColumnLayout(props) {
 export function BaseToolbar(props) {
   return (
     // <div className="border-t-2 bottom-0 flex justify-between mt-10 pb-2 pt-2 sticky z-20 bg-background text-foreground">
-    <div className="shadow-sm bottom-3 border flex justify-between p-2 rounded-lg sticky z-20 mt-5 bg-gray-200 dark:bg-gray-950">
+    <div className="shadow-sm bottom-3 border flex justify-between p-2 rounded-lg sticky z-20 mt-5 bg-zinc-200 dark:bg-zinc-950">
       {props.children}
     </div>
   );
@@ -379,7 +379,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="secondary">Close</Button>
+              <Button variant="light">Close</Button>
             </DialogClose>
             <Button
               variant="destructive"
@@ -527,7 +527,7 @@ export const ItemPageTemplate = ({ listKey, id }) => {
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 {list.isSingleton ? (
-                  <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
                     {list.label}
                   </div>
                 ) : (

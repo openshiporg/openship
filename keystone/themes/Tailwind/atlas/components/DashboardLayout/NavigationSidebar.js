@@ -56,6 +56,7 @@ import { Badge } from "../../primitives/default/ui/badge";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { AccountDropdown } from "./AccountDropdown";
 import { ThemeToggle } from "./ThemeToggle";
+import { AccountDropdownMobile } from "./AccountDropdownMobile";
 
 export function NavigationSidebar({
   authenticatedItem,
@@ -71,40 +72,7 @@ export function NavigationSidebar({
         <Navbar>
           <NavbarSpacer />
           <NavbarSection>
-            <Dropdown>
-              <DropdownButton as={NavbarItem}>
-                <Avatar
-                  className="bg-zinc-900 text-white dark:bg-white dark:text-black"
-                  square
-                  initials="E"
-                  alt=""
-                />
-              </DropdownButton>
-              <DropdownMenu className="min-w-64" anchor="bottom end">
-                <DropdownItem href="/my-profile">
-                  <UserIcon />
-                  <DropdownLabel>My profile</DropdownLabel>
-                </DropdownItem>
-                <DropdownItem href="/settings">
-                  <Cog8ToothIcon />
-                  <DropdownLabel>Settings</DropdownLabel>
-                </DropdownItem>
-                <DropdownDivider />
-                <DropdownItem href="/privacy-policy">
-                  <ShieldCheckIcon />
-                  <DropdownLabel>Privacy policy</DropdownLabel>
-                </DropdownItem>
-                <DropdownItem href="/share-feedback">
-                  <LightBulbIcon />
-                  <DropdownLabel>Share feedback</DropdownLabel>
-                </DropdownItem>
-                <DropdownDivider />
-                <DropdownItem href="/logout">
-                  <ArrowRightStartOnRectangleIcon />
-                  <DropdownLabel>Sign out</DropdownLabel>
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+            <AccountDropdownMobile />
           </NavbarSection>
         </Navbar>
       }
@@ -117,23 +85,23 @@ export function NavigationSidebar({
           </SidebarHeader>
           <SidebarBody className="flex flex-col">
             <SidebarSection>
-              <SidebarItem href="/">
+              <SidebarItem href="/dashboard">
                 <HomeIcon className="w-6 h-6" />
                 <SidebarLabel>Home</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/orders">
+              <SidebarItem href="/dashboard/oms/orders">
                 <TicketIcon className="w-6 h-6" />
                 <SidebarLabel>Orders</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/shops">
+              <SidebarItem href="/dashboard/oms/shops">
                 <Square3Stack3DIcon className="w-6 h-6" />
                 <SidebarLabel>Shops</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/channels">
+              <SidebarItem href="/dashboard/oms/channels">
                 <CircleStackIcon className="w-6 h-6" />
                 <SidebarLabel>Channels</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/matches">
+              <SidebarItem href="/dashboard/oms/matches">
                 <Square2StackIcon className="w-6 h-6" />
                 <SidebarLabel>Matches</SidebarLabel>
               </SidebarItem>
@@ -150,7 +118,9 @@ export function NavigationSidebar({
             {!isDashboardCollapsed && (
               <SidebarSection className="flex-1 overflow-y-auto min-h-0 mb-1 gap-0">
                 {sidebarLinks.map(({ title, href }) => (
-                  <SidebarItem href={`/dashboard${href}`}>{title}</SidebarItem>
+                  <SidebarItem className="ml-4" href={`/dashboard${href}`}>
+                    {title}
+                  </SidebarItem>
                 ))}
               </SidebarSection>
             )}
@@ -190,9 +160,9 @@ export function NavigationSidebar({
           </SidebarBody>
           <SidebarFooter className="max-lg:hidden">
             <AccountDropdown authenticatedItem={authenticatedItem} />
-            <div className="mx-2.5">
+            {/* <div className="mx-2.5">
               <ThemeToggle />
-            </div>
+            </div> */}
           </SidebarFooter>
         </Sidebar>
       }

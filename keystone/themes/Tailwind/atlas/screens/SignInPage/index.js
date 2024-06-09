@@ -147,16 +147,16 @@ export function SignInTemplate({
 }) {
   return (
     <div
-      className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}
+      className={`h-screen flex flex-col justify-center items-center bg-zinc-50/75 dark:bg-background`}
     >
       <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
         <div className="mx-auto">
           <Logo size="lg" />
         </div>
         <form onSubmit={onSubmit}>
-          <Card className="shadow-sm dark:bg-gray-900/25">
+          <Card className="shadow-sm dark:bg-zinc-900/25">
             <CardHeader>
-              <CardTitle className="text-slate-700 dark:text-white text-xl">
+              <CardTitle className="text-zinc-700 dark:text-white text-xl">
                 {title}
               </CardTitle>
               <CardDescription className="text-sm">

@@ -10,7 +10,7 @@ const montserrat = Outfit({ subsets: ["latin"] });
 //     <h3>
 //       <Link href="/">
 //         <div className="flex items-center">
-//           <LogoIconSVG className="w-4 h-4 stroke-slate-500 mr-2" />
+//           <LogoIconSVG className="w-4 h-4 stroke-zinc-500 mr-2" />
 
 //           <h1 className={`mb-1 text-2xl md:text-3xl font-semibold text-center`}>
 //             open
@@ -39,7 +39,7 @@ export const Logo = ({ size = "md", className }) => {
     <h3 className={cn(`${montserrat.className} ${className}`)}>
       <div
         className={cn(
-          "flex items-center text-slate-700 dark:text-white"
+          "flex items-center text-zinc-700 dark:text-white"
         )}
       >
         <Circle

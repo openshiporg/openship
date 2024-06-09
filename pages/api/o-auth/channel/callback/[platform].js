@@ -6,9 +6,9 @@ const PLATFORM_QUERY = gql`
   query GetChannelPlatform($id: ID!) {
     channelPlatform(where: { id: $id }) {
       id
-      key
-      apiKey
-      apiSecret
+      appKey
+      appSecret
+      oAuthCallbackFunction
     }
   }
 `;
@@ -57,13 +57,13 @@ export default async (req, res) => {
       return res.status(404).json({ error: 'Platform not found' });
     }
 
-    const platformFunctions = await import(`../../../channelFunctions/${channelPlatform.key}.js`);
-    const config = platformFunctions.getConfig({
-      apiKey: channelPlatform.apiKey,
-      apiSecret: channelPlatform.apiSecret,
+    const platformFunctions = await import(`../../../../../channelFunctions/${channelPlatform.oAuthCallbackFunction}.js`);
+    const accessToken = await platformFunctions.callback(queryParams, {
+      appKey: channelPlatform.appKey,
+      appSecret: channelPlatform.appSecret,
+      redirectUri: `${process.env.FRONTEND_URL}/api/o-auth/channel/callback/${channelPlatform.id}`,
+      scopes: platformFunctions.scopes(), // Assuming the scopes function is defined in the platformFunctions
     });
-
-    const accessToken = await platformFunctions.callback(queryParams, config);
 
     async function upsertChannel(channel, accessToken) {
       const { channels } = await gqlClient(req).request(CHANNELS_QUERY, { domain: channel });

@@ -84,12 +84,12 @@ const badgeVariants = cva(
           "dark:bg-zinc-400/10 dark:text-zinc-400 dark:ring-zinc-400/20",
         ],
         gray: [
-          "bg-gray-50 text-gray-900 ring-gray-500/30",
-          "dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20",
+          "bg-zinc-50 text-zinc-900 ring-zinc-500/30",
+          "dark:bg-zinc-400/10 dark:text-zinc-400 dark:ring-zinc-400/20",
         ],
         slate: [
-          "bg-slate-50 text-slate-900 ring-slate-600/20",
-          "dark:bg-slate-400/10 dark:text-slate-400 dark:ring-slate-400/20",
+          "bg-zinc-50 text-zinc-900 ring-zinc-600/20",
+          "dark:bg-zinc-400/10 dark:text-zinc-400 dark:ring-zinc-400/20",
         ],
       },
     },

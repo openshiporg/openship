@@ -138,8 +138,8 @@ export function DeleteManyButton({
               disabled={deleteItemsState.loading}
               buttonProps={{
                 variant: "destructive",
-                isLoading: deleteItemsState.loading,
               }}
+              isLoading={deleteItemsState.loading}
               // className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete

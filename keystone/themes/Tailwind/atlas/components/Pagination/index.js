@@ -118,7 +118,7 @@ export {
 //       <select
 //         value={selectedPageSize}
 //         onChange={(e) => handlePageSizeChange(e.target.value)}
-//         className="bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 mr-2"
+//         className="bg-transparent border-0 text-zinc-800 focus:ring-0 dark:text-zinc-100 mr-2"
 //       >
 //         <option value={1}>1</option>
 //         <option value={5}>5</option>
@@ -131,7 +131,7 @@ export {
 //       {selectedPageSize === "Custom" && (
 //         <div className="flex items-center">
 //           <input
-//             className={`-ml-[0.02rem] mr-1 bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 text-center appearance-none`}
+//             className={`-ml-[0.02rem] mr-1 bg-transparent border-0 text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none`}
 //             style={{
 //               width: `${Math.max(1.2, pageSizeInput.length * 0.6)}em`, // Adjust width dynamically based on input length
 //             }}

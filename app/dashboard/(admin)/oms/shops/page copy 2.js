@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useQuery, gql, useMutation } from "@apollo/client";
+import { useQuery, gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import { Button } from "@ui/button";
 import {
   CardTitle,
@@ -96,7 +96,7 @@ const ShopPlatforms = ({
                   variant="secondary"
                   className="px-1 py-1 text-emerald-500"
                 >
-                  <DotFillIcon className="size-3" strokeWidth={2.5} />
+                  <DotFillIcon className="size-3" />
                 </Button>
               ) : (
                 <Button
@@ -123,7 +123,7 @@ const ShopPlatforms = ({
           // <Button
           //   variant="light"
           //   onClick={() => setVisiblePlatforms((prev) => prev + 5)}
-          //   className="-mt-2 shadow-none border-0 bg-gradient-to-b from-white to-slate-50 dark:from-gray-950 dark:to-transparent"
+          //   className="-mt-2 shadow-none border-0 bg-gradient-to-b from-white to-zinc-50 dark:from-gray-950 dark:to-transparent"
           // >
           //   Show 5 more
           // </Button>
@@ -134,7 +134,7 @@ const ShopPlatforms = ({
           >
             <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent dark:from-gray-950 dark:to-transparent" />
             <div className="flex justify-center">
-              <button className="tracking-wide uppercase inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-slate-950 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:text-gray-50 dark:hover:bg-gray-700">
+              <button className="tracking-wide uppercase inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-zinc-950 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:text-gray-50 dark:hover:bg-gray-700">
                 <ChevronDownIcon className="h-4 w-4" />
                 Show 5 More
               </button>

@@ -1,5 +1,5 @@
-import { list } from "@keystone-6/core";
-import { relationship, text } from "@keystone-6/core/fields";
+import { list, group, graphql } from "@keystone-6/core";
+import { relationship, text, virtual } from "@keystone-6/core/fields";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -18,47 +18,75 @@ export const ShopPlatform = list({
     },
   },
   fields: {
-    name: text({ isRequired: true }),
-    key: text({ isIndexed: "unique", isRequired: true }),
-    updateProductFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
+    name: text({ validation: { isRequired: true } }),
+    ...group({
+      label: "App Credentials",
+      description:
+        "Adding these fields will enable this platform to be installed as an app by users",
+      fields: {
+        appKey: text({
+          isRequired: true,
+        }),
+        appSecret: text({
+          isRequired: true,
+        }),
+        callbackUrl: virtual({
+          field: graphql.field({
+            type: graphql.String,
+            resolve: (item) =>
+              `${process.env.FRONTEND_URL}/api/o-auth/shop/callback/${item.id}`,
+          }),
+          ui: {
+            description:
+              "This URL needs to be set as the callback in your app settings",
+          },
+        }),
+      },
     }),
-    getWebhooksFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    deleteWebhookFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    createWebhookFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    searchProductsFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    getProductFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    searchOrdersFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    addTrackingFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    addCartToPlatformOrderFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
-    }),
-    oAuthFunction: text({
-      defaultValue: "shopify", // Default function or provide options as needed
-      isRequired: true,
+    ...group({
+      label: "Functions",
+      description: "Group of functions used to interact with the shop platform",
+      fields: {
+        updateProductFunction: text({
+          isRequired: true,
+        }),
+        getWebhooksFunction: text({
+          isRequired: true,
+        }),
+        deleteWebhookFunction: text({
+          isRequired: true,
+        }),
+        createWebhookFunction: text({
+          isRequired: true,
+        }),
+        searchProductsFunction: text({
+          isRequired: true,
+        }),
+        getProductFunction: text({
+          isRequired: true,
+        }),
+        searchOrdersFunction: text({
+          isRequired: true,
+        }),
+        addTrackingFunction: text({
+          isRequired: true,
+        }),
+        addCartToPlatformOrderFunction: text({
+          isRequired: true,
+        }),
+        cancelOrderWebhookHandler: text({
+          isRequired: true,
+        }),
+        createOrderWebhookHandler: text({
+          isRequired: true,
+        }),
+        oAuthFunction: text({
+          isRequired: true,
+        }),
+        oAuthCallbackFunction: text({
+          isRequired: true,
+        }),
+      },
     }),
     shops: relationship({ ref: "Shop.platform", many: true }),
     user: relationship({

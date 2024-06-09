@@ -5,7 +5,7 @@ export const FieldLabel = (props) => {
     return null;
   }
 
-  return <Label className="text-slate-700 dark:text-slate-50 text-md" {...props} />;
+  return <Label className="text-zinc-700 dark:text-zinc-50 text-md" {...props} />;
 };
 
 

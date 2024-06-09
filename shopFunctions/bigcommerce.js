@@ -374,33 +374,26 @@ export async function addTracking({ order, trackingCompany, trackingNumber }) {
   return { fulfillment: { id: shipments.id } };
 }
 
-// Function to get config for BigCommerce
-export function getConfig() {
-  return {
-    clientId: process.env.SHOP_BIGCOMMERCE_API_KEY,
-    clientSecret: process.env.SHOP_BIGCOMMERCE_SECRET,
-    redirect_uri: `${process.env.FRONTEND_URL}/api/o-auth/shop/callback/bigcommerce`,
-    scopes: ["store_v2_orders", "store_v2_products"],
-  };
-}
-
 // BigCommerce OAuth function
-export async function oauth(req, res, config) {
+export function oauth(storeHash, config) {
   const clientId = config.clientId;
   const redirectUri = config.redirectUri;
   const scopes = config.scopes;
 
-  const authUrl = `https://login.bigcommerce.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scopes.join(" ")}&redirect_uri=${redirectUri}`;
-  res.redirect(authUrl);
+  const authUrl = `https://login.bigcommerce.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scopes.join(
+    " "
+  )}&redirect_uri=${redirectUri}&context=stores/${storeHash}`;
+
+  window.location.href = authUrl; // Redirect using window.location.href
 }
 
 // BigCommerce callback function
-export async function callback(query, config) {
+export async function callback(query, { appKey, appSecret, redirectUri }) {
   const accessTokenRequestUrl = "https://login.bigcommerce.com/oauth2/token";
   const accessTokenPayload = {
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-    redirect_uri: config.redirectUri,
+    client_id: appKey,
+    client_secret: appSecret,
+    redirect_uri: redirectUri,
     grant_type: "authorization_code",
     ...query,
   };
@@ -422,7 +415,9 @@ export async function callback(query, config) {
 
 export async function cancelOrderWebhookHandler(req, res) {
   if (!req.body.data.orderId) {
-    return res.status(400).json({ error: "Missing fields needed to cancel order" });
+    return res
+      .status(400)
+      .json({ error: "Missing fields needed to cancel order" });
   }
   return req.body.data.orderId.toString();
 }
@@ -470,10 +465,13 @@ export async function createOrderWebhookHandler(req, res) {
       headers,
     }).then((res) => res.json());
 
-    const orderProducts = await fetch(`${orderData.products.url}?include=images`, {
-      method: "GET",
-      headers,
-    }).then((res) => res.json());
+    const orderProducts = await fetch(
+      `${orderData.products.url}?include=images`,
+      {
+        method: "GET",
+        headers,
+      }
+    ).then((res) => res.json());
 
     const images = await Promise.all(
       orderProducts.map((value) => {
@@ -539,3 +537,13 @@ export async function createOrderWebhookHandler(req, res) {
   }
 }
 
+// Function to get scopes for BigCommerce
+export function scopes() {
+  return [
+    "store_v2_products",
+    "store_v2_orders",
+    "store_v2_customers",
+    "store_v2_transactions",
+    "store_v2_hooks",
+  ];
+}

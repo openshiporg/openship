@@ -281,35 +281,24 @@ export async function getWebhooks({ domain, accessToken }) {
   return { webhooks };
 }
 
-// Function to get config for BigCommerce
-export function getConfig() {
-  return {
-    clientId: process.env.CHANNEL_BIGCOMMERCE_API_KEY,
-    clientSecret: process.env.CHANNEL_BIGCOMMERCE_SECRET,
-    redirect_uri: `${process.env.FRONTEND_URL}/api/o-auth/channel/callback/bigcommerce`,
-    scopes: ["store_v2_orders", "store_v2_products"],
-  };
-}
-
 // BigCommerce OAuth function
-export async function oauth(req, res, config) {
+export function oauth(storeHash, config) {
   const clientId = config.clientId;
   const redirectUri = config.redirectUri;
   const scopes = config.scopes;
 
-  const authUrl = `https://login.bigcommerce.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scopes.join(
-    " "
-  )}&redirect_uri=${redirectUri}`;
-  res.redirect(authUrl);
+  const authUrl = `https://login.bigcommerce.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scopes.join(" ")}&redirect_uri=${redirectUri}&context=stores/${storeHash}`;
+
+  window.location.href = authUrl; // Redirect using window.location.href
 }
 
 // BigCommerce callback function
-export async function callback(query, config) {
+export async function callback(query, { appKey, appSecret, redirectUri }) {
   const accessTokenRequestUrl = "https://login.bigcommerce.com/oauth2/token";
   const accessTokenPayload = {
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-    redirect_uri: config.redirectUri,
+    client_id: appKey,
+    client_secret: appSecret,
+    redirect_uri: redirectUri,
     grant_type: "authorization_code",
     ...query,
   };

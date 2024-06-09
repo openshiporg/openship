@@ -14,9 +14,9 @@ import { Check, X } from "lucide-react";
 
 const CustomInput = ({ value, onChange, onCommit, onCancel }) => (
   <div className="flex items-center">
-    <div className="p-0.5 mr-1.5 flex items-center bg-white dark:bg-slate-800 dark:border-gray-600 border rounded-md h-[1.45rem]">
+    <div className="p-0.5 mr-1.5 flex items-center bg-white dark:bg-zinc-800 dark:border-zinc-600 border rounded-md h-[1.45rem]">
       <input
-        className="text-sm bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 text-center appearance-none"
+        className="text-sm bg-transparent border-0 text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none"
         style={{
           width: `${Math.max(1.4, value.length * 0.7)}em`,
         }}
@@ -33,14 +33,14 @@ const CustomInput = ({ value, onChange, onCommit, onCancel }) => (
     </div>
     <button
       type="button"
-      className="flex border-r-0 rounded-r-none items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="flex border-r-0 rounded-r-none items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
       onClick={onCancel}
     >
       <X className="h-4 w-3" />
     </button>
     <button
       type="button"
-      className="flex rounded-l-none items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="flex rounded-l-none items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
       onClick={() => onCommit(value)}
     >
       <Check className="h-4 w-3" />
@@ -127,7 +127,7 @@ export function PaginationDropdown({
   const defaultTrigger = (
     <button
       type="button"
-      className="flex items-center gap-1.5 pr-2 pl-2 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="flex items-center gap-1.5 pr-2 pl-2 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
     >
       {selectedPageSize === "Custom" ? "Custom" : selectedPageSize} Per Page
     </button>

@@ -6,9 +6,10 @@ const PLATFORM_QUERY = gql`
   query GetShopPlatform($id: ID!) {
     shopPlatform(where: { id: $id }) {
       id
-      key
-      apiKey
-      apiSecret
+      appKey
+      appSecret
+      callbackUrl
+      oAuthCallbackFunction
     }
   }
 `;
@@ -62,14 +63,15 @@ export default async (req, res) => {
     }
 
     const platformFunctions = await import(
-      `../../../shopFunctions/${shopPlatform.key}.js`
+      `../../../../../shopFunctions/${shopPlatform.oAuthCallbackFunction}.js`
     );
-    const config = platformFunctions.getConfig({
-      apiKey: shopPlatform.apiKey,
-      apiSecret: shopPlatform.apiSecret,
+    console.log({ queryParams });
+    const accessToken = await platformFunctions.callback(queryParams, {
+      appKey: shopPlatform.appKey,
+      appSecret: shopPlatform.appSecret,
+      redirectUri: shopPlatform.callbackUrl,
+      scopes: platformFunctions.scopes(), // Assuming the scopes function is defined in the platformFunctions
     });
-
-    const accessToken = await platformFunctions.callback(queryParams, config);
 
     async function upsertShop(shop, accessToken) {
       const { shops } = await gqlClient(req).request(SHOPS_QUERY, {

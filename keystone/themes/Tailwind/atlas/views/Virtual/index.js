@@ -14,10 +14,12 @@ export const Field = ({ field, value }) =>
       <FieldDescription id={`${field.path}-description`}>
         {field.description}
       </FieldDescription>
-      <div className="flex gap-4 justify-between border shadow-sm py-2 px-2.5 rounded-md bg-muted/40">
-        <PrettyData data={value} />
+      <div className="opacity-90 flex gap-4 justify-between border shadow-sm py-2 px-2.5 rounded-md bg-muted/40">
+        <div className="break-all">
+          <PrettyData data={value} />
+        </div>
         <div className="ml-auto">
-          <Badge color="sky" className="rounded-sm tracking-wide">
+          <Badge color="sky" className="rounded-sm tracking-wide text-xs">
             READ ONLY
           </Badge>
         </div>

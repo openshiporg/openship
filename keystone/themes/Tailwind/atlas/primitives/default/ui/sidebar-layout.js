@@ -94,7 +94,7 @@ export function SidebarLayout({ navbar, sidebar, children, logo }) {
 
       {/* Content */}
       <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pl-64 lg:pr-2 lg:pt-2">
-        <div className="grow p-4 lg:rounded-lg lg:bg-white lg:p-6 lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-950/10 dark:lg:ring-white/10">
+        <div className="grow p-4 lg:rounded-lg lg:bg-white lg:p-6 lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
           <div className="mx-auto max-w-4xl">{children}</div>
         </div>
       </main>

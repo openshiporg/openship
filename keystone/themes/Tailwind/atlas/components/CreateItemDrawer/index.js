@@ -5,7 +5,7 @@ import { Fields } from "../Fields";
 import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
 import { LoadingIcon } from "../LoadingIcon";
 
-export function CreateItemDrawer({ listKey, onClose, onCreate, trigger }) {
+export function CreateItemDrawer({ listKey, onClose, onCreate, trigger, isDrawerOpen, setIsDrawerOpen }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
   const createItemState = useCreateItem(list);
@@ -13,6 +13,8 @@ export function CreateItemDrawer({ listKey, onClose, onCreate, trigger }) {
   return (
     <Drawer
       title={`Create ${list.singular}`}
+      isDrawerOpen={isDrawerOpen}
+      setIsDrawerOpen={setIsDrawerOpen}
       trigger={trigger}
       actions={{
         confirm: {

@@ -149,84 +149,88 @@ export const Field = ({
                   }
             }
           />
-          <div className="flex space-x-2">
-            {onChange !== undefined &&
-              !field.hideCreate &&
-              onChange !== undefined && (
-                <CreateItemDrawer
-                  listKey={foreignList.key}
-                  trigger={
-                    <Button
-                      // disabled={isDrawerOpen}
-                      // onClick={() => {
-                      //   setIsDrawerOpen(true);
-                      // }}
-                      // variant="secondary"
-                      variant="secondary"
-                    >
-                      Create related {foreignList.singular}
-                    </Button>
-                  }
-                  onClose={() => {
-                    setIsDrawerOpen(false);
-                  }}
-                  onCreate={(val) => {
-                    setIsDrawerOpen(false);
-                    if (value.kind === "many") {
-                      onChange({
-                        ...value,
-                        value: [...value.value, val],
-                      });
-                    } else if (value.kind === "one") {
-                      onChange({
-                        ...value,
-                        value: val,
-                      });
+          {!field.hideButtons && (
+            <div className="flex space-x-2">
+              {onChange !== undefined &&
+                !field.hideCreate &&
+                onChange !== undefined && (
+                  <CreateItemDrawer
+                    listKey={foreignList.key}
+                    isDrawerOpen={isDrawerOpen}
+                    setIsDrawerOpen={setIsDrawerOpen}
+                    trigger={
+                      <Button
+                        // disabled={isDrawerOpen}
+                        // onClick={() => {
+                        //   setIsDrawerOpen(true);
+                        // }}
+                        // variant="secondary"
+                        variant="secondary"
+                      >
+                        Create related {foreignList.singular}
+                      </Button>
                     }
-                  }}
+                    onClose={() => {
+                      setIsDrawerOpen(false);
+                    }}
+                    onCreate={(val) => {
+                      setIsDrawerOpen(false);
+                      if (value.kind === "many") {
+                        onChange({
+                          ...value,
+                          value: [...value.value, val],
+                        });
+                      } else if (value.kind === "one") {
+                        onChange({
+                          ...value,
+                          value: val,
+                        });
+                      }
+                    }}
+                  />
+                )}
+              {onChange !== undefined &&
+                authenticatedItem.state === "authenticated" &&
+                authenticatedItem.listKey === field.refListKey &&
+                (value.kind === "many"
+                  ? value.value.find((x) => x.id === authenticatedItem.id) ===
+                    undefined
+                  : value.value?.id !== authenticatedItem.id) && (
+                  <Button
+                    onClick={() => {
+                      const val = {
+                        label: authenticatedItem.label,
+                        id: authenticatedItem.id,
+                      };
+                      if (value.kind === "many") {
+                        onChange({
+                          ...value,
+                          value: [...value.value, val],
+                        });
+                      } else {
+                        onChange({
+                          ...value,
+                          value: val,
+                        });
+                      }
+                    }}
+                  >
+                    {value.kind === "many" ? "Add " : "Set as "}
+                    {authenticatedItem.label}
+                  </Button>
+                )}
+              {!!(value.kind === "many"
+                ? value.value.length
+                : value.kind === "one" && value.value) && (
+                <LinkToRelatedItems
+                  itemId={value.id}
+                  refFieldKey={field.refFieldKey}
+                  list={foreignList}
+                  value={value}
                 />
               )}
-            {onChange !== undefined &&
-              authenticatedItem.state === "authenticated" &&
-              authenticatedItem.listKey === field.refListKey &&
-              (value.kind === "many"
-                ? value.value.find((x) => x.id === authenticatedItem.id) ===
-                  undefined
-                : value.value?.id !== authenticatedItem.id) && (
-                <Button
-                  onClick={() => {
-                    const val = {
-                      label: authenticatedItem.label,
-                      id: authenticatedItem.id,
-                    };
-                    if (value.kind === "many") {
-                      onChange({
-                        ...value,
-                        value: [...value.value, val],
-                      });
-                    } else {
-                      onChange({
-                        ...value,
-                        value: val,
-                      });
-                    }
-                  }}
-                >
-                  {value.kind === "many" ? "Add " : "Set as "}
-                  {authenticatedItem.label}
-                </Button>
-              )}
-            {!!(value.kind === "many"
-              ? value.value.length
-              : value.kind === "one" && value.value) && (
-              <LinkToRelatedItems
-                itemId={value.id}
-                refFieldKey={field.refFieldKey}
-                list={foreignList}
-                value={value}
-              />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Fragment>
     </FieldContainer>

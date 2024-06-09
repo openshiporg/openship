@@ -50,7 +50,7 @@ export const CreateItemPage = ({ params }) => {
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 {list.isSingleton ? (
-                  <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
                     {list.label}
                   </div>
                 ) : (

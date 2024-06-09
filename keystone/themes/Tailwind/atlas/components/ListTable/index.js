@@ -203,12 +203,12 @@ export function ListTable({
 
   return (
     <Table>
-      <TableHeader className="bg-muted/30">
+      <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead
-                className="text-nowrap text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+                className="text-nowrap text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase"
                 key={header.id}
               >
                 {header.isPlaceholder

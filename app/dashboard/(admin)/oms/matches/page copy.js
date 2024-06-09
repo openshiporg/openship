@@ -173,7 +173,7 @@ const MatchHeader = ({
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium text-slate-500 bg-white border-slate-200 hover:bg-slate-100 hover:text-slate-700 focus:ring-2 focus:ring-blue-700 focus:text-slate-700 dark:bg-slate-950 dark:border-slate-900 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700 dark:focus:ring-blue-500 dark:focus:text-white"
+            className="flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium text-zinc-500 bg-white border-zinc-200 hover:bg-zinc-100 hover:text-zinc-700 focus:ring-2 focus:ring-blue-700 focus:text-zinc-700 dark:bg-zinc-950 dark:border-zinc-900 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 dark:focus:ring-blue-500 dark:focus:text-white"
           >
             {match.id}
             <ChevronRight className="h-4 w-4" />
@@ -471,7 +471,7 @@ const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
                       parseFloat(item.externalDetails.price) * item.quantity
                     ).toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-zinc-500">
                     (${parseFloat(item.externalDetails.price).toFixed(2)} x{" "}
                     {item.quantity})
                   </p>
@@ -482,7 +482,7 @@ const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
                 </p>
               )}
             </div>
-            <div className="flex flex-col gap-1 pt-1 items-center mb-auto ml-auto shadow-xs uppercase tracking-wide border text-nowrap px-2 py-[2px] text-xs font-medium text-slate-500 bg-white border-slate-200 rounded-sm hover:bg-slate-100 hover:text-slate-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-slate-700 dark:bg-slate-950 dark:border-slate-900 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700 dark:focus:ring-blue-500 dark:focus:text-white">
+            <div className="flex flex-col gap-1 pt-1 items-center mb-auto ml-auto shadow-xs uppercase tracking-wide border text-nowrap px-2 py-[2px] text-xs font-medium text-zinc-500 bg-white border-zinc-200 rounded-sm hover:bg-zinc-100 hover:text-zinc-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-zinc-700 dark:bg-zinc-950 dark:border-zinc-900 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 dark:focus:ring-blue-500 dark:focus:text-white">
               {!item.externalDetails.inventoryTracked ? (
                 <AlertTriangle className="w-3 h-3" />
               ) : (

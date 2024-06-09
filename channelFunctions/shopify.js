@@ -383,53 +383,35 @@ export async function getWebhooks({ domain, accessToken }) {
     })),
   };
 }
-// Function to get config for Shopify
-export function getConfig() {
-  return {
-    apiKey: process.env.CHANNEL_SHOPIFY_API_KEY,
-    apiSecret:  process.env.CHANNEL_SHOPIFY_SECRET,
-    redirectUri: `${process.env.FRONTEND_URL}/api/o-auth/channel/callback/shopify`,
-    scopes: [
-      "write_orders", "write_products", "read_orders", "read_products", "read_fulfillments", 
-      "write_fulfillments", "write_draft_orders", "read_assigned_fulfillment_orders", 
-      "write_assigned_fulfillment_orders", "read_merchant_managed_fulfillment_orders", 
-      "write_merchant_managed_fulfillment_orders"
-    ],
-  };
-}
 
 // Shopify OAuth function
-export async function oauth(req, res, config) {
-  const shop = req.query.shop;
-  const state = req.query.state;
+export function oauth(domain, config) {
   const redirectUri = config.redirectUri;
   const scopes = config.scopes;
 
-  const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${config.apiKey}&scope=${scopes.join(",")}&state=${state}&redirect_uri=${redirectUri}`;
-  res.redirect(authUrl);
+  const authUrl = `https://${domain}/admin/oauth/authorize?client_id=${
+    config.apiKey
+  }&scope=${scopes.join(",")}&redirect_uri=${redirectUri}`;
+
+  window.location.href = authUrl; // Redirect using window.location.href
 }
 
-// Shopify callback function
-export async function callback(query, config) {
-  const { shop, hmac, code, timestamp } = query;
+export async function callback(query, { appKey, appSecret, redirectUri, scopes }) {
+  const { shop, hmac, code, host, timestamp } = query;
 
   async function getToken() {
-    if (!code) {
+    if (!hmac || !timestamp) {
       return {
         status: 422,
-        redirect: `${process.env.FRONTEND_URL}/api/o-auth/shop/shopify?shop=${shop}`
+        error: "Unprocessable Entity: hmac or timestamp not found",
       };
     }
 
-    if (!hmac || !timestamp) {
-      return { status: 422, error: "Unprocessable Entity" };
-    }
-
     const shopifyToken = new ShopifyToken({
-      redirectUri: `${config.redirectUri}/callback`,
-      sharedSecret: config.apiSecret,
-      apiKey: config.apiKey,
-      scopes: config.scopes,
+      redirectUri: redirectUri,
+      sharedSecret: appSecret,
+      apiKey: appKey,
+      scopes: scopes,
       accessMode: "offline",
       timeout: 10000,
     });
@@ -439,13 +421,53 @@ export async function callback(query, config) {
       throw new Error("Error validating hmac");
     }
 
-    const data = await shopifyToken.getAccessToken(shop, code);
-    return data.access_token;
+    if (!code) {
+      // Fetch access token directly if 'code' is not present
+      try {
+        const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            client_id: appKey,
+            client_secret: appSecret,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Error fetching access token');
+        }
+
+        return data.access_token;
+      } catch (error) {
+        console.error("Error fetching access token directly", error);
+        throw new Error("Error fetching access token directly");
+      }
+    } else {
+      // Use the code to get the access token
+      try {
+        const data = await shopifyToken.getAccessToken(shop, code);
+        return data.access_token;
+      } catch (error) {
+        console.error("Error getting access token with code", error);
+        throw new Error("Error getting access token with code");
+      }
+    }
   }
 
-  const accessToken = await getToken();
-  return accessToken;
+  try {
+    const accessToken = await getToken();
+    return accessToken;
+  } catch (error) {
+    return {
+      status: 500,
+      error: error.message,
+    };
+  }
 }
+
 
 export async function createTrackingWebhookHandler(req, res) {
   const { tracking_numbers, tracking_company, order_id } = req.body;
@@ -462,7 +484,9 @@ export async function createTrackingWebhookHandler(req, res) {
 export async function cancelPurchaseWebhookHandler(req, res) {
   const { id } = req.body;
   if (!id) {
-    return res.status(400).json({ error: "Missing fields needed to cancel cart item" });
+    return res
+      .status(400)
+      .json({ error: "Missing fields needed to cancel cart item" });
   }
   return id.toString();
 }

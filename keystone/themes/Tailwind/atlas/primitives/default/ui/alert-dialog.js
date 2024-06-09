@@ -5,6 +5,7 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "@keystone/utils/cn";
 import { Button, buttonVariants } from "./button";
+import { RiLoader2Fill } from "@remixicon/react";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
@@ -85,12 +86,27 @@ AlertDialogDescription.displayName =
   AlertDialogPrimitive.Description.displayName;
 
 const AlertDialogAction = React.forwardRef(
-  ({ className, buttonProps, ...props }, ref) => (
+  ({ className, buttonProps, isLoading, loadingText, children, ...props }, ref) => (
     <AlertDialogPrimitive.Action
       ref={ref}
       className={cn(buttonVariants(buttonProps), className)}
       {...props}
-    />
+    >
+      {isLoading ? (
+        <span className="pointer-events-none flex shrink-0 items-center justify-center gap-1.5">
+          <RiLoader2Fill
+            className="size-4 shrink-0 animate-spin"
+            aria-hidden="true"
+          />
+          <span className="sr-only">
+            {loadingText ? loadingText : "Loading"}
+          </span>
+          {loadingText ? loadingText : children}
+        </span>
+      ) : (
+        children
+      )}
+    </AlertDialogPrimitive.Action>
   )
 );
 AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName;
@@ -99,8 +115,8 @@ const AlertDialogCancel = React.forwardRef(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
     className={cn(
-      buttonVariants({ variant: "secondary" }),
-      "mt-2 sm:mt-0 dark:bg-transparent",
+      buttonVariants({ variant: "light" }),
+      "mt-2 sm:mt-0",
       className
     )}
     {...props}

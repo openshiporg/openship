@@ -149,7 +149,7 @@ export const LinkElement = ({
               <UnlinkButton onUnlink={unlink} />
             </ToolbarGroup>
             {showInvalidState && (
-              <span className="text-red-600 dark:text-red-500 text-sm">
+              <span className="text-red-600 dark:text-red-700 text-sm">
                 Please enter a valid URL
               </span>
             )}

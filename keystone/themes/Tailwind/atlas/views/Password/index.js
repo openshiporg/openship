@@ -68,7 +68,7 @@ export const Field = ({
     ? validate(value, field.validation, field.label)
     : undefined;
   const validation = validationMessage && (
-    <span className="text-red-600 dark:text-red-500 text-sm">
+    <span className="text-red-600 dark:text-red-700 text-sm">
       {validationMessage}
     </span>
   );

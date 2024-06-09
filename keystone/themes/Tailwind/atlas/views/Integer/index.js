@@ -53,7 +53,7 @@ function IntegerInput({
         {...props}
       />
       {(hasBlurred || forceValidation) && validationMessage && (
-        <span className="text-red-600 dark:text-red-500 text-sm">{validationMessage}</span>
+        <span className="text-red-600 dark:text-red-700 text-sm">{validationMessage}</span>
       )}
     </span>
   )

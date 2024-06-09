@@ -99,7 +99,7 @@ export const Field = ({
           {!!validationMessages.length &&
             (shouldShowErrors || forceValidation) &&
             validationMessages.map((message, i) => (
-              <span key={i} className="text-red-600 dark:text-red-500 text-sm">
+              <span key={i} className="text-red-600 dark:text-red-700 text-sm">
                 {message}
               </span>
             ))}

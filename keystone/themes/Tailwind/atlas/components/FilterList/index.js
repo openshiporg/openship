@@ -56,7 +56,7 @@ function FilterPill({ filter, field }) {
         <div class="rounded-md inline-flex shadow-XS" role="group">
           <button
             type="button"
-            className="text-nowrap px-3 py-[3px] text-xs font-medium text-slate-500 bg-white border border-slate-200 border-r-0 rounded-s-md hover:bg-slate-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:text-white dark:hover:bg-slate-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            className="text-nowrap px-3 py-[3px] text-xs font-medium text-zinc-500 bg-white border border-zinc-200 border-r-0 rounded-s-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-200 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
           >
             {field.label}{" "}
             <Label
@@ -72,7 +72,7 @@ function FilterPill({ filter, field }) {
               e.stopPropagation();
               onRemove();
             }}
-            class="px-1 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-e-md hover:bg-slate-200 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:hover:text-white dark:hover:bg-slate-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            class="px-1 text-sm font-medium text-zinc-900 bg-white border border-zinc-200 rounded-e-md hover:bg-zinc-200 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
           >
             <XIcon size={14} className="stroke-muted-foreground" />
           </button>

@@ -50,6 +50,8 @@ import {
   PaginationStats,
 } from "../../components/Pagination";
 import { Input } from "../../primitives/default/ui/input";
+import { Badge } from "../../primitives/default/ui/badge";
+import ListDataTable from "../../components/ListDataTable";
 
 let listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
@@ -294,7 +296,7 @@ export const ListPageTemplate = ({ listKey }) => {
               </div>
             ) : null}
           </div>
-          <div class="no-scrollbar overflow-x-auto border rounded-lg divide-y">
+          <div class="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
             <div class="flex gap-3 py-3 px-3">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -319,7 +321,7 @@ export const ListPageTemplate = ({ listKey }) => {
               </div>
             </div>
 
-            <div className="flex gap-2 items-center bg-slate-300/20 dark:bg-muted/10 px-3 py-2">
+            <div className="flex gap-2 items-center bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
               <div>
                 <PaginationNavigation
                   list={list}
@@ -342,7 +344,7 @@ export const ListPageTemplate = ({ listKey }) => {
                 dropdownTrigger={
                   <button
                     type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                   >
                     <ArrowUpDown
                       size={12}
@@ -356,10 +358,10 @@ export const ListPageTemplate = ({ listKey }) => {
                 list={list}
                 fieldModesByFieldPath={listViewFieldModesByField}
                 rightSection={
-                  <Button
-                    variant="secondary"
+                  <Badge
+                    color="rose"
+                    className="py-0.5 text-xs cursor-pointer"
                     onClick={resetToDefaults}
-                    className="opacity-85 text-red-800"
                     isDisabled={
                       !Boolean(
                         filters.filters.length ||
@@ -369,13 +371,13 @@ export const ListPageTemplate = ({ listKey }) => {
                       )
                     }
                   >
-                    Reset
-                  </Button>
+                    RESET
+                  </Badge>
                 }
                 dropdownTrigger={
                   <button
                     type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                   >
                     <Columns3 size={12} className="stroke-muted-foreground" />
                     COLUMNS
@@ -389,7 +391,7 @@ export const ListPageTemplate = ({ listKey }) => {
                   dropdownTrigger={
                     <button
                       type="button"
-                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                     >
                       <PlusIcon size={13} className="stroke-muted-foreground" />
                       FILTER
@@ -405,7 +407,7 @@ export const ListPageTemplate = ({ listKey }) => {
               ) : null}
             </div>
             {selectedItemsState.selectedItems.size > 0 && (
-              <div className="py-2 pr-2 pl-3 border fixed bottom-4 z-50 shadow-lg rounded-lg bg-white dark:bg-slate-800">
+              <div className="py-2 pr-2 pl-3 border fixed bottom-4 z-50 shadow-lg rounded-lg bg-white dark:bg-zinc-800">
                 <div className="flex gap-4 items-center">
                   <span className="text-sm text-muted-foreground font-medium">
                     {selectedItemsState.selectedItems.size} of{" "}

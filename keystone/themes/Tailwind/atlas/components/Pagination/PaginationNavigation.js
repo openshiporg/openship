@@ -46,11 +46,11 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
     }
   };
   return (
-    <div className="h-[1.45rem] bg-white dark:bg-slate-800 dark:border-gray-600 shadow-sm flex items-center border rounded-md overflow-hidden">
+    <div className="h-[1.45rem] bg-white dark:bg-zinc-800 dark:border-zinc-600 shadow-sm flex items-center border rounded-md overflow-hidden">
       <button
         type="button"
-        // className="h-full border-r p-1 inline-flex justify-center items-center gap-x-2 text-sm font-medium bg-white text-slate-800 dark:bg-slate-800 hover:bg-slate-100 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
-        className="border-0 h-full flex border-r items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-gray-600 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+        // className="h-full border-r p-1 inline-flex justify-center items-center gap-x-2 text-sm font-medium bg-white text-zinc-800 dark:bg-zinc-800 hover:bg-zinc-100 disabled:opacity-50 disabled:pointer-events-none dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+        className="border-0 h-full flex border-r items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
         onClick={() => handlePageChange(parseInt(currentPageInput) - 1)}
         disabled={parseInt(currentPageInput) <= minPage}
       >
@@ -58,7 +58,7 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
       </button>
       <div className="flex items-center border-r-0 px-1 text-xs h-full">
         <input
-          className={`mx-1 bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-slate-100 text-center appearance-none`}
+          className={`mx-1 bg-transparent border-0 text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none`}
           style={{
             width: `${Math.max(
               0.5,
@@ -75,13 +75,13 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
             }
           }}
         />
-        <span className="mr-1.5 text-gray-500 dark:text-gray-400">
+        <span className="mr-1.5 text-zinc-500 dark:text-zinc-400">
           / {limit}
         </span>
       </div>
       <button
         type="button"
-        className="border-0 h-full flex border-l items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-gray-600 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+        className="border-0 h-full flex border-l items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
         onClick={() => handlePageChange(parseInt(currentPageInput) + 1)}
         disabled={parseInt(currentPageInput) >= limit}
       >

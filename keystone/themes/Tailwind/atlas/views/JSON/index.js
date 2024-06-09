@@ -31,7 +31,7 @@ export const Field = ({
           value={value}
         />
         {forceValidation && (
-          <span className="text-red-600 dark:text-red-500 text-sm">
+          <span className="text-red-600 dark:text-red-700 text-sm">
             {"Invalid JSON"}
           </span>
         )}

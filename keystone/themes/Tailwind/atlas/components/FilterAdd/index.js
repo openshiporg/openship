@@ -34,7 +34,7 @@ export function FilterAdd({ listKey, filterableFields, dropdownTrigger }) {
     <button
       type="button"
       onClick={() => setIsOpen(true)}
-      className="shadow-sm border p-[.15rem] mt-[2px] text-sm font-medium text-gray-900 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="shadow-sm border p-[.15rem] mt-[2px] text-sm font-medium text-zinc-900 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
     >
       <PlusIcon size={13} className="stroke-muted-foreground" />
     </button>
@@ -163,7 +163,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
             Object.keys(filtersByFieldThenType).map((fieldPath) => (
               <button
                 key={fieldPath}
-                className="rounded-sm px-2 py-1.5 text-sm w-full text-left hover:bg-gray-100 dark:hover:bg-gray-900"
+                className="rounded-sm px-2 py-1.5 text-sm w-full text-left hover:bg-zinc-100 dark:hover:bg-zinc-900"
                 onClick={() => handleSelectField(fieldPath)}
               >
                 {list.fields[fieldPath].label}

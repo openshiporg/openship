@@ -5,7 +5,7 @@ import {
   virtual,
   float,
 } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { group, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -19,7 +19,7 @@ export const Channel = list({
       create: isSignedIn,
       query: isSignedIn,
       update: isSignedIn,
-      delete: isSignedIn
+      delete: isSignedIn,
     },
     filter: {
       query: rules.canReadChannels,
@@ -28,22 +28,28 @@ export const Channel = list({
     },
   },
   fields: {
-    name: text(),
-    domain: text(),
-    accessToken: text(),
+    name: text({ validation: { isRequired: true } }),
+    ...group({
+      label: "Credentials",
+      description: "Channel credentials",
+      fields: {
+        domain: text(),
+        accessToken: text(),
+      },
+    }),
+
+    links: relationship({ ref: "Link.channel", many: true }),
 
     platform: relationship({
-      ref: 'ChannelPlatform.channels',
+      ref: "ChannelPlatform.channels",
       ui: {
-        displayMode: 'select',
-        labelField: 'name',
+        displayMode: "select",
+        labelField: "name",
       },
     }),
 
     channelItems: relationship({ ref: "ChannelItem.channel", many: true }),
     cartItems: relationship({ ref: "CartItem.channel", many: true }),
-
-    links: relationship({ ref: "Link.channel", many: true }),
 
     metafields: relationship({ ref: "ChannelMetafield.channel", many: true }),
 

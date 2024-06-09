@@ -695,11 +695,7 @@ export async function addCartToPlatformOrder({
   return { order: orderUpdate?.order };
 }
 
-export async function addTracking({
-  order,
-  trackingCompany,
-  trackingNumber,
-}) {
+export async function addTracking({ order, trackingCompany, trackingNumber }) {
   const FETCH_FULFILLMENT_ORDER = gql`
     query ($id: ID!) {
       order(id: $id) {
@@ -808,62 +804,37 @@ export async function addTracking({
   return createResponseBody;
 }
 
-// Function to get config for Shopify
-export function getConfig() {
-  return {
-    apiKey: process.env.SHOP_SHOPIFY_API_KEY,
-    apiSecret: process.env.SHOP_SHOPIFY_SECRET,
-    redirectUri: `${process.env.FRONTEND_URL}/api/o-auth/shop/callback/shopify`,
-    scopes: [
-      "write_orders",
-      "write_products",
-      "read_orders",
-      "read_products",
-      "read_fulfillments",
-      "write_fulfillments",
-      "write_draft_orders",
-      "read_assigned_fulfillment_orders",
-      "write_assigned_fulfillment_orders",
-      "read_merchant_managed_fulfillment_orders",
-      "write_merchant_managed_fulfillment_orders",
-    ],
-  };
-}
-
 // Shopify OAuth function
-export async function oauth(req, res, config) {
-  const shop = req.query.shop;
-  const state = req.query.state;
+export function oauth(domain, config) {
   const redirectUri = config.redirectUri;
   const scopes = config.scopes;
 
-  const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${
+  const authUrl = `https://${domain}/admin/oauth/authorize?client_id=${
     config.apiKey
-  }&scope=${scopes.join(",")}&state=${state}&redirect_uri=${redirectUri}`;
-  res.redirect(authUrl);
+  }&scope=${scopes.join(",")}&redirect_uri=${redirectUri}`;
+
+  window.location.href = authUrl; // Redirect using window.location.href
 }
 
-// Shopify callback function
-export async function callback(query, config) {
-  const { shop, hmac, code, timestamp } = query;
+export async function callback(
+  query,
+  { appKey, appSecret, redirectUri, scopes }
+) {
+  const { shop, hmac, code, host, timestamp } = query;
 
   async function getToken() {
-    if (!code) {
+    if (!hmac || !timestamp) {
       return {
         status: 422,
-        redirect: `${process.env.FRONTEND_URL}/api/o-auth/shop/shopify?shop=${shop}`,
+        error: "Unprocessable Entity: hmac or timestamp not found",
       };
     }
 
-    if (!hmac || !timestamp) {
-      return { status: 422, error: "Unprocessable Entity" };
-    }
-
     const shopifyToken = new ShopifyToken({
-      redirectUri: `${config.redirectUri}/callback`,
-      sharedSecret: config.apiSecret,
-      apiKey: config.apiKey,
-      scopes: config.scopes,
+      redirectUri: redirectUri,
+      sharedSecret: appSecret,
+      apiKey: appKey,
+      scopes: scopes,
       accessMode: "offline",
       timeout: 10000,
     });
@@ -873,17 +844,61 @@ export async function callback(query, config) {
       throw new Error("Error validating hmac");
     }
 
-    const data = await shopifyToken.getAccessToken(shop, code);
-    return data.access_token;
+    if (!code) {
+      // Fetch access token directly if 'code' is not present
+      try {
+        const response = await fetch(
+          `https://${shop}/admin/oauth/access_token`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              client_id: appKey,
+              client_secret: appSecret,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Error fetching access token");
+        }
+
+        return data.access_token;
+      } catch (error) {
+        console.error("Error fetching access token directly", error);
+        throw new Error("Error fetching access token directly");
+      }
+    } else {
+      // Use the code to get the access token
+      try {
+        const data = await shopifyToken.getAccessToken(shop, code);
+        return data.access_token;
+      } catch (error) {
+        console.error("Error getting access token with code", error);
+        throw new Error("Error getting access token with code");
+      }
+    }
   }
 
-  const accessToken = await getToken();
-  return accessToken;
+  try {
+    const accessToken = await getToken();
+    return accessToken;
+  } catch (error) {
+    return {
+      status: 500,
+      error: error.message,
+    };
+  }
 }
 
 export async function cancelOrderWebhookHandler(req, res) {
   if (!req.body.id) {
-    return res.status(400).json({ error: "Missing fields needed to cancel order" });
+    return res
+      .status(400)
+      .json({ error: "Missing fields needed to cancel order" });
   }
   return req.body.id.toString();
 }
@@ -912,17 +927,18 @@ export async function createOrderWebhookHandler(req, res) {
     });
 
     const lineItemsOutput = await Promise.all(
-      req.body.line_items.map(async ({ id, name, price, quantity, variant_id, product_id, sku }) => {
-        const pvRes = await fetch(
-          `https://${existingShop.domain}/admin/api/graphql.json`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-Shopify-Access-Token": existingShop.accessToken,
-            },
-            method: "POST",
-            body: JSON.stringify({
-              query: `
+      req.body.line_items.map(
+        async ({ id, name, price, quantity, variant_id, product_id, sku }) => {
+          const pvRes = await fetch(
+            `https://${existingShop.domain}/admin/api/graphql.json`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Access-Token": existingShop.accessToken,
+              },
+              method: "POST",
+              body: JSON.stringify({
+                query: `
                 query productVariant($id: ID!) {
                   productVariant(id: $id) {
                     image {
@@ -941,29 +957,31 @@ export async function createOrderWebhookHandler(req, res) {
                   }
                 }
               `,
-              variables: { id: `gid://shopify/ProductVariant/${variant_id}` },
-            }),
-          }
-        );
+                variables: { id: `gid://shopify/ProductVariant/${variant_id}` },
+              }),
+            }
+          );
 
-        const { data: pvData } = await pvRes.json();
-        if (pvData?.productVariant) {
-          return {
-            name,
-            price,
-            lineItemId: id.toString(),
-            quantity,
-            image:
-              (pvData.productVariant.image && pvData.productVariant.image.originalSrc) ||
-              pvData.productVariant.product.images.edges[0]?.node.originalSrc,
-            productId: product_id.toString(),
-            variantId: variant_id.toString(),
-            sku: sku.toString(),
-            user: { connect: { id: existingShop.user.id } },
-          };
+          const { data: pvData } = await pvRes.json();
+          if (pvData?.productVariant) {
+            return {
+              name,
+              price,
+              lineItemId: id.toString(),
+              quantity,
+              image:
+                (pvData.productVariant.image &&
+                  pvData.productVariant.image.originalSrc) ||
+                pvData.productVariant.product.images.edges[0]?.node.originalSrc,
+              productId: product_id.toString(),
+              variantId: variant_id.toString(),
+              sku: sku.toString(),
+              user: { connect: { id: existingShop.user.id } },
+            };
+          }
+          return null;
         }
-        return null;
-      })
+      )
     );
 
     return {
@@ -993,3 +1011,19 @@ export async function createOrderWebhookHandler(req, res) {
   }
 }
 
+export function scopes() {
+  return [
+    "read_products",
+    "write_products",
+    "read_orders",
+    "write_orders",
+    "read_fulfillments",
+    "write_fulfillments",
+    "read_draft_orders",
+    "write_draft_orders",
+    "read_assigned_fulfillment_orders",
+    "write_assigned_fulfillment_orders",
+    "read_merchant_managed_fulfillment_orders",
+    "write_merchant_managed_fulfillment_orders",
+  ];
+}

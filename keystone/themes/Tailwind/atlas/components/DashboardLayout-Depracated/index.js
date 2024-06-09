@@ -73,7 +73,7 @@ export const DashboardLayout = ({ children }) => {
                 <MobileSheet sidebarNav={sidebarNav} />
                 {/* <Separator
                   orientation="vertical"
-                  className="h-6 w-[.1rem] bg-slate-300 dark:bg-slate-700"
+                  className="h-6 w-[.1rem] bg-zinc-300 dark:bg-zinc-700"
                 /> */}
                 <Logo size="lg" />
               </div>

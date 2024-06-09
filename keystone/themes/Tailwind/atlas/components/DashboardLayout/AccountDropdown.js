@@ -15,10 +15,14 @@ import {
   ChevronUpIcon,
   UserIcon,
   ArrowRightStartOnRectangleIcon,
+  MoonIcon,
+  SunIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/16/solid";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { SidebarItem } from "../../primitives/default/ui/sidebar";
 import { ThemeToggle } from "./ThemeToggle";
+import { Link } from "next-view-transitions";
 
 const AUTHENTICATED_ITEM_QUERY = gql`
   query AuthenticatedItem {
@@ -71,9 +75,24 @@ export const AccountDropdown = () => {
     }
   };
 
+  const toggleTheme = (e) => {
+    e.preventDefault();
+    setTheme(themeOptions[theme].next);
+  };
+
+  const themeOptions = {
+    light: { next: "dark", icon: <SunIcon />, label: "Light Mode" },
+    dark: { next: "system", icon: <MoonIcon />, label: "Dark Mode" },
+    system: {
+      next: "light",
+      icon: <ComputerDesktopIcon />,
+      label: "System Mode",
+    },
+  };
+
   if (loading) {
     return (
-      <div className="py-2 flex min-w-0 items-center gap-3">
+      <div className="px-2 py-2 flex min-w-0 items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-lg" />
         <div className="min-w-0">
           <Skeleton className="h-5 w-24 mb-1" />
@@ -106,33 +125,25 @@ export const AccountDropdown = () => {
         </span>
         <ChevronUpIcon />
       </DropdownButton>
-      <DropdownMenu className="min-w-64" anchor="top start">
-        <DropdownItem href={`/dashboard/users/${authenticatedItem.id}`}>
+
+      <DropdownMenu className="min-w-56" anchor="top">
+        <DropdownItem
+          as={Link}
+          href={`/dashboard/users/${authenticatedItem.id}`}
+        >
           <UserIcon />
           <DropdownLabel>My profile</DropdownLabel>
         </DropdownItem>
-        {/* <DropdownItem href="/settings">
-          <Cog8ToothIcon />
-          <DropdownLabel>Settings</DropdownLabel>
-        </DropdownItem>
         <DropdownDivider />
-        <DropdownItem href="/privacy-policy">
-          <ShieldCheckIcon />
-          <DropdownLabel>Privacy policy</DropdownLabel>
+        <DropdownItem onClick={toggleTheme}>
+          {themeOptions[theme].icon}
+          <DropdownLabel>{themeOptions[theme].label}</DropdownLabel>
         </DropdownItem>
-        <DropdownItem href="/share-feedback">
-          <LightBulbIcon />
-          <DropdownLabel>Share feedback</DropdownLabel>
-        </DropdownItem> */}
         <DropdownDivider />
         <DropdownItem onClick={handleLogout}>
           <ArrowRightStartOnRectangleIcon />
           <DropdownLabel>Sign out</DropdownLabel>
         </DropdownItem>
-        {/* <DropdownItem>
-
-          <ThemeToggle />
-        </DropdownItem> */}
       </DropdownMenu>
     </Dropdown>
   );

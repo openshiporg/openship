@@ -4,7 +4,7 @@ export const FieldDescription = ({ id, children, ...props }) => {
   }
 
   return (
-    <div className="mb-2 min-w-32 whitespace-pre-wrap" id={id} {...props}>
+    <div className="-mt-1 mb-1 whitespace-pre-wrap text-xs text-muted-foreground/80" id={id} {...props}>
       {children}
     </div>
   );

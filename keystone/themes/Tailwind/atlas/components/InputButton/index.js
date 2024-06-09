@@ -30,7 +30,7 @@ const ClearButton = (props) => {
       align="right"
       type="button"
       tabIndex={-1}
-      className="align-center bg-transparent border-0 rounded-full flex justify-center outline-none p-0 right-6 top-6 hover:text-gray-500"
+      className="align-center bg-transparent border-0 rounded-full flex justify-center outline-none p-0 right-6 top-6 hover:text-zinc-500"
       {...props}
     >
       <span className="sr-only">clear date value</span>

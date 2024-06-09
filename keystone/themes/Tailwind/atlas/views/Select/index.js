@@ -22,7 +22,7 @@ export const Field = ({
   const [hasChanged, setHasChanged] = useState(false);
   const validationMessage =
     (hasChanged || forceValidation) && !validate(value, field.isRequired) ? (
-      <span className="text-red-600 dark:text-red-500 text-sm">
+      <span className="text-red-600 dark:text-red-700 text-sm">
         {field.label} is required
       </span>
     ) : null;

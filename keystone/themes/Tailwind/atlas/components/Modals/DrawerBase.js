@@ -20,7 +20,7 @@ export const DrawerBase = ({
   };
 
   return (
-    <Sheet ref={containerRef} tabIndex={-1} {...props}>
+    <Sheet tabIndex={-1} {...props}>
       {children}
     </Sheet>
   );

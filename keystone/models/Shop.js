@@ -28,18 +28,18 @@ export const Shop = list({
     },
   },
   fields: {
-    // ...group({
-    //   label: "Credentials",
-    //   description: "Shop credentials",
-    //   fields: {
-    //     name: text(),
-    //     domain: text({ isIndexed: "unique" }),
-    //     accessToken: text(),
-    //   },
-    // }),
-    name: text(),
-    domain: text({ isIndexed: "unique" }),
-    accessToken: text(),
+    name: text({ validation: { isRequired: true } }),
+
+    ...group({
+      label: "Credentials",
+      description: "Shop credentials",
+      fields: {
+        domain: text(),
+        accessToken: text(),
+      },
+    }),
+
+    links: relationship({ ref: "Link.shop", many: true }),
 
     platform: relationship({
       ref: "ShopPlatform.shops",
@@ -52,7 +52,6 @@ export const Shop = list({
     orders: relationship({ ref: "Order.shop", many: true }),
     shopItems: relationship({ ref: "ShopItem.shop", many: true }),
 
-    links: relationship({ ref: "Link.shop", many: true }),
     metafields: relationship({ ref: "ShopMetafield.shop", many: true }),
 
     user: relationship({

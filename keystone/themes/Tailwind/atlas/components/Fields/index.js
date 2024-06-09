@@ -4,7 +4,8 @@ import { Separator } from "../../primitives/default/ui/separator";
 import { Button, buttonVariants } from "../../primitives/default/ui/button";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@keystone/utils/cn";
-FieldDescription;
+import { Badge } from "../../primitives/default/ui/badge";
+
 const RenderField = memo(function RenderField({
   field,
   value,
@@ -14,7 +15,10 @@ const RenderField = memo(function RenderField({
 }) {
   return (
     <field.views.Field
-      field={field.controller}
+      field={{
+        ...field.controller,
+        hideButtons: field.fieldMeta.hideButtons,
+      }}
       onChange={useMemo(() => {
         if (onChange === undefined) return undefined;
         return (value) => {
@@ -56,7 +60,7 @@ export function Fields({
           fieldKey,
           <div key={fieldKey}>
             {field.label}:{" "}
-            <span className="text-red-600 dark:text-red-500 text-sm">
+            <span className="text-red-600 dark:text-red-700 text-sm">
               {val.errors[0].message}
             </span>
           </div>,
@@ -99,7 +103,11 @@ export function Fields({
         continue;
       }
       rendered.push(
-        <FieldGroup label={group.label} description={group.description}>
+        <FieldGroup
+          count={group.fields.length}
+          label={group.label}
+          description={group.description}
+        >
           {renderedFieldsInGroup}
         </FieldGroup>
       );
@@ -132,35 +140,44 @@ function FieldGroup(props) {
       aria-describedby={props.description === null ? undefined : descriptionId}
     >
       <details open>
-        <summary className="list-none outline-none">
-          <div className="flex gap-1">
+        <summary className="list-none outline-none [&::-webkit-details-marker]:hidden">
+          <div className="flex gap-1.5 items-center">
             {/* <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
               {downChevron}
             </div> */}
             <div
-              variant="secondary"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
-                "py-1 px-2"
+                "mt-[1px] self-start px-1 h-5"
               )}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-3" />
             </div>
             {divider}
-            <text id={labelId} className="relative text-lg font-medium">
-              {props.label}
-            </text>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <text id={labelId} className="relative text-lg/5 font-medium">
+                  {props.label}
+                </text>
+                <Badge className="text-[.7rem] py-0.5 uppercase tracking-wide font-medium">
+                  {props.children.filter(item => item !== undefined).length} FIELD{props.children.filter(item => item !== undefined).length > 1 && "S"}
+                </Badge>
+              </div>
+              {props.description !== null && (
+                <FieldDescription
+                  className="opacity-50 text-sm"
+                  id={descriptionId}
+                >
+                  {props.description}
+                </FieldDescription>
+              )}
+            </div>
           </div>
         </summary>
-        <div className="flex ml-[2.65rem]">
+        <div className="flex ml-[2.25rem] mt-2">
           {divider}
-          <div>
-            {props.description !== null && (
-              <FieldDescription className="opacity-50" id={descriptionId}>
-                {props.description}
-              </FieldDescription>
-            )}
-            <div className="mt-2 space-y-2">{props.children}</div>
+          <div className="w-full">
+            <div className="space-y-4">{props.children}</div>
           </div>
         </div>
       </details>

@@ -3763,6 +3763,19 @@ acorn@^8.9.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.11.3.tgz#71e0b14e13a4ec160724b38fb7b0f233b1b81d7a"
   integrity sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==
 
+ag-grid-community@31.3.2, ag-grid-community@^31.3.2:
+  version "31.3.2"
+  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-31.3.2.tgz#588fd3be5cd5d79522886ca5dfc14757cb6c7d8c"
+  integrity sha512-GxqFRD0OcjaVRE1gwLgoP0oERNPH8Lk8wKJ1txulsxysEQ5dZWHhiIoXXSiHjvOCVMkK/F5qzY6HNrn6VeDMTQ==
+
+ag-grid-react@^31.3.2:
+  version "31.3.2"
+  resolved "https://registry.yarnpkg.com/ag-grid-react/-/ag-grid-react-31.3.2.tgz#6b492cd76ea79f46690f529ddc93389e138cd0b8"
+  integrity sha512-SFHN05bsXp901rIT00Fa6iQLCtyavoJiKaXEDUtAU5LMu+GTkjs/FPQBQ8754omgdDFr4NsS3Ri6QbqBne3rug==
+  dependencies:
+    ag-grid-community "31.3.2"
+    prop-types "^15.8.1"
+
 ajv-formats@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-formats/-/ajv-formats-2.1.1.tgz#6e669400659eb74973bbf2e33327180a0996b520"
@@ -7432,10 +7445,10 @@ react-focus-lock@^2.12.1, react-focus-lock@^2.7.1:
     use-callback-ref "^1.3.2"
     use-sidecar "^1.1.2"
 
-react-hook-form@^7.43.9:
-  version "7.51.4"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.51.4.tgz#c3a47aeb22b699c45de9fc12b58763606cb52f0c"
-  integrity sha512-V14i8SEkh+V1gs6YtD0hdHYnoL4tp/HX/A45wWQN15CYr9bFRmmRdYStSO5L65lCCZRF+kYiSKhm9alqbcdiVA==
+react-hook-form@^7.51.5:
+  version "7.51.5"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.51.5.tgz#4afbfb819312db9fea23e8237a3a0d097e128b43"
+  integrity sha512-J2ILT5gWx1XUIJRETiA7M19iXHlG74+6O3KApzvqB/w8S5NQR7AbU8HVZrMALdmDgWpRPYiZJl0zx8Z4L2mP6Q==
 
 react-instantsearch-hooks-web@^6.43.0:
   version "6.47.3"
@@ -7977,6 +7990,11 @@ slate@^0.102.0:
     immer "^10.0.3"
     is-plain-object "^5.0.0"
     tiny-warning "^1.0.3"
+
+sonner@^1.4.41:
+  version "1.4.41"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-1.4.41.tgz#ff085ae4f4244713daf294959beaa3e90f842d2c"
+  integrity sha512-uG511ggnnsw6gcn/X+YKkWPo5ep9il9wYi3QJxHsYe7yTZ4+cOd1wuodOUmOpFuXL+/RE3R04LczdNCDygTDgQ==
 
 source-map-js@^1.0.2, source-map-js@^1.2.0:
   version "1.2.0"

@@ -12,6 +12,7 @@ export const useToasts = () => {
       title: title,
       description: message,
       status: status,
+      tone,
       // Include any other necessary properties for the new toast
     });
   };
