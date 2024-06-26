@@ -104,7 +104,7 @@ export const TrackingDetail = list({
             } else {
               // Internal function call
               const platformFunctions = await import(
-                `../../shopFunctions/${addTrackingFunction}.js`
+                `../../shopAdapters/${addTrackingFunction}.js`
               );
 
               if (platformFunctions.addTracking) {

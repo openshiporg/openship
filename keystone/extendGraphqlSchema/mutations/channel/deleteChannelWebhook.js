@@ -37,11 +37,11 @@ async function deleteChannelWebhook(root, { channelId, webhookId }, context) {
     return result;
   } else {
     // Internal function call
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${deleteWebhookFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${deleteWebhookFunction}.js`
     );
 
-    const result = await channelFunctions.deleteWebhook({
+    const result = await channelAdapters.deleteWebhook({
       domain: channel.domain,
       accessToken: channel.accessToken,
       webhookId,

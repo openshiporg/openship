@@ -4,6 +4,7 @@ import {
   relationship,
   virtual,
   float,
+  json,
 } from "@keystone-6/core/fields";
 import { graphql, list, group } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
@@ -52,7 +53,7 @@ export const Shop = list({
     orders: relationship({ ref: "Order.shop", many: true }),
     shopItems: relationship({ ref: "ShopItem.shop", many: true }),
 
-    metafields: relationship({ ref: "ShopMetafield.shop", many: true }),
+    metadata: json(),
 
     user: relationship({
       ref: "User.shops",

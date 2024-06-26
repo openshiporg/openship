@@ -11,9 +11,9 @@ import { AdminLink } from "../../components/AdminLink";
 const ListCard = ({ listKey, count, hideCreate }) => {
   const list = useList(listKey);
   return (
-    <div class="shadow-xs flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:border-white/5 dark:bg-black">
-      <div class="w-full self-end">
-        <div class="text-sm text-zinc-500 dark:text-zinc-400">
+    <div className="shadow-xs flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:border-white/5 dark:bg-black">
+      <div className="w-full self-end">
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">
           {list.isSingleton ? null : count.type === "success" ? (
             count.count
           ) : count.type === "error" ? (
@@ -41,7 +41,7 @@ const ListCard = ({ listKey, count, hideCreate }) => {
           </Button>
         </AdminLink>
       )} */}
-      {/* <button class="py-2 px-2.5 mr-1 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#ED8424] via-[#E37712] to-[#D96900] font-sans font-medium text-white transition-shadow ease-in-out disabled:opacity-70 dark:bg-gradient-to-b dark:from-[#00D9A2] dark:via-[#00B487] dark:to-[#00916D] dark:text-white">
+      {/* <button className="py-2 px-2.5 mr-1 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#ED8424] via-[#E37712] to-[#D96900] font-sans font-medium text-white transition-shadow ease-in-out disabled:opacity-70 dark:bg-gradient-to-b dark:from-[#00D9A2] dark:via-[#00B487] dark:to-[#00916D] dark:text-white">
         <PlusIcon size={32} />
       </button> */}
       {/* <button className="py-2 px-2.5 mr-1 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-b from-zinc-600 via-zinc-700 to-zinc-800 font-sans font-medium text-white transition-shadow ease-in-out disabled:opacity-70 dark:bg-gradient-to-b dark:from-zinc-400 dark:via-zinc-500 dark:to-zinc-600 dark:text-white">

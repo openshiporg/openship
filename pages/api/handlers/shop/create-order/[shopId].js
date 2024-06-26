@@ -4,9 +4,14 @@ import { removeEmpty } from "keystone/lib/removeEmpty";
 const handler = async (req, res) => {
   res.status(200).json({ received: true });
 
-  const { platform } = req.query;
+  const { shopId } = req.query;
   try {
-    const platformFunctions = await import(`../../../shopFunctions/${platform}.js`);
+    // Find the shop and its platform
+    const shop = await keystoneContext.sudo().query.Shop.findOne({
+      where: { id: shopId },
+      query: 'id platform { createOrderWebhookHandler }',
+    });
+    const platformFunctions = await import(`../../../../../shopAdapters/${shop.platform.createOrderWebhookHandler}.js`);
     const createOrderData = await platformFunctions.createOrderWebhookHandler(req, res);
 
     await keystoneContext.sudo().query.Order.createOne({

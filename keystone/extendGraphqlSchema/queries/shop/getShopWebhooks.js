@@ -36,11 +36,11 @@ async function getShopWebhooks(root, { shopId }, context) {
     return webhooks; // Assuming the response includes a 'webhooks' array
   } else {
     // Internal function call
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${getWebhooksFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${getWebhooksFunction}.js`
     );
 
-    const result = await shopFunctions.getWebhooks({
+    const result = await shopAdapters.getWebhooks({
       domain: shop.domain,
       accessToken: shop.accessToken,
     });

@@ -37,11 +37,11 @@ async function deleteShopWebhook(root, { shopId, webhookId }, context) {
     return result;
   } else {
     // Internal function call
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${deleteWebhookFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${deleteWebhookFunction}.js`
     );
 
-    const result = await shopFunctions.deleteWebhook({
+    const result = await shopAdapters.deleteWebhook({
       domain: shop.domain,
       accessToken: shop.accessToken,
       webhookId,

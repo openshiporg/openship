@@ -4,6 +4,7 @@ import {
   relationship,
   virtual,
   float,
+  json,
 } from "@keystone-6/core/fields";
 import { group, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
@@ -51,7 +52,7 @@ export const Channel = list({
     channelItems: relationship({ ref: "ChannelItem.channel", many: true }),
     cartItems: relationship({ ref: "CartItem.channel", many: true }),
 
-    metafields: relationship({ ref: "ChannelMetafield.channel", many: true }),
+    metadata: json(),
 
     user: relationship({
       ref: "User.channels",

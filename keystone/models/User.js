@@ -54,11 +54,6 @@ export const User = list({
     apiKeys: relationship({ ref: "apiKey.user", many: true }),
     matches: relationship({ ref: "Match.user", many: true }),
     links: relationship({ ref: "Link.user", many: true }),
-    channelMetafields: relationship({
-      ref: "ChannelMetafield.user",
-      many: true,
-    }),
-    shopMetafields: relationship({ ref: "ShopMetafield.user", many: true }),
     trackingDetails: relationship({ ref: "TrackingDetail.user", many: true }),
     role: relationship({
       ref: "Role.assignedTo",

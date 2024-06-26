@@ -228,6 +228,7 @@ export const controller = (config) => {
             }}
             value={props.value}
             autoFocus={props.autoFocus}
+            className={props.className}
           />
         );
       },

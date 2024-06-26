@@ -13,6 +13,8 @@ const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
 const listKey = "User";
 
+export const basePath = "/dashboard"
+
 const sessionConfig = {
   maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?
   secret:
@@ -162,7 +164,7 @@ export default withAuth(
     },
     ui: {
       isAccessAllowed: ({ session }) => !!session,
-      basePath: "/dashboard",
+      basePath
     },
     session: statelessSessions(sessionConfig),
     experimental: {

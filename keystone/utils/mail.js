@@ -1,3 +1,5 @@
+'use server'
+
 import { createTransport, getTestMessageUrl } from "nodemailer";
 
 const transport = createTransport({

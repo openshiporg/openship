@@ -14,12 +14,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          "border-transparent",
+          // "border-transparent",
+          "border dark:border-zinc-600 border-zinc-800",
           "text-white dark:text-zinc-900",
-          "bg-zinc-900 dark:bg-zinc-50",
+          // "bg-zinc-900 dark:bg-zinc-50",
+          "bg-gradient-to-b dark:from-white dark:to-zinc-100 from-gray-950 to-zinc-950",
           "hover:bg-zinc-800 dark:hover:bg-zinc-200",
-          "disabled:bg-zinc-100 disabled:text-zinc-400",
-          "disabled:dark:bg-zinc-800 disabled:dark:text-zinc-600",
+          "disabled:opacity-50"
+          // "disabled:bg-zinc-100 disabled:text-zinc-400",
+          // "disabled:dark:bg-zinc-800 disabled:dark:text-zinc-600",
         ],
         // primary: [
         //   "border-transparent",
@@ -33,11 +36,18 @@ const buttonVariants = cva(
           "border border-zinc-300 dark:border-zinc-800",
           "text-zinc-900 dark:text-zinc-50",
           // "bg-white dark:bg-zinc-950",
-          "bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-950",
+          "bg-gradient-to-b from-white to-zinc-50 dark:from-gray-950 dark:to-zinc-950",
           "hover:bg-zinc-50 dark:hover:bg-zinc-900/60",
           "disabled:opacity-50",
           "disabled:text-zinc-400",
           "disabled:dark:text-zinc-600",
+        ],
+        tertiary: [
+          "text-white",
+          "border-blue-600 dark:border-blue-800",
+          "bg-gradient-to-b from-blue-400 to-blue-500 dark:from-blue-900 dark:to-blue-950",
+          "hover:bg-blue-700 dark:hover:bg-blue-600",
+          "disabled:opacity-50"
         ],
         light: [
           "shadow-none",

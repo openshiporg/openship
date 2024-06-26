@@ -30,10 +30,6 @@ type User {
   matchesCount(where: MatchWhereInput! = {}): Int
   links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   linksCount(where: LinkWhereInput! = {}): Int
-  channelMetafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
-  channelMetafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
-  shopMetafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
-  shopMetafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
   trackingDetails(where: TrackingDetailWhereInput! = {}, orderBy: [TrackingDetailOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TrackingDetailWhereUniqueInput): [TrackingDetail!]
   trackingDetailsCount(where: TrackingDetailWhereInput! = {}): Int
   role: Role
@@ -74,8 +70,6 @@ input UserWhereInput {
   apiKeys: apiKeyManyRelationFilter
   matches: MatchManyRelationFilter
   links: LinkManyRelationFilter
-  channelMetafields: ChannelMetafieldManyRelationFilter
-  shopMetafields: ShopMetafieldManyRelationFilter
   trackingDetails: TrackingDetailManyRelationFilter
   role: RoleWhereInput
   createdAt: DateTimeFilter
@@ -202,18 +196,6 @@ input LinkManyRelationFilter {
   none: LinkWhereInput
 }
 
-input ChannelMetafieldManyRelationFilter {
-  every: ChannelMetafieldWhereInput
-  some: ChannelMetafieldWhereInput
-  none: ChannelMetafieldWhereInput
-}
-
-input ShopMetafieldManyRelationFilter {
-  every: ShopMetafieldWhereInput
-  some: ShopMetafieldWhereInput
-  none: ShopMetafieldWhereInput
-}
-
 input TrackingDetailManyRelationFilter {
   every: TrackingDetailWhereInput
   some: TrackingDetailWhereInput
@@ -277,8 +259,6 @@ input UserUpdateInput {
   apiKeys: apiKeyRelateToManyForUpdateInput
   matches: MatchRelateToManyForUpdateInput
   links: LinkRelateToManyForUpdateInput
-  channelMetafields: ChannelMetafieldRelateToManyForUpdateInput
-  shopMetafields: ShopMetafieldRelateToManyForUpdateInput
   trackingDetails: TrackingDetailRelateToManyForUpdateInput
   role: RoleRelateToOneForUpdateInput
   createdAt: DateTime
@@ -372,20 +352,6 @@ input LinkRelateToManyForUpdateInput {
   connect: [LinkWhereUniqueInput!]
 }
 
-input ChannelMetafieldRelateToManyForUpdateInput {
-  disconnect: [ChannelMetafieldWhereUniqueInput!]
-  set: [ChannelMetafieldWhereUniqueInput!]
-  create: [ChannelMetafieldCreateInput!]
-  connect: [ChannelMetafieldWhereUniqueInput!]
-}
-
-input ShopMetafieldRelateToManyForUpdateInput {
-  disconnect: [ShopMetafieldWhereUniqueInput!]
-  set: [ShopMetafieldWhereUniqueInput!]
-  create: [ShopMetafieldCreateInput!]
-  connect: [ShopMetafieldWhereUniqueInput!]
-}
-
 input TrackingDetailRelateToManyForUpdateInput {
   disconnect: [TrackingDetailWhereUniqueInput!]
   set: [TrackingDetailWhereUniqueInput!]
@@ -420,8 +386,6 @@ input UserCreateInput {
   apiKeys: apiKeyRelateToManyForCreateInput
   matches: MatchRelateToManyForCreateInput
   links: LinkRelateToManyForCreateInput
-  channelMetafields: ChannelMetafieldRelateToManyForCreateInput
-  shopMetafields: ShopMetafieldRelateToManyForCreateInput
   trackingDetails: TrackingDetailRelateToManyForCreateInput
   role: RoleRelateToOneForCreateInput
   createdAt: DateTime
@@ -489,16 +453,6 @@ input MatchRelateToManyForCreateInput {
 input LinkRelateToManyForCreateInput {
   create: [LinkCreateInput!]
   connect: [LinkWhereUniqueInput!]
-}
-
-input ChannelMetafieldRelateToManyForCreateInput {
-  create: [ChannelMetafieldCreateInput!]
-  connect: [ChannelMetafieldWhereUniqueInput!]
-}
-
-input ShopMetafieldRelateToManyForCreateInput {
-  create: [ShopMetafieldCreateInput!]
-  connect: [ShopMetafieldWhereUniqueInput!]
 }
 
 input TrackingDetailRelateToManyForCreateInput {
@@ -699,8 +653,8 @@ type Order {
   orderId: Float
   orderName: String
   email: String
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   streetAddress1: String
   streetAddress2: String
   city: String
@@ -743,8 +697,8 @@ input OrderWhereInput {
   orderId: FloatNullableFilter
   orderName: StringFilter
   email: StringFilter
-  first_name: StringFilter
-  last_name: StringFilter
+  firstName: StringFilter
+  lastName: StringFilter
   streetAddress1: StringFilter
   streetAddress2: StringFilter
   city: StringFilter
@@ -788,8 +742,8 @@ input OrderOrderByInput {
   orderId: OrderDirection
   orderName: OrderDirection
   email: OrderDirection
-  first_name: OrderDirection
-  last_name: OrderDirection
+  firstName: OrderDirection
+  lastName: OrderDirection
   streetAddress1: OrderDirection
   streetAddress2: OrderDirection
   city: OrderDirection
@@ -817,8 +771,8 @@ input OrderUpdateInput {
   orderId: Float
   orderName: String
   email: String
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   streetAddress1: String
   streetAddress2: String
   city: String
@@ -862,8 +816,8 @@ input OrderCreateInput {
   orderId: Float
   orderName: String
   email: String
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   streetAddress1: String
   streetAddress2: String
   city: String
@@ -1211,8 +1165,7 @@ type Channel {
   channelItemsCount(where: ChannelItemWhereInput! = {}): Int
   cartItems(where: CartItemWhereInput! = {}, orderBy: [CartItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CartItemWhereUniqueInput): [CartItem!]
   cartItemsCount(where: CartItemWhereInput! = {}): Int
-  metafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
-  metafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
+  metadata: JSON
   user: User
   createdAt: DateTime
   updatedAt: DateTime
@@ -1234,7 +1187,6 @@ input ChannelWhereInput {
   platform: ChannelPlatformWhereInput
   channelItems: ChannelItemManyRelationFilter
   cartItems: CartItemManyRelationFilter
-  metafields: ChannelMetafieldManyRelationFilter
   user: UserWhereInput
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
@@ -1257,7 +1209,7 @@ input ChannelUpdateInput {
   platform: ChannelPlatformRelateToOneForUpdateInput
   channelItems: ChannelItemRelateToManyForUpdateInput
   cartItems: CartItemRelateToManyForUpdateInput
-  metafields: ChannelMetafieldRelateToManyForUpdateInput
+  metadata: JSON
   user: UserRelateToOneForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1282,7 +1234,7 @@ input ChannelCreateInput {
   platform: ChannelPlatformRelateToOneForCreateInput
   channelItems: ChannelItemRelateToManyForCreateInput
   cartItems: CartItemRelateToManyForCreateInput
-  metafields: ChannelMetafieldRelateToManyForCreateInput
+  metadata: JSON
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1408,64 +1360,6 @@ input ChannelPlatformCreateInput {
   updatedAt: DateTime
 }
 
-type ChannelMetafield {
-  id: ID!
-  key: String
-  value: String
-  channel: Channel
-  user: User
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-input ChannelMetafieldWhereUniqueInput {
-  id: ID
-}
-
-input ChannelMetafieldWhereInput {
-  AND: [ChannelMetafieldWhereInput!]
-  OR: [ChannelMetafieldWhereInput!]
-  NOT: [ChannelMetafieldWhereInput!]
-  id: IDFilter
-  key: StringFilter
-  value: StringFilter
-  channel: ChannelWhereInput
-  user: UserWhereInput
-  createdAt: DateTimeFilter
-  updatedAt: DateTimeFilter
-}
-
-input ChannelMetafieldOrderByInput {
-  id: OrderDirection
-  key: OrderDirection
-  value: OrderDirection
-  createdAt: OrderDirection
-  updatedAt: OrderDirection
-}
-
-input ChannelMetafieldUpdateInput {
-  key: String
-  value: String
-  channel: ChannelRelateToOneForUpdateInput
-  user: UserRelateToOneForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-input ChannelMetafieldUpdateArgs {
-  where: ChannelMetafieldWhereUniqueInput!
-  data: ChannelMetafieldUpdateInput!
-}
-
-input ChannelMetafieldCreateInput {
-  key: String
-  value: String
-  channel: ChannelRelateToOneForCreateInput
-  user: UserRelateToOneForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
 type ChannelItem {
   id: ID!
   quantity: Int
@@ -1570,8 +1464,7 @@ type Shop {
   ordersCount(where: OrderWhereInput! = {}): Int
   shopItems(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   shopItemsCount(where: ShopItemWhereInput! = {}): Int
-  metafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
-  metafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
+  metadata: JSON
   user: User
   createdAt: DateTime
   updatedAt: DateTime
@@ -1593,7 +1486,6 @@ input ShopWhereInput {
   platform: ShopPlatformWhereInput
   orders: OrderManyRelationFilter
   shopItems: ShopItemManyRelationFilter
-  metafields: ShopMetafieldManyRelationFilter
   user: UserWhereInput
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
@@ -1616,7 +1508,7 @@ input ShopUpdateInput {
   platform: ShopPlatformRelateToOneForUpdateInput
   orders: OrderRelateToManyForUpdateInput
   shopItems: ShopItemRelateToManyForUpdateInput
-  metafields: ShopMetafieldRelateToManyForUpdateInput
+  metadata: JSON
   user: UserRelateToOneForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1641,7 +1533,7 @@ input ShopCreateInput {
   platform: ShopPlatformRelateToOneForCreateInput
   orders: OrderRelateToManyForCreateInput
   shopItems: ShopItemRelateToManyForCreateInput
-  metafields: ShopMetafieldRelateToManyForCreateInput
+  metadata: JSON
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1777,64 +1669,6 @@ input ShopPlatformCreateInput {
   oAuthFunction: String
   oAuthCallbackFunction: String
   shops: ShopRelateToManyForCreateInput
-  user: UserRelateToOneForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-type ShopMetafield {
-  id: ID!
-  key: String
-  value: String
-  shop: Shop
-  user: User
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-input ShopMetafieldWhereUniqueInput {
-  id: ID
-}
-
-input ShopMetafieldWhereInput {
-  AND: [ShopMetafieldWhereInput!]
-  OR: [ShopMetafieldWhereInput!]
-  NOT: [ShopMetafieldWhereInput!]
-  id: IDFilter
-  key: StringFilter
-  value: StringFilter
-  shop: ShopWhereInput
-  user: UserWhereInput
-  createdAt: DateTimeFilter
-  updatedAt: DateTimeFilter
-}
-
-input ShopMetafieldOrderByInput {
-  id: OrderDirection
-  key: OrderDirection
-  value: OrderDirection
-  createdAt: OrderDirection
-  updatedAt: OrderDirection
-}
-
-input ShopMetafieldUpdateInput {
-  key: String
-  value: String
-  shop: ShopRelateToOneForUpdateInput
-  user: UserRelateToOneForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-input ShopMetafieldUpdateArgs {
-  where: ShopMetafieldWhereUniqueInput!
-  data: ShopMetafieldUpdateInput!
-}
-
-input ShopMetafieldCreateInput {
-  key: String
-  value: String
-  shop: ShopRelateToOneForCreateInput
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -1985,7 +1819,10 @@ type Link {
   id: ID!
   shop: Shop
   channel: Channel
-  filter: JSON
+  rank: Int
+  filters: JSON
+  customWhere: JSON
+  dynamicWhereClause: JSON
   user: User
   createdAt: DateTime
   updatedAt: DateTime
@@ -2002,6 +1839,7 @@ input LinkWhereInput {
   id: IDFilter
   shop: ShopWhereInput
   channel: ChannelWhereInput
+  rank: IntNullableFilter
   user: UserWhereInput
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
@@ -2009,6 +1847,7 @@ input LinkWhereInput {
 
 input LinkOrderByInput {
   id: OrderDirection
+  rank: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -2016,7 +1855,9 @@ input LinkOrderByInput {
 input LinkUpdateInput {
   shop: ShopRelateToOneForUpdateInput
   channel: ChannelRelateToOneForUpdateInput
-  filter: JSON
+  rank: Int
+  filters: JSON
+  customWhere: JSON
   user: UserRelateToOneForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -2030,7 +1871,9 @@ input LinkUpdateArgs {
 input LinkCreateInput {
   shop: ShopRelateToOneForCreateInput
   channel: ChannelRelateToOneForCreateInput
-  filter: JSON
+  rank: Int
+  filters: JSON
+  customWhere: JSON
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -2096,12 +1939,6 @@ type Mutation {
   updateChannelPlatforms(data: [ChannelPlatformUpdateArgs!]!): [ChannelPlatform]
   deleteChannelPlatform(where: ChannelPlatformWhereUniqueInput!): ChannelPlatform
   deleteChannelPlatforms(where: [ChannelPlatformWhereUniqueInput!]!): [ChannelPlatform]
-  createChannelMetafield(data: ChannelMetafieldCreateInput!): ChannelMetafield
-  createChannelMetafields(data: [ChannelMetafieldCreateInput!]!): [ChannelMetafield]
-  updateChannelMetafield(where: ChannelMetafieldWhereUniqueInput!, data: ChannelMetafieldUpdateInput!): ChannelMetafield
-  updateChannelMetafields(data: [ChannelMetafieldUpdateArgs!]!): [ChannelMetafield]
-  deleteChannelMetafield(where: ChannelMetafieldWhereUniqueInput!): ChannelMetafield
-  deleteChannelMetafields(where: [ChannelMetafieldWhereUniqueInput!]!): [ChannelMetafield]
   createChannelItem(data: ChannelItemCreateInput!): ChannelItem
   createChannelItems(data: [ChannelItemCreateInput!]!): [ChannelItem]
   updateChannelItem(where: ChannelItemWhereUniqueInput!, data: ChannelItemUpdateInput!): ChannelItem
@@ -2120,12 +1957,6 @@ type Mutation {
   updateShopPlatforms(data: [ShopPlatformUpdateArgs!]!): [ShopPlatform]
   deleteShopPlatform(where: ShopPlatformWhereUniqueInput!): ShopPlatform
   deleteShopPlatforms(where: [ShopPlatformWhereUniqueInput!]!): [ShopPlatform]
-  createShopMetafield(data: ShopMetafieldCreateInput!): ShopMetafield
-  createShopMetafields(data: [ShopMetafieldCreateInput!]!): [ShopMetafield]
-  updateShopMetafield(where: ShopMetafieldWhereUniqueInput!, data: ShopMetafieldUpdateInput!): ShopMetafield
-  updateShopMetafields(data: [ShopMetafieldUpdateArgs!]!): [ShopMetafield]
-  deleteShopMetafield(where: ShopMetafieldWhereUniqueInput!): ShopMetafield
-  deleteShopMetafields(where: [ShopMetafieldWhereUniqueInput!]!): [ShopMetafield]
   createShopItem(data: ShopItemCreateInput!): ShopItem
   createShopItems(data: [ShopItemCreateInput!]!): [ShopItem]
   updateShopItem(where: ShopItemWhereUniqueInput!, data: ShopItemUpdateInput!): ShopItem
@@ -2221,9 +2052,6 @@ type Query {
   channelPlatforms(where: ChannelPlatformWhereInput! = {}, orderBy: [ChannelPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelPlatformWhereUniqueInput): [ChannelPlatform!]
   channelPlatform(where: ChannelPlatformWhereUniqueInput!): ChannelPlatform
   channelPlatformsCount(where: ChannelPlatformWhereInput! = {}): Int
-  channelMetafields(where: ChannelMetafieldWhereInput! = {}, orderBy: [ChannelMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelMetafieldWhereUniqueInput): [ChannelMetafield!]
-  channelMetafield(where: ChannelMetafieldWhereUniqueInput!): ChannelMetafield
-  channelMetafieldsCount(where: ChannelMetafieldWhereInput! = {}): Int
   channelItems(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   channelItem(where: ChannelItemWhereUniqueInput!): ChannelItem
   channelItemsCount(where: ChannelItemWhereInput! = {}): Int
@@ -2233,9 +2061,6 @@ type Query {
   shopPlatforms(where: ShopPlatformWhereInput! = {}, orderBy: [ShopPlatformOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopPlatformWhereUniqueInput): [ShopPlatform!]
   shopPlatform(where: ShopPlatformWhereUniqueInput!): ShopPlatform
   shopPlatformsCount(where: ShopPlatformWhereInput! = {}): Int
-  shopMetafields(where: ShopMetafieldWhereInput! = {}, orderBy: [ShopMetafieldOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopMetafieldWhereUniqueInput): [ShopMetafield!]
-  shopMetafield(where: ShopMetafieldWhereUniqueInput!): ShopMetafield
-  shopMetafieldsCount(where: ShopMetafieldWhereInput! = {}): Int
   shopItems(where: ShopItemWhereInput! = {}, orderBy: [ShopItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ShopItemWhereUniqueInput): [ShopItem!]
   shopItem(where: ShopItemWhereUniqueInput!): ShopItem
   shopItemsCount(where: ShopItemWhereInput! = {}): Int

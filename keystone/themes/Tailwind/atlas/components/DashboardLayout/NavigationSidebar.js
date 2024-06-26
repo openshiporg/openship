@@ -85,23 +85,23 @@ export function NavigationSidebar({
           </SidebarHeader>
           <SidebarBody className="flex flex-col">
             <SidebarSection>
-              <SidebarItem href="/dashboard">
+              <SidebarItem key="dashboard" href="/dashboard">
                 <HomeIcon className="w-6 h-6" />
                 <SidebarLabel>Home</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/dashboard/oms/orders">
+              <SidebarItem key="orders" href="/dashboard/oms/orders">
                 <TicketIcon className="w-6 h-6" />
                 <SidebarLabel>Orders</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/dashboard/oms/shops">
+              <SidebarItem key="shops" href="/dashboard/oms/shops">
                 <Square3Stack3DIcon className="w-6 h-6" />
                 <SidebarLabel>Shops</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/dashboard/oms/channels">
+              <SidebarItem key="channels" href="/dashboard/oms/channels">
                 <CircleStackIcon className="w-6 h-6" />
                 <SidebarLabel>Channels</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/dashboard/oms/matches">
+              <SidebarItem key="matches" href="/dashboard/oms/matches">
                 <Square2StackIcon className="w-6 h-6" />
                 <SidebarLabel>Matches</SidebarLabel>
               </SidebarItem>
@@ -116,9 +116,9 @@ export function NavigationSidebar({
               </Badge>
             </SidebarHeading>
             {!isDashboardCollapsed && (
-              <SidebarSection className="flex-1 overflow-y-auto min-h-0 mb-1 gap-0">
+              <SidebarSection className="flex-1 overflow-y-auto no-scrollbar min-h-0 mb-1 gap-0">
                 {sidebarLinks.map(({ title, href }) => (
-                  <SidebarItem className="ml-4" href={`/dashboard${href}`}>
+                  <SidebarItem className="ml-4" key={href} href={`/dashboard${href}`}>
                     {title}
                   </SidebarItem>
                 ))}

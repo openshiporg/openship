@@ -22,6 +22,7 @@ import {
   CardTitle,
 } from "../../primitives/default/ui/card";
 import { Logo } from "../../components/Logo";
+import { Fields } from "../../components/Fields";
 
 const montserrat = Outfit({ subsets: ["latin"] });
 
@@ -115,20 +116,70 @@ export function InitPage({
   };
 
   return (
+    // <div
+    //   className={`h-screen flex flex-col justify-center items-center bg-zinc-50/75 dark:bg-background`}
+    // >
+    //   <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
+    //     <div className="mx-auto">
+    //       <Logo size="lg" />
+    //     </div>
+    //     <form onSubmit={onSubmit}>
+    //       <Card className="shadow-sm dark:bg-zinc-900/25">
+    //         <CardHeader>
+    //           <CardTitle className="text-zinc-700 dark:text-white text-xl">
+    //             Create Admin
+    //           </CardTitle>
+    //           <CardDescription className="text-sm">
+    //             Create the first user on this instance
+    //           </CardDescription>
+    //         </CardHeader>
+    //         <CardContent>
+    //           {error && (
+    //             <GraphQLErrorNotice
+    //               errors={error?.graphQLErrors}
+    //               networkError={error?.networkError}
+    //             />
+    //           )}
+    //           <Fields
+    //             fields={fields}
+    //             forceValidation={forceValidation}
+    //             invalidFields={invalidFields}
+    //             onChange={setValue}
+    //             value={value}
+    //           />
+    //         </CardContent>
+    //         <CardFooter className="flex justify-between">
+    //           <Button
+    //             className="w-full text-md tracking-wider h-11 md:h-12 font-semibold"
+    //             isLoading={
+    //               loading ||
+    //               data?.authenticate?.__typename ===
+    //                 `${listKey}AuthenticationWithPasswordSuccess`
+    //             }
+    //             type="submit"
+    //           >
+    //             GET STARTED
+    //           </Button>
+    //         </CardFooter>
+    //       </Card>
+    //     </form>
+    //   </div>
+    // </div>
+
     <div
-      className={`h-screen flex flex-col justify-center items-center bg-zinc-50/75 dark:bg-background`}
+      className={`h-screen flex flex-col justify-center items-center bg-[#0f172a] heropattern-topography-zinc-500/10 dark:bg-background`}
     >
       <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
-        <div className="mx-auto">
-          <Logo size="lg" />
-        </div>
         <form onSubmit={onSubmit}>
-          <Card className="shadow-sm dark:bg-zinc-900/25">
-            <CardHeader>
+          <Card className="overflow-hidden shadow-sm dark:bg-zinc-900/25">
+            <CardHeader className="mb-4 p-0">
               <CardTitle className="text-zinc-700 dark:text-white text-xl">
-                Create Admin
+                <div className="heropattern-topography-zinc-200/50 px-6 py-3 border-b bg-muted/80">
+                  <Logo size="lg" />
+                </div>
+                <div className="px-6 pt-4"> Create Admin</div>
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="px-6 text-sm">
                 Create the first user on this instance
               </CardDescription>
             </CardHeader>
@@ -162,6 +213,22 @@ export function InitPage({
             </CardFooter>
           </Card>
         </form>
+
+        {/* {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+        {data?.authenticate?.__typename === failureTypename && (
+          <Alert
+            variant="destructive"
+            className="mt-4 bg-red-100 dark:bg-red-900"
+          >
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{data?.authenticate.message}</AlertDescription>
+          </Alert>
+        )} */}
       </div>
     </div>
   );

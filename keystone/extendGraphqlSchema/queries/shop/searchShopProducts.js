@@ -35,10 +35,10 @@ async function searchShopProducts(root, { shopId, searchEntry }, context) {
     return products;
   } else {
     // Internal function logic if applicable
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${searchProductsFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${searchProductsFunction}.js`
     );
-    const result = await shopFunctions.searchProducts({
+    const result = await shopAdapters.searchProducts({
       searchEntry,
       domain: shop.domain,
       accessToken: shop.accessToken,

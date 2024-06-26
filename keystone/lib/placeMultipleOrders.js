@@ -175,7 +175,7 @@ export async function placeMultipleOrders({ ids, query }) {
         } else {
           // Internal function call
           const platformFunctions = await import(
-            `../../channelFunctions/${createPurchaseFunction}.js`
+            `../../channelAdapters/${createPurchaseFunction}.js`
           );
 
           if (platformFunctions.createPurchase) {
@@ -280,7 +280,7 @@ export async function placeMultipleOrders({ ids, query }) {
         } else {
           // Internal function call
           const platformFunctions = await import(
-            `../../channelFunctions/${addCartToPlatformOrderFunction}.js`
+            `../../channelAdapters/${addCartToPlatformOrderFunction}.js`
           );
 
           if (platformFunctions.addCartToPlatformOrder) {

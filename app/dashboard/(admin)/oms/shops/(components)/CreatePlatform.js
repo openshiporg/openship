@@ -23,24 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@ui/tabs";
 import { Label } from "@ui/label";
-import { shopFunctions } from "../../../../../../shopFunctions";
-import { BadgeButton } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
-import { Plus } from "lucide-react";
+import { shopAdapters as adapters } from "../../../../../../shopAdapters";
 import { getFilteredProps } from "./CreateShop";
+import { Badge } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
 
-export const mockShopFunctions = {
-  ...shopFunctions,
-  Webflow: () => import("../../../../../../shopFunctions/shopify"),
-  WiX: () => import("../../../../../../shopFunctions/bigcommerce"),
-  Medusa: () => import("../../../../../../shopFunctions/woocommerce"),
-  Openfront: () => import("../../../../../../shopFunctions/shopify"),
-  Stripe: () => import("../../../../../../shopFunctions/bigcommerce"),
+export const shopAdapters = {
+  ...adapters,
+  Shopify: "soon",
+  BigCommerce: "soon",
+  Magento: "soon",
+  WooCommerce: "soon",
+  Stripe: "soon",
 };
 
 export function CreatePlatform({ refetch, trigger }) {
-  const [selectedTab, setSelectedTab] = useState("template");
   const [selectedPlatform, setSelectedPlatform] = useState(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -81,24 +78,31 @@ export function CreatePlatform({ refetch, trigger }) {
   const handleTemplateSelection = (value) => {
     setSelectedPlatform(value);
 
-    props.onChange((oldValues) => {
-      const newValues = { ...oldValues };
-      keysToUpdateCustom
-        .filter((key) => !["name", "appKey", "appSecret"].includes(key))
-        .forEach((key) => {
-          newValues[key] = {
-            ...oldValues[key],
-            value: {
-              ...oldValues[key].value,
-              inner: {
-                ...oldValues[key].value.inner,
-                value: value,
+    if (value === "custom") {
+      clearFunctionFields();
+    } else {
+      props.onChange((oldValues) => {
+        const newValues = { ...oldValues };
+        keysToUpdateCustom
+          .filter((key) => !["appKey", "appSecret"].includes(key))
+          .forEach((key) => {
+            newValues[key] = {
+              ...oldValues[key],
+              value: {
+                ...oldValues[key].value,
+                inner: {
+                  ...oldValues[key].value.inner,
+                  value:
+                    key === "name"
+                      ? value.charAt(0).toUpperCase() + value.slice(1)
+                      : value,
+                },
               },
-            },
-          };
-        });
-      return newValues;
-    });
+            };
+          });
+        return newValues;
+      });
+    }
   };
 
   const clearFunctionFields = () => {
@@ -119,13 +123,6 @@ export function CreatePlatform({ refetch, trigger }) {
     props.onChange((prev) => ({ ...prev, ...clearedFields }));
   };
 
-  const handleTabChange = (value) => {
-    setSelectedTab(value);
-    if (value === "custom") {
-      clearFunctionFields();
-    }
-  };
-
   const handleDialogClose = () => {
     setSelectedPlatform(null); // Reset selected platform
     clearFunctionFields(); // Clear all fields
@@ -134,12 +131,12 @@ export function CreatePlatform({ refetch, trigger }) {
 
   const filteredProps = useMemo(() => {
     const fieldKeysToShow =
-      selectedTab === "custom" ? keysToUpdateCustom : keysToUpdateTemplate;
+      selectedPlatform === "custom" ? keysToUpdateCustom : keysToUpdateTemplate;
 
     const modifications = fieldKeysToShow.map((key) => ({ key }));
 
-    return getFilteredProps(props, modifications);
-  }, [props, selectedTab]);
+    return getFilteredProps(props, [...modifications], true);
+  }, [props, selectedPlatform]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -149,75 +146,71 @@ export function CreatePlatform({ refetch, trigger }) {
         <DialogHeader>
           <DialogTitle>Create Shop Platform</DialogTitle>
           <DialogDescription>
-            {selectedTab === "custom"
+            {selectedPlatform === "custom"
               ? "Create a custom platform from scratch by providing the necessary fields"
               : "Create a platform based on an existing template"}
           </DialogDescription>
         </DialogHeader>
-        <Tabs
-          value={selectedTab}
-          onValueChange={handleTabChange}
-          className="space-y-4"
-        >
-          <TabsList>
-            <TabsTrigger value="template">Template</TabsTrigger>
-            <TabsTrigger value="custom">Custom</TabsTrigger>
-          </TabsList>
-          <TabsContent value="template">
-            <div className="mb-4 space-y-2">
-              <Label className="text-base pb-2">Template</Label>
-              <Select
-                onValueChange={handleTemplateSelection}
-                value={selectedPlatform}
-              >
-                <SelectTrigger className="w-full bg-muted/40 text-base">
-                  <SelectValue placeholder="Select a platform" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(mockShopFunctions).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            {selectedPlatform && (
-              <div className="bg-muted/20 p-4 border rounded-lg overflow-auto max-h-[50vh]">
-                <Fields {...filteredProps} />
-              </div>
+        <div className="space-y-2">
+          <Label className="text-base pb-2">Platform</Label>
+          <Select
+            onValueChange={handleTemplateSelection}
+            value={selectedPlatform}
+          >
+            <SelectTrigger className="w-full bg-muted/40 text-base">
+              <SelectValue placeholder="Select a platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel className="-ml-6">Templates</SelectLabel>
+                {Object.keys(shopAdapters).map((key) => (
+                  <SelectItem
+                    key={key}
+                    value={key}
+                    disabled={shopAdapters[key] === "soon"}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel className="-ml-6">Custom</SelectLabel>
+                <SelectItem value="custom">Start from scratch...</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedPlatform && (
+          <div className="bg-muted/20 p-4 border rounded-lg overflow-auto max-h-[50vh]">
+            {error && (
+              <GraphQLErrorNotice
+                networkError={error?.networkError}
+                errors={error?.graphQLErrors}
+              />
             )}
-          </TabsContent>
-          <TabsContent value="custom">
-            <div className="bg-muted/20 p-4 border rounded-lg overflow-auto max-h-[50vh]">
-              {error && (
-                <GraphQLErrorNotice
-                  networkError={error?.networkError}
-                  errors={error?.graphQLErrors}
-                />
-              )}
-              {createViewFieldModes.state === "error" && (
-                <GraphQLErrorNotice
-                  networkError={
-                    createViewFieldModes.error instanceof Error
-                      ? createViewFieldModes.error
-                      : undefined
-                  }
-                  errors={
-                    createViewFieldModes.error instanceof Error
-                      ? undefined
-                      : createViewFieldModes.error
-                  }
-                />
-              )}
-              {createViewFieldModes.state === "loading" && (
-                <div label="Loading create form" />
-              )}
-              <Fields {...filteredProps} />
-            </div>
-          </TabsContent>
-        </Tabs>
+            {createViewFieldModes.state === "error" && (
+              <GraphQLErrorNotice
+                networkError={
+                  createViewFieldModes.error instanceof Error
+                    ? createViewFieldModes.error
+                    : undefined
+                }
+                errors={
+                  createViewFieldModes.error instanceof Error
+                    ? undefined
+                    : createViewFieldModes.error
+                }
+              />
+            )}
+            {createViewFieldModes.state === "loading" && (
+              <div label="Loading create form" />
+            )}
+            <Fields {...filteredProps} />
+          </div>
+        )}
+
         <DialogFooter>
           <Button
             variant="light"
@@ -227,10 +220,10 @@ export function CreatePlatform({ refetch, trigger }) {
           </Button>
           <Button
             isLoading={state === "loading"}
-            disabled={!selectedPlatform && !selectedTab === "custom"}
+            disabled={!selectedPlatform}
             onClick={handlePlatformActivation}
           >
-            {selectedTab === "custom" ? "Create Platform" : "Activate Platform"}
+            Create Platform
           </Button>
         </DialogFooter>
       </DialogContent>

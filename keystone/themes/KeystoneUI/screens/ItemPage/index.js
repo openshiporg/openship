@@ -46,6 +46,7 @@ import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
 import { ClipboardIcon } from '@keystone-ui/icons/icons/ClipboardIcon';
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
+import { basePath } from "@keystone/index";
 
 export function ItemPageHeader(props) {
   const { palette, spacing } = useTheme();
@@ -382,7 +383,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
 
   return (
     <Fragment>

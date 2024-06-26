@@ -36,11 +36,11 @@ async function getChannelWebhooks(root, { channelId }, context) {
     return webhooks; // Assuming the response includes a 'webhooks' array
   } else {
     // Internal function call
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${getWebhooksFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${getWebhooksFunction}.js`
     );
 
-    const result = await channelFunctions.getWebhooks({
+    const result = await channelAdapters.getWebhooks({
       domain: channel.domain,
       accessToken: channel.accessToken,
     });

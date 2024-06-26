@@ -6,10 +6,8 @@ import { TrackingDetail } from "./TrackingDetail";
 import { LineItem } from "./LineItem";
 import { CartItem } from "./CartItem";
 import { Channel } from "./Channel";
-import { ChannelMetafield } from "./ChannelMetafield";
 import { ChannelItem } from "./ChannelItem";
 import { Shop } from "./Shop";
-import { ShopMetafield } from "./ShopMetafield";
 import { ShopItem } from "./ShopItem";
 import { Match } from "./Match";
 import { Link } from "./Link";
@@ -27,11 +25,9 @@ export const models = {
   CartItem,
   Channel,
   ChannelPlatform,
-  ChannelMetafield,
   ChannelItem,
   Shop,
   ShopPlatform,
-  ShopMetafield,
   ShopItem,
   Match,
   Link,

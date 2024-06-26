@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
 import { useList } from "@keystone/keystoneProvider";
 import { Button } from "@ui/button";
@@ -13,11 +13,12 @@ import {
   DialogTrigger,
 } from "@ui/dialog";
 import { Fields } from "@keystone/themes/Tailwind/atlas/components/Fields";
-import { useQuery, gql } from "@apollo/client";
-import { SHOPS_QUERY } from "./Shops";
+import { useQuery, gql } from "@keystone-6/core/admin-ui/apollo";
 import { GraphQLErrorNotice } from "@keystone/themes/Tailwind/atlas/components/GraphQLErrorNotice";
 import { SHOP_PLATFORMS_QUERY } from "./ShopPlatforms";
-const GET_PLATFORM_DETAILS = gql`
+import { SHOPS_QUERY } from "./Shops";
+
+const GET_SHOP_PLATFORM_DETAILS = gql`
   query ($id: ID!) {
     shopPlatform(where: { id: $id }) {
       id
@@ -31,7 +32,7 @@ const GET_PLATFORM_DETAILS = gql`
   }
 `;
 
-export function getFilteredProps(props, modifications) {
+export function getFilteredProps(props, modifications, defaultCollapse) {
   const fieldKeysToShow = modifications.map((mod) => mod.key);
   const breakGroups = modifications.reduce((acc, mod) => {
     if (mod.breakGroup) {
@@ -40,10 +41,8 @@ export function getFilteredProps(props, modifications) {
     return acc;
   }, []);
 
-  // Create a copy of fieldModes to manipulate
   const newFieldModes = { ...props.fieldModes };
 
-  // Set the mode to 'hidden' for all fields except the ones in fieldKeysToShow
   Object.keys(props.fields).forEach((key) => {
     if (!fieldKeysToShow.includes(key)) {
       newFieldModes[key] = "hidden";
@@ -52,7 +51,6 @@ export function getFilteredProps(props, modifications) {
     }
   });
 
-  // Update the fieldMeta based on modifications
   const updatedFields = Object.keys(props.fields).reduce((obj, key) => {
     const modification = modifications.find((mod) => mod.key === key);
     if (modification) {
@@ -69,13 +67,11 @@ export function getFilteredProps(props, modifications) {
     return obj;
   }, {});
 
-  // Reorder fields based on the order of the modifications array
   const reorderedFields = modifications.reduce((obj, mod) => {
     obj[mod.key] = updatedFields[mod.key];
     return obj;
   }, {});
 
-  // Handle breaking out of groups if specified
   const updatedGroups = props.groups.map((group) => {
     if (breakGroups.includes(group.label)) {
       return {
@@ -85,7 +81,10 @@ export function getFilteredProps(props, modifications) {
         ),
       };
     }
-    return group;
+    return {
+      ...group,
+      collapsed: defaultCollapse,
+    };
   });
 
   return {
@@ -110,7 +109,7 @@ export function CreateShop() {
   });
 
   const handleDialogClose = () => {
-    setIsDialogOpen(false); // Close dialog
+    setIsDialogOpen(false);
   };
 
   const platformId = props.value.platform?.value?.value?.id;
@@ -122,11 +121,8 @@ export function CreateShop() {
     return getFilteredProps(props, modifications);
   }, [props]);
 
-  console.log({ filteredProps });
-
-  const ref = useRef(null);
   return (
-    <Dialog ref={ref} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <TriggerButton setIsDialogOpen={setIsDialogOpen} />
       </DialogTrigger>
@@ -170,7 +166,7 @@ export function CreateShop() {
 }
 
 function TriggerButton({ setIsDialogOpen }) {
-  const { data, loading, error, refetch } = useQuery(SHOP_PLATFORMS_QUERY, {
+  const { data, loading, error } = useQuery(SHOP_PLATFORMS_QUERY, {
     variables: {
       where: { OR: [] },
       take: 50,
@@ -180,7 +176,7 @@ function TriggerButton({ setIsDialogOpen }) {
 
   return (
     <Button
-      // className="group flex items-center gap-0.5 whitespace-nowrap rounded-md bg-gradient-to-b from-white to-gray-200 px-4 py-2 font-semibold text-gray-900 ring-1 ring-inset ring-indigo-400/30 transition"
+      variant="secondary"
       onClick={() => setIsDialogOpen(true)}
       disabled={error || loading || data?.count === 0}
     >
@@ -190,7 +186,7 @@ function TriggerButton({ setIsDialogOpen }) {
 }
 
 export function FilteredFields({ platformId, props }) {
-  const { data, loading, error } = useQuery(GET_PLATFORM_DETAILS, {
+  const { data, loading, error } = useQuery(GET_SHOP_PLATFORM_DETAILS, {
     variables: { id: platformId },
   });
 
@@ -237,7 +233,7 @@ export function CreateShopButton({
   state,
   setIsDialogOpen,
 }) {
-  const { data, loading, error } = useQuery(GET_PLATFORM_DETAILS, {
+  const { data, loading, error } = useQuery(GET_SHOP_PLATFORM_DETAILS, {
     variables: { id: platformId },
   });
 
@@ -254,7 +250,7 @@ export function CreateShopButton({
       platformData?.oAuthCallbackFunction
     ) {
       const { oauth, scopes } = await import(
-        `../../../../../../shopFunctions/${platformData.oAuthFunction}`
+        `../../../../../../shopAdapters/${platformData.oAuthFunction}`
       );
 
       const config = {
@@ -264,7 +260,6 @@ export function CreateShopButton({
         scopes: scopes(),
       };
 
-      console.log(props.value);
       const domain = props.value.domain?.value?.inner?.value;
       oauth(domain, config);
     } else {
@@ -282,10 +277,7 @@ export function CreateShopButton({
       isLoading={state === "loading"}
       onClick={handleClick}
     >
-      {platformData?.oAuthFunction &&
-      platformData?.oAuthCallbackFunction &&
-      platformData?.appKey &&
-      platformData?.appSecret
+      {platformData?.oAuthFunction && platformData?.oAuthCallbackFunction
         ? `Install App on ${platformData.name}`
         : "Create Shop"}
     </Button>

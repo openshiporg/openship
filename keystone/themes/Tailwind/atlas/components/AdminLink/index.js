@@ -1,7 +1,8 @@
+import { basePath } from '@keystone/index';
 import { Link } from 'next-view-transitions';
 
 export const AdminLink = ({ href, children, ...props }) => {
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
 
   if (typeof href === "object" && href.pathname) {
     href.pathname = `${adminPath}${href.pathname}`;

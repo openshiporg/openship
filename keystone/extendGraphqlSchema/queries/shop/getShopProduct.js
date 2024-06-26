@@ -40,10 +40,10 @@ async function getShopProduct(
     return products;
   } else {
     // Internal function logic if applicable
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${getProductFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${getProductFunction}.js`
     );
-    const result = await shopFunctions.searchProducts({
+    const result = await shopAdapters.searchProducts({
       variantId,
       productId,
       domain: shop.domain,

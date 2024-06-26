@@ -44,8 +44,8 @@ export const ShopPlatform = list({
       },
     }),
     ...group({
-      label: "Functions",
-      description: "Group of functions used to interact with the shop platform",
+      label: "Adapter Functions",
+      description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
         updateProductFunction: text({
           isRequired: true,

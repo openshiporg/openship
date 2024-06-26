@@ -38,11 +38,11 @@ async function createChannelWebhook(root, { channelId, topic, endpoint }, contex
     return result;
   } else {
     // Internal function call
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${createWebhookFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${createWebhookFunction}.js`
     );
 
-    const result = await channelFunctions.createWebhook({
+    const result = await channelAdapters.createWebhook({
       domain: channel.domain,
       accessToken: channel.accessToken,
       topic,

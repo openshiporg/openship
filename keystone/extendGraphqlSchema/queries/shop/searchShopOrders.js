@@ -37,11 +37,11 @@ async function searchShopOrders(root, { shopId, searchEntry }, context) {
     return orders; // Assuming the response includes an 'orders' array
   } else {
     // Internal function call
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${searchOrdersFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${searchOrdersFunction}.js`
     );
 
-    const result = await shopFunctions.searchOrders({
+    const result = await shopAdapters.searchOrders({
       searchEntry,
       domain: shop.domain,
       accessToken: shop.accessToken,

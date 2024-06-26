@@ -147,7 +147,7 @@ function ResetChangesButton({ onReset, disabled }) {
   );
 }
 
-export function EditItemDrawer({ listKey, itemId, setOpen }) {
+export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
   const client = useApolloClient();
@@ -203,8 +203,8 @@ export function EditItemDrawer({ listKey, itemId, setOpen }) {
   const handleSave = async () => {
     if (invalidFields.size === 0) {
       await update({ variables: { data: dataForUpdate, id: itemId } });
-      await refetchListQuery();
-      setOpen(false); // Close the drawer
+      refetchListQuery();
+      closeDrawer(); // Close the drawer
     }
   };
 
@@ -215,23 +215,19 @@ export function EditItemDrawer({ listKey, itemId, setOpen }) {
     });
   };
 
-  const closeDrawer = () => setOpen(false);
-
   const refetchListQuery = async () => {
-    const hello = await client.refetchQueries({
+    await client.refetchQueries({
       include: "active",
     });
-    console.log({ hello });
   };
 
   return (
     <DrawerBase
       onSubmit={handleSave}
       onClose={closeDrawer}
+      onOpenChange={closeDrawer}
       width="narrow"
-      initialFocusRef={undefined}
-      open={true}
-      onOpenChange={setOpen}
+      open={open}
     >
       {/* <SheetTrigger asChild>{trigger}</SheetTrigger> */}
       <SheetContent className="flex flex-col">
@@ -247,9 +243,9 @@ export function EditItemDrawer({ listKey, itemId, setOpen }) {
                   itemLabel={itemGetter.get("label").data || itemId}
                   itemId={itemId}
                   list={list}
-                  onClose={() => {
-                    refetchListQuery(); // Ensure refetch is called
-                    setOpen(false); // Close the EditItemDrawer
+                  onClose={async () => {
+                    await refetchListQuery(); // Ensure refetch is called
+                    closeDrawer(); // Close the EditItemDrawer
                   }}
                 />
                 <ResetChangesButton

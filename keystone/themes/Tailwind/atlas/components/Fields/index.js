@@ -72,13 +72,14 @@ export function Fields({
           key={fieldKey}
           field={field}
           value={val.value}
-          forceValidation={forceValidation && invalidFields.has(fieldKey)}
+          forceValidation={forceValidation}
+          invalidFields={invalidFields.has(fieldKey)}
           onChange={fieldMode === "edit" ? onChange : undefined}
-          // autoFocus={index === 0}
         />,
       ];
     })
   );
+
   const rendered = [];
   const fieldGroups = new Map();
   for (const group of groups) {
@@ -87,6 +88,7 @@ export function Fields({
       fieldGroups.set(field.path, state);
     }
   }
+
   for (const field of Object.values(fields)) {
     const fieldKey = field.path;
     if (fieldGroups.has(fieldKey)) {
@@ -104,9 +106,11 @@ export function Fields({
       }
       rendered.push(
         <FieldGroup
+          key={group.label}
           count={group.fields.length}
           label={group.label}
           description={group.description}
+          collapsed={group.collapsed}
         >
           {renderedFieldsInGroup}
         </FieldGroup>
@@ -139,12 +143,9 @@ function FieldGroup(props) {
       aria-labelledby={labelId}
       aria-describedby={props.description === null ? undefined : descriptionId}
     >
-      <details open>
+      <details open={!props.collapsed}>
         <summary className="list-none outline-none [&::-webkit-details-marker]:hidden">
           <div className="flex gap-1.5 items-center">
-            {/* <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
-              {downChevron}
-            </div> */}
             <div
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -160,7 +161,12 @@ function FieldGroup(props) {
                   {props.label}
                 </text>
                 <Badge className="text-[.7rem] py-0.5 uppercase tracking-wide font-medium">
-                  {props.children.filter(item => item !== undefined).length} FIELD{props.children.filter(item => item !== undefined).length > 1 && "S"}
+                  {props.children.filter((item) => item !== undefined).length}{" "}
+                  FIELD
+                  {props.children.filter((item) => item !== undefined).length >
+                  1
+                    ? "S"
+                    : ""}
                 </Badge>
               </div>
               {props.description !== null && (

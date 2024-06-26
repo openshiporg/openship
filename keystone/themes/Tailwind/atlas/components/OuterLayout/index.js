@@ -1,3 +1,5 @@
+"use client";
+
 import { KeystoneProvider } from "@keystone/keystoneProvider";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { ViewTransitions } from "next-view-transitions";
@@ -8,7 +10,7 @@ import { UIProvider } from "../UIProvider";
 export function OuterLayout({ children }) {
   return (
     <ViewTransitions>
-      <html lang="en">
+      <html suppressHydrationWarning lang="en">
         <UIProvider>
           <KeystoneProvider>
             <ToastProvider>

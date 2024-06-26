@@ -295,8 +295,10 @@ export async function createWebhook({ domain, accessToken, topic, endpoint }) {
     }
   );
 
+  console.log({ userErrors });
+
   if (userErrors.length > 0) {
-    throw new Error(`Error creating webhook: ${userErrors[0].message}`);
+    return { error: `Error creating webhook: ${userErrors[0].message}` };
   }
 
   return { success: "Webhook created", webhookId: webhookSubscription.id };
@@ -396,7 +398,10 @@ export function oauth(domain, config) {
   window.location.href = authUrl; // Redirect using window.location.href
 }
 
-export async function callback(query, { appKey, appSecret, redirectUri, scopes }) {
+export async function callback(
+  query,
+  { appKey, appSecret, redirectUri, scopes }
+) {
   const { shop, hmac, code, host, timestamp } = query;
 
   async function getToken() {
@@ -424,20 +429,23 @@ export async function callback(query, { appKey, appSecret, redirectUri, scopes }
     if (!code) {
       // Fetch access token directly if 'code' is not present
       try {
-        const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            client_id: appKey,
-            client_secret: appSecret,
-          }),
-        });
+        const response = await fetch(
+          `https://${shop}/admin/oauth/access_token`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              client_id: appKey,
+              client_secret: appSecret,
+            }),
+          }
+        );
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Error fetching access token');
+          throw new Error(data.error || "Error fetching access token");
         }
 
         return data.access_token;
@@ -467,7 +475,6 @@ export async function callback(query, { appKey, appSecret, redirectUri, scopes }
     };
   }
 }
-
 
 export async function createTrackingWebhookHandler(req, res) {
   const { tracking_numbers, tracking_company, order_id } = req.body;

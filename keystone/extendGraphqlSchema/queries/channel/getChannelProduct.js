@@ -42,11 +42,11 @@ async function getChannelProduct(
     return products;
   } else {
     // Internal function logic if applicable
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${getProductFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${getProductFunction}.js`
     );
 
-    const result = await channelFunctions.searchProducts({
+    const result = await channelAdapters.searchProducts({
       variantId,
       productId,
       domain: channel.domain,

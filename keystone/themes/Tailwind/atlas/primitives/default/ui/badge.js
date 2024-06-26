@@ -35,7 +35,7 @@ const badgeVariants = cva(
           "bg-fuchsia-400/15 text-fuchsia-700 group-hover:bg-fuchsia-400/25 dark:bg-fuchsia-400/10 dark:text-fuchsia-400 dark:group-hover:bg-fuchsia-400/20 border-fuchsia-200 dark:border-fuchsia-900/50",
         pink: "bg-pink-400/15 text-pink-700 group-hover:bg-pink-400/25 dark:bg-pink-400/10 dark:text-pink-400 dark:group-hover:bg-pink-400/20 border-pink-200 dark:border-pink-900/50",
         rose: "bg-rose-400/15 text-rose-700 group-hover:bg-rose-400/25 dark:bg-rose-400/10 dark:text-rose-400 dark:group-hover:bg-rose-400/20 border-rose-200 dark:border-rose-900/50",
-        zinc: "bg-zinc-600/10 text-zinc-700 group-hover:bg-zinc-600/20 dark:bg-white/5 dark:text-zinc-400 dark:group-hover:bg-white/10 border-zinc-200 dark:border-zinc-900/50",
+        zinc: "bg-zinc-500/10 text-zinc-500/90 group-hover:bg-zinc-600/20 dark:bg-white/5 dark:text-zinc-400 dark:group-hover:bg-white/10 border-zinc-300 dark:border-zinc-700/50",
       },
     },
     defaultVariants: {

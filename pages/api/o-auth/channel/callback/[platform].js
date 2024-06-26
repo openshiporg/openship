@@ -57,7 +57,7 @@ export default async (req, res) => {
       return res.status(404).json({ error: 'Platform not found' });
     }
 
-    const platformFunctions = await import(`../../../../../channelFunctions/${channelPlatform.oAuthCallbackFunction}.js`);
+    const platformFunctions = await import(`../../../../../channelAdapters/${channelPlatform.oAuthCallbackFunction}.js`);
     const accessToken = await platformFunctions.callback(queryParams, {
       appKey: channelPlatform.appKey,
       appSecret: channelPlatform.appSecret,

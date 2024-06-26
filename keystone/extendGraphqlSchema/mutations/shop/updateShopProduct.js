@@ -44,10 +44,10 @@ async function updateShopProduct(
     return { success: true, updatedVariant: result.updatedVariant };
   } else {
     // Internal function call
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${updateProductFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${updateProductFunction}.js`
     );
-    const result = await shopFunctions.updateProduct({
+    const result = await shopAdapters.updateProduct({
       domain: shop.domain,
       accessToken: shop.accessToken,
       variantId,

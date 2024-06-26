@@ -136,6 +136,8 @@ export const ListPageTemplate = ({ listKey }) => {
   const sort = useSort(list, orderableFields);
   const filters = useFilters(list, filterableFields);
 
+  console.log({ filters });
+
   const searchFields = Object.keys(list.fields).filter(
     (key) => list.fields[key].search
   );
@@ -253,7 +255,7 @@ export const ListPageTemplate = ({ listKey }) => {
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild>
+                <BreadcrumbLink>
                   <Link href="/dashboard">Dashboard</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -296,8 +298,8 @@ export const ListPageTemplate = ({ listKey }) => {
               </div>
             ) : null}
           </div>
-          <div class="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
-            <div class="flex gap-3 py-3 px-3">
+          <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
+            <div className="flex gap-3 py-3 px-3">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
                 <form

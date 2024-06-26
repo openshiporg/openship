@@ -63,7 +63,7 @@ export default async (req, res) => {
     }
 
     const platformFunctions = await import(
-      `../../../../../shopFunctions/${shopPlatform.oAuthCallbackFunction}.js`
+      `../../../../../shopAdapters/${shopPlatform.oAuthCallbackFunction}.js`
     );
     console.log({ queryParams });
     const accessToken = await platformFunctions.callback(queryParams, {

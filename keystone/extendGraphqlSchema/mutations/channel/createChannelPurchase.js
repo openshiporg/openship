@@ -40,11 +40,11 @@ async function createChannelPurchase(root, { input }, context) {
     return result;
   } else {
     // Internal function call
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${createPurchaseFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${createPurchaseFunction}.js`
     );
 
-    const result = await channelFunctions.createPurchase({
+    const result = await channelAdapters.createPurchase({
       domain: channel.domain,
       accessToken: channel.accessToken,
       ...purchaseData,

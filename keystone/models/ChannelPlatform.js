@@ -40,8 +40,9 @@ export const ChannelPlatform = list({
       },
     }),
     ...group({
-      label: "Functions",
-      description: "Set the functions to handle various platform operations",
+      label: "Adapter Functions",
+      description:
+        "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
         createPurchaseFunction: text({ isRequired: true }),
         searchProductsFunction: text({ isRequired: true }),

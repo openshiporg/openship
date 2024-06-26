@@ -31,7 +31,7 @@ export const Cell = ({ item, field }) => {
   const value = !!item[field.path];
   return (
     <CellContainer>
-      <Checkbox disabled checked={value} size="small">
+      <Checkbox disabled defaultChecked={value} size="small">
         <span>{value ? "True" : "False"}</span>
       </Checkbox>
     </CellContainer>

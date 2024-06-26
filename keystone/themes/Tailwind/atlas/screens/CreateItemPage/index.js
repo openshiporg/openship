@@ -17,6 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../../primitives/default/ui/breadcrumb";
+import { basePath } from "@keystone/index";
 
 export const CreateItemPage = ({ params }) => {
   const listKey = params.listKey;
@@ -34,7 +35,7 @@ export const CreateItemPage = ({ params }) => {
 
   const router = useRouter();
 
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
 
   return (
     <Container>

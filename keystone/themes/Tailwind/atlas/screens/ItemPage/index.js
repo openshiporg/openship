@@ -54,6 +54,7 @@ import { AdminLink } from "../../components/AdminLink";
 import { Button } from "../../primitives/default/ui/button";
 import { LoadingIcon } from "../../components/LoadingIcon";
 import { Skeleton } from "../../primitives/default/ui/skeleton";
+import { basePath } from "@keystone/index";
 
 export function ItemPageHeader(props) {
   return (
@@ -362,7 +363,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
   );
   const router = useRouter();
 
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
 
   return (
     <Fragment>

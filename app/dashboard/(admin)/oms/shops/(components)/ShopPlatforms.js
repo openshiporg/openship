@@ -2,26 +2,19 @@
 
 import React, { useState } from "react";
 import { useQuery, gql } from "@keystone-6/core/admin-ui/apollo";
-import {
-  ChevronDownIcon,
-  Circle,
-  Edit2,
-  Ellipsis,
-  Plus,
-  Square,
-  Triangle,
-} from "lucide-react";
-import { DotFillIcon } from "@primer/octicons-react";
+import { EllipsisVertical, Plus } from "lucide-react";
 import { Skeleton } from "@ui/skeleton";
-import { Badge, BadgeButton } from "@ui/badge";
-import { CreatePlatform } from "./CreatePlatform";
-import { EditItemDrawer } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
+import { Button } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/button";
+
+import { Badge } from "@ui/badge";
 import {
-  EllipsisHorizontalCircleIcon,
-  Square3Stack3DIcon,
-} from "@heroicons/react/16/solid";
-// import { CreateShop } from "./CreateShop";
-import { RiEditFill } from "@remixicon/react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/dropdown-menu-depracated";
+import { CreatePlatform } from "./CreatePlatform";
 
 export const SHOP_PLATFORMS_QUERY = gql`
   query (
@@ -30,12 +23,7 @@ export const SHOP_PLATFORMS_QUERY = gql`
     $skip: Int!
     $orderBy: [ShopPlatformOrderByInput!]
   ) {
-    items: shopPlatforms(
-      where: $where
-      take: $take
-      skip: $skip
-      orderBy: $orderBy
-    ) {
+    items: shopPlatforms(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
       id
       name
       updateProductFunction
@@ -47,10 +35,10 @@ export const SHOP_PLATFORMS_QUERY = gql`
       searchOrdersFunction
       addTrackingFunction
       addCartToPlatformOrderFunction
-      oAuthFunction
-      oAuthCallbackFunction
       cancelOrderWebhookHandler
       createOrderWebhookHandler
+      oAuthFunction
+      oAuthCallbackFunction
       appKey
       appSecret
       createdAt
@@ -61,16 +49,45 @@ export const SHOP_PLATFORMS_QUERY = gql`
   }
 `;
 
-export const ShopPlatforms = ({ openDrawer }) => {
-  const { data, loading, error, refetch } = useQuery(SHOP_PLATFORMS_QUERY, {
+const ShopPlatformsContent = ({ data, openDrawer, showAll }) => {
+  if (!data || !data.items) return null;
+
+  const platformItems = [...data.items];
+
+  return platformItems
+    .slice(0, showAll ? platformItems.length : 6)
+    .map((platform, index) => (
+      <div key={index} className="flex items-center">
+        <Button
+          variant="secondary"
+          className="p-1"
+          onClick={() => openDrawer(platform.id, "ShopPlatform")}
+        >
+          <EllipsisVertical className="size-2.5" />
+        </Button>
+        <label
+          htmlFor={`filter-${platform.id}`}
+          className="ml-3 text-sm text-muted-foreground"
+        >
+          {platform.name}
+        </label>
+      </div>
+    ));
+};
+
+const useShopPlatformsQuery = () => {
+  return useQuery(SHOP_PLATFORMS_QUERY, {
     variables: {
       where: { OR: [] },
       take: 50,
       skip: 0,
     },
   });
+};
 
-  const [showAll, setShowAll] = useState(false);
+export const ShopPlatforms = ({ openDrawer }) => {
+  const { data, loading, error } = useShopPlatformsQuery();
+  const [showAll, setShowAll] = useState(true);
 
   if (loading) {
     return (
@@ -86,73 +103,94 @@ export const ShopPlatforms = ({ openDrawer }) => {
 
   if (error) return <p>Error loading platforms: {error.message}</p>;
 
-  const platformItems = [...data.items];
+  return (
+    <ShopPlatformsContent
+      data={data}
+      openDrawer={openDrawer}
+      showAll={showAll}
+    />
+  );
+};
+
+export const ShopPlatformsMobile = ({ openDrawer }) => {
+  const { data, loading, error, refetch } = useShopPlatformsQuery();
+
+  if (loading) {
+    return (
+      <div className="grid gap-2 overflow-hidden">
+        {Array(6)
+          .fill(0)
+          .map((_, index) => (
+            <Skeleton key={index} className="h-8 w-full rounded-lg" />
+          ))}
+      </div>
+    );
+  }
+
+  if (error) return <p>Error loading platforms: {error.message}</p>;
 
   return (
-    <div className="bg-muted/40 shadow-sm py-3 px-5 border rounded-lg">
-      <div className="col-span-full flex justify-between items-center mb-3">
-        <h2 className="text-xs uppercase tracking-wide font-medium">
-          Platforms
-        </h2>
-      </div>
-
-      {/* <CreateShop
-        selectedPlatformId={selectedPlatformId}
-        setSelectedPlatformId={setSelectedPlatformId}
-        refetch={refetch}
-      /> */}
-
-      {!showAll && platformItems.length > 6 && (
-        <div className="z-10 bg-gradient-to-t from-white to-transparent dark:from-zinc-900 dark:to-transparent absolute bottom-0 left-0 right-0 h-36 pointer-events-none" />
-      )}
-
-      <div className="grid gap-2 overflow-hidden">
-        {platformItems
-          .slice(0, showAll ? platformItems.length : 6)
-          .map((platform, index) => {
-            const platformName = platform.name;
-            return (
-              <div
-                key={index}
-                className={`transition-opacity duration-300 flex-1 flex flex-col`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground">
-                    <Square3Stack3DIcon className="size-3.5" />
-
-                    {platformName}
-                  </span>
-                  <BadgeButton
-                    color="blue"
-                    className="opacity-80 text-xs uppercase tracking-wider font-medium px-1"
-                    onClick={() => openDrawer(platform.id, "ShopPlatform")}
-                  >
-                    <Ellipsis className="size-3" />
-                  </BadgeButton>
-                </div>
-              </div>
-            );
-          })}
-        <CreatePlatform
-          refetch={refetch}
-          trigger={
-            <button className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Plus className="size-3.5" /> Add...
-            </button>
-          }
-        />
-      </div>
-
-      {!showAll && platformItems.length > 6 && (
-        <div className="col-span-full flex justify-center -mt-4">
-          <button
-            onClick={() => setShowAll(true)}
-            className="text-zinc-950 dark:text-zinc-50 font-medium text-sm"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        {data.items.length && (
+          <Button
+            variant="secondary"
+            className="rounded-r-none flex items-center gap-3"
           >
-            <ChevronDownIcon />
-          </button>
-        </div>
-      )}
-    </div>
+            Platforms
+            <Badge
+              color="teal"
+              className="rounded-sm border text-xs/tight py-[1px] px-1.5"
+            >
+              {data.items.length}
+            </Badge>
+          </Button>
+        )}
+      </DropdownMenuTrigger>
+      <CreatePlatform
+        refetch={refetch}
+        trigger={
+          data.items.length ? (
+            <Button
+              variant="secondary"
+              className="border-l-0 shadow-sm px-1.5 rounded-l-none flex items-center"
+            >
+              <Badge
+                color="blue"
+                className="rounded-sm border text-[.7rem] py-0 px-0"
+              >
+                <Plus className="size-4 p-0.5" />
+              </Badge>
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              className="h-full flex items-center gap-3"
+            >
+              Platform
+              <Badge
+                color="blue"
+                className="rounded-sm border text-[.7rem] py-0 px-0"
+              >
+                <Plus className="size-4 p-0.5" />
+              </Badge>
+            </Button>
+          )
+        }
+      />
+      <DropdownMenuPortal>
+        <DropdownMenuContent className="w-40 origin-top-right shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+          {data.items.map((platform) => (
+            <DropdownMenuItem
+              key={platform.id}
+              onClick={() => openDrawer(platform.id, "ShopPlatform")}
+              className="block w-full text-left px-4 py-2 text-sm"
+            >
+              {platform.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </DropdownMenu>
   );
 };

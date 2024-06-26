@@ -17,8 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@keystone/*": ["keystone/*"],
-      "@shopFunctions/*": ["shopFunctions/*"],
-      "@channelFunctions/*": ["channelFunctions/*"],
+      "@shopAdapters/*": ["shopAdapters/*"],
+      "@channelAdapters/*": ["channelAdapters/*"],
       "@assets/*": ["assets/*"],
       "@config/*": ["config/*"],
       "@components/*": ["components/*"],

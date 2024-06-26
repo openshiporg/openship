@@ -38,11 +38,11 @@ async function createShopWebhook(root, { shopId, topic, endpoint }, context) {
     return result;
   } else {
     // Internal function call
-    const shopFunctions = await import(
-      `../../../../shopFunctions/${createWebhookFunction}.js`
+    const shopAdapters = await import(
+      `../../../../shopAdapters/${createWebhookFunction}.js`
     );
 
-    const result = await shopFunctions.createWebhook({
+    const result = await shopAdapters.createWebhook({
       domain: shop.domain,
       accessToken: shop.accessToken,
       topic,

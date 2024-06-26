@@ -1,11 +1,17 @@
+// pages/api/create-tracking/[channelId].js
 import { keystoneContext } from "@keystone/keystoneContext";
 
 const handler = async (req, res) => {
   res.status(200).json({ received: true });
 
-  const { platform } = req.query;
+  const { channelId } = req.query;
   try {
-    const platformFunctions = await import(`../../../channelFunctions/${platform}.js`);
+    // Find the channel and its platform
+    const channel = await keystoneContext.sudo().query.Channel.findOne({
+      where: { id: channelId },
+      query: 'id platform { createTrackingWebhookHandler }',
+    });
+    const platformFunctions = await import(`../../../../../channelAdapters/${channel.platform.createTrackingWebhookHandler}.js`);
     const { purchaseId, trackingNumber, trackingCompany, domain, error } =
       await platformFunctions.createTrackingWebhookHandler(req, res);
 

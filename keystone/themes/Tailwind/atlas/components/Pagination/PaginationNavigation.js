@@ -56,7 +56,7 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
       >
         <ArrowLeft className="w-3 h-3" />
       </button>
-      <div className="flex items-center border-r-0 px-1 text-xs h-full">
+      <div className="text-nowrap flex items-center border-r-0 px-1 text-xs h-full">
         <input
           className={`mx-1 bg-transparent border-0 text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none`}
           style={{

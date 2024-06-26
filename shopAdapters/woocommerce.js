@@ -1,4 +1,4 @@
-// shopFunctions/woocommerce.js
+// shopAdapters/woocommerce.js
 
 // Function to search products in WooCommerce
 export async function searchProducts({ domain, accessToken, searchEntry }) {

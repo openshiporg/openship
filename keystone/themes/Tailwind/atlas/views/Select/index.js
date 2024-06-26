@@ -224,6 +224,7 @@ export const controller = (config) => {
             options={optionsWithStringValues}
             value={props.value}
             autoFocus
+            className={props.className}
           />
         );
       },

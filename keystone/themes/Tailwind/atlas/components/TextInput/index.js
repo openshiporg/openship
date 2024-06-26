@@ -5,5 +5,5 @@ export const TextInput = (props) => {
     return null;
   }
 
-  return <Input className="bg-muted/40" {...props} />;
+  return <Input placeholder="Enter value" className="bg-muted/40" {...props} />;
 };

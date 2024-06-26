@@ -41,11 +41,11 @@ async function searchChannelProducts(
     return products;
   } else {
     // Internal function logic if applicable
-    const channelFunctions = await import(
-      `../../../../channelFunctions/${searchProductsFunction}.js`
+    const channelAdapters = await import(
+      `../../../../channelAdapters/${searchProductsFunction}.js`
     );
 
-    const result = await channelFunctions.searchProducts({
+    const result = await channelAdapters.searchProducts({
       searchEntry,
       domain: channel.domain,
       accessToken: channel.accessToken,
