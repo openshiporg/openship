@@ -10,7 +10,7 @@ import {
   getChannelWebhooks,
   getFilteredMatches,
   getChannelProduct,
-  getShopProduct
+  getShopProduct,
 } from "./queries";
 import {
   addMatchToCart,
@@ -26,7 +26,7 @@ import {
   createChannelWebhook,
   deleteChannelWebhook,
   createChannelPurchase,
-  upsertMatch
+  upsertMatch,
 } from "./mutations";
 
 const graphql = String.raw;
@@ -79,21 +79,21 @@ const typeDefs = graphql`
     getMatch(input: [ShopItemWhereInput!]): [ChannelItemPlus!]
     getMatchCount(input: [ShopItemWhereInput!]): Int
     redirectToInit: Boolean
-    searchShopProducts(
-      shopId: ID!
-      searchEntry: String
-    ): [ShopProduct]
+    searchShopProducts(shopId: ID!, searchEntry: String): [ShopProduct]
     getShopProduct(
       shopId: ID!
       variantId: String
       productId: String
     ): ShopProduct
-    searchShopOrders(shopId: ID!, searchEntry: String): [ShopOrder]
-    getShopWebhooks(shopId: ID!): [Webhook]
-    searchChannelProducts(
-      channelId: ID!
+    searchShopOrders(
+      shopId: ID!
       searchEntry: String
-    ): [ChannelProduct]
+      take: Int!
+      skip: Int
+      after: String
+    ): ShopOrderConnection
+    getShopWebhooks(shopId: ID!): [Webhook]
+    searchChannelProducts(channelId: ID!, searchEntry: String): [ChannelProduct]
     getChannelProduct(
       channelId: ID!
       variantId: String
@@ -124,8 +124,8 @@ const typeDefs = graphql`
     orderName: String
     link: String
     date: String
-    first_name: String
-    last_name: String
+    firstName: String
+    lastName: String
     streetAddress1: String
     streetAddress2: String
     city: String
@@ -133,24 +133,35 @@ const typeDefs = graphql`
     zip: String
     country: String
     email: String
-    cartItems: [CartItem]
+    cartItems: [ShopCartItem]
     cursor: String
-    lineItems: [LineItem]
+    lineItems: [ShopLineItem]
     fulfillments: [Fulfillment]
     note: String
     totalPrice: String
   }
 
-  type CartItem {
+  type ShopOrderConnection {
+    orders: [ShopOrder]
+    hasNextPage: Boolean
+  }
+
+  type ChannelPlus {
+    id: ID!
+    name: String!
+  }
+
+  type ShopCartItem {
     productId: String
     variantId: String
     quantity: Int
     price: String
     name: String
     image: String
+    channel: ChannelPlus
   }
 
-  type LineItem {
+  type ShopLineItem {
     name: String
     quantity: Int
     price: String
@@ -203,15 +214,15 @@ const typeDefs = graphql`
     address: AddressInput!
     orderId: ID!
   }
-  
+
   input CartItemInput {
     variantId: ID!
     quantity: Int!
   }
-  
+
   input AddressInput {
-    first_name: String!
-    last_name: String!
+    firstName: String!
+    lastName: String!
     streetAddress1: String!
     streetAddress2: String
     city: String!
@@ -219,7 +230,7 @@ const typeDefs = graphql`
     zip: String!
     country: String!
   }
-  
+
   type CreatePurchaseResponse {
     success: Boolean
     error: String
@@ -246,7 +257,7 @@ export const extendGraphqlSchema = (baseSchema) =>
         createChannelWebhook,
         deleteChannelWebhook,
         createChannelPurchase,
-        upsertMatch
+        upsertMatch,
       },
       Query: {
         getMatch,
@@ -259,7 +270,7 @@ export const extendGraphqlSchema = (baseSchema) =>
         getChannelWebhooks,
         getFilteredMatches,
         getChannelProduct,
-        getShopProduct
+        getShopProduct,
       },
     },
   });

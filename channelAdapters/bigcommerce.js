@@ -137,8 +137,8 @@ export async function createPurchase({
       },
       body: JSON.stringify({
         billing_address: {
-          first_name: address.first_name,
-          last_name: address.last_name,
+          first_name: address.firstName,
+          last_name: address.lastName,
           street_1: address.streetAddress1,
           city: address.city,
           state: address.state,
@@ -149,8 +149,8 @@ export async function createPurchase({
         },
         shipping_addresses: [
           {
-            first_name: address.first_name,
-            last_name: address.last_name,
+            first_name: address.firstName,
+            last_name: address.lastName,
             street_1: address.streetAddress1,
             street_2: address.streetAddress2,
             city: address.city,

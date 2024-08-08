@@ -112,16 +112,21 @@ export async function getProduct({
   return formattedProduct;
 }
 
-// Get Orders
-export async function searchOrders({ domain, accessToken, searchEntry }) {
+export async function searchOrders({ domain, accessToken, searchEntry, take, skip }) {
   const headers = {
     "X-Auth-Token": accessToken,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
 
+  const queryParams = new URLSearchParams({
+    limit: take,
+    page: Math.floor(skip / take) + 1,
+    min_date_created: searchEntry,
+  });
+
   const response = await fetch(
-    `https://api.bigcommerce.com/stores/${domain}/v2/orders?is_deleted=false&min_date_created=${searchEntry}`,
+    `https://api.bigcommerce.com/stores/${domain}/v2/orders?${queryParams}`,
     {
       method: "GET",
       headers,
@@ -130,62 +135,34 @@ export async function searchOrders({ domain, accessToken, searchEntry }) {
 
   const data = await response.json();
 
-  const promises = data.map((order) =>
-    Promise.all([
-      fetch(order.shipping_addresses.url, { method: "GET", headers }).then(
-        (res) => res.json()
-      ),
-      fetch(`${order.products.url}?include=images`, {
-        method: "GET",
-        headers,
-      }).then((res) => res.json()),
-    ])
-  );
+  const orders = data.map((order) => ({
+    orderId: order.id.toString(),
+    orderName: order.id.toString(),
+    link: `https://store-${domain}.mybigcommerce.com/manage/orders/${order.id}`,
+    date: order.date_created,
+    first_name: order.billing_address.first_name,
+    last_name: order.billing_address.last_name,
+    streetAddress1: order.billing_address.street_1,
+    streetAddress2: order.billing_address.street_2,
+    city: order.billing_address.city,
+    state: order.billing_address.state,
+    zip: order.billing_address.zip,
+    country: order.billing_address.country,
+    email: order.billing_address.email,
+    lineItems: order.products.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.base_price,
+      productId: item.product_id,
+      variantId: item.variant_id,
+      lineItemId: item.id,
+    })),
+  }));
 
-  const result = await Promise.all(promises);
-
-  const orders = result.map(([shippingData, productData], index) => {
-    const { id, date_created } = data[index];
-    const {
-      first_name,
-      last_name,
-      street_1,
-      street_2,
-      city,
-      state,
-      zip,
-      email,
-      country,
-    } = shippingData[0];
-
-    return {
-      orderId: id.toString(),
-      orderName: `#${id}`,
-      link: `https://store-${domain}.mybigcommerce.com/manage/orders/${id}`,
-      date: Intl.DateTimeFormat("en-US").format(Date.parse(date_created)),
-      first_name,
-      last_name,
-      streetAddress1: street_1,
-      streetAddress2: street_2,
-      city,
-      state,
-      zip,
-      email,
-      country,
-      lineItems: productData.map(
-        ({ id, name, quantity, product_id, variant_id, base_price }) => ({
-          name,
-          quantity,
-          price: base_price,
-          productId: product_id.toString(),
-          variantId: variant_id.toString(),
-          lineItemId: id.toString(),
-        })
-      ),
-    };
-  });
-
-  return { orders };
+  return { 
+    orders,
+    hasNextPage: data.length === take,
+  };
 }
 
 // Create Webhook
@@ -513,8 +490,8 @@ export async function createOrderWebhookHandler(req, res) {
     return {
       orderId: orderData.id,
       orderName: `#${orderData.id}`,
-      first_name,
-      last_name,
+      firstName: first_name,
+      lastName: last_name,
       streetAddress1: street_1,
       streetAddress2: street_2,
       city,

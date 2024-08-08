@@ -13,6 +13,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/tooltip";
+import { RiLoader2Fill } from "@remixicon/react";
+import { Plus } from "lucide-react";
+import { GraphQLErrorNotice } from "@keystone/themes/Tailwind/atlas/components/GraphQLErrorNotice";
 
 const CREATE_CHANNEL_WEBHOOK = gql`
   mutation CreateChannelWebhook(
@@ -69,6 +72,7 @@ const RECOMMENDED_WEBHOOKS = [
 const WebhookItem = ({ webhook, refetch, channelId }) => {
   const [deleteWebhook] = useMutation(DELETE_CHANNEL_WEBHOOK);
   const [loading, setLoading] = useState(false);
+  const toasts = useToasts();
 
   const handleDelete = async () => {
     setLoading(true);
@@ -78,10 +82,7 @@ const WebhookItem = ({ webhook, refetch, channelId }) => {
         webhookId: webhook.id,
       },
     })
-      .then(({ /* data, */ errors }) => {
-        // we're checking for path being undefined OR path.length === 1 because errors with a path larger than 1 will
-        // be field level errors which are handled seperately and do not indicate a failure to
-        // update the item, path being undefined generally indicates a failure in the graphql mutation itself - ie a type error
+      .then(({ errors }) => {
         const error = errors?.find(
           (x) => x.path === undefined || x.path?.length === 1
         );
@@ -93,10 +94,8 @@ const WebhookItem = ({ webhook, refetch, channelId }) => {
           });
         } else {
           toasts.addToast({
-            // title: data.item[list.labelField] || data.item.id,
             tone: "positive",
             title: "Webhook deleted successfully",
-            // message: 'Saved successfully',
           });
         }
       })
@@ -146,10 +145,7 @@ const RecommendedWebhookItem = ({ webhook, refetch, channelId }) => {
         endpoint: webhook.callbackUrl.replace("[channelId]", channelId),
       },
     })
-      .then(({ /* data, */ errors }) => {
-        // we're checking for path being undefined OR path.length === 1 because errors with a path larger than 1 will
-        // be field level errors which are handled seperately and do not indicate a failure to
-        // update the item, path being undefined generally indicates a failure in the graphql mutation itself - ie a type error
+      .then(({ errors }) => {
         const error = errors?.find(
           (x) => x.path === undefined || x.path?.length === 1
         );
@@ -161,10 +157,8 @@ const RecommendedWebhookItem = ({ webhook, refetch, channelId }) => {
           });
         } else {
           toasts.addToast({
-            // title: data.item[list.labelField] || data.item.id,
             tone: "positive",
             title: "Webhook created successfully",
-            // message: 'Saved successfully',
           });
         }
       })
@@ -182,6 +176,18 @@ const RecommendedWebhookItem = ({ webhook, refetch, channelId }) => {
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <div className="flex gap-2 items-center">
+          <Button
+            onClick={handleCreate}
+            disabled={loading}
+            variant="secondary"
+            className="p-0.5 flex items-center gap-3"
+          >
+            {loading ? (
+              <RiLoader2Fill className="size-3.5 py-0.5 animate-spin" />
+            ) : (
+              <Plus className="size-3.5" />
+            )}
+          </Button>
           <span className="text-xs font-medium">{webhook.topic}</span>
           <TooltipProvider>
             <Tooltip>
@@ -194,19 +200,7 @@ const RecommendedWebhookItem = ({ webhook, refetch, channelId }) => {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <BadgeButton
-          color="blue"
-          className="text-[.6rem] uppercase tracking-wide py-0 px-1 border"
-          onClick={handleCreate}
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Create"}
-        </BadgeButton>
       </div>
-      {/* <div className="flex flex-col gap-0.5 bg-muted p-2 rounded-lg text-xs text-muted-foreground">
-        <span className="opacity-90 font-medium">Description:</span>
-        {webhook.description}
-      </div> */}
     </div>
   );
 };
@@ -222,17 +216,18 @@ export const Webhooks = ({ channelId }) => {
 
   if (error) {
     return (
-      <Badge color="rose" className="opacity-80 text-xs w-full">
-        Error loading webhooks:{" "}
-        {error?.graphQLErrors[0]?.extensions?.originalError?.message}
-      </Badge>
+      <div>
+        <Badge color="rose" className="border opacity-80 text-sm w-full">
+          Error loading webhooks: {error?.message}
+        </Badge>
+      </div>
     );
   }
 
   const webhooks = data.getChannelWebhooks;
 
   return (
-    <div>
+    <div className="max-w-80">
       <div className="flex flex-col gap-2">
         {webhooks.map((webhook) => (
           <WebhookItem
@@ -249,8 +244,7 @@ export const Webhooks = ({ channelId }) => {
           const existingWebhook = webhooks.find(
             (w) =>
               w.topic === webhook.topic &&
-              w.callbackUrl ===
-                webhook.callbackUrl.replace("[channelId]", channelId)
+              w.callbackUrl === webhook.callbackUrl.replace("[channelId]", channelId)
           );
           return !existingWebhook ? (
             <RecommendedWebhookItem

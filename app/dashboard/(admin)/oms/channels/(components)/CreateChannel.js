@@ -73,9 +73,6 @@ export function getFilteredProps(props, modifications, defaultCollapse) {
   }, {});
 
   const updatedGroups = props.groups.map((group) => {
-    // const modification = modifications.find((mod) => mod.group === group.label);
-    // const collapsed = modification && modification.collapseGroup;
-
     if (breakGroups.includes(group.label)) {
       return {
         ...group,
@@ -97,8 +94,6 @@ export function getFilteredProps(props, modifications, defaultCollapse) {
     groups: updatedGroups,
   };
 }
-
-
 
 export function CreateChannel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -181,6 +176,7 @@ function TriggerButton({ setIsDialogOpen }) {
 
   return (
     <Button
+      variant="secondary"
       onClick={() => setIsDialogOpen(true)}
       disabled={error || loading || data?.count === 0}
     >
@@ -281,10 +277,7 @@ export function CreateChannelButton({
       isLoading={state === "loading"}
       onClick={handleClick}
     >
-      {platformData?.oAuthFunction &&
-      platformData?.oAuthCallbackFunction &&
-      platformData?.appKey &&
-      platformData?.appSecret
+      {platformData?.oAuthFunction && platformData?.oAuthCallbackFunction
         ? `Install App on ${platformData.name}`
         : "Create Channel"}
     </Button>

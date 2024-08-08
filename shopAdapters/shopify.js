@@ -141,11 +141,11 @@ export async function getProduct({
 
   return { product };
 }
-// Get Orders
+
 export async function searchOrders({
   domain,
   accessToken,
-  query,
+  searchEntry,
   first = 10,
   after = null,
 }) {
@@ -160,21 +160,8 @@ export async function searchOrders({
 
   const { orders } = await shopifyClient.request(
     gql`
-      query (
-        $first: Int
-        $after: String
-        $before: String
-        $last: Int
-        $query: String
-      ) {
-        orders(
-          first: $first
-          after: $after
-          before: $before
-          last: $last
-          reverse: true
-          query: $query
-        ) {
+      query ($first: Int, $after: String, $query: String) {
+        orders(first: $first, after: $after, reverse: true, query: $query) {
           pageInfo {
             hasNextPage
             hasPreviousPage
@@ -241,7 +228,7 @@ export async function searchOrders({
         }
       }
     `,
-    { query, first, after }
+    { query: searchEntry, first, after }
   );
 
   const formattedOrders = orders.edges.map(
@@ -274,8 +261,8 @@ export async function searchOrders({
       orderName: name,
       link: `https://${domain}/admin/orders/${id.split("/").pop()}`,
       date: Intl.DateTimeFormat("en-US").format(Date.parse(processedAt)),
-      first_name: shipName.split(" ")[0],
-      last_name: shipName.split(" ")[1] || shipName.split(" ")[0],
+      firstName: shipName.split(" ")[0],
+      lastName: shipName.split(" ")[1] || shipName.split(" ")[0],
       streetAddress1: address1,
       streetAddress2: address2,
       city,
@@ -284,7 +271,7 @@ export async function searchOrders({
       country,
       email,
       cartItems: metafield && JSON.parse(metafield.value),
-      cursor,
+      // cursor,
       lineItems: lineItems.edges.map(
         ({
           node: {
@@ -318,7 +305,7 @@ export async function searchOrders({
     })
   );
 
-  return { orders: formattedOrders, pageInfo: orders.pageInfo };
+  return { orders: formattedOrders, hasNextPage: orders.pageInfo.hasNextPage };
 }
 
 // Create Webhook
@@ -988,8 +975,8 @@ export async function createOrderWebhookHandler(req, res) {
       orderId: req.body.id,
       orderName: req.body.name,
       email: req.body.email,
-      first_name: req.body.shipping_address.first_name,
-      last_name: req.body.shipping_address.last_name,
+      firstName: req.body.shipping_address.first_name,
+      lastName: req.body.shipping_address.last_name,
       streetAddress1: req.body.shipping_address.address1,
       streetAddress2: req.body.shipping_address.address2,
       city: req.body.shipping_address.city,

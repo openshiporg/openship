@@ -2078,7 +2078,7 @@ type Query {
   redirectToInit: Boolean
   searchShopProducts(shopId: ID!, searchEntry: String): [ShopProduct]
   getShopProduct(shopId: ID!, variantId: String, productId: String): ShopProduct
-  searchShopOrders(shopId: ID!, searchEntry: String): [ShopOrder]
+  searchShopOrders(shopId: ID!, searchEntry: String, take: Int!, skip: Int, after: String): ShopOrderConnection
   getShopWebhooks(shopId: ID!): [Webhook]
   searchChannelProducts(channelId: ID!, searchEntry: String): [ChannelProduct]
   getChannelProduct(channelId: ID!, variantId: String, productId: String): ChannelProduct
@@ -2216,8 +2216,8 @@ type ShopOrder {
   orderName: String
   link: String
   date: String
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   streetAddress1: String
   streetAddress2: String
   city: String
@@ -2225,12 +2225,42 @@ type ShopOrder {
   zip: String
   country: String
   email: String
-  cartItems: [CartItem]
+  cartItems: [ShopCartItem]
   cursor: String
-  lineItems: [LineItem]
+  lineItems: [ShopLineItem]
   fulfillments: [Fulfillment]
   note: String
   totalPrice: String
+}
+
+type ShopOrderConnection {
+  orders: [ShopOrder]
+  hasNextPage: Boolean
+}
+
+type ChannelPlus {
+  id: ID!
+  name: String!
+}
+
+type ShopCartItem {
+  productId: String
+  variantId: String
+  quantity: Int
+  price: String
+  name: String
+  image: String
+  channel: ChannelPlus
+}
+
+type ShopLineItem {
+  name: String
+  quantity: Int
+  price: String
+  image: String
+  productId: String
+  variantId: String
+  lineItemId: String
 }
 
 type Fulfillment {
@@ -2283,8 +2313,8 @@ input CartItemInput {
 }
 
 input AddressInput {
-  first_name: String!
-  last_name: String!
+  firstName: String!
+  lastName: String!
   streetAddress1: String!
   streetAddress2: String
   city: String!

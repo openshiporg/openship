@@ -216,7 +216,7 @@ export const Webhooks = ({ shopId }) => {
   if (error) {
     return (
       <div>
-        <Badge color="rose" className="border opacity-80 text-xs">
+        <Badge color="rose" className="border opacity-80 text-sm w-full">
           Error loading webhooks: {error?.message}
         </Badge>
       </div>

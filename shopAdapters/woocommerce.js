@@ -98,9 +98,15 @@ export async function getProduct({
   };
 }
 // Search Orders
-export async function searchOrders({ domain, accessToken, searchEntry }) {
+export async function searchOrders({ domain, accessToken, searchEntry, take, skip }) {
+  const queryParams = new URLSearchParams({
+    search: searchEntry,
+    per_page: take,
+    offset: skip,
+  });
+
   const response = await fetch(
-    `${domain}/wp-json/wc/v3/orders/?search=${searchEntry}`,
+    `${domain}/wp-json/wc/v3/orders?${queryParams}`,
     {
       headers: {
         Authorization: "Basic " + btoa(accessToken),
@@ -132,14 +138,16 @@ export async function searchOrders({ domain, accessToken, searchEntry }) {
       name: item.name,
       quantity: item.quantity,
       price: item.price,
-      image: item.image.src,
       productId: item.product_id,
       variantId: item.variation_id,
       lineItemId: item.id,
     })),
   }));
 
-  return { orders };
+  return { 
+    orders,
+    hasNextPage: data.length === take,
+  };
 }
 
 // Create Webhook
@@ -416,8 +424,8 @@ export async function createOrderWebhookHandler(req, res) {
     return {
       orderId: orderData.id,
       orderName: `#${orderData.id}`,
-      first_name,
-      last_name,
+      firstName: first_name,
+      lastName: last_name,
       streetAddress1: street_1,
       streetAddress2: street_2,
       city,

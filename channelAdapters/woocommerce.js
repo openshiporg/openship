@@ -101,8 +101,8 @@ export async function createPurchase({
   address,
 }) {
   const {
-    first_name,
-    last_name,
+    firstName,
+    lastName,
     streetAddress1,
     streetAddress2,
     city,
@@ -118,8 +118,8 @@ export async function createPurchase({
   }));
 
   const shipping = {
-    first_name,
-    last_name,
+    first_name: firstName,
+    last_name: lastName,
     address_1: streetAddress1,
     address_2: streetAddress2,
     city,

@@ -169,8 +169,8 @@ export async function createPurchase({
     email,
     note: "Openship order placed",
     shippingAddress: {
-      firstName: address.first_name,
-      lastName: address.last_name,
+      firstName: address.firstName,
+      lastName: address.lastName,
       address1: address.streetAddress1,
       address2: address.streetAddress2,
       city: address.city,

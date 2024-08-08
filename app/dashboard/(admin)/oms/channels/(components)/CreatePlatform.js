@@ -30,10 +30,10 @@ import { Badge } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/bad
 
 export const channelAdapters = {
   ...adapters,
-  Webflow: "soon",
-  WiX: "soon",
-  Medusa: "soon",
-  Openfront: "soon",
+  Channelify: "soon",
+  BigCommerce: "soon",
+  Magento: "soon",
+  WooCommerce: "soon",
   Stripe: "soon",
 };
 
@@ -47,16 +47,19 @@ export function CreatePlatform({ refetch, trigger }) {
 
   const keysToUpdateCustom = [
     "name",
-    "createPurchaseFunction",
+    "updateProductFunction",
     "getWebhooksFunction",
     "deleteWebhookFunction",
     "createWebhookFunction",
     "searchProductsFunction",
     "getProductFunction",
-    "createTrackingWebhookHandler",
+    "searchOrdersFunction",
+    "addTrackingFunction",
+    "addCartToPlatformOrderFunction",
     "oAuthFunction",
     "oAuthCallbackFunction",
-    "cancelPurchaseWebhookHandler",
+    "cancelOrderWebhookHandler",
+    "createOrderWebhookHandler",
     "appKey",
     "appSecret",
   ];
@@ -101,6 +104,7 @@ export function CreatePlatform({ refetch, trigger }) {
       });
     }
   };
+
   const clearFunctionFields = () => {
     const clearedFields = keysToUpdateCustom.reduce((acc, key) => {
       acc[key] = {
@@ -167,11 +171,6 @@ export function CreatePlatform({ refetch, trigger }) {
                     disabled={channelAdapters[key] === "soon"}
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
-                    {/* {channelAdapters[key] === "soon" && (
-                      <Badge color="zinc" className="text-[.6rem] font-medium tracking-wide uppercase py-0">
-                        Soon
-                      </Badge>
-                    )} */}
                   </SelectItem>
                 ))}
               </SelectGroup>

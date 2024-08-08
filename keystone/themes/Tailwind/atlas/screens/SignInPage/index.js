@@ -204,7 +204,8 @@ export function SignInTemplate({
             </CardContent>
             <CardFooter className="flex flex-col justify-between">
               <Button
-                className="heropattern-topography-zinc-400/10 w-full text-md tracking-wide h-11 md:h-12 font-semibold"
+                // variant="secondary"
+                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold"
                 isLoading={
                   loading ||
                   // this is for while the page is loading but the mutation has finished successfully

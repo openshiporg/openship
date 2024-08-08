@@ -1,4 +1,8 @@
-async function searchShopOrders(root, { shopId, searchEntry }, context) {
+async function searchShopOrders(
+  root,
+  { shopId, searchEntry, take, skip, after },
+  context
+) {
   // Fetch the shop using the provided shopId
   const shop = await context.query.Shop.findOne({
     where: { id: shopId },
@@ -25,6 +29,9 @@ async function searchShopOrders(root, { shopId, searchEntry }, context) {
       searchEntry,
       domain: shop.domain,
       accessToken: shop.accessToken,
+      first: take,
+      skip,
+      after,
     }).toString();
 
     const response = await fetch(`${searchOrdersFunction}?${params}`);
@@ -33,21 +40,29 @@ async function searchShopOrders(root, { shopId, searchEntry }, context) {
       throw new Error(`Failed to fetch orders: ${response.statusText}`);
     }
 
-    const { orders } = await response.json();
-    return orders; // Assuming the response includes an 'orders' array
+    const { orders, hasNextPage } = await response.json();
+    return { orders, hasNextPage };
   } else {
     // Internal function call
     const shopAdapters = await import(
       `../../../../shopAdapters/${searchOrdersFunction}.js`
     );
 
-    const result = await shopAdapters.searchOrders({
+    const { orders, hasNextPage } = await shopAdapters.searchOrders({
       searchEntry,
       domain: shop.domain,
       accessToken: shop.accessToken,
+      first: take,
+      skip,
+      after,
     });
 
-    return result.orders; // Ensure orders are returned in the expected format
+    // console.log(orders[0].lineItems);
+    // console.log(orders[0].cartItems);
+
+    // return { orders: [], hasNextPage: true };
+
+    return { orders, hasNextPage };
   }
 }
 

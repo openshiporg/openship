@@ -6,8 +6,7 @@ import { EllipsisVertical, Plus } from "lucide-react";
 import { Skeleton } from "@ui/skeleton";
 import { Button } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/button";
 
-import { Badge, BadgeButton } from "@ui/badge";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { Badge } from "@ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/dropdown-menu-depracated";
-import { CreatePlatform } from "../../channels/(components)/CreatePlatform";
+import { CreatePlatform } from "./CreatePlatform";
 
 export const CHANNEL_PLATFORMS_QUERY = gql`
   query (
@@ -135,25 +134,10 @@ export const ChannelPlatformsMobile = ({ openDrawer }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* <div className="flex items-center">
-          <Button variant="secondary" className="flex items-center gap-3">
-            Platforms
-            <Badge color="blue" className="border text-[.7rem] py-0 px-2">
-              {data.items.length}
-            </Badge>
-          </Button>
-          <CreatePlatform
-            trigger={
-              <Button variant="secondary" className="flex items-center gap-3">
-                <Plus className="size-3.5" />
-              </Button>
-            }
-          />
-        </div> */}
         {data.items.length && (
           <Button
             variant="secondary"
-            className="rounded-r-none flex items-center gap-3 py-0.5"
+            className="rounded-r-none flex items-center gap-3"
           >
             Platforms
             <Badge

@@ -46,7 +46,7 @@ const GET_CHANNELS = gql`
   }
 `;
 
-export const CreateLinkButton = ({ shopId, refetch }) => {
+export const CreateLinkButton = ({ channelId, refetch }) => {
   const list = useList("Link");
   const { createWithData, state, error } = useCreateItem(list);
   const {
@@ -64,7 +64,7 @@ export const CreateLinkButton = ({ shopId, refetch }) => {
     try {
       const item = await createWithData({
         data: {
-          shop: { connect: { id: shopId } },
+          channel: { connect: { id: channelId } },
           channel: { connect: { id: channelId } },
         },
       });
@@ -119,7 +119,7 @@ const areOrdersEqual = (links1, links2) => {
 };
 
 export const Links = ({
-  shopId,
+  channelId,
   links: initialLinks,
   refetch,
   isLoading,
@@ -357,7 +357,7 @@ export const Links = ({
                 Save
               </Button>
             ) : (
-              <CreateLinkButton shopId={shopId} refetch={refetch} />
+              <CreateLinkButton channelId={channelId} refetch={refetch} />
             )}
           </div>
           {/* <ReactSortable list={state} setList={setState}>
