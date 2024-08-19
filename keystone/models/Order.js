@@ -122,7 +122,7 @@ export const Order = list({
               }
             }
           }
-            } else if (order.cartItemsCount > 0 && item.processOrder) {
+        } else if (order.cartItemsCount > 0 && item.processOrder) {
           // Process the order if there are cart items and processOrder is true
           const processedOrder = await placeMultipleOrders({
             ids: [item.id],
@@ -146,7 +146,7 @@ export const Order = list({
     },
   },
   fields: {
-    orderId: float(),
+    orderId: text(),
     orderName: text(),
     email: text(),
     firstName: text(),
@@ -191,5 +191,8 @@ export const Order = list({
     matchOrder: checkbox(),
     processOrder: checkbox(),
     ...trackingFields,
+  },
+  ui: {
+    listView: { initialColumns: ["lineItems", "cartItems"] },
   },
 });

@@ -47,19 +47,16 @@ export function CreatePlatform({ refetch, trigger }) {
 
   const keysToUpdateCustom = [
     "name",
-    "updateProductFunction",
+    "createPurchaseFunction",
     "getWebhooksFunction",
     "deleteWebhookFunction",
     "createWebhookFunction",
     "searchProductsFunction",
     "getProductFunction",
-    "searchOrdersFunction",
-    "addTrackingFunction",
-    "addCartToPlatformOrderFunction",
+    "cancelPurchaseWebhookHandler",
+    "createTrackingWebhookHandler",
     "oAuthFunction",
     "oAuthCallbackFunction",
-    "cancelOrderWebhookHandler",
-    "createOrderWebhookHandler",
     "appKey",
     "appSecret",
   ];

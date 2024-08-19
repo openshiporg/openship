@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, gql } from "@keystone-6/core/admin-ui/apollo";
 import {
   ChevronDownIcon,
@@ -98,6 +98,11 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
       skip: 0,
     },
   });
+
+  useEffect(() => {
+    refetch();
+  }, [selectedPlatform]);
+
   const [showAll, setShowAll] = useState(false);
 
   if (loading) {
@@ -130,7 +135,7 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
                   <div className="self-start">
                     <Badge
                       color="teal"
-                      className="uppercase tracking-wide border-2 text-xl p-3 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
+                      className="uppercase tracking-wide border-2 text-xl flex items-center justify-center w-14 h-14 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
                     >
                       {shop.name.slice(0, 2)}
                     </Badge>

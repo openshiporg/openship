@@ -33,6 +33,16 @@ import {
   CollapsibleTrigger,
 } from "@ui/collapsible";
 import { Avatar } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@ui/dialog";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
 
 const SEARCH_SHOP_ORDERS = gql`
   query SearchShopOrders(
@@ -197,7 +207,7 @@ function OrdersContent({
     return (
       <div>
         <Badge color="rose" className="border opacity-80 text-sm w-full">
-          Error loading webhooks: {error?.message}
+          Error loading orders: {error?.message}
         </Badge>
       </div>
     );
@@ -211,7 +221,11 @@ function OrdersContent({
     <div className="border bg-background mt-4 rounded-lg overflow-hidden">
       <div className="grid grid-cols-1 divide-y">
         {orders.map((order) => (
-          <OrderDetailsComponent key={order.orderId} order={order} />
+          <OrderDetailsComponent
+            key={order.orderId}
+            order={order}
+            shopId={shopId}
+          />
         ))}
       </div>
     </div>
@@ -298,59 +312,72 @@ const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
   );
 };
 
-const OrderDetailsComponent = ({ order }) => {
+export const OrderDetailsComponent = ({ order, shopId }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value={order.orderId} className="border-0">
-        <div className="px-4 py-2 flex items-start justify-between w-full border-b">
-          <div className="flex flex-col items-start text-left gap-1.5">
-            <div className="flex items-center space-x-4">
-              <span className="uppercase font-medium text-sm">
-                {order.orderName}
-              </span>
-              <span className="text-xs font-medium opacity-65">
-                {order.date}
-              </span>
+    <>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value={order.orderId} className="border-0">
+          <div className="px-4 py-2 flex items-start justify-between w-full border-b">
+            <div className="flex flex-col items-start text-left gap-1.5">
+              <div className="flex items-center space-x-4">
+                <span className="uppercase font-medium text-sm">
+                  {order.orderName}
+                </span>
+                <span className="text-xs font-medium opacity-65">
+                  {order.date}
+                </span>
+              </div>
+              <div className="text-sm opacity-75">
+                <p>
+                  {order.firstName} {order.lastName}
+                </p>
+                <p>{order.streetAddress1}</p>
+                {order.streetAddress2 && <p>{order.streetAddress2}</p>}
+                <p>
+                  {order.city}, {order.state} {order.zip}
+                </p>
+              </div>
             </div>
-            <div className="text-sm opacity-75">
-              <p>
-                {order.firstName} {order.lastName}
-              </p>
-              <p>{order.streetAddress1}</p>
-              {order.streetAddress2 && <p>{order.streetAddress2}</p>}
-              <p>
-                {order.city}, {order.state} {order.zip}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <BadgeButton color="sky" className="border p-1">
-              <MoreVertical className="h-3 w-3" />
-            </BadgeButton>
-            <AccordionTrigger hideArrow className="py-0">
-              <BadgeButton color="zinc" className="border p-1">
-                <ChevronDown className="h-3 w-3" />
+            <div className="flex items-center space-x-2">
+              <BadgeButton
+                color="sky"
+                className="border p-1"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                <MoreVertical className="h-3 w-3" />
               </BadgeButton>
-            </AccordionTrigger>
+              <AccordionTrigger hideArrow className="py-0">
+                <BadgeButton color="zinc" className="border p-1">
+                  <ChevronDown className="h-3 w-3" />
+                </BadgeButton>
+              </AccordionTrigger>
+            </div>
           </div>
-        </div>
-        <AccordionContent>
-          <div className="divide-y">
-            <ProductDetailsCollapsible
-              items={order.lineItems}
-              title="Line Item"
-              defaultOpen={true}
-            />
-            {order.cartItems && order.cartItems.length > 0 && (
+          <AccordionContent>
+            <div className="divide-y">
               <ProductDetailsCollapsible
-                items={order.cartItems}
-                title="Cart Item"
+                items={order.lineItems}
+                title="Line Item"
                 defaultOpen={true}
               />
-            )}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+              {order.cartItems && order.cartItems.length > 0 && (
+                <ProductDetailsCollapsible
+                  items={order.cartItems}
+                  title="Cart Item"
+                  defaultOpen={true}
+                />
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+      <OrderDetailsDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        order={order}
+        shopId={shopId}
+      />
+    </>
   );
 };

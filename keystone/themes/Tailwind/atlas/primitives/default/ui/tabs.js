@@ -29,7 +29,13 @@ const variantStyles = {
 
 const TabsList = React.forwardRef(
   (
-    { className, variant = "line", orientation = "horizontal", children, ...props },
+    {
+      className,
+      variant = "line",
+      orientation = "horizontal",
+      children,
+      ...props
+    },
     forwardedRef
   ) => (
     <TabsPrimitives.List
@@ -37,6 +43,7 @@ const TabsList = React.forwardRef(
       className={cn(
         variantStyles[variant],
         orientation === "vertical" ? "flex-col" : "flex-row",
+        orientation === "vertical" ? "h-full" : "w-full",
         className
       )}
       {...props}

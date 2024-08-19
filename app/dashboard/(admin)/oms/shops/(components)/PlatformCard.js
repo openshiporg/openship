@@ -47,12 +47,21 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
       <h2 className="text-xs font-normal mb-3 text-muted-foreground">
         Platforms
       </h2>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <CreatePlatform
+          refetch={refetch}
+          trigger={
+            <Button variant="secondary" className="p-1.5">
+              <Plus className="size-3.5" />
+            </Button>
+          }
+        />
+
         {platforms.map((platform) => (
           <Badge
             key={platform.id}
             color={selectedPlatformId === platform.id ? "sky" : "zinc"}
-            className={`flex items-center justify-between gap-2 uppercase tracking-wide border pl-3 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
+            className={`cursor-pointer flex items-center justify-between gap-2 uppercase tracking-wide border pl-3 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
               selectedPlatformId === platform.id ? "opacity-100" : "opacity-70"
             }`}
             onClick={() => handlePlatformClick(platform.id)}
@@ -70,21 +79,6 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
             </Button>
           </Badge>
         ))}
-
-        <CreatePlatform
-          refetch={refetch}
-          trigger={
-            <BadgeButton
-              color="zinc"
-              className="w-full flex items-center justify-between gap-2 uppercase tracking-wide border pl-3 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)]"
-            >
-              Create
-              <Button variant="secondary" className="p-1">
-                <Plus className="size-2" />
-              </Button>
-            </BadgeButton>
-          }
-        />
       </div>
     </div>
   );

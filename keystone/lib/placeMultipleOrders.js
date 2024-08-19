@@ -28,8 +28,8 @@ export async function placeMultipleOrders({ ids, query }) {
   const processed = [];
   for (const orderId of ids) {
     const {
-      first_name,
-      last_name,
+      firstName,
+      lastName,
       streetAddress1,
       streetAddress2,
       city,
@@ -48,8 +48,8 @@ export async function placeMultipleOrders({ ids, query }) {
         id: orderId,
       },
       query: `
-        first_name,
-        last_name,
+        firstName,
+        lastName,
         streetAddress1,
         streetAddress2,
         city,
@@ -62,7 +62,6 @@ export async function placeMultipleOrders({ ids, query }) {
         shop {
           domain
           accessToken
-          type
           platform {
             addCartToPlatformOrderFunction
           }
@@ -93,35 +92,30 @@ export async function placeMultipleOrders({ ids, query }) {
         name
         quantity
         price
+      } 
+      platform {
+        createPurchaseFunction
       }
-      createPurchaseFunction
-      metafields {
-        id
-        key
-        value
-      }
+      metadata
       `,
     });
+
+    console.log({ cartChannels });
 
     for (const {
       domain,
       accessToken,
       cartItems,
-      createPurchaseFunction,
-      metafields,
+      platform,
+      metadata,
     } of cartChannels.filter((channel) => channel.cartItems.length > 0)) {
-      const metafieldsObject = Object.assign(
-        {},
-        ...metafields.map(({ key, value }) => ({ [key]: value }))
-      );
-
       const body = {
         domain,
         accessToken,
         cartItems,
         address: {
-          first_name,
-          last_name,
+          firstName,
+          lastName,
           streetAddress1,
           streetAddress2,
           city,
@@ -136,8 +130,12 @@ export async function placeMultipleOrders({ ids, query }) {
         orderName,
         orderId,
         shopOrderId,
-        metafields: metafieldsObject,
+        metadata,
       };
+
+      console.log({ body });
+
+      const { createPurchaseFunction } = platform;
 
       try {
         if (createPurchaseFunction.startsWith("http")) {
@@ -151,7 +149,9 @@ export async function placeMultipleOrders({ ids, query }) {
           });
 
           if (!response.ok) {
-            throw new Error(`Failed to create purchase: ${response.statusText}`);
+            throw new Error(
+              `Failed to create purchase: ${response.statusText}`
+            );
           }
 
           const orderPlacementRes = await response.json();
@@ -164,7 +164,7 @@ export async function placeMultipleOrders({ ids, query }) {
             });
           }
 
-          if (orderPlacementRes.url) {
+          if (orderPlacementRes.purchaseId) {
             await updateCartItems({
               cartItems,
               url: orderPlacementRes.url,
@@ -174,12 +174,20 @@ export async function placeMultipleOrders({ ids, query }) {
           }
         } else {
           // Internal function call
+          console.log("inside else");
+
           const platformFunctions = await import(
             `../../channelAdapters/${createPurchaseFunction}.js`
           );
 
+          console.log({ platformFunctions });
+
           if (platformFunctions.createPurchase) {
-            const orderPlacementRes = await platformFunctions.createPurchase(body);
+            const orderPlacementRes = await platformFunctions.createPurchase(
+              body
+            );
+
+            console.log({ orderPlacementRes });
 
             if (orderPlacementRes.error) {
               await updateCartItems({
@@ -189,7 +197,7 @@ export async function placeMultipleOrders({ ids, query }) {
               });
             }
 
-            if (orderPlacementRes.url) {
+            if (orderPlacementRes.purchaseId) {
               await updateCartItems({
                 cartItems,
                 url: orderPlacementRes.url,
@@ -247,7 +255,6 @@ export async function placeMultipleOrders({ ids, query }) {
               error,
             }
             shop {
-              type
               platform {
                 addCartToPlatformOrderFunction
               }
@@ -273,14 +280,16 @@ export async function placeMultipleOrders({ ids, query }) {
           });
 
           if (!response.ok) {
-            throw new Error(`Failed to update order on platform: ${response.statusText}`);
+            throw new Error(
+              `Failed to update order on platform: ${response.statusText}`
+            );
           }
 
           await response.json();
         } else {
           // Internal function call
           const platformFunctions = await import(
-            `../../channelAdapters/${addCartToPlatformOrderFunction}.js`
+            `../../shopAdapters/${addCartToPlatformOrderFunction}.js`
           );
 
           if (platformFunctions.addCartToPlatformOrder) {
@@ -291,7 +300,9 @@ export async function placeMultipleOrders({ ids, query }) {
               accessToken: shop.accessToken,
             });
           } else {
-            throw new Error("Add cart to platform order function not implemented.");
+            console.warn(
+              "Warning: Add cart to platform order function not implemented. Skipping this step."
+            );
           }
         }
 

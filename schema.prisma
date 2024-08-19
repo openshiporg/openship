@@ -71,7 +71,7 @@ model Role {
 
 model Order {
   id             String     @id @default(cuid())
-  orderId        Float?
+  orderId        String     @default("")
   orderName      String     @default("")
   email          String     @default("")
   firstName      String     @default("")

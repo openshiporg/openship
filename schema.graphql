@@ -650,7 +650,7 @@ input UserRelateToManyForCreateInput {
 
 type Order {
   id: ID!
-  orderId: Float
+  orderId: String
   orderName: String
   email: String
   firstName: String
@@ -694,7 +694,7 @@ input OrderWhereInput {
   OR: [OrderWhereInput!]
   NOT: [OrderWhereInput!]
   id: IDFilter
-  orderId: FloatNullableFilter
+  orderId: StringFilter
   orderName: StringFilter
   email: StringFilter
   firstName: StringFilter
@@ -768,7 +768,7 @@ input OrderOrderByInput {
 }
 
 input OrderUpdateInput {
-  orderId: Float
+  orderId: String
   orderName: String
   email: String
   firstName: String
@@ -813,7 +813,7 @@ input OrderUpdateArgs {
 }
 
 input OrderCreateInput {
-  orderId: Float
+  orderId: String
   orderName: String
   email: String
   firstName: String

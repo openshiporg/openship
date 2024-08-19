@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { gql } from "@apollo/client";
 import { Skeleton } from "@ui/skeleton";
@@ -82,19 +82,20 @@ function formatDate(dateString) {
 }
 
 export const Channels = ({ openDrawer, selectedPlatform }) => {
-  const { data, loading, error, refetch } = useQuery(
-    CHANNELS_QUERY,
-    {
-      variables: {
-        where: selectedPlatform
-          ? { platform: { id: { equals: selectedPlatform } } }
-          : { OR: [] },
-        take: 50,
-        skip: 0,
-      },
+  const { data, loading, error, refetch } = useQuery(CHANNELS_QUERY, {
+    variables: {
+      where: selectedPlatform
+        ? { platform: { id: { equals: selectedPlatform } } }
+        : { OR: [] },
+      take: 50,
+      skip: 0,
     },
-    [selectedPlatform]
-  );
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [selectedPlatform]);
+
   const [showAll, setShowAll] = useState(false);
 
   if (loading) {
@@ -129,7 +130,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                     <div className="self-start">
                       <Badge
                         color="teal"
-                        className="uppercase tracking-wide border-2 text-xl p-3 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
+                        className="uppercase tracking-wide border-2 text-xl flex items-center justify-center w-14 h-14 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
                       >
                         {channel.name.slice(0, 2)}
                       </Badge>

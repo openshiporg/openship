@@ -239,6 +239,7 @@ export async function createPurchase({
 
   return {
     purchaseId: draftOrderComplete.draftOrder.order.id.split("/").pop(),
+    url: draftOrderComplete.draftOrder.order.id.split("/").pop(),
   };
 }
 

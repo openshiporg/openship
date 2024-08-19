@@ -3,59 +3,38 @@
 import React, { useState } from "react";
 import { Shops } from "./(components)/Shops";
 import { CreateShop } from "./(components)/CreateShop";
-import { EditItemDrawer } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
 import { PlatformCard } from "./(components)/PlatformCard";
+import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
 
 const ShopsPage = () => {
-  const [drawerState, setDrawerState] = useState({
-    itemId: null,
-    listKey: null,
-  });
+  const { openEditDrawer } = useDrawer();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
-
-  const openDrawer = (itemId, listKey) => {
-    setDrawerState({ itemId: itemId, listKey });
-  };
-
-  const closeDrawer = () => {
-    setDrawerState({ itemId: null, listKey: null });
-  };
 
   return (
     <div>
-      <div>
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-baseline justify-between border-b pb-6 pt-8 gap-4">
-            <h1 className="text-4xl font-bold tracking-tight">Shops</h1>
-            <div className="flex gap-4 items-center">
-              <CreateShop />
-            </div>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex items-baseline justify-between border-b pb-6 pt-8 gap-4">
+          <h1 className="text-4xl font-bold tracking-tight">Shops</h1>
+          <div className="flex gap-4 items-center">
+            <CreateShop />
           </div>
+        </div>
 
-          <section className="pt-6 flex flex-col gap-4">
-            <div>
-              <PlatformCard
-                openDrawer={openDrawer}
-                setSelectedPlatform={setSelectedPlatform}
-              />
-            </div>
-            <div>
-              <Shops
-                openDrawer={openDrawer}
-                selectedPlatform={selectedPlatform}
-              />
-            </div>
-          </section>
-        </main>
-      </div>
-      {drawerState.listKey && drawerState.itemId && (
-        <EditItemDrawer
-          listKey={drawerState.listKey}
-          itemId={drawerState.itemId}
-          closeDrawer={closeDrawer}
-          open={drawerState.listKey && drawerState.itemId}
-        />
-      )}
+        <section className="pt-6 flex flex-col gap-4">
+          <div>
+            <PlatformCard
+              openDrawer={openEditDrawer}
+              setSelectedPlatform={setSelectedPlatform}
+            />
+          </div>
+          <div>
+            <Shops
+              openDrawer={openEditDrawer}
+              selectedPlatform={selectedPlatform}
+            />
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

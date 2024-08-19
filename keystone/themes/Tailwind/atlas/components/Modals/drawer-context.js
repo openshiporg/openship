@@ -1,58 +1,89 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState, createContext, useContext } from "react";
+import { EditItemDrawer } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
 
-const ModalContext = React.createContext(null)
+const DrawerContext = createContext(null);
 
 export const DrawerProvider = ({ children }) => {
-  let [drawerStack, setDrawerStack] = useState([])
+  const [drawerStack, setDrawerStack] = useState([]);
+  const [editDrawerState, setEditDrawerState] = useState({
+    itemId: null,
+    listKey: null,
+  });
 
-  const pushToDrawerStack = useCallback(key => {
-    setDrawerStack(stack => [...stack, key])
-  }, [])
+  const pushToDrawerStack = useCallback((key) => {
+    setDrawerStack((stack) => [...stack, key]);
+  }, []);
+
   const popFromDrawerStack = useCallback(() => {
-    setDrawerStack(stack => {
-      let less = stack.slice(0, -1)
-      return less
-    })
-  }, [])
+    setDrawerStack((stack) => stack.slice(0, -1));
+  }, []);
+
+  const openEditDrawer = useCallback((itemId, listKey) => {
+    setEditDrawerState({ itemId, listKey });
+  }, []);
+
+  const closeEditDrawer = useCallback(() => {
+    setEditDrawerState({ itemId: null, listKey: null });
+  }, []);
 
   const context = {
     drawerStack,
     pushToDrawerStack,
-    popFromDrawerStack
-  }
+    popFromDrawerStack,
+    openEditDrawer,
+    closeEditDrawer,
+  };
 
   return (
-    <ModalContext.Provider value={context}>{children}</ModalContext.Provider>
-  )
-}
+    <DrawerContext.Provider value={context}>
+      {children}
+      {editDrawerState.listKey && editDrawerState.itemId && (
+        <EditItemDrawer
+          listKey={editDrawerState.listKey}
+          itemId={editDrawerState.itemId}
+          closeDrawer={closeEditDrawer}
+          open={true}
+        />
+      )}
+    </DrawerContext.Provider>
+  );
+};
 
-// Utils
-// ------------------------------
-export const useDrawerManager = uniqueKey => {
-  const modalState = React.useContext(ModalContext)
+export const useDrawerManager = (uniqueKey) => {
+  const drawerContext = useContext(DrawerContext);
 
-  if (modalState === null) {
+  if (drawerContext === null) {
     throw new Error(
       "This component must have a <DrawerProvider/> ancestor in the same React tree."
-    )
+    );
   }
 
-  // keep the stack in sync on mount/unmount
   useEffect(() => {
-    modalState.pushToDrawerStack(uniqueKey)
+    drawerContext.pushToDrawerStack(uniqueKey);
     return () => {
-      modalState.popFromDrawerStack()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-  // the last key in the array is the "top" modal visually, so the depth is the inverse index
-  // be careful not to mutate the stack
-  let depth = modalState.drawerStack
+      drawerContext.popFromDrawerStack();
+    };
+  }, [uniqueKey, drawerContext]);
+
+  let depth = drawerContext.drawerStack
     .slice()
     .reverse()
-    .indexOf(uniqueKey)
-  // if it's not in the stack already,
-  // we know that it should be the last drawer in the stack but the effect hasn't happened yet
-  // so we need to make the depth 0 so the depth is correct even though the effect hasn't happened yet
-  return depth === -1 ? 0 : depth
-}
+    .indexOf(uniqueKey);
+
+  return depth === -1 ? 0 : depth;
+};
+
+export const useDrawer = () => {
+  const drawerContext = useContext(DrawerContext);
+
+  if (drawerContext === null) {
+    throw new Error(
+      "useDrawer must be used within a DrawerProvider"
+    );
+  }
+
+  return {
+    openEditDrawer: drawerContext.openEditDrawer,
+    closeEditDrawer: drawerContext.closeEditDrawer,
+  };
+};
