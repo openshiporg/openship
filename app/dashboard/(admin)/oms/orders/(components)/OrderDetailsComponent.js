@@ -35,6 +35,7 @@ export const OrderDetailsComponent = ({
   channels,
   loadingActions,
   removeEditItemButton,
+  renderButtons,
 }) => {
   const { handleDelete: deleteCartItem, deleteLoading: deleteCartItemLoading } =
     useDeleteItem("CartItem");
@@ -90,6 +91,23 @@ export const OrderDetailsComponent = ({
     ([_, value]) => value[order.id]
   )?.[0];
 
+  const getLoadingText = (action) => {
+    switch (action) {
+      case "getMatch":
+        return "Getting Match";
+      case "saveMatch":
+        return "Saving Match";
+      case "placeOrder":
+        return "Placing Order";
+      case "deleteOrder":
+        return "Deleting Order";
+      case "addToCart":
+        return "Adding to cart";
+      default:
+        return "Loading";
+    }
+  };
+
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value={order.orderId} className="border-0">
@@ -126,12 +144,13 @@ export const OrderDetailsComponent = ({
             {currentAction && (
               <Badge
                 color="zinc"
-                className="text-xs flex items-center gap-1.5 border py-0.5"
-              >
+                className="uppercase tracking-wide font-medium text-xs flex items-center gap-1.5 border py-0.5"
+                >
                 <RiLoader2Fill className="size-3.5 shrink-0 animate-spin" />
-                {currentAction.toUpperCase()}
+                {getLoadingText(currentAction)}
               </Badge>
             )}
+            {renderButtons && renderButtons()}
             {!removeEditItemButton && (
               <Dropdown>
                 <DropdownButton variant="secondary" className="border p-1">

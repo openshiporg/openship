@@ -136,11 +136,6 @@ export const ProcessOrdersDialog = ({
                       key={order.id}
                       className="border rounded-lg relative mb-2 bg-background"
                     >
-                      {processingOrders.includes(order.id) && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10 rounded-lg">
-                          <RiLoader2Fill className="size-8 text-white animate-spin" />
-                        </div>
-                      )}
                       <OrderDetailsComponent
                         order={order}
                         shopId={order.shop?.id}
@@ -151,13 +146,24 @@ export const ProcessOrdersDialog = ({
                         isProcessDialog={true}
                         removeEditItemButton
                         renderButtons={() => (
-                          <BadgeButton
-                            color="red"
-                            onClick={() => handleRemoveOrder(order.id)}
-                            className="border p-1"
-                          >
-                            <X className="h-3 w-3" />
-                          </BadgeButton>
+                          <div className="flex gap-2">
+                            {processingOrders.includes(order.id) && (
+                              <Badge
+                                color="zinc"
+                                className="uppercase tracking-wide font-medium text-xs flex items-center gap-1.5 border py-0.5"
+                              >
+                                <RiLoader2Fill className="size-3.5 shrink-0 animate-spin" />
+                                Processing
+                              </Badge>
+                            )}
+                            <BadgeButton
+                              color="red"
+                              onClick={() => handleRemoveOrder(order.id)}
+                              className="border p-1"
+                            >
+                              <X className="h-3 w-3" />
+                            </BadgeButton>
+                          </div>
                         )}
                       />
                     </div>
@@ -237,7 +243,9 @@ export const ProcessOrdersDialog = ({
             disabled={selectedOrders.length === 0}
           >
             Process Orders
-            <Badge className="ml-2 border py-0.5 px-1.5">{selectedOrders.length}</Badge>
+            <Badge className="ml-2 border py-0.5 px-1.5">
+              {selectedOrders.length}
+            </Badge>
           </Button>
         </DialogFooter>
       </DialogContent>
