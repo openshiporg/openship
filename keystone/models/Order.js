@@ -192,7 +192,7 @@ export const Order = list({
     processOrder: checkbox(),
     ...trackingFields,
   },
-  ui: {
-    listView: { initialColumns: ["lineItems", "cartItems"] },
-  },
+  // ui: {
+  //   listView: { initialColumns: ["lineItems", "cartItems"] },
+  // },
 });

@@ -5,7 +5,7 @@ import { Fields } from "@keystone/themes/Tailwind/atlas/components/Fields";
 import { GraphQLErrorNotice } from "@keystone/themes/Tailwind/atlas/components/GraphQLErrorNotice";
 import { getFilteredProps } from "./CreateShop";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, gql, useApolloClient } from "@apollo/client";
 import {
   ChevronDownIcon,
   X,
@@ -54,6 +54,7 @@ const SECTIONS = {
     fields: [
       "orderId",
       "orderName",
+      "shop",
       "status",
       "currency",
       "totalPrice",
@@ -132,6 +133,8 @@ OrderDialogContent.displayName = DialogPrimitive.Content.displayName;
 
 export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
   const list = useList("Order");
+  const client = useApolloClient();
+
   const { create, createWithData, props, state, error } = useCreateItem(list);
   const { createViewFieldModes } = useKeystone();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -174,6 +177,11 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
       }
     });
 
+    // Special handling for shop
+    if (props.value.shop?.value?.value?.id) {
+      formData.shop = { connect: { id: props.value.shop.value.value.id } };
+    }
+
     // Process lineItems
     if (localState.lineItems.length > 0) {
       formData.lineItems = {
@@ -208,17 +216,33 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
             : undefined,
         })),
       };
+    } else {
+      // If there are no valid cart items, ensure cartItems is not included in formData
+      delete formData.cartItems;
     }
 
     // Connect the shop
-    if (shopId) {
-      formData.shop = { connect: { id: shopId } };
-    }
+    // if (shopId) {
+    //   formData.shop = { connect: { id: shopId } };
+    // }
 
     try {
       const item = await createWithData({ data: formData });
       if (item) {
         onClose();
+        // await client.refetchQueries({
+        //   include: "active",
+        // });
+        await client.refetchQueries({
+          include: "active",
+          onQueryUpdated(observableQuery) {
+            console.log(
+              `Examining ObservableQuery ${observableQuery.queryName}`
+            );
+            // Proceed with the default refetching behavior.
+            return true;
+          },
+        });
       }
     } catch (error) {
       console.error("Error creating order:", error);
@@ -229,21 +253,41 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
     if (order && !isInitialized) {
       props.onChange((oldValues) => {
         const newValues = { ...oldValues };
-        Object.keys(order).forEach((key) => {
-          if (newValues[key]) {
-            newValues[key] = {
-              ...oldValues[key],
-              value: {
-                ...oldValues[key].value,
-                inner: {
-                  ...oldValues[key].value.inner,
-                  value: order[key],
-                },
-              },
-            };
-          }
-        });
 
+        // Set shop value first
+        if (shopId && newValues.shop) {
+          newValues.shop = {
+            ...oldValues.shop,
+            kind: "value",
+            value: {
+              id: null,
+              kind: "one",
+              value: {
+                id: shopId,
+                label: shops.find((shop) => shop.id === shopId)?.name || "",
+                data: { __typename: "Shop" },
+              },
+              initialValue: null,
+            },
+          };
+        }
+
+        if (order) {
+          Object.keys(order).forEach((key) => {
+            if (newValues[key] && key !== "shop") {
+              newValues[key] = {
+                ...oldValues[key],
+                value: {
+                  ...oldValues[key].value,
+                  inner: {
+                    ...oldValues[key].value.inner,
+                    value: order[key],
+                  },
+                },
+              };
+            }
+          });
+        }
         // Ensure status is set to PENDING
         newValues.status = {
           ...oldValues.status,
@@ -351,6 +395,7 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
               {createViewFieldModes.state === "loading" && (
                 <div className="text-center py-4">Loading update form...</div>
               )}
+              {/* {JSON.stringify(props.value.shop)} */}
               {activeTab === "lineItems" ? (
                 <LineItemSelect
                   shops={shops}
@@ -376,7 +421,6 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
             </div>
           </div>
         </div>
-        {/* {JSON.stringify(props.value)} */}
         <div className="p-6 border-t flex justify-end space-x-4">
           <Button variant="secondary" onClick={onClose}>
             Cancel

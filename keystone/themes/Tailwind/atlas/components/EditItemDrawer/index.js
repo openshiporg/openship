@@ -9,7 +9,7 @@ import {
   useQuery,
   useApolloClient,
 } from "@keystone-6/core/admin-ui/apollo";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   deserializeValue,
   makeDataGetter,
@@ -27,7 +27,6 @@ import {
   DialogClose,
 } from "@ui/dialog";
 import { useToasts } from "../Toast";
-import { Trash, Trash2 } from "lucide-react";
 import { DrawerBase } from "../Modals/DrawerBase";
 import {
   SheetClose,
@@ -36,21 +35,83 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "../../primitives/default/ui/sheet";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 
-function DeleteButton({ itemLabel, itemId, list, onClose }) {
+export const useDeleteItem = (listKey) => {
+  const list = useList(listKey);
   const toasts = useToasts();
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [deleteItem, { loading }] = useMutation(
+  const client = useApolloClient();
+
+  const [deleteItem, { loading: deleteLoading, error: deleteError }] = useMutation(
     gql`mutation ($id: ID!) {
-        ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
+      ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
+        id
+      }
+    }`
+  );
+
+  const handleDelete = useCallback(async (itemId, itemLabel) => {
+    try {
+      await deleteItem({ variables: { id: itemId } });
+      await client.refetchQueries({ include: "active" });
+      toasts.addToast({
+        title: itemLabel,
+        message: `Deleted ${list.singular} item successfully`,
+        tone: "positive",
+      });
+    } catch (err) {
+      toasts.addToast({
+        title: `Failed to delete ${list.singular} item: ${itemLabel}`,
+        message: err.message,
+        tone: "negative",
+      });
+    }
+  }, [deleteItem, client, list, toasts]);
+
+  return { handleDelete, deleteLoading, deleteError };
+};
+
+export const useUpdateItem = (listKey) => {
+  const list = useList(listKey);
+  const toasts = useToasts();
+  const client = useApolloClient();
+
+  const [update, { loading: updateLoading, error: updateError }] = useMutation(
+    gql`
+      mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
+        item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
           id
         }
-      }`,
-    { variables: { id: itemId } }
+      }
+    `
   );
+
+  const handleUpdate = useCallback(async (itemId, data) => {
+    try {
+      await update({ variables: { data, id: itemId } });
+      await client.refetchQueries({ include: "active" });
+      toasts.addToast({
+        title: `Updated ${list.singular}`,
+        message: `Updated ${list.singular} item successfully`,
+        tone: "positive",
+      });
+    } catch (error) {
+      console.error(`Error updating item:`, error);
+      toasts.addToast({
+        title: `Failed to update ${list.singular}`,
+        message: error.message,
+        tone: "negative",
+      });
+    }
+  }, [update, client, list, toasts]);
+
+  return { handleUpdate, updateLoading, updateError };
+};
+
+function DeleteButton({ itemLabel, itemId, list, onClose }) {
+  const { handleDelete, deleteLoading } = useDeleteItem(list.key);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   return (
     <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
@@ -81,24 +142,11 @@ function DeleteButton({ itemLabel, itemId, list, onClose }) {
           </DialogClose>
           <Button
             variant="destructive"
-            isLoading={loading}
+            isLoading={deleteLoading}
             onClick={async () => {
-              try {
-                await deleteItem();
-                setIsConfirmModalOpen(false); // Close the dialog after successful deletion
-                if (onClose) onClose(); // Ensure onClose is called after closing the dialog
-                return toasts.addToast({
-                  title: itemLabel,
-                  message: `Deleted ${list.singular} item successfully`,
-                  tone: "positive",
-                });
-              } catch (err) {
-                return toasts.addToast({
-                  title: `Failed to delete ${list.singular} item: ${itemLabel}`,
-                  message: err.message,
-                  tone: "negative",
-                });
-              }
+              await handleDelete(itemId, itemLabel);
+              setIsConfirmModalOpen(false);
+              if (onClose) onClose();
             }}
           >
             Delete
@@ -151,6 +199,7 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
   const client = useApolloClient();
+  const { handleUpdate, updateLoading, updateError } = useUpdateItem(listKey);
 
   const { data, error, loading } = useQuery(
     gql`
@@ -183,16 +232,6 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
     });
   }
 
-  const [update, { loading: updateLoading, error: updateError }] = useMutation(
-    gql`
-      mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
-        item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
-          id
-        }
-      }
-    `
-  );
-
   const { changedFields, dataForUpdate } = useChangedFieldsAndDataForUpdate(
     list.fields,
     state.item,
@@ -202,9 +241,8 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
 
   const handleSave = async () => {
     if (invalidFields.size === 0) {
-      await update({ variables: { data: dataForUpdate, id: itemId } });
-      refetchListQuery();
-      closeDrawer(); // Close the drawer
+      await handleUpdate(itemId, dataForUpdate);
+      closeDrawer();
     }
   };
 
@@ -229,7 +267,6 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
       width="narrow"
       open={open}
     >
-      {/* <SheetTrigger asChild>{trigger}</SheetTrigger> */}
       <SheetContent className="flex flex-col">
         <SheetHeader className="border-b">
           <SheetTitle>Edit {list.singular}</SheetTitle>
@@ -244,8 +281,8 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
                   itemId={itemId}
                   list={list}
                   onClose={async () => {
-                    await refetchListQuery(); // Ensure refetch is called
-                    closeDrawer(); // Close the EditItemDrawer
+                    await refetchListQuery();
+                    closeDrawer();
                   }}
                 />
                 <ResetChangesButton

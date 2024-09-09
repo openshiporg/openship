@@ -13,44 +13,54 @@ export async function getMatches({ orderId, context }) {
           user,
           ...rest
         } of existingMatch.output) {
-          const params = new URLSearchParams({
-            channelId: channel.id,
-            domain: channel.domain,
-            accessToken: channel.accessToken,
-            productId,
-            variantId,
-          }).toString();
+          const { getProductFunction } = channel.platform;
 
-          const searchRes = await fetch(
-            channel.searchProductsEndpoint.includes("http")
-              ? `${channel.searchProductsEndpoint}?${params}`
-              : `${process.env.FRONTEND_URL}${channel.searchProductsEndpoint}?${params}`,
-            {
-              method: "GET",
-              headers: {
-                Accept: "application/json",
-                "Content-type": "application/json",
-                "X-Requested-With": "Fetch",
-              },
+          if (!getProductFunction) {
+            throw new Error("Search products function not configured.");
+          }
+
+          let product;
+          if (getProductFunction.startsWith("http")) {
+            const params = new URLSearchParams({
+              productId: productId,
+              variantId: variantId,
+              domain: channel.domain,
+              accessToken: channel.accessToken,
+            }).toString();
+
+            const response = await fetch(`${getProductFunction}?${params}`);
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch product: ${response.statusText}`
+              );
             }
-          );
-
-          const { products } = await searchRes.json();
-
-          const [productInfo] = products;
+            const data = await response.json();
+            product = data.product;
+          } else {
+            const channelAdapters = await import(
+              `../../../channelAdapters/${getProductFunction}.js`
+            );
+            const result = await channelAdapters.getProduct({
+              productId: productId,
+              variantId: variantId,
+              domain: channel.domain,
+              accessToken: channel.accessToken,
+            });
+            product = result.product;
+          }
 
           result = await context.query.CartItem.createOne({
             data: {
-              price: productInfo.price,
+              price: product.price,
               productId,
               variantId,
-              image: productInfo.image,
-              name: productInfo.title,
+              image: product.image,
+              name: product.title,
               order: { connect: { id: order.id } },
               channel: { connect: { id: channel.id } },
-              ...(productInfo.price !== matchPrice && {
+              ...(product.price !== matchPrice && {
                 error: `Price has increased $${(
-                  productInfo.price - matchPrice
+                  product.price - matchPrice
                 ).toFixed(2)}. Verify before placing order.`,
               }),
               user: { connect: { id: user.id } },
@@ -123,7 +133,10 @@ export async function getMatches({ orderId, context }) {
           id
           domain
           accessToken
-          searchProductsEndpoint
+          platform {
+            id
+            getProductFunction
+          }
         }
         user {
           id
@@ -178,7 +191,10 @@ export async function getMatches({ orderId, context }) {
                 id
                 domain
                 accessToken
-                searchProductsEndpoint
+                platform {
+                  id
+                  getProductFunction
+                }
               }
               user {
                 id

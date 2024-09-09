@@ -478,10 +478,13 @@ export const ListPageTemplate = ({ listKey }) => {
                         onClick={() => {
                           updateSearchString("");
                           const { search, ...queries } = query;
-                          const newQueryString = new URLSearchParams(
-                            queries
-                          ).toString();
-                          push(`?${newQueryString}`);
+                          // const newQueryString = new URLSearchParams(
+                          //   // queries
+                          // ).toString();
+                          // console.log({ newQueryString });
+                          // push(`?${newQueryString}`);
+                          const path = window.location.pathname; // Get the current path
+                          push(path); // Navigate to the current path without query params
                         }}
                       >
                         Clear filters &amp; search

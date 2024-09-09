@@ -145,9 +145,8 @@ export const SearchOrders = ({
           />
           <div className="absolute right-2 top-2">
             <BadgeButton
-              variant="secondary"
               onClick={handleSearch}
-              className="border h-6 py-1 uppercase text-xs font-medium tracking-wider"
+              className="border text-xs py-0.5 uppercase tracking-wide font-medium"
             >
               Search
             </BadgeButton>

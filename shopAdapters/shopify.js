@@ -87,7 +87,7 @@ export async function getProduct({
   );
 
   const gqlQuery = gql`
-    query GetProduct($variantId: ID!, $productId: ID!) {
+    query GetProduct($variantId: ID!) {
       productVariant(id: $variantId) {
         id
         availableForSale
@@ -635,6 +635,43 @@ export async function addCartToPlatformOrder({
     }
   );
 
+  // First, query the order to check for existing metafields
+  const { order } = await shopifyClient.request(
+    gql`
+      query ($id: ID!) {
+        order(id: $id) {
+          metafields(first: 100, namespace: "oscart") {
+            edges {
+              node {
+                id
+                key
+              }
+            }
+          }
+        }
+      }
+    `,
+    { id: orderId }
+  );
+
+  let existingMetafieldId = null;
+  const oscartMetafield = order.metafields.edges.find(edge => edge.node.key === "oscart");
+  if (oscartMetafield) {
+    existingMetafieldId = oscartMetafield.node.id;
+  }
+
+  const metafieldInput = existingMetafieldId
+    ? {
+        id: existingMetafieldId,
+        value: JSON.stringify(cart),
+      }
+    : {
+        namespace: "oscart",
+        key: "oscart",
+        value: JSON.stringify(cart),
+        type: "json_string",
+      };
+
   const { orderUpdate } = await shopifyClient.request(
     gql`
       mutation ($input: OrderInput!) {
@@ -660,15 +697,8 @@ export async function addCartToPlatformOrder({
     `,
     {
       input: {
-        id: `gid://shopify/Order/${orderId}`,
-        metafields: [
-          {
-            namespace: "oscart",
-            key: "oscart",
-            value: JSON.stringify(cart),
-            type: "json_string",
-          },
-        ],
+        id: orderId,
+        metafields: [metafieldInput],
       },
     }
   );
@@ -752,7 +782,7 @@ export async function addTracking({ order, trackingCompany, trackingNumber }) {
   );
 
   const data = await client.request(FETCH_FULFILLMENT_ORDER, {
-    id: `gid://shopify/Order/${order.orderId}`,
+    id: order.orderId,
   });
 
   const fulfillmentOrder = data.order.fulfillmentOrders.edges[0].node;

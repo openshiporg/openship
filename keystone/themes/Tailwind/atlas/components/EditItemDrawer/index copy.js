@@ -3,7 +3,12 @@ import { Drawer } from "../Modals";
 import { Fields } from "../Fields";
 import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
 import { LoadingIcon } from "../LoadingIcon";
-import { useMutation, gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
+import {
+  useMutation,
+  gql,
+  useQuery,
+  useApolloClient,
+} from "@keystone-6/core/admin-ui/apollo";
 import { useState, useMemo } from "react";
 import {
   deserializeValue,
@@ -142,22 +147,22 @@ function ResetChangesButton({ onReset, disabled }) {
   );
 }
 
-export function EditItemDrawer({ listKey, itemId, onSave, trigger }) {
+export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
-  const [open, setOpen] = useState(false);
+  const client = useApolloClient();
 
   const { data, error, loading } = useQuery(
     gql`
-        query ($id: ID!) {
-          item: ${list.gqlNames.itemQueryName}(where: { id: $id }) {
-            id
-            ${Object.keys(list.fields)
-              .map((field) => list.fields[field].controller.graphqlSelection)
-              .join("\n")}
-          }
+      query ($id: ID!) {
+        item: ${list.gqlNames.itemQueryName}(where: { id: $id }) {
+          id
+          ${Object.keys(list.fields)
+            .map((field) => list.fields[field].controller.graphqlSelection)
+            .join("\n")}
         }
-      `,
+      }
+    `,
     { variables: { id: itemId } }
   );
 
@@ -180,12 +185,12 @@ export function EditItemDrawer({ listKey, itemId, onSave, trigger }) {
 
   const [update, { loading: updateLoading, error: updateError }] = useMutation(
     gql`
-        mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
-          item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
-            id
-          }
+      mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
+        item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
+          id
         }
-      `
+      }
+    `
   );
 
   const { changedFields, dataForUpdate } = useChangedFieldsAndDataForUpdate(
@@ -198,8 +203,8 @@ export function EditItemDrawer({ listKey, itemId, onSave, trigger }) {
   const handleSave = async () => {
     if (invalidFields.size === 0) {
       await update({ variables: { data: dataForUpdate, id: itemId } });
-      onSave();
-      setOpen(false); // Close the drawer
+      refetchListQuery();
+      closeDrawer(); // Close the drawer
     }
   };
 
@@ -210,35 +215,37 @@ export function EditItemDrawer({ listKey, itemId, onSave, trigger }) {
     });
   };
 
-  const closeDrawer = () => setOpen(false);
+  const refetchListQuery = async () => {
+    await client.refetchQueries({
+      include: "active",
+    });
+  };
 
   return (
     <DrawerBase
       onSubmit={handleSave}
       onClose={closeDrawer}
+      onOpenChange={closeDrawer}
       width="narrow"
-      initialFocusRef={undefined}
       open={open}
-      onOpenChange={setOpen}
     >
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      {/* <SheetTrigger asChild>{trigger}</SheetTrigger> */}
       <SheetContent className="flex flex-col">
         <SheetHeader className="border-b">
           <SheetTitle>Edit {list.singular}</SheetTitle>
           <SheetDescription>
             <div className="flex flex-col gap-4 -mt-1 -mb-3">
               <span>
-                Use this form to edit this shop platform. Click save when you're
-                done
+                Use this form to edit this item. Click save when you're done
               </span>
               <div className="flex gap-2">
                 <DeleteButton
                   itemLabel={itemGetter.get("label").data || itemId}
                   itemId={itemId}
                   list={list}
-                  onClose={() => {
-                    onSave(); // Ensure refetch is called
-                    setOpen(false); // Close the EditItemDrawer
+                  onClose={async () => {
+                    await refetchListQuery(); // Ensure refetch is called
+                    closeDrawer(); // Close the EditItemDrawer
                   }}
                 />
                 <ResetChangesButton

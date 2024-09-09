@@ -87,7 +87,7 @@ export async function getProduct({
   );
 
   const gqlQuery = gql`
-    query GetProduct($variantId: ID!, $productId: ID!) {
+    query GetProduct($variantId: ID!) {
       productVariant(id: $variantId) {
         id
         availableForSale
@@ -237,9 +237,26 @@ export async function createPurchase({
     );
   }
 
+  const orderRes = await fetch(
+    `https://${
+      domain
+    }/admin/api/2020-04/orders/${draftOrderComplete.draftOrder.order.id
+      .split("/")
+      .pop()}.json`,
+    {
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+      },
+    }
+  );
+
+  const {
+    order: { order_status_url },
+  } = await orderRes.json();
+
   return {
     purchaseId: draftOrderComplete.draftOrder.order.id.split("/").pop(),
-    url: draftOrderComplete.draftOrder.order.id.split("/").pop(),
+    url: order_status_url,
   };
 }
 

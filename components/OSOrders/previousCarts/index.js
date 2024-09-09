@@ -25,8 +25,8 @@ export const PreviousCarts = ({ isOpen, onClose, order, mutateOrders }) => {
         {order.shop.searchOrdersEndpoint}
         <CartList
           accessToken={order.shop.accessToken}
-          domain={order.shop.domain}
-          shopId={order.shop.id}
+          domain={order.shop?.domain}
+          shopId={order.shop?.id}
           searchEntry={searchEntry}
           searchProductsEndpoint={order.shop.searchOrdersEndpoint}
           shopName={order.shop.name}

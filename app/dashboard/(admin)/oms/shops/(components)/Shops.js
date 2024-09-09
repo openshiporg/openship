@@ -242,11 +242,14 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
                       </p>
                     </TabsContent>
                     <TabsContent value="orders">
-                      <SearchOrders
-                        shopId={shop.id}
-                        searchEntry=""
-                        pageSize={10}
-                      />
+                      <div className="h-[300px]">
+                        {/* Adjust the height as needed */}
+                        <SearchOrders
+                          shopId={shop.id}
+                          searchEntry=""
+                          pageSize={10}
+                        />
+                      </div>
                     </TabsContent>
                   </div>
                 </Tabs>

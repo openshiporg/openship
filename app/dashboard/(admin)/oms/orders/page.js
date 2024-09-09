@@ -1,11 +1,11 @@
 "use client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useMemo, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
-  gql,
-  useApolloClient,
-  useMutation,
   useQuery,
+  useMutation,
+  useApolloClient,
+  gql,
 } from "@keystone-6/core/admin-ui/apollo";
 import { makeDataGetter } from "@keystone-6/core/admin-ui/utils";
 import { useList } from "@keystone/keystoneProvider";
@@ -14,26 +14,14 @@ import { useFilters } from "@keystone/utils/useFilters";
 import { useQueryParamsFromLocalStorage } from "@keystone/utils/useQueryParamsFromLocalStorage";
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { useSort } from "@keystone/utils/useSort";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  ChevronRight,
-  Circle,
-  Columns3,
-  PlusIcon,
-  Search,
-  Square,
-  SquareArrowRight,
-  Triangle,
-  ChevronsUpDown,
-  MoreHorizontal,
-  ArrowRight,
-  MoreVertical,
-  GlobeIcon,
-  SaveIcon,
-} from "lucide-react";
 import { Link } from "next-view-transitions";
-
+import { useToasts } from "@keystone/screens";
+import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
+import { OrderDetailsComponent } from "./(components)/OrderDetailsComponent";
+import { StatusShopFilter } from "./(components)/StatusShopFilter";
+import { ProcessOrdersDialog } from "./(components)/ProcessOrdersDialog";
+import { OrderDetailsDialog } from "../shops/(components)/OrderDetailsDialog";
+import { SearchOrders } from "../shops/(components)/SearchOrders";
 import { CreateButtonLink } from "@keystone/themes/Tailwind/atlas/components/CreateButtonLink";
 import { FilterAdd } from "@keystone/themes/Tailwind/atlas/components/FilterAdd";
 import { FilterList } from "@keystone/themes/Tailwind/atlas/components/FilterList";
@@ -59,43 +47,43 @@ import {
   Badge,
   BadgeButton,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
-// import { OrderDetailsComponent } from "../shops/(components)/SearchOrders";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/accordion";
-
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@ui/dialog";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@ui/collapsible";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/tabs";
+import {
+  ArrowUpDown,
+  Circle,
+  Search,
+  Square,
+  SquareArrowRight,
+  Triangle,
+  PlusCircleIcon,
+  PlusIcon as PlusIcon2,
+  ChevronDown,
+  SearchIcon,
+} from "lucide-react";
 import {
   Dropdown,
   DropdownButton,
   DropdownMenu,
   DropdownItem,
-} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/dropdown-menu";
+} from "@ui/dropdown-menu";
 import {
-  Cog6ToothIcon,
-  HomeIcon,
-  InboxIcon,
-  MagnifyingGlassIcon,
-  MegaphoneIcon,
-  QuestionMarkCircleIcon,
-  SparklesIcon,
-  Square2StackIcon,
-  TicketIcon,
-  ArrowPathIcon,
-  CircleStackIcon,
-  Square3Stack3DIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/20/solid";
-import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
-import ListTable from "@keystone/themes/Tailwind/atlas/components/ListTable";
+  ArrowPathRoundedSquareIcon,
+  PlusIcon,
+} from "@heroicons/react/16/solid";
 
 const PLACE_ORDERS = gql`
   mutation PLACE_ORDERS($ids: [ID!]!) {
@@ -105,7 +93,63 @@ const PLACE_ORDERS = gql`
   }
 `;
 
-let listMetaGraphqlQuery = gql`
+const ADDMATCHTOCART_MUTATION = gql`
+  mutation ADDMATCHTOCART_MUTATION($orderId: ID!) {
+    addMatchToCart(orderId: $orderId) {
+      id
+    }
+  }
+`;
+
+const ADD_TO_CART_MUTATION = gql`
+  mutation ADD_TO_CART_MUTATION(
+    $channelId: ID
+    $image: String
+    $name: String
+    $price: String
+    $productId: String
+    $variantId: String
+    $quantity: String
+    $orderId: ID
+  ) {
+    addToCart(
+      channelId: $channelId
+      image: $image
+      name: $name
+      price: $price
+      productId: $productId
+      variantId: $variantId
+      quantity: $quantity
+      orderId: $orderId
+    ) {
+      id
+      orderId
+      orderName
+    }
+  }
+`;
+
+const MATCHORDER_MUTATION = gql`
+  mutation MATCHORDER_MUTATION($orderId: ID!) {
+    matchOrder(orderId: $orderId) {
+      id
+      input {
+        id
+        quantity
+        productId
+        variantId
+      }
+      output {
+        id
+        quantity
+        productId
+        variantId
+      }
+    }
+  }
+`;
+
+const listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
     keystone {
       adminMeta {
@@ -136,347 +180,57 @@ const ALL_SHOPS_QUERY = gql`
 `;
 
 const ORDERSCOUNT_QUERY = gql`
-  query ORDERSCOUNT_QUERY($where: OrderWhereInput!) {
-    ordersCount(where: $where)
+  query ORDERSCOUNT_QUERY($shopId: ID) {
+    pendingCount: ordersCount(
+      where: {
+        status: { equals: "PENDING" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
+    inprocessCount: ordersCount(
+      where: {
+        status: { equals: "INPROCESS" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
+    awaitingCount: ordersCount(
+      where: {
+        status: { equals: "AWAITING" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
+    backorderedCount: ordersCount(
+      where: {
+        status: { equals: "BACKORDERED" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
+    cancelledCount: ordersCount(
+      where: {
+        status: { equals: "CANCELLED" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
+    completeCount: ordersCount(
+      where: {
+        status: { equals: "COMPLETE" }
+        shop: { id: { equals: $shopId } }
+      }
+    )
   }
 `;
-const StatusBadge = ({ status, selectedStatus, selectedShop, onClick }) => {
-  const { data, loading } = useQuery(ORDERSCOUNT_QUERY, {
-    variables: {
-      where: {
-        status: { equals: status },
-        ...(selectedShop !== "ALL"
-          ? { shop: { id: { equals: selectedShop } } }
-          : {}),
-      },
-    },
-  });
 
-  return (
-    <Badge
-      color={selectedStatus === status ? "sky" : "zinc"}
-      className={`cursor-pointer uppercase tracking-wide border px-3 py-1 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
-        selectedStatus === status ? "opacity-100" : "opacity-70"
-      }`}
-      onClick={() => onClick(status)}
-    >
-      {status} ({loading ? "..." : data?.ordersCount || 0})
-    </Badge>
-  );
-};
-
-const StatusShopFilter = ({ statuses, shops }) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const selectedStatus = searchParams
-    .get("!status_is_i")
-    ?.replace(/^"|"$/g, "");
-  const selectedShop =
-    searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
-
-  const shopWhere =
-    selectedShop !== "ALL" ? { shop: { id: { equals: selectedShop } } } : {};
-
-  const { data: orderCounts } = useQuery(ORDERSCOUNT_QUERY, {
-    variables: {
-      where: {
-        status: { equals: "AWAITING" },
-        shop: { id: { in: ["clx7lhcg300035m37ch0ot6jh"] } },
-      },
-    },
-  });
-
-  const statusCounts = useMemo(() => {
-    if (!orderCounts) return {};
-    return statuses.reduce((acc, status, index) => {
-      acc[status] = orderCounts.ordersCount[index];
-      return acc;
-    }, {});
-  }, [orderCounts, statuses]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (!params.get("!status_is_i")) {
-      params.set("!status_is_i", `"PENDING"`);
-      router.push(`${pathname}?${params.toString()}`, { shallow: true });
+const CHANNELS_QUERY = gql`
+  query GetChannels {
+    channels {
+      id
+      name
     }
-  }, []);
-
-  const handleStatusChange = (status) => {
-    const params = new URLSearchParams(searchParams);
-    if (status === selectedStatus) {
-      params.delete("!status_is_i");
-    } else {
-      params.set("!status_is_i", `"${status}"`);
-    }
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleShopChange = (shopId) => {
-    const params = new URLSearchParams(searchParams);
-    if (shopId !== "ALL") {
-      params.set("!shop_matches", `"${shopId}"`);
-    } else {
-      params.delete("!shop_matches");
-    }
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  return (
-    <div className="flex flex-col gap-2 divide-y">
-      <div className="p-2">
-        <h2 className="text-xs font-normal mb-2 text-muted-foreground">
-          Status
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {statuses.map((status) => (
-            <StatusBadge
-              key={status}
-              status={status}
-              selectedStatus={selectedStatus}
-              selectedShop={selectedShop}
-              onClick={handleStatusChange}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="p-2">
-        <h2 className="text-xs font-normal mb-2 text-muted-foreground">
-          Shops
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {shops.map((shop) => (
-            <Badge
-              key={shop.id}
-              color={selectedShop === shop.id ? "sky" : "zinc"}
-              className={`cursor-pointer uppercase tracking-wide border px-3 py-1 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
-                selectedShop === shop.id ? "opacity-100" : "opacity-70"
-              }`}
-              onClick={() => handleShopChange(shop.id)}
-            >
-              {shop.name}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const OrderDetailsComponent = ({
-  order,
-  shopId,
-  onOrderAction,
-  openEditDrawer,
-}) => {
-  const orderButtons = [
-    {
-      buttonText: "GET MATCH",
-      color: "green",
-      icon: <Square2StackIcon className="w-4 h-4" />,
-      onClick: () => onOrderAction("getMatch", order.id),
-    },
-    {
-      buttonText: "SAVE MATCH",
-      color: "teal",
-      icon: <SaveIcon className="w-4 h-4" />,
-      onClick: () => onOrderAction("saveMatch", order.id),
-    },
-    {
-      buttonText: "PLACE ORDER",
-      color: "cyan",
-      icon: <TicketIcon className="w-4 h-4" />,
-      onClick: () => onOrderAction("placeOrder", order.id),
-    },
-    {
-      buttonText: "EDIT ORDER",
-      color: "blue",
-      icon: <PencilSquareIcon className="w-4 h-4" />,
-      onClick: () => openEditDrawer(order.id, "Order"),
-    },
-    {
-      buttonText: "DELETE ORDER",
-      color: "red",
-      icon: <TrashIcon className="w-4 h-4" />,
-      onClick: () => onOrderAction("deleteOrder", order.id),
-    },
-  ];
-
-  return (
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value={order.orderId} className="border-0">
-        <div className="px-4 py-2 flex items-start justify-between w-full border-b">
-          <div className="flex flex-col items-start text-left gap-1.5">
-            <div className="flex items-center space-x-4">
-              <span className="uppercase font-medium text-sm">
-                {order.orderName}
-              </span>
-              <span className="text-xs font-medium opacity-65">
-                {order.date}
-              </span>
-              <span className="text-xs font-medium text-muted-foreground">
-                {order.shop.name}
-              </span>
-            </div>
-            <div className="text-sm opacity-75">
-              <p>
-                {order.firstName} {order.lastName}
-              </p>
-              <p>{order.streetAddress1}</p>
-              {order.streetAddress2 && <p>{order.streetAddress2}</p>}
-              <p>
-                {order.city}, {order.state} {order.zip}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Dropdown>
-              <DropdownButton
-                // as={BadgeButton}
-                variant="secondary"
-                className="border p-1"
-              >
-                <MoreVertical className="h-3 w-3" />
-              </DropdownButton>
-              <DropdownMenu anchor="bottom end">
-                {orderButtons.map((button) => (
-                  <DropdownItem
-                    key={button.buttonText}
-                    onClick={button.onClick}
-                    className="text-muted-foreground flex gap-2 font-medium tracking-wide"
-                  >
-                    <span>{button.icon}</span>
-                    {button.buttonText}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-            <AccordionTrigger hideArrow className="py-0">
-              <BadgeButton color="zinc" className="border p-1">
-                <ChevronDown className="h-3 w-3" />
-              </BadgeButton>
-            </AccordionTrigger>
-          </div>
-        </div>
-        <AccordionContent>
-          <div className="divide-y">
-            <ProductDetailsCollapsible
-              items={order.lineItems}
-              title="Line Item"
-              defaultOpen={true}
-              openEditDrawer={openEditDrawer}
-            />
-            {order.cartItems && order.cartItems.length > 0 && (
-              <ProductDetailsCollapsible
-                items={order.cartItems}
-                title="Cart Item"
-                defaultOpen={true}
-                openEditDrawer={openEditDrawer}
-              />
-            )}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  );
-};
-
-const ProductDetailsCollapsible = ({
-  items,
-  title,
-  defaultOpen = true,
-  openEditDrawer,
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const isCartItem = title === "Cart Item";
-
-  return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className={`flex flex-col gap-2 p-3 ${
-        isCartItem
-          ? "bg-green-50/40 dark:bg-emerald-900/20"
-          : "bg-blue-50/30 dark:bg-indigo-900/10"
-      }`}
-    >
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className={`flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium ${
-            isCartItem
-              ? "text-emerald-500 bg-white border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-emerald-700 dark:bg-emerald-950 dark:border-emerald-900 dark:text-emerald-300 dark:hover:text-white dark:hover:bg-emerald-700 dark:focus:ring-blue-500 dark:focus:text-white"
-              : "text-blue-500 bg-white border-blue-200 hover:bg-blue-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300 dark:hover:text-white dark:hover:bg-blue-700 dark:focus:ring-blue-500 dark:focus:text-white"
-          }`}
-        >
-          {items.length} {title}
-          {items.length > 1 && "s"}
-          <ChevronsUpDown className="h-4 w-4" />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-2">
-        {items.map((item, index) => (
-          <div key={item.lineItemId + "-details-" + index}>
-            <div className="border p-2 bg-background rounded-sm flex items-center gap-4">
-              <img
-                className="border rounded-sm h-12 w-12 object-cover"
-                src={item.image}
-                alt={item.name}
-              />
-              <div className="grid flex-grow">
-                <div className="uppercase font-medium tracking-wide text-xs text-muted-foreground">
-                  {item.channel?.name}
-                </div>
-                <span className="text-sm font-medium">{item.name}</span>
-                <div className="text-xs text-muted-foreground">
-                  {item.productId} | {item.variantId}
-                </div>
-                {item.quantity > 1 ? (
-                  <div className="flex gap-2 items-center">
-                    <p className="text-sm dark:text-emerald-500 font-medium">
-                      ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      (${parseFloat(item.price).toFixed(2)} x {item.quantity})
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm dark:text-emerald-500 font-medium">
-                    ${parseFloat(item.price).toFixed(2)}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 self-end">
-                {isCartItem && (
-                  <Button className="text-xs h-6 px-2">
-                    ORDER <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                )}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="p-1"
-                  onClick={() =>
-                    openEditDrawer(
-                      item.id,
-                      isCartItem ? "CartItem" : "LineItem"
-                    )
-                  }
-                >
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-};
+  }
+`;
 
 export const OrderPage = () => {
+  const client = useApolloClient();
   const listKey = "Order";
   const list = useList(listKey);
   const { openEditDrawer } = useDrawer();
@@ -488,6 +242,34 @@ export const OrderPage = () => {
   const pageSize = parseInt(query.pageSize) || list.pageSize;
   const metaQuery = useQuery(listMetaGraphqlQuery, { variables: { listKey } });
   const [placeOrders] = useMutation(PLACE_ORDERS);
+  const [addMatchToCart] = useMutation(ADDMATCHTOCART_MUTATION);
+  const [addToCart] = useMutation(ADD_TO_CART_MUTATION);
+  const [matchOrder] = useMutation(MATCHORDER_MUTATION);
+  const [loadingActions, setLoadingActions] = useState({});
+  const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const toasts = useToasts();
+  const [isProcessOrdersDialogOpen, setIsProcessOrdersDialogOpen] =
+    useState(false);
+  const [processingOrders, setProcessingOrders] = useState([]);
+
+
+  const { data: channelsData } = useQuery(CHANNELS_QUERY);
+
+  const channels = channelsData?.channels || [];
+
+  const selectedShop = searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
+
+  const { data: orderCounts, refetch: refetchOrderCounts } = useQuery(
+    ORDERSCOUNT_QUERY,
+    {
+      variables: {
+        ...(selectedShop !== "ALL" ? { shopId: selectedShop } : {}),
+      },
+      fetchPolicy: "cache-and-network",
+      errorPolicy: "all",
+    }
+  );
 
   const statuses = [
     "PENDING",
@@ -500,7 +282,7 @@ export const OrderPage = () => {
   const { data: shopsData } = useQuery(ALL_SHOPS_QUERY);
 
   const shops = useMemo(() => {
-    return [{ id: "ALL", name: "All Shops" }, ...(shopsData?.shops || [])];
+    return shopsData?.shops || [];
   }, [shopsData]);
 
   const { listViewFieldModesByField, filterableFields, orderableFields } =
@@ -645,33 +427,145 @@ export const OrderPage = () => {
   const showCreate =
     !(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true) || null;
 
-  const handleOrderAction = async (action, orderId) => {
-    switch (action) {
-      case "getMatch":
-        console.log("Getting match for order:", orderId);
-        break;
-      case "saveMatch":
-        console.log("Saving match for order:", orderId);
-        break;
-      case "placeOrder":
-        try {
+  const handleOrderAction = async (action, orderId, additionalData) => {
+    setLoadingActions((prev) => ({ ...prev, [action]: { [orderId]: true } }));
+    try {
+      switch (action) {
+        case "getMatch":
+          await addMatchToCart({ variables: { orderId } });
+          toasts.addToast({
+            title: "Match added to cart",
+            tone: "positive",
+          });
+          break;
+        case "saveMatch":
+          await matchOrder({ variables: { orderId } });
+          toasts.addToast({
+            title: "Match saved",
+            tone: "positive",
+          });
+          break;
+        case "placeOrder":
           await placeOrders({ variables: { ids: [orderId] } });
-          await refetch();
-          console.log("Order placed successfully:", orderId);
-        } catch (error) {
-          console.error("Error placing order:", error);
-        }
-        break;
-      case "editOrder":
-        openEditDrawer(orderId, "Order");
-        break;
-      case "deleteOrder":
-        console.log("Deleting order:", orderId);
-        break;
-      default:
-        console.log("Unknown action:", action);
+          toasts.addToast({
+            title: "Order placed successfully",
+            tone: "positive",
+          });
+          break;
+        case "addToCart":
+          const {
+            channelId,
+            image,
+            name,
+            price,
+            productId,
+            variantId,
+            quantity,
+          } = additionalData;
+          await addToCart({
+            variables: {
+              channelId,
+              image,
+              name,
+              price,
+              productId,
+              variantId,
+              quantity: quantity.toString(),
+              orderId,
+            },
+          });
+          toasts.addToast({
+            title: "Item added to cart",
+            tone: "positive",
+          });
+          break;
+        case "editOrder":
+          openEditDrawer(orderId, "Order");
+          break;
+        case "deleteOrder":
+          // Implement delete order logic here
+          toasts.addToast({
+            title: "Order deleted",
+            tone: "positive",
+          });
+          break;
+        default:
+          console.log("Unknown action:", action);
+      }
+
+      await client.refetchQueries({
+        include: "active",
+      });
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+      toasts.addToast({
+        title: `Error performing ${action}`,
+        tone: "negative",
+        message: error.message,
+      });
+    } finally {
+      setLoadingActions((prev) => ({
+        ...prev,
+        [action]: { [orderId]: false },
+      }));
     }
   };
+
+  const handleCreateOrder = (type) => {
+    if (type === "scratch") {
+      setSelectedOrder("scratch");
+    } else {
+      setIsCreateOrderDialogOpen(true);
+    }
+  };
+
+  const handleOrderSelect = (order) => {
+    setSelectedOrder(order);
+    setIsCreateOrderDialogOpen(false);
+  };
+
+  const handleProcessAll = async () => {
+    setIsProcessOrdersDialogOpen(true);
+  };
+
+  const processSelectedOrders = async (selectedOrderIds) => {
+    setLoadingActions((prev) => ({ ...prev, processAll: true }));
+    setProcessingOrders(selectedOrderIds);
+    try {
+      await placeOrders({ variables: { ids: selectedOrderIds } });
+      toasts.addToast({
+        title: "Orders processed successfully",
+        tone: "positive",
+      });
+      // await refetch();
+      // await refetchOrderCounts();
+
+      await client.refetchQueries({
+        include: "active",
+      });
+    } catch (error) {
+      console.error("Error processing orders:", error);
+      toasts.addToast({
+        title: "Error processing orders",
+        tone: "negative",
+        message: error.message,
+      });
+    } finally {
+      setLoadingActions((prev) => ({ ...prev, processAll: false }));
+      setProcessingOrders([]);
+      setIsProcessOrdersDialogOpen(false);
+    }
+  };
+
+  const qualifyingOrdersCount = useMemo(() => {
+    return (
+      data?.items?.filter(
+        (order) =>
+          order.status === "PENDING" &&
+          order.cartItems?.some((item) => !item.purchaseId)
+      ).length || 0
+    );
+  }, [data]);
 
   return (
     <>
@@ -690,6 +584,7 @@ export const OrderPage = () => {
               <BreadcrumbItem>{list.label}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+
           <div className="flex mt-2 mb-4">
             <div className="flex-col items-center">
               <h1 className="text-lg font-semibold md:text-2xl">
@@ -700,12 +595,44 @@ export const OrderPage = () => {
                   `Create and manage ${list.label.toLowerCase()}`}
               </p>
             </div>
-            {data.count || query.search || filters.filters.length ? (
-              <div className="ml-auto">
-                {showCreate && <CreateButtonLink list={list} />}
+            <div className="ml-auto">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="secondary"
+                  onClick={handleProcessAll}
+                  disabled={qualifyingOrdersCount === 0}
+                  className="h-9"
+                >
+                  Process Orders
+                  <Badge className="ml-2 border py-0.5 px-1.5">
+                    {qualifyingOrdersCount}
+                  </Badge>
+                </Button>
+                <Dropdown>
+                  <DropdownButton>
+                    Create Order <ChevronDown className="h-3 w-3 ml-2" />
+                  </DropdownButton>
+                  <DropdownMenu anchor="bottom end">
+                    <DropdownItem
+                      onClick={() => handleCreateOrder("scratch")}
+                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      From Scratch
+                    </DropdownItem>
+                    <DropdownItem
+                      onClick={() => setIsCreateOrderDialogOpen(true)}
+                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
+                    >
+                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                      From Existing Orders
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
               </div>
-            ) : null}
+            </div>
           </div>
+
           <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
             <div className="flex gap-3 py-3 px-3">
               <div className="relative w-full">
@@ -772,7 +699,7 @@ export const OrderPage = () => {
                     type="button"
                     className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                   >
-                    <PlusIcon size={13} className="stroke-muted-foreground" />
+                    <PlusIcon2 size={13} className="stroke-muted-foreground" />
                     FILTER
                   </button>
                 }
@@ -792,7 +719,11 @@ export const OrderPage = () => {
                 pageSize={pageSize}
               />
             </div>
-            <StatusShopFilter statuses={statuses} shops={shops} />
+            <StatusShopFilter
+              statuses={statuses}
+              shops={shops}
+              orderCounts={orderCounts}
+            />
             {data?.items?.length ? (
               <>
                 <div className="grid grid-cols-1 divide-y">
@@ -803,9 +734,11 @@ export const OrderPage = () => {
                         ...order,
                         date: new Date(order.createdAt).toLocaleString(),
                       }}
-                      shopId={order.shop.id}
+                      shopId={order.shop?.id}
                       onOrderAction={handleOrderAction}
                       openEditDrawer={openEditDrawer}
+                      channels={channels}
+                      loadingActions={loadingActions}
                     />
                   ))}
                 </div>
@@ -833,11 +766,8 @@ export const OrderPage = () => {
                         variant="secondary"
                         onClick={() => {
                           updateSearchString("");
-                          const { search, ...queries } = query;
-                          const newQueryString = new URLSearchParams(
-                            queries
-                          ).toString();
-                          push(`?${newQueryString}`);
+                          const path = window.location.pathname;
+                          push(path);
                         }}
                       >
                         Clear filters &amp; search
@@ -858,6 +788,43 @@ export const OrderPage = () => {
               </div>
             )}
           </div>
+
+          <Dialog
+            open={isCreateOrderDialogOpen}
+            onOpenChange={setIsCreateOrderDialogOpen}
+          >
+            <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle>Search Existing Orders</DialogTitle>
+                <DialogDescription>
+                  Search for an existing order to edit or view details.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex-grow overflow-y-auto">
+                <SearchOrders
+                  shops={shopsData?.shops || []}
+                  onOrderSelect={handleOrderSelect}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <OrderDetailsDialog
+            isOpen={selectedOrder !== null}
+            onClose={() => setSelectedOrder(null)}
+            order={selectedOrder === "scratch" ? null : selectedOrder}
+            shopId={selectedOrder?.shop?.id}
+          />
+          <ProcessOrdersDialog
+            isOpen={isProcessOrdersDialogOpen}
+            onClose={() => setIsProcessOrdersDialogOpen(false)}
+            orders={data?.items || []}
+            // orders={Array(20)
+            //   .fill()
+            //   .flatMap(() => data?.items || [])}
+            onProcessOrders={processSelectedOrders}
+            processingOrders={processingOrders}
+          />
         </main>
       ) : (
         <LoadingIcon label="Loading item data" />
