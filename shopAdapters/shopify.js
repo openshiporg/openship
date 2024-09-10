@@ -1,4 +1,3 @@
-import { keystoneContext } from "@keystone/keystoneContext";
 import { GraphQLClient, gql } from "graphql-request";
 import ShopifyToken from "shopify-token";
 
@@ -921,7 +920,7 @@ export async function cancelOrderWebhookHandler(req, res) {
   return req.body.id.toString();
 }
 
-export async function createOrderWebhookHandler(req, res) {
+export async function createOrderWebhookHandler(req, res, keystoneContext) {
   if (req.body) {
     const existingShop = await keystoneContext.sudo().query.Shop.findOne({
       where: {

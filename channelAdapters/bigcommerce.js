@@ -1,4 +1,3 @@
-import { keystoneContext } from "@keystone/keystoneContext";
 
 // Function to search products in BigCommerce
 export async function searchProducts({ domain, accessToken, searchEntry }) {

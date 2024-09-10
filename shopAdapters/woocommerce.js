@@ -1,5 +1,3 @@
-import { keystoneContext } from "@keystone/keystoneContext";
-
 // Function to search products in WooCommerce
 export async function searchProducts({ domain, accessToken, searchEntry }) {
   const response = await fetch(

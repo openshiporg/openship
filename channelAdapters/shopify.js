@@ -1,6 +1,5 @@
 import { GraphQLClient, gql } from "graphql-request";
 import ShopifyToken from "shopify-token";
-import { keystoneContext } from "@keystone/keystoneContext";
 
 // Function to search products
 export async function searchProducts({ domain, accessToken, searchEntry }) {
