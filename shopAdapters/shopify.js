@@ -920,28 +920,9 @@ export async function cancelOrderWebhookHandler(req, res) {
   return req.body.id.toString();
 }
 
-export async function createOrderWebhookHandler(req, res, keystoneContext) {
+export async function createOrderWebhookHandler(req, res, shop) {
   if (req.body) {
-    const existingShop = await keystoneContext.sudo().query.Shop.findOne({
-      where: {
-        domain: req.headers["x-shopify-shop-domain"],
-      },
-      query: `
-        id
-        domain
-        accessToken
-        user {
-          id
-          email
-        }
-        links {
-          channel {
-            id
-            name
-          }
-        }
-      `,
-    });
+    const existingShop = shop
 
     const lineItemsOutput = await Promise.all(
       req.body.line_items.map(

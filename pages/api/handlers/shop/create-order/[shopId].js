@@ -9,7 +9,23 @@ const handler = async (req, res) => {
     // Find the shop and its platform
     const shop = await keystoneContext.sudo().query.Shop.findOne({
       where: { id: shopId },
-      query: "id platform { createOrderWebhookHandler }",
+      query: `     
+        id
+        domain
+        accessToken
+        user {
+          id
+          email
+        }
+        links {
+          channel {
+            id
+            name
+          }
+        }
+        platform {
+         createOrderWebhookHandler
+        }`,
     });
 
     console.log({ shop });
@@ -20,7 +36,7 @@ const handler = async (req, res) => {
     const createOrderData = await platformFunctions.createOrderWebhookHandler(
       req,
       res,
-      keystoneContext
+      shop
     );
 
     console.log({ createOrderData });
