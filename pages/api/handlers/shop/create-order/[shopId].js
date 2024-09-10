@@ -16,6 +16,7 @@ const handler = async (req, res) => {
     const platformFunctions = await import(
       `../../../../../shopAdapters/${shop.platform.createOrderWebhookHandler}.js`
     );
+    console.log({ platformFunctions });
     const createOrderData = await platformFunctions.createOrderWebhookHandler(
       req,
       res
