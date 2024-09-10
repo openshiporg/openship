@@ -983,7 +983,7 @@ export async function createOrderWebhookHandler(req, res, shop) {
     );
 
     return {
-      orderId: req.body.id,
+      orderId: `gid://shopify/Order/${req.body.id}`,
       orderName: req.body.name,
       email: req.body.email,
       firstName: req.body.shipping_address.first_name,
