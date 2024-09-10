@@ -73,6 +73,7 @@ import {
   PlusIcon as PlusIcon2,
   ChevronDown,
   SearchIcon,
+  Filter,
 } from "lucide-react";
 import {
   Dropdown,
@@ -253,12 +254,12 @@ export const OrderPage = () => {
     useState(false);
   const [processingOrders, setProcessingOrders] = useState([]);
 
-
   const { data: channelsData } = useQuery(CHANNELS_QUERY);
 
   const channels = channelsData?.channels || [];
 
-  const selectedShop = searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
+  const selectedShop =
+    searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
 
   const { data: orderCounts, refetch: refetchOrderCounts } = useQuery(
     ORDERSCOUNT_QUERY,
@@ -585,9 +586,9 @@ export const OrderPage = () => {
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="flex mt-2 mb-4">
+          <div className="flex flex-col sm:flex-row mt-2 mb-4 gap-2 justify-between">
             <div className="flex-col items-center">
-              <h1 className="text-lg font-semibold md:text-2xl">
+              <h1 className="text-xl font-semibold md:text-2xl">
                 {list.label}
               </h1>
               <p className="text-muted-foreground">
@@ -595,41 +596,39 @@ export const OrderPage = () => {
                   `Create and manage ${list.label.toLowerCase()}`}
               </p>
             </div>
-            <div className="ml-auto">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="secondary"
-                  onClick={handleProcessAll}
-                  disabled={qualifyingOrdersCount === 0}
-                  className="h-9"
-                >
-                  Process Orders
-                  <Badge className="ml-2 border py-0.5 px-1.5">
-                    {qualifyingOrdersCount}
-                  </Badge>
-                </Button>
-                <Dropdown>
-                  <DropdownButton>
-                    Create Order <ChevronDown className="h-3 w-3 ml-2" />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
-                    <DropdownItem
-                      onClick={() => handleCreateOrder("scratch")}
-                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      From Scratch
-                    </DropdownItem>
-                    <DropdownItem
-                      onClick={() => setIsCreateOrderDialogOpen(true)}
-                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
-                    >
-                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                      From Existing Orders
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="secondary"
+                onClick={handleProcessAll}
+                disabled={qualifyingOrdersCount === 0}
+                className="py-1"
+              >
+                Process Orders
+                <Badge className="ml-2 border py-0.5 px-1.5">
+                  {qualifyingOrdersCount}
+                </Badge>
+              </Button>
+              <Dropdown>
+                <DropdownButton>
+                  Create Order <ChevronDown className="h-3 w-3 ml-2" />
+                </DropdownButton>
+                <DropdownMenu anchor="bottom end">
+                  <DropdownItem
+                    onClick={() => handleCreateOrder("scratch")}
+                    className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                    From Scratch
+                  </DropdownItem>
+                  <DropdownItem
+                    onClick={() => setIsCreateOrderDialogOpen(true)}
+                    className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
+                  >
+                    <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                    From Existing Orders
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
             </div>
           </div>
 
@@ -658,59 +657,70 @@ export const OrderPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-2 items-center bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
-              <div>
+            <div className="flex flex-col sm:flex-row gap-2 items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-1/2 items-center">
                 <PaginationNavigation
                   list={list}
                   total={data.count}
                   currentPage={currentPage}
                   pageSize={pageSize}
                 />
-              </div>
-              <div>
                 <PaginationDropdown
                   list={list}
                   total={data.count}
                   currentPage={currentPage}
                   pageSize={pageSize}
                 />
+                <SortSelection
+                  list={list}
+                  orderableFields={orderableFields}
+                  dropdownTrigger={
+                    <button
+                      type="button"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <ArrowUpDown
+                        size={12}
+                        className="stroke-muted-foreground"
+                      />
+                      SORT
+                    </button>
+                  }
+                />
+                <FilterAdd
+                  listKey={listKey}
+                  filterableFields={filterableFields}
+                  dropdownTrigger={
+                    <button
+                      type="button"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <PlusIcon2
+                        size={13}
+                        className="stroke-muted-foreground"
+                      />
+                      FILTER
+                    </button>
+                  }
+                />
+                {filters.filters.length > 0 && (
+                  <SquareArrowRight className="w-4 h-4 stroke-muted-foreground/60" />
+                )}
               </div>
-              <SortSelection
-                list={list}
-                orderableFields={orderableFields}
-                dropdownTrigger={
-                  <button
-                    type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                  >
-                    <ArrowUpDown
-                      size={12}
-                      className="stroke-muted-foreground"
-                    />
-                    SORT
-                  </button>
-                }
-              />
-              <FilterAdd
-                listKey={listKey}
-                filterableFields={filterableFields}
-                dropdownTrigger={
-                  <button
-                    type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                  >
-                    <PlusIcon2 size={13} className="stroke-muted-foreground" />
-                    FILTER
-                  </button>
-                }
-              />
               {filters.filters.length ? (
-                <>
-                  <SquareArrowRight className="w-4 h-4 -mr-1 stroke-muted-foreground/60" />
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-1/2 mt-2 sm:mt-0">
+                  <Badge
+                    color="zinc"
+                    className="flex items-center gap-2 py-0.5 border text-muted-foreground text-xs font-medium tracking-wide uppercase"
+                  >
+                    <Filter className="w-2.5 h-2.5" />
+                    Filters
+                  </Badge>
                   <FilterList filters={filters.filters} list={list} />
-                </>
+                </div>
               ) : null}
             </div>
+
             <div className="pb-1 pr-2 pl-3.5">
               <PaginationStats
                 list={list}

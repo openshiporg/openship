@@ -12,7 +12,7 @@ import { useList } from "@keystone/keystoneProvider";
 
 export function FilterList({ filters, list }) {
   return (
-    <div className="pl-1 no-scrollbar overflow-x-auto flex gap-2">
+    <div className="flex flex-wrap gap-2 w-full">
       {filters.map((filter) => {
         const field = list.fields[filter.field];
         return (
