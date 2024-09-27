@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
-import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
+import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { useList } from "@keystone/keystoneProvider";
+import { useUpdateItem, useDeleteItem } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
 import {
   ArrowRight,
   Edit,
@@ -10,6 +11,7 @@ import {
   Plus,
   Trash2,
   XIcon,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@ui/button";
 import { Badge } from "@ui/badge";
@@ -124,6 +126,7 @@ export const Links = ({
   refetch,
   isLoading,
   editItem,
+  linkMode,
 }) => {
   const [links, setLinks] = useState([]);
   const [selectedLinkId, setSelectedLinkId] = useState(null);
@@ -134,37 +137,29 @@ export const Links = ({
 
   const hasOrderChanged = !areOrdersEqual(initialLinks, links);
 
-  const updateMutation = gql`
-    mutation ($data: LinkUpdateInput!, $id: ID!) {
-      item: updateLink(where: { id: $id }, data: $data) {
-        id
-        filters
-      }
-    }
-  `;
-  const [update] = useMutation(updateMutation);
-
-  const updateLinksMutation = gql`
-    mutation UpdateLinks($data: [LinkUpdateArgs!]!) {
-      updateLinks(data: $data) {
-        id
-        rank
-      }
-    }
-  `;
-  const [updateLinks] = useMutation(updateLinksMutation);
-
-  const deleteMutation = gql`
-    mutation ($id: ID!) {
-      deleteLink(where: { id: $id }) {
-        id
-      }
-    }
-  `;
-  const [deleteLink] = useMutation(deleteMutation);
+  const { handleUpdate: updateLink, updateLoading } = useUpdateItem("Link");
+  const { handleDelete: deleteLink, deleteLoading } = useDeleteItem("Link");
+  const { handleUpdate: updateShop, updateLoading: updateShopLoading } = useUpdateItem("Shop");
 
   const toasts = useToasts();
   const list = useList("Order");
+
+  const handleLinkModeChange = async (newMode) => {
+    try {
+      await updateShop(shopId, { linkMode: newMode });
+      toasts.addToast({
+        tone: "positive",
+        title: "Link mode updated successfully",
+      });
+    } catch (err) {
+      setError(err.message);
+      toasts.addToast({
+        title: "Failed to update link mode",
+        tone: "negative",
+        message: err.message,
+      });
+    }
+  };
 
   useEffect(() => {
     const simplifiedLinks = initialLinks.map((link) => ({
@@ -202,18 +197,15 @@ export const Links = ({
       });
     }
 
-    update({
-      variables: { data: { filters: updatedFilters }, id: selectedLinkId },
-    })
-      .then((result) => {
-        const updatedLink = result.data.item;
+    updateLink(selectedLinkId, { filters: updatedFilters })
+      .then(() => {
         setLinks((prevLinks) =>
           prevLinks.map((link) =>
-            link.id === updatedLink.id
+            link.id === selectedLinkId
               ? {
                   ...link,
-                  filters: updatedLink.filters,
-                  filtersCount: updatedLink.filters.length,
+                  filters: updatedFilters,
+                  filtersCount: updatedFilters.length,
                 }
               : link
           )
@@ -250,18 +242,15 @@ export const Links = ({
       (filter) => !(filter.field === field && filter.type === type)
     );
 
-    update({
-      variables: { data: { filters: updatedFilters }, id: linkId },
-    })
-      .then((result) => {
-        const updatedLink = result.data.item;
+    updateLink(linkId, { filters: updatedFilters })
+      .then(() => {
         setLinks((prevLinks) =>
           prevLinks.map((link) =>
-            link.id === updatedLink.id
+            link.id === linkId
               ? {
                   ...link,
-                  filters: updatedLink.filters,
-                  filtersCount: updatedLink.filters.length,
+                  filters: updatedFilters,
+                  filtersCount: updatedFilters.length,
                 }
               : link
           )
@@ -286,7 +275,7 @@ export const Links = ({
 
   const handleDeleteLink = async (linkId) => {
     try {
-      await deleteLink({ variables: { id: linkId } });
+      await deleteLink(linkId);
       setLinks(links.filter((link) => link.id !== linkId));
       toasts.addToast({
         tone: "positive",
@@ -305,12 +294,10 @@ export const Links = ({
   const handleSaveOrder = async () => {
     setIsUpdating(true);
     try {
-      const updateData = links.map((link, index) => ({
-        where: { id: link.id },
-        data: { rank: index + 1 },
-      }));
-
-      await updateLinks({ variables: { data: updateData } });
+      const updatePromises = links.map((link, index) =>
+        updateLink(link.id, { rank: index + 1 })
+      );
+      await Promise.all(updatePromises);
 
       toasts.addToast({
         tone: "positive",
@@ -338,48 +325,66 @@ export const Links = ({
       {error && <div className="text-red-500 col-span-full">{error}</div>}
       <div className="flex flex-col gap-3">
         <div className="shadow-sm p-3 bg-muted text-muted-foreground rounded-lg border flex flex-col">
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-2 flex-wrap">
             <div className="flex flex-col gap-0.5">
               <Label className="text-base">Links</Label>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 Create links to channels based on filters
               </div>
             </div>
-            {/* {JSON.stringify({ initialLinks })} */}
-            {hasOrderChanged ? (
-              <Button
-                variant="secondary"
-                className="flex items-center text-xs gap-3 h-5 px-1.5"
-                onClick={handleSaveOrder}
-                disabled={isUpdating}
-                isLoading={isUpdating}
-              >
-                Save
-              </Button>
-            ) : (
-              <CreateLinkButton shopId={shopId} refetch={refetch} />
-            )}
+            <div className="flex items-start gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="light" 
+                    className="text-xs flex items-center gap-1 p-0.5 bg-transparent text-muted-foreground"
+                    disabled={updateShopLoading}
+                    isLoading={updateShopLoading}
+                  >
+                    {linkMode === 'sequential' ? 'Sequential' : 'Simultaneous'}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleLinkModeChange('sequential')}>
+                    Sequential
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleLinkModeChange('simultaneous')}>
+                    Simultaneous
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {hasOrderChanged ? (
+                <Button
+                  variant="secondary"
+                  className="text-xs gap-3 px-2 py-0.5"
+                  onClick={handleSaveOrder}
+                  disabled={updateLoading}
+                  isLoading={updateLoading}
+                >
+                  Save
+                </Button>
+              ) : (
+                <CreateLinkButton shopId={shopId} refetch={refetch} />
+              )}
+            </div>
           </div>
-          {/* <ReactSortable list={state} setList={setState}>
-            {state.map((item) => (
-              <div key={item.id}>{item.name}</div>
-            ))}
-          </ReactSortable> */}
           {links.length > 0 && (
             <ReactSortable
               list={links}
               setList={setLinks}
-              // setList={(newState) => handleLinkOrderChange(newState)}
               className="flex flex-col mt-3 gap-2"
             >
               {links.map((link) => (
                 <Link
                   key={link.id}
                   link={link}
+                  linkMode={linkMode}
                   isSelected={selectedLinkId === link.id}
                   onSelect={() => setSelectedLinkId(link.id)}
-                  // onDelete={() => handleDeleteLink(link.id)}
                   editItem={() => editItem(link.id, "Link")}
+                  onDelete={() => handleDeleteLink(link.id)}
+                  isDeleting={deleteLoading}
                 />
               ))}
             </ReactSortable>
@@ -404,6 +409,7 @@ export const Links = ({
                     <Button
                       variant="secondary"
                       className="p-0.5 flex items-center gap-3"
+                      disabled={updateLoading}
                     >
                       <Plus className="size-3.5" />
                     </Button>
@@ -413,7 +419,7 @@ export const Links = ({
                       list={list}
                       listKey="Order"
                       handleFilterSubmit={handleFilterSubmit}
-                      isUpdating={isUpdating}
+                      isUpdating={updateLoading}
                     />
                   </PopoverContent>
                 </Popover>
@@ -427,7 +433,7 @@ export const Links = ({
               linkId={selectedLinkId}
               deleteFilter={deleteFilter}
               handleFilterSubmit={handleFilterSubmit}
-              isUpdating={isUpdating}
+              isUpdating={updateLoading}
               isDeletingFilter={isDeletingFilter}
             />
           </div>
@@ -437,7 +443,7 @@ export const Links = ({
   );
 };
 
-export const Link = ({ link, isSelected, onSelect, editItem }) => {
+export const Link = ({ linkMode, link, isSelected, onSelect, editItem, onDelete, isDeleting }) => {
   return (
     <div className="bg-background border rounded-lg flex justify-between p-2 tracking-wide font-medium">
       <div className="flex items-center justify-between w-full">
@@ -446,7 +452,7 @@ export const Link = ({ link, isSelected, onSelect, editItem }) => {
             color="zinc"
             className="border rounded-md py-1 px-1.5 text-[.7rem]/3 flex gap-1 items-center"
           >
-            {link.rank}
+            {linkMode === 'sequential' ? link.rank : '1'}
           </Badge>
           {link.name}
         </div>
@@ -466,7 +472,15 @@ export const Link = ({ link, isSelected, onSelect, editItem }) => {
             )}
             onClick={onSelect}
           >
-            {link.filtersCount || 0} <ListFilter className="w-3 h-3" />
+            {link.filtersCount || 0} filter{link.filtersCount !== 1 && "s"}
+          </Badge>
+          <Badge
+            color="red"
+            className="cursor-pointer opacity-50 hover:opacity-100 border rounded-md p-1 text-[.7rem]/3 flex gap-1 items-center"
+            onClick={onDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="w-3 h-3" />
           </Badge>
         </div>
       </div>

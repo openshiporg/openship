@@ -124,7 +124,7 @@ const WebhookItem = ({ webhook, refetch, shopId }) => {
           {loading ? "Deleting..." : "Delete"}
         </BadgeButton>
       </div>
-      <div className="flex flex-col gap-0.5 bg-muted p-2 rounded-lg text-xs text-muted-foreground">
+      <div className="flex flex-col gap-0.5 bg-background border mb-2 p-2 rounded-lg text-xs text-muted-foreground">
         <span className="opacity-90 font-medium">Callback URL:</span>
         {webhook.callbackUrl}
       </div>

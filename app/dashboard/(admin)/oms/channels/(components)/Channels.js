@@ -195,7 +195,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                           {channel.channelItemsCount}
                         </Badge>
                       </TabsTrigger>
-                      <TabsTrigger value="links" className="inline-flex gap-2">
+                      {/* <TabsTrigger value="links" className="inline-flex gap-2">
                         <LinkIcon className="-ml-1 size-4" aria-hidden="true" />
                         Links
                         <Badge
@@ -204,7 +204,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                         >
                           {channel.linksCount}
                         </Badge>
-                      </TabsTrigger>
+                      </TabsTrigger> */}
                       <TabsTrigger
                         value="webhooks"
                         className="inline-flex gap-2 -mb-[3px]"
@@ -224,7 +224,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                           <Webhooks channelId={channel.id} />
                         </p>
                       </TabsContent>
-                      <TabsContent value="links">
+                      {/* <TabsContent value="links">
                         <p className="text-sm text-gray-500 sm:text-gray-500">
                           <div>
                             <Links
@@ -235,7 +235,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                             />
                           </div>
                         </p>
-                      </TabsContent>
+                      </TabsContent> */}
                       <TabsContent value="orders">
                         <SearchOrders
                           channelId={channel.id}

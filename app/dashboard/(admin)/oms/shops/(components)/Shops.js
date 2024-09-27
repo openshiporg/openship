@@ -54,6 +54,7 @@ export const SHOPS_QUERY = gql`
       platform {
         name
       }
+      linkMode
       links(orderBy: [{ rank: asc }]) {
         id
         rank
@@ -235,6 +236,7 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
                           <Links
                             shopId={shop.id}
                             links={shop.links}
+                            linkMode={shop.linkMode}
                             refetch={refetch}
                             editItem={openDrawer}
                           />

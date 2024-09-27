@@ -5,6 +5,7 @@ import {
   virtual,
   float,
   json,
+  select,
 } from "@keystone-6/core/fields";
 import { graphql, list, group } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
@@ -39,7 +40,14 @@ export const Shop = list({
         accessToken: text(),
       },
     }),
-
+    linkMode: select({
+      type: 'enum',
+      options: [
+        { label: 'Sequential', value: 'sequential' },
+        { label: 'Simultaneous', value: 'simultaneous' },
+      ],
+      defaultValue: 'sequential',
+    }),
     links: relationship({ ref: "Link.shop", many: true }),
 
     platform: relationship({
@@ -72,5 +80,6 @@ export const Shop = list({
       },
     }),
     ...trackingFields,
+
   },
 });
