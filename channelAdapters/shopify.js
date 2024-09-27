@@ -52,7 +52,6 @@ export async function searchProducts({ domain, accessToken, searchEntry }) {
     throw new Error("No products found from Shopify");
   }
 
-  console.log({ productVariants });
 
   const products = productVariants.edges.map(({ node }) => ({
     image:
@@ -123,7 +122,6 @@ export async function getProduct({
     throw new Error("Product not found from Shopify");
   }
 
-  console.log({ productVariant });
 
   const product = {
     image:
@@ -313,7 +311,6 @@ export async function createWebhook({ domain, accessToken, topic, endpoint }) {
     }
   );
 
-  console.log({ userErrors });
 
   if (userErrors.length > 0) {
     return { error: `Error creating webhook: ${userErrors[0].message}` };

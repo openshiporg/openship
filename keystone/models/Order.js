@@ -4,8 +4,9 @@ import {
   float,
   json,
   checkbox,
+  virtual,
 } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { graphql, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 import { placeMultipleOrders } from "../lib/placeMultipleOrders";
@@ -63,12 +64,7 @@ export const Order = list({
           `,
         });
 
-        console.log({ order });
-
         if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
-          console.log("linkOrder", item.linkOrder);
-          console.log("linkedOrderFound", order.shop?.links[0]?.channel?.id);
-
           const cartItemsFromLink = await sudoContext.query.CartItem.createMany(
             {
               data: order.lineItems.map((c) => ({
@@ -82,8 +78,6 @@ export const Order = list({
             }
           );
 
-          console.log({ cartItemsFromLink });
-
           if (item.processOrder) {
             const processedOrder = await placeMultipleOrders({
               ids: [item.id],
@@ -91,21 +85,16 @@ export const Order = list({
             });
           }
         } else if (item.matchOrder) {
-          console.log("else");
-          console.log({ item });
-
           if (item.matchOrder) {
             const cartItemsFromMatch = await getMatches({
               orderId: item.id,
               context: sudoContext,
             });
-            console.log({ cartItemsFromMatch });
 
             const order = await sudoContext.query.Order.findOne({
               where: { id: item.id },
               query: `id orderError`,
             });
-            console.log("PENDING", order);
             if (order?.orderError) {
               const updatedOrder = await sudoContext.query.Order.updateOne({
                 where: { id: item.id },
@@ -190,6 +179,35 @@ export const Order = list({
     linkOrder: checkbox(),
     matchOrder: checkbox(),
     processOrder: checkbox(),
+    readyToProcess: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        async resolve(item, args, context) {
+          const order = await context.query.Order.findOne({
+            where: { id: item.id },
+            query: "orderError status",
+          });
+          if (order.orderError) {
+            return `NOT READY: Order Error - ${order.orderError}`;
+          }
+
+          if (order.status !== "PENDING") {
+            return `NOT READY: Status is ${order.status}, needs to be PENDING`;
+          }
+
+          const cartItemsReadyToBeProcessed = await context.query.CartItem.count({
+            where: {
+              order: { id: { equals: item.id } },
+              AND: [{ error: { equals: "" } }, { purchaseId: { equals: "" } }],
+            },
+          });
+          if (cartItemsReadyToBeProcessed === 0) {
+            return "NOT READY: No cart items ready to be processed, some may have errors";
+          }
+          return "READY";
+        },
+      }),
+    }),
     ...trackingFields,
   },
   // ui: {

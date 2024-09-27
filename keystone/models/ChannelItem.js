@@ -57,6 +57,24 @@ export const ChannelItem = list({
     variantId: text(),
     lineItemId: text(),
     price: text(),
+    priceChanged: virtual({
+      field: graphql.field({
+        type: graphql.Float,
+        async resolve(item, args, context) {
+          const channelItem = await context.query.ChannelItem.findOne({
+            where: { id: item.id },
+            query: 'price externalDetails { price }',
+          });
+    
+          if (channelItem) {
+            const savedPrice = parseFloat(channelItem.price);
+            const currentPrice = parseFloat(channelItem.externalDetails.price);
+            return currentPrice - savedPrice;
+          }
+          return 0;
+        },
+      }),
+    }),
     externalDetails: virtual({
       field: graphql.field({
         type: graphql.object()({
@@ -157,9 +175,7 @@ export const ChannelItem = list({
   //         }, {}),
   //       };
 
-  //       console.log({ updates });
-  //       console.log(resolvedData.channel?.connect);
-  //       console.log({ item });
+
 
   //       // Perform your validation or further operations with 'updates'
   //       // Example: Check for duplicates, apply business rules, etc.

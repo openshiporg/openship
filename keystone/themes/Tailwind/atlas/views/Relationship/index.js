@@ -37,11 +37,6 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   }
 
   return (
-    // <AdminLink href={`/${list.path}/${value.value?.id}`}>
-    //   <Button variant="light">
-    //     View {list.singular} details
-    //   </Button>
-    // </AdminLink>
     <AdminLink
       className={cn(buttonVariants({ variant: "light" }), "bg-transparent")}
       href={`/${list.path}/${value.value?.id}`}
@@ -267,7 +262,7 @@ export const Cell = ({ field, item }) => {
           </AdminLink>
         </Fragment>
       ))}
-      {overflow ? `, and ${overflow} more` : null}
+      <span className="opacity-50 font-medium">{overflow ? `, and ${overflow} more` : null}</span>
     </CellContainer>
   );
 };
@@ -421,6 +416,7 @@ export const controller = (config) => {
             onChange(newItems.map((item) => item.id).join(","));
           },
         };
+        console.log({refLabelField, refSearchFields, value})
         return (
           <RelationshipSelect
             controlShouldRenderValue

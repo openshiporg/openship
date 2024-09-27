@@ -12,7 +12,6 @@ export async function findShopItems({ lineItems, userId, context }) {
     variantId,
     ...rest
   } of lineItems) {
-    console.log({ channelId });
     const [existingShopItem] = await context.query.ShopItem.findMany({
       where: {
         shop: { id: { equals: channelId } },
@@ -60,8 +59,7 @@ export async function findChannelItems({ cartItems, userId, context }) {
     variantId,
     ...rest
   } of cartItems) {
-    console.log({ rest });
-    console.log({ channelId });
+
     const [existingChannelItem] = await context.query.ChannelItem.findMany({
       where: {
         channel: { id: { equals: channelId } },
@@ -72,7 +70,6 @@ export async function findChannelItems({ cartItems, userId, context }) {
       },
     });
 
-    console.log({ existingChannelItem });
 
     if (existingChannelItem) {
       arr.push({ id: existingChannelItem.id });
@@ -124,9 +121,6 @@ async function overwriteMatch(root, { input, output }, context) {
     context,
   });
 
-  console.log({ input });
-  console.log({ shopItemConnect });
-  console.log({ output });
 
   const channelItemConnect = await findChannelItems({
     cartItems: output.map(({ channel, ...rest }) => {
@@ -146,7 +140,6 @@ async function overwriteMatch(root, { input, output }, context) {
     context,
   });
 
-  console.log({ channelItemConnect });
 
   const existingMatches = await context.query.Match.findMany({
     where: {
@@ -166,7 +159,6 @@ async function overwriteMatch(root, { input, output }, context) {
     query: `id inputCount outputCount`,
   });
 
-  console.log({ existingMatches });
 
   const [existingMatch] = existingMatches.filter(
     (match) => match.inputCount === input.length

@@ -21,13 +21,17 @@ async function deleteChannelWebhook(root, { channelId, webhookId }, context) {
 
   if (deleteWebhookFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-      webhookId,
-    }).toString();
-
-    const response = await fetch(`${deleteWebhookFunction}?${params}`);
+    const response = await fetch(deleteWebhookFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+        webhookId,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to delete webhook: ${response.statusText}`);

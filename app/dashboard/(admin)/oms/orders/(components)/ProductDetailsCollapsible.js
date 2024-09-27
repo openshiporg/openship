@@ -1,15 +1,12 @@
 // components/ProductDetailsCollapsible.js
 import React, { useState } from "react";
+import { useQuery } from "@keystone-6/core/admin-ui/apollo";
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/collapsible";
-import {
-  Badge,
-  BadgeButton,
-} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
-import { Button } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/button";
+
 import {
   ChevronsUpDown,
   ChevronLeft,
@@ -18,29 +15,106 @@ import {
   ArrowRight,
   MoreHorizontal,
 } from "lucide-react";
-import { RiLoader2Fill } from "@remixicon/react";
+
+import { ItemPagination, ItemPaginationStats } from "./ItemPagination";
+import { gql } from "@keystone-6/core/admin-ui/apollo";
+import { Skeleton } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/skeleton";
+
+import { CartItem } from "./CartItem";
+
+export const CART_ITEMS_QUERY = gql`
+  query CART_ITEMS_QUERY($orderId: ID!, $take: Int!, $skip: Int!) {
+    cartItems(
+      where: { order: { id: { equals: $orderId } } }
+      take: $take
+      skip: $skip
+      orderBy: [{ updatedAt: desc }]
+    ) {
+      id
+      name
+      image
+      price
+      quantity
+      productId
+      variantId
+      purchaseId
+      url
+      error
+      channel {
+        id
+        name
+      }
+    }
+    cartItemsCount(where: { order: { id: { equals: $orderId } } })
+  }
+`;
+
+export const LINE_ITEMS_QUERY = gql`
+  query LINE_ITEMS_QUERY($orderId: ID!, $take: Int!, $skip: Int!) {
+    lineItems(
+      where: { order: { id: { equals: $orderId } } }
+      take: $take
+      skip: $skip
+      orderBy: [{ updatedAt: desc }]
+    ) {
+      id
+      name
+      quantity
+      price
+      image
+      productId
+      variantId
+    }
+    lineItemsCount(where: { order: { id: { equals: $orderId } } })
+  }
+`;
 
 export const ProductDetailsCollapsible = ({
-  items,
+  orderId,
   title,
   defaultOpen = true,
   openEditDrawer,
   removeEditItemButton,
-  updateItem,
-  deleteItem,
-  updateLoading,
-  deleteLoading,
+  totalItems,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [currentPage, setCurrentPage] = useState(1);
   const isCartItem = title === "Cart Item";
+  const itemsPerPage = 5;
 
-  const handleQuantityChange = (item, newQuantity) => {
-    updateItem(item.id, { quantity: newQuantity });
-  };
+  const query = isCartItem ? CART_ITEMS_QUERY : LINE_ITEMS_QUERY;
+  const { data, loading, error, refetch } = useQuery(query, {
+    variables: {
+      orderId,
+      take: itemsPerPage,
+      skip: (currentPage - 1) * itemsPerPage,
+    },
+    skip: !isOpen,
+  });
 
-  const handleDeleteItem = (item) => {
-    deleteItem(item.id);
-  };
+  const items = isCartItem ? data?.cartItems : data?.lineItems;
+  const itemsCount = isCartItem ? data?.cartItemsCount : data?.lineItemsCount;
+
+  const triggerClassName = `flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium ${
+    isCartItem
+      ? "text-emerald-500 bg-white border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-emerald-700 dark:bg-emerald-950 dark:border-emerald-900 dark:text-emerald-300 dark:hover:text-white dark:hover:bg-emerald-700 dark:focus:ring-blue-500 dark:focus:text-white"
+      : "text-blue-500 bg-white border-blue-200 hover:bg-blue-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300 dark:hover:text-white dark:hover:bg-blue-700 dark:focus:ring-blue-500 dark:focus:text-white"
+  }`;
+
+  const renderSkeletonItem = () => (
+    <div className="border p-2 bg-background rounded-sm flex items-center gap-4 relative">
+      <Skeleton className="h-12 w-12 rounded-sm" />
+      <div className="grid flex-grow gap-1">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-6 w-6 rounded-full" />
+      </div>
+    </div>
+  );
 
   return (
     <Collapsible
@@ -52,165 +126,55 @@ export const ProductDetailsCollapsible = ({
           : "bg-blue-50/30 dark:bg-indigo-900/10"
       }`}
     >
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className={`flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium ${
-            isCartItem
-              ? "text-emerald-500 bg-white border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-emerald-700 dark:bg-emerald-950 dark:border-emerald-900 dark:text-emerald-300 dark:hover:text-white dark:hover:bg-emerald-700 dark:focus:ring-blue-500 dark:focus:text-white"
-              : "text-blue-500 bg-white border-blue-200 hover:bg-blue-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300 dark:hover:text-white dark:hover:bg-blue-700 dark:focus:ring-blue-500 dark:focus:text-white"
-          }`}
-        >
-          {items.length} {title}
-          {items.length !== 1 && "s"}
-          <ChevronsUpDown className="h-4 w-4" />
-        </button>
-      </CollapsibleTrigger>
+      <div className="flex items-center gap-2">
+        <CollapsibleTrigger asChild>
+          <button type="button" className={triggerClassName}>
+            {itemsCount || totalItems} {title}
+            {(itemsCount || totalItems) !== 1 && "s"}
+            <ChevronsUpDown className="h-4 w-4" />
+          </button>
+        </CollapsibleTrigger>
+        {isOpen && totalItems > 5 && (
+          <ItemPagination
+            currentPage={currentPage}
+            totalItems={itemsCount || totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            isCartItem={isCartItem}
+          />
+        )}
+      </div>
       <CollapsibleContent className="space-y-2">
-        {items.map((item, index) => (
-          <div key={item.lineItemId + "-details-" + index}>
-            <div className="border p-2 bg-background rounded-sm flex items-center gap-4 relative">
-              {item.purchaseId && (
-                <div className="absolute top-1.5 right-1.5 text-xs text-muted-foreground">
-                  {item.purchaseId}
-                </div>
-              )}
-              <img
-                className="border rounded-sm h-12 w-12 object-cover"
-                src={item.image}
-                alt={item.name}
+        {isOpen && (
+          <>
+            {totalItems > 5 && (
+              <ItemPaginationStats
+                currentPage={currentPage}
+                totalItems={itemsCount || totalItems}
+                itemsPerPage={itemsPerPage}
               />
-              <div className="grid flex-grow">
-                <div className="uppercase font-medium tracking-wide text-xs text-muted-foreground">
-                  {item.channel?.name}
-                </div>
-                <span className="text-sm font-medium">{item.name}</span>
-                <div className="text-xs text-muted-foreground">
-                  {item.productId} | {item.variantId}
-                </div>
-                {item.quantity > 1 ? (
-                  <div className="flex gap-2 items-center">
-                    <p className="text-sm dark:text-emerald-500 font-medium">
-                      ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      (${parseFloat(item.price).toFixed(2)} x {item.quantity})
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm dark:text-emerald-500 font-medium">
-                    ${parseFloat(item.price).toFixed(2)}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 self-end">
-                {isCartItem && !item.purchaseId && (
-                  <>
-                    <div className="flex items-center space-x-1">
-                      {(updateLoading || deleteLoading) && (
-                        <RiLoader2Fill
-                          className="size-4 shrink-0 animate-spin"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <BadgeButton
-                        onClick={() =>
-                          handleQuantityChange(
-                            item,
-                            Math.max(1, item.quantity - 1)
-                          )
-                        }
-                        className="border px-1"
-                        disabled={updateLoading}
-                      >
-                        <ChevronLeft className="h-3 w-3" />
-                      </BadgeButton>
-                      <input
-                        className="mx-1 border rounded-md text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none"
-                        style={{
-                          width: `${Math.max(
-                            2,
-                            item.quantity.toString().length * 0.75
-                          )}em`,
-                        }}
-                        type="text"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const newQuantity = parseInt(e.target.value) || 1;
-                          handleQuantityChange(item, newQuantity);
-                        }}
-                        onBlur={() => {
-                          const newQuantity = Math.max(1, item.quantity);
-                          handleQuantityChange(item, newQuantity);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            const newQuantity = Math.max(1, item.quantity);
-                            handleQuantityChange(item, newQuantity);
-                          }
-                        }}
-                      />
-                      <BadgeButton
-                        onClick={() =>
-                          handleQuantityChange(item, item.quantity + 1)
-                        }
-                        className="border px-1"
-                        disabled={deleteLoading}
-                      >
-                        <ChevronRight className="h-3 w-3" />
-                      </BadgeButton>
-                    </div>
-                    <BadgeButton
-                      onClick={() => handleDeleteItem(item)}
-                      color="red"
-                      className="border px-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </BadgeButton>
-                  </>
-                )}
-                {isCartItem && item.url && (
-                  <Button
-                    className="text-xs h-6 px-2"
-                    onClick={() => window.open(item.url, "_blank")}
-                  >
-                    ORDER <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                )}
-                {!removeEditItemButton && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="p-1"
-                    onClick={() =>
-                      openEditDrawer(
-                        item.id,
-                        isCartItem ? "CartItem" : "LineItem"
-                      )
-                    }
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-            {item.error && (
-              <div className="flex items-center mt-1">
-                <Badge color="red" className="text-xs mr-2">
-                  Error: {item.error}
-                </Badge>
-                <BadgeButton
-                  color="red"
-                  onClick={() => onClearError(item.id)}
-                  className="border p-1"
-                  disabled={updateLoading}
-                >
-                  <X className="h-3 w-3" />
-                </BadgeButton>
-              </div>
             )}
-          </div>
-        ))}
+            {loading ? (
+              Array.from({ length: itemsPerPage }).map((_, index) => (
+                <div key={`skeleton-${index}`}>{renderSkeletonItem()}</div>
+              ))
+            ) : error ? (
+              <div className="text-red-500">
+                Error loading items: {error.message}
+              </div>
+            ) : (
+              items?.map((item, index) => (
+                <CartItem
+                  key={item.id + "-details-" + index}
+                  item={item}
+                  isCartItem={isCartItem}
+                  openEditDrawer={openEditDrawer}
+                  removeEditItemButton={removeEditItemButton}
+                />
+              ))
+            )}
+          </>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );

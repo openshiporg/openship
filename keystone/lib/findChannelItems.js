@@ -1,6 +1,5 @@
 export async function findChannelItems({ cartItems, userId, context }) {
   const arr = [];
-  // console.log({ cartItems });
 
   for (const {
     name,
@@ -14,8 +13,7 @@ export async function findChannelItems({ cartItems, userId, context }) {
     variantId,
     ...rest
   } of cartItems) {
-    console.log({ rest });
-    console.log({ channelId });
+
     const [existingChannelItem] = await context.query.ChannelItem.findMany({
       where: {
         channel: { id: { equals: channelId } },
@@ -27,7 +25,6 @@ export async function findChannelItems({ cartItems, userId, context }) {
       },
     });
 
-    console.log({ existingChannelItem });
 
     // 3. Check if that item is already in their cart and increment by 1 if it is
     if (existingChannelItem) {

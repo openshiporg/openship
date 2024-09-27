@@ -87,14 +87,12 @@ export function ListTable({
             checked={selectedItems.has(itemId)}
             className="cursor-default"
             onChange={() => {
-              console.log("Before change:", selectedItems);
               const newSelectedItems = new Set(selectedItems);
               if (selectedItems.has(itemId)) {
                 newSelectedItems.delete(itemId);
               } else {
                 newSelectedItems.add(itemId);
               }
-              console.log("After changes:", newSelectedItems);
               onSelectedItemsChange(newSelectedItems);
             }}
           />

@@ -2,6 +2,8 @@ import { cn } from "@keystone/utils/cn";
 import { ChevronDown, X } from "lucide-react";
 import { RiLoader2Fill } from "@remixicon/react";
 import ReactSelect, { components, mergeStyles } from "react-select";
+import React, { useState, useCallback } from "react";
+import { Button } from "../../primitives/default/ui/button";
 export { components as selectComponents } from "react-select";
 
 const portalTarget =
@@ -18,7 +20,8 @@ const placeholderStyles =
 const selectInputStyles =
   "inline-grid [grid-template-columns:min-content_auto] col-start-1 col-end-3 row-start-1 row-end-2 pl-1 py-0.5";
 const singleValueContainerStyles = "items-center flex grid flex-1 flex-wrap";
-const multiValueContainerStyles = "items-center flex flex-1 flex-wrap gap-1";
+const multiValueContainerStyles =
+  "flex items-center flex-1 flex-wrap gap-1";
 const singleValueStyles =
   "col-start-1 col-end-3 row-start-1 row-end-2 leading-7 ml-1";
 const multiValueStyles =
@@ -231,7 +234,36 @@ export function MultiSelect({
         MultiValueRemove,
         ClearIndicator,
         DropdownIndicator,
+        Control: CustomValueContainer,
+        // Control: CustomControl,
       }}
     />
   );
 }
+
+const CustomValueContainer = ({ children, ...props }) => {
+  return (
+    <components.Control {...props}>
+      <div className="flex flex-wrap gap-1 max-h-72 overflow-y-auto">{children[0]}</div>
+      {children[1]}
+    </components.Control>
+  );
+};
+
+const CustomControl = ({ children, ...props }) => {
+  return (
+    <components.Control {...props}>
+      {React.Children.map(children, (child) => {
+        if (child.type.name === "ValueContainer") {
+          return React.cloneElement(child, {}, [
+            <div key="values" className="max-h-72 overflow-y-auto">
+              {child.props.children[0]}
+            </div>,
+            child.props.children[1], // This is typically the input
+          ]);
+        }
+        return child;
+      })}
+    </components.Control>
+  );
+};

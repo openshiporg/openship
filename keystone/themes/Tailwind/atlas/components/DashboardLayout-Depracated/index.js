@@ -42,7 +42,6 @@ export const DashboardLayout = ({ children }) => {
     })
     .filter((x) => Boolean(x));
 
-  console.log({ renderableLists });
 
   if (adminConfig?.components?.Navigation) {
     return (

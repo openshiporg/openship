@@ -1,20 +1,11 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
 import { Button } from "@ui/button";
 import { Fields } from "@keystone/themes/Tailwind/atlas/components/Fields";
 import { GraphQLErrorNotice } from "@keystone/themes/Tailwind/atlas/components/GraphQLErrorNotice";
-import { getFilteredProps } from "./CreateShop";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
 import { useQuery, gql, useApolloClient } from "@apollo/client";
-import {
-  ChevronDownIcon,
-  X,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  Minus,
-} from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@keystone/utils/cn";
 import {
@@ -26,8 +17,9 @@ import {
 } from "@ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 
-import { LineItemSelect } from "./LineItemSelect";
-import { CartItemSelect } from "./CartItemSelect";
+import { getFilteredProps } from "../../shops/(components)/CreateShop";
+import { LineItemSelect } from "../../shops/(components)/LineItemSelect";
+import { CartItemSelect } from "../../shops/(components)/CartItemSelect";
 
 const SHOPS_QUERY = gql`
   query GetShops {
@@ -48,67 +40,24 @@ const CHANNELS_QUERY = gql`
 `;
 
 const SECTIONS = {
-  orderDetails: {
-    label: "Order Details",
-    description: "Basic order information and status",
-    fields: [
-      "orderId",
-      "orderName",
-      "shop",
-      "status",
-      "currency",
-      "totalPrice",
-      "subTotalPrice",
-      "totalDiscount",
-      "totalTax",
-      "shippingMethod",
-    ],
-  },
-  customerInfo: {
-    label: "Customer Info",
-    description: "Customer contact details",
-    fields: ["email", "firstName", "lastName", "phoneNumber"],
-  },
-  shippingAddress: {
-    label: "Shipping Address",
-    description: "Delivery location information",
-    fields: [
-      "streetAddress1",
-      "streetAddress2",
-      "city",
-      "state",
-      "zip",
-      "country",
-    ],
-  },
-  additionalInfo: {
-    label: "Additional Info",
-    description: "Extra details and order notes",
-    fields: ["note", "orderError", "locationId"],
-  },
-  lineItems: {
-    label: "Line Items",
-    description: "Individual products in the order",
-    fields: ["lineItems"],
+  input: {
+    label: "Shop Products",
+    description: "Shop products in the match",
+    fields: ["input"],
     component: "LineItemSelect",
   },
-  cartItems: {
-    label: "Cart Items",
-    description: "Items in the customer's cart",
-    fields: ["cartItems"],
+  output: {
+    label: "Channel Products",
+    description: "Channel products in the match",
+    fields: ["output"],
     component: "CartItemSelect",
-  },
-  orderActions: {
-    label: "Order Actions",
-    description: "Manage and process the order",
-    fields: ["linkOrder", "matchOrder", "processOrder"],
   },
 };
 
-const OrderDialog = DialogPrimitive.Root;
-const OrderDialogTrigger = DialogPrimitive.Trigger;
+const MatchDialog = DialogPrimitive.Root;
+const MatchDialogTrigger = DialogPrimitive.Trigger;
 
-const OrderDialogContent = React.forwardRef(
+const MatchDialogContent = React.forwardRef(
   ({ className, children, ...props }, ref) => (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
@@ -129,16 +78,16 @@ const OrderDialogContent = React.forwardRef(
     </DialogPrimitive.Portal>
   )
 );
-OrderDialogContent.displayName = DialogPrimitive.Content.displayName;
+MatchDialogContent.displayName = DialogPrimitive.Content.displayName;
 
-export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
-  const list = useList("Order");
+export function MatchDetailsDialog({ isOpen, onClose, match, shopId }) {
+  const list = useList("Match");
   const client = useApolloClient();
 
   const { create, createWithData, props, state, error } = useCreateItem(list);
   const { createViewFieldModes } = useKeystone();
   const [isInitialized, setIsInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState("orderDetails");
+  const [activeTab, setActiveTab] = useState("input");
   const [localState, setLocalState] = useState({
     lineItems: [],
     cartItems: [],
@@ -157,94 +106,48 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
     return getFilteredProps(props, modifications, true);
   }, [props]);
 
-  const filterValidCartItems = (cartItems) => {
-    return cartItems.filter((item) =>
-      channels.some((channel) => channel.id === item.channel?.id)
-    );
-  };
-
   const handleSave = async () => {
     const formData = {};
 
-    // Process props.value
-    Object.entries(props.value).forEach(([key, value]) => {
-      if (
-        value.value?.inner?.value !== null &&
-        value.value?.inner?.value !== "" &&
-        value.value?.inner?.value !== undefined
-      ) {
-        formData[key] = value.value.inner.value;
-      }
-    });
-
-    // Special handling for shop
-    if (props.value.shop?.value?.value?.id) {
-      formData.shop = { connect: { id: props.value.shop.value.value.id } };
-    }
-
     // Process lineItems
     if (localState.lineItems.length > 0) {
-      formData.lineItems = {
+      formData.input = {
         create: localState.lineItems.map((item) => ({
-          name: item.title || item.name,
-          image: item.image,
-          price: item.price,
           quantity: parseInt(item.quantity),
           productId: item.productId,
           variantId: item.variantId,
-          lineItemId: item.lineItemId,
+          shop: item.shop ? { connect: { id: item.shop.id } } : undefined,
         })),
       };
     }
 
-    // Process cartItems
-    const validCartItems = localState.cartItems.filter((item) =>
-      channels.some((channel) => channel.id === item.channel?.id)
-    );
-
-    if (validCartItems.length > 0) {
-      formData.cartItems = {
-        create: validCartItems.map((item) => ({
-          name: item.title || item.name,
-          image: item.image,
-          price: item.price,
-          quantity: parseInt(item.quantity),
-          productId: item.productId,
-          variantId: item.variantId,
-          channel: item.channel
-            ? { connect: { id: item.channel.id } }
-            : undefined,
-        })),
-      };
-    } else {
-      // If there are no valid cart items, ensure cartItems is not included in formData
-      delete formData.cartItems;
-    }
-
-    // Connect the shop
-    // if (shopId) {
-    //   formData.shop = { connect: { id: shopId } };
-    // }
+    formData.output = {
+      create: localState.cartItems.map((item) => ({
+        price: item.price,
+        quantity: parseInt(item.quantity),
+        productId: item.productId,
+        variantId: item.variantId,
+        channel: item.channel
+          ? { connect: { id: item.channel.id } }
+          : undefined,
+      })),
+    };
 
     try {
       const item = await createWithData({ data: formData });
       if (item) {
         onClose();
-        // await client.refetchQueries({
-        //   include: "active",
-        // });
         await client.refetchQueries({
           include: "active",
-         
         });
       }
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error("Error creating match:", error);
     }
   };
 
   useEffect(() => {
-    if (order && !isInitialized) {
+    if (match && !isInitialized) {
       props.onChange((oldValues) => {
         const newValues = { ...oldValues };
 
@@ -266,8 +169,8 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
           };
         }
 
-        if (order) {
-          Object.keys(order).forEach((key) => {
+        if (match) {
+          Object.keys(match).forEach((key) => {
             if (newValues[key] && key !== "shop") {
               newValues[key] = {
                 ...oldValues[key],
@@ -275,42 +178,34 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
                   ...oldValues[key].value,
                   inner: {
                     ...oldValues[key].value.inner,
-                    value: order[key],
+                    value: match[key],
                   },
                 },
               };
             }
           });
         }
-        // Ensure status is set to PENDING
-        newValues.status = {
-          ...oldValues.status,
-          value: {
-            ...oldValues.status?.value,
-            inner: {
-              ...oldValues.status?.value?.inner,
-              value: "PENDING",
-            },
-          },
-        };
 
         return newValues;
       });
       setLocalState({
-        lineItems: order.lineItems || [],
-        cartItems: order.cartItems || [],
+        lineItems: match.lineItems || [],
+        cartItems: match.cartItems || [],
       });
       setIsInitialized(true);
     }
-  }, [order, props, isInitialized]);
+  }, [match, props, isInitialized]);
 
   return (
-    <OrderDialog open={isOpen} onOpenChange={onClose}>
-      <OrderDialogContent className="flex flex-col h-[90vh]">
+    <MatchDialog open={isOpen} onOpenChange={onClose}>
+      <MatchDialogTrigger>
+        <Button>Create Match</Button>
+      </MatchDialogTrigger>
+      <MatchDialogContent className="flex flex-col h-[90vh]">
         <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold">Create Order</h2>
+          <h2 className="text-2xl font-bold">Create Match</h2>
           <p className="text-gray-600">
-            View and edit order information before creation
+            View and edit match information before creation
           </p>
         </div>
         <div className="flex flex-col md:flex-row flex-grow overflow-hidden p-4 md:p-0 w-full">
@@ -389,15 +284,14 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
               {createViewFieldModes.state === "loading" && (
                 <div className="text-center py-4">Loading update form...</div>
               )}
-              {/* {JSON.stringify(props.value.shop)} */}
-              {activeTab === "lineItems" ? (
+              {activeTab === "input" ? (
                 <LineItemSelect
                   shops={shops}
                   localState={localState}
                   setLocalState={setLocalState}
                   shopId={shopId}
                 />
-              ) : activeTab === "cartItems" ? (
+              ) : activeTab === "output" ? (
                 <CartItemSelect
                   channels={channels}
                   localState={localState}
@@ -410,6 +304,7 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
                     SECTIONS[activeTab].fields.map((key) => ({ key })),
                     true
                   )}
+                  //   {...props}
                 />
               )}
             </div>
@@ -424,10 +319,10 @@ export function OrderDetailsDialog({ isOpen, onClose, order, shopId }) {
             isLoading={state === "loading"}
             onClick={handleSave}
           >
-            Create Order
+            Create Match
           </Button>
         </div>
-      </OrderDialogContent>
-    </OrderDialog>
+      </MatchDialogContent>
+    </MatchDialog>
   );
 }

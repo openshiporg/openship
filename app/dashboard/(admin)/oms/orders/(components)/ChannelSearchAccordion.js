@@ -1,8 +1,18 @@
 // components/ChannelSearchAccordion.js
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/collapsible";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/select";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/collapsible";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/select";
 import { Input } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/input";
 import { BadgeButton } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
 import { ChevronsUpDown, ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -113,11 +123,13 @@ export const ChannelSearchAccordion = ({ channels, onAddItem }) => {
                 className="flex items-center space-x-2 p-2 bg-background rounded-md border"
               >
                 <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
+                  {product.image && (
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="text-sm font-medium truncate">
@@ -152,7 +164,7 @@ export const ChannelSearchAccordion = ({ channels, onAddItem }) => {
                       onClick={() =>
                         handleQuantityChange(
                           product.productId,
-                          Math.max(1, (quantities[product.productId] || 1) - 1),
+                          Math.max(1, (quantities[product.productId] || 1) - 1)
                         )
                       }
                       className="border px-1"
@@ -168,7 +180,7 @@ export const ChannelSearchAccordion = ({ channels, onAddItem }) => {
                             localQuantities[product.productId] ||
                             quantities[product.productId] ||
                             1
-                          ).toString().length * 0.75,
+                          ).toString().length * 0.75
                         )}em`,
                       }}
                       type="text"
@@ -192,7 +204,7 @@ export const ChannelSearchAccordion = ({ channels, onAddItem }) => {
                       onClick={() =>
                         handleQuantityChange(
                           product.productId,
-                          (quantities[product.productId] || 1) + 1,
+                          (quantities[product.productId] || 1) + 1
                         )
                       }
                       className="border px-1"

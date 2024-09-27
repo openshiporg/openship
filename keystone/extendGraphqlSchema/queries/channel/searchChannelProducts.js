@@ -24,15 +24,19 @@ async function searchChannelProducts(
   const { searchProductsFunction } = channel.platform;
 
   if (searchProductsFunction.startsWith("http")) {
-    const params = new URLSearchParams({
-      searchEntry: searchEntry || "",
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-    }).toString();
+    const response = await fetch(searchProductsFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        searchEntry: searchEntry || "",
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+      }),
+    });
 
-    const response = await fetch(`${searchProductsFunction}?${params}`);
-
-    console.log(`${searchProductsFunction}?${params}`);
+    console.log(`POST request to ${searchProductsFunction}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`);
     }

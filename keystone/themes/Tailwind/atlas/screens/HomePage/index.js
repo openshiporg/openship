@@ -101,7 +101,6 @@ export const HomePage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 pb-12">
           {(() => {
-            console.log({ lists });
             if (visibleLists.state === "error") {
               return (
                 <span className="text-red-600 dark:text-red-500 text-sm">

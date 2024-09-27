@@ -277,7 +277,7 @@ export function CreateShopButton({
       isLoading={state === "loading"}
       onClick={handleClick}
     >
-      {platformData?.oAuthFunction && platformData?.oAuthCallbackFunction
+      {platformData?.oAuthFunction && platformData?.oAuthCallbackFunction && platformData?.appKey && platformData?.appSecret
         ? `Install App on ${platformData.name}`
         : "Create Shop"}
     </Button>

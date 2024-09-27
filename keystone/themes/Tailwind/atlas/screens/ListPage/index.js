@@ -14,14 +14,19 @@ import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
 import {
   ArrowUpDown,
-  ChevronRight,
   Circle,
-  Columns3,
-  PlusIcon,
   Search,
   Square,
   SquareArrowRight,
   Triangle,
+  PlusCircleIcon,
+  PlusIcon as PlusIcon2,
+  ChevronDown,
+  SearchIcon,
+  Filter,
+  ArrowRight,
+  ChevronRight,
+  Columns3,
 } from "lucide-react";
 import { Link } from "next-view-transitions";
 
@@ -136,7 +141,6 @@ export const ListPageTemplate = ({ listKey }) => {
   const sort = useSort(list, orderableFields);
   const filters = useFilters(list, filterableFields);
 
-  console.log({ filters });
 
   const searchFields = Object.keys(list.fields).filter(
     (key) => list.fields[key].search
@@ -323,70 +327,67 @@ export const ListPageTemplate = ({ listKey }) => {
               </div>
             </div>
 
-            <div className="flex gap-2 items-center bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
-              <div>
+            <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
+              <div className="flex flex-wrap gap-2 w-full items-center">
                 <PaginationNavigation
                   list={list}
                   total={data.count}
                   currentPage={currentPage}
                   pageSize={pageSize}
                 />
-              </div>
-              <div>
                 <PaginationDropdown
                   list={list}
                   total={data.count}
                   currentPage={currentPage}
                   pageSize={pageSize}
                 />
-              </div>
-              <SortSelection
-                list={list}
-                orderableFields={orderableFields}
-                dropdownTrigger={
-                  <button
-                    type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                  >
-                    <ArrowUpDown
-                      size={12}
-                      className="stroke-muted-foreground"
-                    />
-                    SORT
-                  </button>
-                }
-              />
-              <FieldSelection
-                list={list}
-                fieldModesByFieldPath={listViewFieldModesByField}
-                rightSection={
-                  <Badge
-                    color="rose"
-                    className="py-0.5 text-xs cursor-pointer"
-                    onClick={resetToDefaults}
-                    isDisabled={
-                      !Boolean(
-                        filters.filters.length ||
-                          query.sortBy ||
-                          query.fields ||
-                          query.search
-                      )
-                    }
-                  >
-                    RESET
-                  </Badge>
-                }
-                dropdownTrigger={
-                  <button
-                    type="button"
-                    className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                  >
-                    <Columns3 size={12} className="stroke-muted-foreground" />
-                    COLUMNS
-                  </button>
-                }
-              />
-              {data.count || filters.filters.length ? (
+                <SortSelection
+                  list={list}
+                  orderableFields={orderableFields}
+                  dropdownTrigger={
+                    <button
+                      type="button"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <ArrowUpDown
+                        size={12}
+                        className="stroke-muted-foreground"
+                      />
+                      SORT
+                    </button>
+                  }
+                />
+                <FieldSelection
+                  list={list}
+                  fieldModesByFieldPath={listViewFieldModesByField}
+                  rightSection={
+                    <Button
+                      variant="plain"
+                      size="xs"
+                      onClick={resetToDefaults}
+                      className="opacity-85 text-red-800"
+                      isDisabled={
+                        !Boolean(
+                          filters.filters.length ||
+                            query.sortBy ||
+                            query.fields ||
+                            query.search
+                        )
+                      }
+                    >
+                      Reset
+                    </Button>
+                  }
+                  dropdownTrigger={
+                    <button
+                      type="button"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <Columns3 size={12} className="stroke-muted-foreground" />
+                      COLUMNS
+                    </button>
+                  }
+                />
                 <FilterAdd
                   listKey={listKey}
                   filterableFields={filterableFields}
@@ -395,19 +396,36 @@ export const ListPageTemplate = ({ listKey }) => {
                       type="button"
                       className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                     >
-                      <PlusIcon size={13} className="stroke-muted-foreground" />
+                      <PlusIcon2
+                        size={13}
+                        className="stroke-muted-foreground"
+                      />
                       FILTER
                     </button>
                   }
                 />
-              ) : null}
-              {filters.filters.length ? (
-                <>
-                  <SquareArrowRight className="w-4 h-4 -mr-1 stroke-muted-foreground/60" />
-                  <FilterList filters={filters.filters} list={list} />
-                </>
-              ) : null}
+              </div>
             </div>
+
+            {filters.filters.length > 0 && (
+              <div className="py-2 px-3 flex gap-2">
+                <div>
+                  <Badge
+                    color="zinc"
+                    className="flex items-center gap-2 py-0.5 border text-muted-foreground text-xs font-medium tracking-wide uppercase"
+                  >
+                    <Filter className="w-2.5 h-2.5" />
+                    Filters
+                    <SquareArrowRight className="w-3 h-3 opacity-75" />
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FilterList filters={filters.filters} list={list} />
+                  </div>
+                </div>
+              </div>
+            )}
             {selectedItemsState.selectedItems.size > 0 && (
               <div className="py-2 pr-2 pl-3 border fixed bottom-4 z-50 shadow-lg rounded-lg bg-white dark:bg-zinc-800">
                 <div className="flex gap-4 items-center">
@@ -481,7 +499,6 @@ export const ListPageTemplate = ({ listKey }) => {
                           // const newQueryString = new URLSearchParams(
                           //   // queries
                           // ).toString();
-                          // console.log({ newQueryString });
                           // push(`?${newQueryString}`);
                           const path = window.location.pathname; // Get the current path
                           push(path); // Navigate to the current path without query params

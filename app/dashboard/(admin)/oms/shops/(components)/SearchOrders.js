@@ -269,7 +269,7 @@ function ShopCollapsible({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <details open={isOpen} className="p-4 border rounded-lg bg-muted/40">
+    <details open={isOpen} className="p-4 border rounded-lg bg-muted/40n group">
       <summary
         onClick={(e) => {
           e.preventDefault();
@@ -281,7 +281,7 @@ function ShopCollapsible({
           <div
             className={cn(
               buttonVariants({ variant: "secondary" }),
-              "mt-[1px] self-start px-1 h-5"
+              "self-start p-1 transition-transform group-open:rotate-90"
             )}
           >
             <ChevronRight className="size-3" />
@@ -456,16 +456,13 @@ const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
         {items.map((item, index) => (
           <div key={item.lineItemId + "-details-" + index}>
             <div className="border p-2 bg-background rounded-sm flex items-center gap-4 relative">
-              {item.purchaseId && (
-                <div className="absolute top-1.5 right-1.5 text-xs text-muted-foreground">
-                  {item.purchaseId}
-                </div>
+              {item.image && (
+                <img
+                  className="border rounded-sm h-12 w-12 object-cover"
+                  src={item.image}
+                  alt={item.name}
+                />
               )}
-              <img
-                className="border rounded-sm h-12 w-12 object-cover"
-                src={item.image}
-                alt={item.name}
-              />
               <div className="grid flex-grow">
                 <div className="uppercase font-medium tracking-wide text-xs text-muted-foreground">
                   {item.channel?.name}
@@ -487,6 +484,14 @@ const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
                   <p className="text-sm dark:text-emerald-500 font-medium">
                     ${parseFloat(item.price).toFixed(2)}
                   </p>
+                )}
+                {item.purchaseId && (
+                  <Badge
+                    color="zinc"
+                    className="border text-xs font-medium tracking-wide"
+                  >
+                    {item.purchaseId}
+                  </Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 self-end">

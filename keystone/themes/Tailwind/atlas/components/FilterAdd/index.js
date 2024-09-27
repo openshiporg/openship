@@ -203,6 +203,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
             (() => {
               const { Filter } =
                 fieldsWithFilters[state.fieldPath].controller.filter;
+              console.log({ state });
               return (
                 <Filter
                   type={state.filterType}
@@ -224,9 +225,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
               <Button onClick={onClose} variant="light">
                 Cancel
               </Button>
-              <Button type="submit">
-                Apply
-              </Button>
+              <Button type="submit">Apply</Button>
             </div>
           </>
         )}

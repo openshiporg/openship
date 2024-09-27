@@ -20,13 +20,18 @@ async function searchShopProducts(root, { shopId, searchEntry }, context) {
   const { searchProductsFunction } = shop.platform;
 
   if (searchProductsFunction.startsWith("http")) {
-    const params = new URLSearchParams({
-      searchEntry: searchEntry || "",
-      domain: shop.domain,
-      accessToken: shop.accessToken,
-    }).toString();
+    const response = await fetch(searchProductsFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        searchEntry: searchEntry || "",
+        domain: shop.domain,
+        accessToken: shop.accessToken,
+      }),
+    });
 
-    const response = await fetch(`${searchProductsFunction}?${params}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`);
     }

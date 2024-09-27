@@ -71,7 +71,6 @@ export const Drawer = ({
                 actions.confirm
                   .action()
                   .then(() => {
-                    // console.log("then");
                     // Close the drawer only if the action is successful
                     setIsDrawerOpen(false);
                   })

@@ -25,16 +25,20 @@ async function searchShopOrders(
 
   if (searchOrdersFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      searchEntry,
-      domain: shop.domain,
-      accessToken: shop.accessToken,
-      first: take,
-      skip,
-      after,
-    }).toString();
-
-    const response = await fetch(`${searchOrdersFunction}?${params}`);
+    const response = await fetch(searchOrdersFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        searchEntry,
+        domain: shop.domain,
+        accessToken: shop.accessToken,
+        first: take,
+        skip,
+        after,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch orders: ${response.statusText}`);
@@ -57,10 +61,6 @@ async function searchShopOrders(
       after,
     });
 
-    // console.log(orders[0].lineItems);
-    // console.log(orders[0].cartItems);
-
-    // return { orders: [], hasNextPage: true };
 
     return { orders, hasNextPage };
   }

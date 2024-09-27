@@ -140,9 +140,7 @@ export function useCreateItem(list) {
             }
           },
         }).then((x) => x.data);
-        console.log({ outputData });
       } catch (e) {
-        console.log({ e });
         toasts.addToast({
           title: "Creation failed",
           message: e.message,

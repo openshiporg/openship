@@ -61,7 +61,6 @@ export function FieldSelection({
   }
   const selectedFields = useSelectedFields(list, fieldModesByFieldPath);
 
-  console.log({ selectedFields });
   const setNewSelectedFields = (selectedFields) => {
     if (isArrayEqual(selectedFields, list.initialColumns)) {
       const { fields: _ignore, ...otherQueryFields } = query;

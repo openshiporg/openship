@@ -10,8 +10,8 @@ import * as view4 from "@keystone/views/Timestamp";
 import * as view5 from "@keystone/views/Checkbox";
 import * as view6 from "@keystone/views/JSON";
 import * as view7 from "@keystone/views/Float";
-import * as view8 from "@keystone/views/Integer";
-import * as view9 from "@keystone/views/Virtual";
+import * as view8 from "@keystone/views/Virtual";
+import * as view9 from "@keystone/views/Integer";
 
 export const fieldViews = [
   view0,

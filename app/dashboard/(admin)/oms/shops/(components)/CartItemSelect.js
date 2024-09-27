@@ -16,7 +16,6 @@ import {
   BadgeButton,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
 
-
 const SEARCH_CHANNEL_PRODUCTS = gql`
   query SearchChannelProducts($channelId: ID!, $searchEntry: String) {
     searchChannelProducts(channelId: $channelId, searchEntry: $searchEntry) {
@@ -152,13 +151,15 @@ export const CartItemSelect = ({ channels, localState, setLocalState }) => {
                     key={item.id || index}
                     className="p-1 border shadow-sm mt-2 flex items-center space-x-2 bg-background"
                   >
-                    <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover rounded-md"
-                      />
-                    </div>
+                    {item.image && (
+                      <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium">
                         {item.channel?.name || "Unknown Channel"}
@@ -239,85 +240,96 @@ export const CartItemSelect = ({ channels, localState, setLocalState }) => {
               {data.searchChannelProducts.map((product) => (
                 <div
                   key={product.productId}
-                  className="flex items-center space-x-2 p-2 bg-muted/40 rounded-md"
+                  className="border flex items-center space-x-2 p-2 rounded-md bg-muted/40"
                 >
-                  <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
+                  <div className="border w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
                     <img
                       src={product.image}
                       alt={product.title}
                       className="w-full h-full object-cover rounded-md"
                     />
                   </div>
-                  <div className="flex-grow min-w-0">
+                  <div className="flex-1">
                     <div className="text-sm font-medium">{product.title}</div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-muted-foreground">
                       {product.productId} | {product.variantId}
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-1 flex-shrink-0">
-                    <div className="flex items-center space-x-1">
-                      <BadgeButton
-                        onClick={() =>
-                          handleQuantityChange(
-                            product.productId,
-                            Math.max(
-                              1,
-                              (quantities[product.productId] || 1) - 1
+
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="text-sm font-semibold">
+                        $
+                        {(
+                          parseFloat(product.price) *
+                          (quantities[product.productId] || 1)
+                        ).toFixed(2)}
+                        {(quantities[product.productId] || 1) > 1 && (
+                          <span className="font-normal text-muted-foreground ml-2">
+                            (${parseFloat(product.price).toFixed(2)} x{" "}
+                            {quantities[product.productId] || 1})
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <BadgeButton
+                          size="sm"
+                          onClick={() =>
+                            handleQuantityChange(
+                              product.productId,
+                              Math.max(
+                                1,
+                                (quantities[product.productId] || 1) - 1
+                              )
                             )
-                          )
-                        }
-                        className="px-1"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </BadgeButton>
-                      <input
-                        className="mx-1 border rounded-md text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none"
-                        style={{
-                          width: `${Math.max(
-                            2,
-                            (
-                              localQuantities[product.productId] ||
-                              quantities[product.productId] ||
-                              1
-                            ).toString().length * 0.75
-                          )}em`,
-                        }}
-                        type="text"
-                        value={
-                          localQuantities[product.productId] ||
-                          quantities[product.productId] ||
-                          1
-                        }
-                        onChange={(e) =>
-                          setLocalQuantities({
-                            ...localQuantities,
-                            [product.productId]: e.target.value,
-                          })
-                        }
-                        onBlur={() => handleQuantityBlur(product.productId)}
-                        onKeyDown={(e) =>
-                          handleQuantityKeyDown(e, product.productId)
-                        }
-                      />
-                      <BadgeButton
-                        onClick={() =>
-                          handleQuantityChange(
-                            product.productId,
-                            (quantities[product.productId] || 1) + 1
-                          )
-                        }
-                        className="px-1"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </BadgeButton>
+                          }
+                          className="px-1"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </BadgeButton>
+
+                        <input
+                          className="mx-1 border rounded-md text-zinc-800 focus:ring-0 dark:text-zinc-100 text-center appearance-none"
+                          style={{
+                            width: `${Math.max(
+                              2,
+                              (quantities[product.productId] || 1).toString()
+                                .length * 0.75
+                            )}em`,
+                          }}
+                          type="text"
+                          value={quantities[product.productId] || 1}
+                          onChange={(e) =>
+                            handleQuantityInputChange(
+                              product.productId,
+                              e.target.value
+                            )
+                          }
+                          onBlur={() => handleQuantityBlur(product.productId)}
+                          onKeyDown={(e) =>
+                            handleQuantityKeyDown(e, product.productId)
+                          }
+                        />
+                        <BadgeButton
+                          size="sm"
+                          onClick={() =>
+                            handleQuantityChange(
+                              product.productId,
+                              (quantities[product.productId] || 1) + 1
+                            )
+                          }
+                          className="px-1"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </BadgeButton>
+                        <BadgeButton
+                          size="sm"
+                          color="teal"
+                          onClick={() => handleAddItem(product)}
+                          className="px-1"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </BadgeButton>
+                      </div>
                     </div>
-                    <BadgeButton
-                      onClick={() => handleAddItem(product)}
-                      color="teal"
-                      className="px-1"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </BadgeButton>
                   </div>
                 </div>
               ))}

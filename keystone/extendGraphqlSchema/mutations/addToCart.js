@@ -3,7 +3,6 @@ async function addToCart(
   { channelId, image, name, price, productId, variantId, quantity, orderId },
   context
 ) {
-  console.log("ADDING TO CART!");
   // 1. Query the current user see if they are signed in
   const sesh = context.session;
   if (!sesh.itemId) {
@@ -57,8 +56,6 @@ async function addToCart(
       channel: { connect: { id: channelId } },
     },
   });
-
-  console.log({ result });
 
   return await context.db.Order.findOne({
     where: {

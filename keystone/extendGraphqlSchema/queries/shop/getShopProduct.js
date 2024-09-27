@@ -24,14 +24,19 @@ async function getShopProduct(
   const { getProductFunction } = shop.platform;
 
   if (getProductFunction.startsWith("http")) {
-    const params = new URLSearchParams({
-      variantId: variantId || "",
-      productId: productId || "",
-      domain: shop.domain,
-      accessToken: shop.accessToken,
-    }).toString();
+    const response = await fetch(getProductFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        variantId: variantId || "",
+        productId: productId || "",
+        domain: shop.domain,
+        accessToken: shop.accessToken,
+      }),
+    });
 
-    const response = await fetch(`${getProductFunction}?${params}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`);
     }
@@ -43,13 +48,13 @@ async function getShopProduct(
     const shopAdapters = await import(
       `../../../../shopAdapters/${getProductFunction}.js`
     );
-    const result = await shopAdapters.searchProducts({
+    const result = await shopAdapters.getProduct({
       variantId,
       productId,
       domain: shop.domain,
       accessToken: shop.accessToken,
     });
-    return result.products; // Ensure products are in the shape of ShopProduct[]
+    return result.product; // Ensure products are in the shape of ShopProduct[]
   }
 }
 

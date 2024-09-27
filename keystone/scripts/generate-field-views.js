@@ -18,7 +18,6 @@ const viewMappings = {
   [`@keystone-6/core/fields/types/image/views`]: `@keystone/views/Image`,
   [`@keystone-6/core/fields/types/virtual/views`]: `@keystone/views/Virtual`,
 };
-// console.log(viewMappings["@keystone-6/core/fields/types/timestamp/views"]);
 
 export function areArraysEqual(a, b) {
   return a.length === b.length && a.every((x, i) => x === b[i])
@@ -82,7 +81,6 @@ const createFieldViewsFile = () => {
       console.error("Error writing file:", err);
       return;
     }
-    console.log("fieldViews.js created successfully in the keystone folder.");
   });
 };
 
@@ -182,7 +180,6 @@ export function initialiseLists(config) {
 
   // Do some introspection
   // introspectGraphQLTypes(listsRef);
-  // console.log(listsRef.ShippingMethodTaxLine);
   return listsRef;
 }
 

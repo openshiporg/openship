@@ -21,14 +21,18 @@ async function createChannelWebhook(root, { channelId, topic, endpoint }, contex
 
   if (createWebhookFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-      topic,
-      endpoint,
-    }).toString();
-
-    const response = await fetch(`${createWebhookFunction}?${params}`);
+    const response = await fetch(createWebhookFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+        topic,
+        endpoint,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to create webhook: ${response.statusText}`);

@@ -24,13 +24,17 @@ async function createChannelPurchase(root, { input }, context) {
 
   if (createPurchaseFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-      ...purchaseData,
-    }).toString();
-
-    const response = await fetch(`${createPurchaseFunction}?${params}`);
+    const response = await fetch(createPurchaseFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+        ...purchaseData,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to create purchase: ${response.statusText}`);

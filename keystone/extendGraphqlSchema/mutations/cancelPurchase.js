@@ -11,7 +11,6 @@ async function cancelPurchase(root, { purchaseId }, context) {
     },
   });
 
-  console.log({ cartItemIDs });
 
   const updatedCartItems = await context.query.CartItem.updateMany({
     data: cartItemIDs.map(({ id }) => ({
@@ -21,7 +20,6 @@ async function cancelPurchase(root, { purchaseId }, context) {
     query: `id order { id }`,
   });
 
-  console.log({ updatedCartItems });
 
   const order = await context.query.Order.updateOne({
     where: { id: updatedCartItems[0].order.id },

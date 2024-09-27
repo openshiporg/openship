@@ -21,12 +21,18 @@ async function getShopWebhooks(root, { shopId }, context) {
 
   if (getWebhooksFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
+    const body = JSON.stringify({
       domain: shop.domain,
       accessToken: shop.accessToken,
-    }).toString();
+    });
 
-    const response = await fetch(`${getWebhooksFunction}?${params}`);
+    const response = await fetch(getWebhooksFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch webhooks: ${response.statusText}`);

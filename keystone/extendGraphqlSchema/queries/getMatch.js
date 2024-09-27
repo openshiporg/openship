@@ -55,7 +55,6 @@ async function getMatches({ inputArray, user, context }) {
     ({ inputCount }) => inputCount === inputArray.length
   );
 
-  console.log({ filt });
 
   if (filt) {
     return [filt];
@@ -95,19 +94,18 @@ async function getMatch(root, { input }, context) {
 
         let products;
         if (searchProductsFunction.startsWith("http")) {
-          const params = new URLSearchParams({
-            searchEntry: productId,
-            domain: channel.domain,
-            accessToken: channel.accessToken,
-          }).toString();
-
-          const searchRes = await fetch(`${searchProductsFunction}?${params}`, {
-            method: "GET",
+          const searchRes = await fetch(searchProductsFunction, {
+            method: "POST",
             headers: {
-              Accept: "application/json",
-              "Content-type": "application/json",
+              "Accept": "application/json",
+              "Content-Type": "application/json",
               "X-Requested-With": "Fetch",
             },
+            body: JSON.stringify({
+              searchEntry: productId,
+              domain: channel.domain,
+              accessToken: channel.accessToken,
+            }),
           });
 
           if (!searchRes.ok) {

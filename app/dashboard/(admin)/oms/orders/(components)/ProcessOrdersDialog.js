@@ -9,7 +9,7 @@ import {
 import { Button, buttonVariants } from "@ui/button";
 import { Input } from "@ui/input";
 import { Badge, BadgeButton } from "@ui/badge";
-import { Plus, X, ChevronRight } from "lucide-react";
+import { Plus, X, ChevronRight, ChevronDown } from "lucide-react";
 import { OrderDetailsComponent } from "./OrderDetailsComponent";
 import { cn } from "@keystone/utils/cn";
 import { RiLoader2Fill } from "@remixicon/react";
@@ -25,15 +25,7 @@ export const ProcessOrdersDialog = ({
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [removedOrders, setRemovedOrders] = useState([]);
 
-  const ordersWithCart = useMemo(() => {
-    return orders.filter(
-      ({ cartItems, orderError }) =>
-        !orderError &&
-        cartItems?.filter(
-          (cItem) => cItem.status !== "CANCELLED" && !cItem.purchaseId
-        ).length > 0
-    );
-  }, [orders]);
+  const ordersWithCart = orders;
 
   useEffect(() => {
     setSelectedOrders(ordersWithCart.map((order) => order.id));
@@ -102,13 +94,13 @@ export const ProcessOrdersDialog = ({
           </div>
         </div>
         <div className="flex flex-col gap-4 flex-grow overflow-y-auto">
-          <details open className="p-4 border rounded-lg bg-muted/40">
-            <summary className="list-none outline-none [&::-webkit-details-marker]:hidden">
+          <details open className="p-4 border rounded-lg bg-muted/40 group">
+            <summary className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer">
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
                     buttonVariants({ variant: "secondary" }),
-                    "mt-[1px] self-start px-1 h-5"
+                    "self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
                   <ChevronRight className="size-3" />
@@ -128,13 +120,13 @@ export const ProcessOrdersDialog = ({
                 </div>
               </div>
             </summary>
-            <div className="mt-4 overflow-y-auto max-h-[30vh]">
+            <div className="overflow-y-auto max-h-[30vh]">
               {filteredOrders.map(
                 (order) =>
                   selectedOrders.includes(order.id) && (
                     <div
                       key={order.id}
-                      className="border rounded-lg relative mb-2 bg-background"
+                      className="border rounded-lg relative mt-2 bg-background ml-8"
                     >
                       <OrderDetailsComponent
                         order={order}
@@ -172,13 +164,13 @@ export const ProcessOrdersDialog = ({
             </div>
           </details>
 
-          <details open className="p-4 border rounded-lg bg-muted/40">
-            <summary className="list-none outline-none [&::-webkit-details-marker]:hidden">
+          <details open className="p-4 border rounded-lg bg-muted/40 group">
+            <summary className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer">
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
                     buttonVariants({ variant: "secondary" }),
-                    "mt-[1px] self-start px-1 h-5"
+                    "self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
                   <ChevronRight className="size-3" />
@@ -201,13 +193,13 @@ export const ProcessOrdersDialog = ({
                 </div>
               </div>
             </summary>
-            <div className="mt-4 overflow-y-auto max-h-[30vh]">
+            <div className="overflow-y-auto max-h-[30vh]">
               {ordersWithCart
                 .filter((order) => removedOrders.includes(order.id))
                 .map((order) => (
                   <div
                     key={order.id}
-                    className="border rounded-lg opacity-75 mb-2 bg-background"
+                    className="border rounded-lg opacity-75 mt-2 bg-background ml-8"
                   >
                     <OrderDetailsComponent
                       order={order}

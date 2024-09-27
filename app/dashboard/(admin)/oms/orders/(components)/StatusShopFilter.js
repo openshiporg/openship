@@ -3,6 +3,9 @@ import React, { useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Badge } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
 import { StatusBadge } from "./StatusBadge";
+import { RelationshipSelect } from "@keystone/themes/Tailwind/atlas/components/RelationshipSelect";
+import { useList } from "@keystone/keystoneProvider";
+import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 
 export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
   const router = useRouter();
@@ -12,7 +15,8 @@ export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
   const selectedStatus = searchParams
     .get("!status_is_i")
     ?.replace(/^"|"$/g, "");
-  const selectedShop = searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
+  const selectedShop =
+    searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
@@ -32,14 +36,42 @@ export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleShopChange = (shopId) => {
+  const handleShopChange = (newValue) => {
     const params = new URLSearchParams(searchParams);
-    if (shopId !== "ALL") {
-      params.set("!shop_matches", `"${shopId}"`);
+    if (newValue !== "ALL") {
+      params.set("!shop_matches", `"${newValue}"`);
     } else {
       params.delete("!shop_matches");
     }
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const foreignList = useList("Shop");
+
+  // const shopSelectState = {
+  //   kind: "many",
+  //   value: selectedShop === "ALL" ? [] : [{ id: selectedShop }],
+  //   onChange: (newItems) => {
+  //     handleShopChange(newItems.length > 0 ? newItems[0].id : "ALL");
+  //   },
+  // };
+
+  const { filterValues, loading } = useRelationshipFilterValues({
+    value: searchParams.get("!shop_matches")?.replace(/^"|"$/g, ""),
+    list: foreignList,
+  });
+  const state = {
+    kind: "many",
+    value: filterValues,
+    onChange: (newItems) => {
+      const params = new URLSearchParams(searchParams);
+      if (newItems.length > 0) {
+        params.set("!shop_matches", `"${newItems.map((item) => item.id).join(",")}"`);
+      } else {
+        params.delete("!shop_matches");
+      }
+      router.push(`${pathname}?${params.toString()}`);
+    },
   };
 
   return (
@@ -64,9 +96,9 @@ export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
       </div>
       <div className="p-2">
         <h2 className="text-xs font-normal mb-2 text-muted-foreground">
-          Shops
+          Filter by shop
         </h2>
-        <div className="flex flex-wrap gap-2">
+        {/* <div className="flex flex-wrap gap-2">
           <Badge
             key="ALL"
             color={selectedShop === "ALL" ? "sky" : "zinc"}
@@ -89,8 +121,56 @@ export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
               {shop.name}
             </Badge>
           ))}
-        </div>
+        </div> */}
+        <RelationshipSelect
+          controlShouldRenderValue
+          list={foreignList}
+          labelField="name" // Assuming the shop name field is called "name"
+          searchFields={["name"]} // Adjust if there are other searchable fields
+          isLoading={loading}
+          // isDisabled={onChange === undefined}
+          placeholder="Showing all orders"
+          state={state}
+        />
       </div>
     </div>
   );
 };
+
+function useRelationshipFilterValues({ value, list }) {
+  const foreignIds = getForeignIds(value);
+  const where = { id: { in: foreignIds } };
+
+  const query = gql`
+    query FOREIGNLIST_QUERY($where: ${list.gqlNames.whereInputName}!) {
+      items: ${list.gqlNames.listQueryName}(where: $where) {
+        id
+        ${list.labelField}
+      }
+    }
+  `;
+
+  const { data, loading } = useQuery(query, {
+    variables: {
+      where,
+    },
+  });
+
+  return {
+    filterValues:
+      data?.items?.map((item) => {
+        return {
+          id: item.id,
+          label: item[list.labelField] || item.id,
+        };
+      }) || foreignIds.map((f) => ({ label: f, id: f })),
+    loading: loading,
+  };
+}
+
+function getForeignIds(value) {
+  if (typeof value === "string" && value.length > 0) {
+    return value.split(",");
+  }
+  return [];
+}

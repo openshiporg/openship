@@ -30,10 +30,8 @@ import { Badge } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/bad
 
 export const channelAdapters = {
   ...adapters,
-  Channelify: "soon",
-  BigCommerce: "soon",
+  Medusa: "soon",
   Magento: "soon",
-  WooCommerce: "soon",
   Stripe: "soon",
 };
 

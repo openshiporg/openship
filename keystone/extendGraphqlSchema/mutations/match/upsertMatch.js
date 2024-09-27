@@ -4,7 +4,6 @@ const upsertMatch = async (_, { data }, context) => {
   const ensureShopItems = async (items) => {
     const processedItems = [];
     for (const item of items) {
-      console.log({ item });
       let [existingItem] = await context.query.ShopItem.findMany({
         where: {
           productId: { equals: item.productId },
@@ -32,7 +31,6 @@ const upsertMatch = async (_, { data }, context) => {
   const ensureChannelItems = async (items) => {
     const processedItems = [];
     for (const item of items) {
-      console.log({ item });
       let [existingItem] = await context.query.ChannelItem.findMany({
         where: {
           productId: { equals: item.productId },

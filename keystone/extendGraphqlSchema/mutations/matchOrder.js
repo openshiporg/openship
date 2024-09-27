@@ -1,6 +1,5 @@
 async function findChannelItems({ cartItems, userId, context }) {
   const arr = [];
-  // console.log({ cartItems });
 
   for (const {
     name,
@@ -13,8 +12,7 @@ async function findChannelItems({ cartItems, userId, context }) {
     variantId,
     ...rest
   } of cartItems) {
-    console.log({ rest });
-    console.log({ channelId });
+  
     const [existingChannelItem] = await context.query.ChannelItem.findMany({
       where: {
         channel: { id: { equals: channelId } },
@@ -26,7 +24,6 @@ async function findChannelItems({ cartItems, userId, context }) {
       },
     });
 
-    console.log({ existingChannelItem });
 
     // 3. Check if that item is already in their cart and increment by 1 if it is
     if (existingChannelItem) {
@@ -55,7 +52,6 @@ async function findChannelItems({ cartItems, userId, context }) {
 async function findShopItems({ lineItems, userId, context }) {
   const arr = [];
 
-  // console.log(lineItems[0]);
   for (const {
     name,
     image,
@@ -67,7 +63,6 @@ async function findShopItems({ lineItems, userId, context }) {
     variantId,
     ...rest
   } of lineItems) {
-    console.log({ channelId });
     const [existingShopItem] = await context.query.ShopItem.findMany({
       where: {
         shop: { id: { equals: channelId } },
@@ -143,7 +138,6 @@ async function matchOrder(root, { orderId }, context) {
     `,
   });
 
-  // console.log(order);
 
   const shopItemConnect = await findShopItems({
     lineItems: order.lineItems.map(
@@ -166,7 +160,6 @@ async function matchOrder(root, { orderId }, context) {
     context,
   });
 
-  console.log({ shopItemConnect });
 
   const channelItemConnect = await findChannelItems({
     cartItems: order.cartItems.map(
@@ -183,15 +176,8 @@ async function matchOrder(root, { orderId }, context) {
         channel,
         ...rest
       }) => {
-        // const restNested = Object.keys(rest).reduce(
-        //   (acc, key) => ({
-        //     ...acc,
-        //     ...{ [key]: { equals: rest[key] } },
-        //   }),
-        //   {}
-        // );
 
-        // console.log({ restNested });
+
         return {
           ...rest,
           channelId: channel.id,
@@ -202,7 +188,6 @@ async function matchOrder(root, { orderId }, context) {
     context,
   });
 
-  console.log({ channelItemConnect });
 
   const existingMatches = await context.query.Match.findMany({
     where: {
@@ -256,13 +241,11 @@ async function matchOrder(root, { orderId }, context) {
   `,
   });
 
-  console.log({ existingMatches });
 
   const [existingMatch] = existingMatches.filter(
     (match) => match.input.length === order.lineItems.length
   );
 
-  console.log({ existingMatch });
 
   if (existingMatch) {
     const deletedMatch = await context.query.Match.deleteOne({

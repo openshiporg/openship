@@ -24,16 +24,20 @@ async function getChannelProduct(
   const { getProductFunction } = channel.platform;
 
   if (getProductFunction.startsWith("http")) {
-    const params = new URLSearchParams({
-      variantId: variantId || "",
-      productId: productId || "",
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-    }).toString();
+    const response = await fetch(getProductFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        variantId: variantId || "",
+        productId: productId || "",
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+      }),
+    });
 
-    const response = await fetch(`${getProductFunction}?${params}`);
-
-    console.log(`${getProductFunction}?${params}`);
+    console.log(`POST request to ${getProductFunction}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`);
     }
@@ -46,14 +50,14 @@ async function getChannelProduct(
       `../../../../channelAdapters/${getProductFunction}.js`
     );
 
-    const result = await channelAdapters.searchProducts({
+    const result = await channelAdapters.getProduct({
       variantId,
       productId,
       domain: channel.domain,
       accessToken: channel.accessToken,
     });
 
-    return result.products; // Ensure products are in the shape of ChannelProduct[]
+    return result.product; // Ensure products are in the shape of ChannelProduct[]
   }
 }
 

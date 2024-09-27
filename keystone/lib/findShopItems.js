@@ -1,7 +1,6 @@
 export async function findShopItems({ lineItems, userId, context }) {
   const arr = [];
 
-  // console.log(lineItems[0]);
   for (const {
     name,
     image,
@@ -15,7 +14,6 @@ export async function findShopItems({ lineItems, userId, context }) {
     variantId,
     ...rest
   } of lineItems) {
-    console.log({ channelId });
     const [existingShopItem] = await context.query.ShopItem.findMany({
       where: {
         shop: { id: { equals: channelId } },

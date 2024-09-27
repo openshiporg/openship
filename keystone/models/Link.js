@@ -59,7 +59,6 @@ export const Link = list({
       field: graphql.field({
         type: graphql.JSON,
         resolve(item, args, context) {
-          // console.log(context.__internal.lists.Order.fields.id);
           // return {};
           // Using 'Order' listKey hardcoded
           if (item.customWhere) {

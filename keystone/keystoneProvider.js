@@ -103,7 +103,6 @@ export const useKeystone = () => {
     );
   }
   if (value.adminMeta.state === "error") {
-    console.log(value.adminMeta);
     throw new Error("An error occurred when loading Admin Metadata");
   }
   return {
@@ -133,7 +132,6 @@ export const useRawKeystone = () => {
       "useRawKeystone must be called inside a KeystoneProvider component"
     );
   }
-  console.log({ value });
   return value;
 };
 

@@ -21,12 +21,16 @@ async function getChannelWebhooks(root, { channelId }, context) {
 
   if (getWebhooksFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: channel.domain,
-      accessToken: channel.accessToken,
-    }).toString();
-
-    const response = await fetch(`${getWebhooksFunction}?${params}`);
+    const response = await fetch(getWebhooksFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: channel.domain,
+        accessToken: channel.accessToken,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch webhooks: ${response.statusText}`);

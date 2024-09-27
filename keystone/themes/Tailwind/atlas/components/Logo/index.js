@@ -4,7 +4,6 @@ import { Link } from "next-view-transitions";
 export const Logo = ({ className }) => {
   const { adminConfig } = useRawKeystone();
 
-  // console.log({ adminConfig });
 
   if (adminConfig.components?.Logo) {
     return <adminConfig.components.Logo className={className} />;

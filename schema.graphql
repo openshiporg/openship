@@ -681,6 +681,7 @@ type Order {
   linkOrder: Boolean
   matchOrder: Boolean
   processOrder: Boolean
+  readyToProcess: String
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -1367,6 +1368,7 @@ type ChannelItem {
   variantId: String
   lineItemId: String
   price: String
+  priceChanged: Float
   externalDetails: ChannelProduct
   matches(where: MatchWhereInput! = {}, orderBy: [MatchOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MatchWhereUniqueInput): [Match!]
   matchesCount(where: MatchWhereInput! = {}): Int
@@ -1768,8 +1770,16 @@ type Match {
   output(where: ChannelItemWhereInput! = {}, orderBy: [ChannelItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChannelItemWhereUniqueInput): [ChannelItem!]
   outputCount(where: ChannelItemWhereInput! = {}): Int
   user: User
+  outputPriceChanged: Float
+  inventoryNeedsToBeSynced: MatchInventoryData
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+type MatchInventoryData {
+  syncEligible: Boolean
+  sourceQuantity: Int
+  targetQuantity: Int
 }
 
 input MatchWhereUniqueInput {

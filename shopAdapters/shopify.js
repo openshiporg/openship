@@ -52,7 +52,6 @@ export async function searchProducts({ domain, accessToken, searchEntry }) {
     throw new Error("No products found from Shopify");
   }
 
-  console.log({ productVariants });
 
   const products = productVariants.edges.map(({ node }) => ({
     image:
@@ -123,7 +122,6 @@ export async function getProduct({
     throw new Error("Product not found from Shopify");
   }
 
-  console.log({ productVariant });
 
   const product = {
     image:
@@ -136,7 +134,10 @@ export async function getProduct({
     availableForSale: productVariant.availableForSale,
     inventory: productVariant.inventoryQuantity,
     inventoryTracked: productVariant.inventoryPolicy !== "deny",
-    productLink: `https://${domain}/products/${productVariant.product.handle}`,
+    // productLink: `https://${domain}/products/${productVariant.product.handle}`,
+    productLink: `https://${domain}/admin/products/${productVariant.product.id
+      .split("/")
+      .pop()}/variants/${productVariant.id.split("/").pop()}`,
   };
 
   return { product };
@@ -655,7 +656,9 @@ export async function addCartToPlatformOrder({
   );
 
   let existingMetafieldId = null;
-  const oscartMetafield = order.metafields.edges.find(edge => edge.node.key === "oscart");
+  const oscartMetafield = order.metafields.edges.find(
+    (edge) => edge.node.key === "oscart"
+  );
   if (oscartMetafield) {
     existingMetafieldId = oscartMetafield.node.id;
   }
@@ -922,7 +925,7 @@ export async function cancelOrderWebhookHandler(req, res) {
 
 export async function createOrderWebhookHandler(req, res, shop) {
   if (req.body) {
-    const existingShop = shop
+    const existingShop = shop;
 
     const lineItemsOutput = await Promise.all(
       req.body.line_items.map(

@@ -74,6 +74,8 @@ import {
   ChevronDown,
   SearchIcon,
   Filter,
+  ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import {
   Dropdown,
@@ -181,42 +183,24 @@ const ALL_SHOPS_QUERY = gql`
 `;
 
 const ORDERSCOUNT_QUERY = gql`
-  query ORDERSCOUNT_QUERY($shopId: ID) {
+  query ORDERSCOUNT_QUERY($shop: ShopWhereInput) {
     pendingCount: ordersCount(
-      where: {
-        status: { equals: "PENDING" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "PENDING" }, shop: $shop }
     )
     inprocessCount: ordersCount(
-      where: {
-        status: { equals: "INPROCESS" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "INPROCESS" }, shop: $shop }
     )
     awaitingCount: ordersCount(
-      where: {
-        status: { equals: "AWAITING" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "AWAITING" }, shop: $shop }
     )
     backorderedCount: ordersCount(
-      where: {
-        status: { equals: "BACKORDERED" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "BACKORDERED" }, shop: $shop }
     )
     cancelledCount: ordersCount(
-      where: {
-        status: { equals: "CANCELLED" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "CANCELLED" }, shop: $shop }
     )
     completeCount: ordersCount(
-      where: {
-        status: { equals: "COMPLETE" }
-        shop: { id: { equals: $shopId } }
-      }
+      where: { status: { equals: "COMPLETE" }, shop: $shop }
     )
   }
 `;
@@ -227,6 +211,47 @@ const CHANNELS_QUERY = gql`
       id
       name
     }
+  }
+`;
+
+const ORDERS_QUERY = gql`
+  query ORDERS_QUERY(
+    $where: OrderWhereInput
+    $take: Int!
+    $skip: Int!
+    $orderBy: [OrderOrderByInput!]
+  ) {
+    items: orders(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
+      id
+      orderId
+      orderName
+      email
+      firstName
+      lastName
+      streetAddress1
+      streetAddress2
+      city
+      state
+      zip
+      orderError
+      cartItemsCount
+      lineItemsCount
+      shop {
+        id
+        name
+        domain
+        accessToken
+      }
+      currency
+      totalPrice
+      subTotalPrice
+      totalDiscount
+      totalTax
+      status
+      createdAt
+      readyToProcess
+    }
+    count: ordersCount(where: $where)
   }
 `;
 
@@ -259,18 +284,9 @@ export const OrderPage = () => {
   const channels = channelsData?.channels || [];
 
   const selectedShop =
-    searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || "ALL";
+    searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || null;
 
-  const { data: orderCounts, refetch: refetchOrderCounts } = useQuery(
-    ORDERSCOUNT_QUERY,
-    {
-      variables: {
-        ...(selectedShop !== "ALL" ? { shopId: selectedShop } : {}),
-      },
-      fetchPolicy: "cache-and-network",
-      errorPolicy: "all",
-    }
-  );
+
 
   const statuses = [
     "PENDING",
@@ -326,84 +342,30 @@ export const OrderPage = () => {
 
   let selectedFields = useSelectedFields(list, listViewFieldModesByField);
 
-  let { data, error, refetch } = useQuery(
-    useMemo(() => {
-      let selectedGqlFields = `
-        id
-        orderId
-        orderName
-        email
-        firstName
-        lastName
-        streetAddress1
-        streetAddress2
-        city
-        state
-        zip
-        orderError
-        cartItems {
-          id
-          name
-          image
-          price
-          quantity
-          productId
-          variantId
-          purchaseId
-          url
-          error
-          channel {
-            id
-            name
-          }
-        }
-        lineItems {
-          id
-          name
-          quantity
-          price
-          image
-          productId
-          variantId
-        }
-        shop {
-          id
-          name
-          domain
-          accessToken
-        }
-        currency
-        totalPrice
-        subTotalPrice
-        totalDiscount
-        totalTax
-        status
-        createdAt
-      `;
-
-      return gql`
-        query ($where: ${list.gqlNames.whereInputName}, $take: Int!, $skip: Int!, $orderBy: [${list.gqlNames.listOrderName}!]) {
-          items: ${list.gqlNames.listQueryName}(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
-            ${selectedGqlFields}
-          }
-          count: ${list.gqlNames.listQueryCountName}(where: $where)
-        }
-      `;
-    }, [list]),
+  const { data: orderCounts, refetch: refetchOrderCounts } = useQuery(
+    ORDERSCOUNT_QUERY,
     {
+      variables: {
+        ...(selectedShop ? { shop: filters.where.shop } : {}),
+      },
       fetchPolicy: "cache-and-network",
       errorPolicy: "all",
-      skip: !metaQuery.data,
-      variables: {
-        where: { ...filters.where, ...search },
-        take: pageSize,
-        skip: (currentPage - 1) * pageSize,
-        orderBy: sort
-          ? [{ [sort.field]: sort.direction.toLowerCase() }]
-          : undefined,
-      },
     }
   );
+
+  let { data, error, refetch } = useQuery(ORDERS_QUERY, {
+    fetchPolicy: "cache-and-network",
+    errorPolicy: "all",
+    skip: !metaQuery.data,
+    variables: {
+      where: { ...filters.where, ...search },
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
+      orderBy: sort
+        ? [{ [sort.field]: sort.direction.toLowerCase() }]
+        : undefined,
+    },
+  });
 
   const dataGetter = makeDataGetter(data, error?.graphQLErrors);
 
@@ -558,13 +520,9 @@ export const OrderPage = () => {
     }
   };
 
-  const qualifyingOrdersCount = useMemo(() => {
+  const qualifyingOrders = useMemo(() => {
     return (
-      data?.items?.filter(
-        (order) =>
-          order.status === "PENDING" &&
-          order.cartItems?.some((item) => !item.purchaseId)
-      ).length || 0
+      data?.items?.filter((order) => order.readyToProcess === "READY") || []
     );
   }, [data]);
 
@@ -600,12 +558,12 @@ export const OrderPage = () => {
               <Button
                 variant="secondary"
                 onClick={handleProcessAll}
-                disabled={qualifyingOrdersCount === 0}
+                disabled={qualifyingOrders.length === 0}
                 className="py-1"
               >
                 Process Orders
                 <Badge className="ml-2 border py-0.5 px-1.5">
-                  {qualifyingOrdersCount}
+                  {qualifyingOrders.length}
                 </Badge>
               </Button>
               <Dropdown>
@@ -657,8 +615,8 @@ export const OrderPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
-              <div className="flex flex-wrap gap-2 w-full sm:w-1/2 items-center">
+            <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
+              <div className="flex flex-wrap gap-2 w-full items-center">
                 <PaginationNavigation
                   list={list}
                   total={data.count}
@@ -703,23 +661,28 @@ export const OrderPage = () => {
                     </button>
                   }
                 />
-                {filters.filters.length > 0 && (
-                  <SquareArrowRight className="w-4 h-4 stroke-muted-foreground/60" />
-                )}
               </div>
-              {filters.filters.length ? (
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-1/2 mt-2 sm:mt-0">
+            </div>
+
+            {filters.filters.length > 0 && (
+              <div className="py-2 px-3 flex gap-2">
+                <div>
                   <Badge
                     color="zinc"
                     className="flex items-center gap-2 py-0.5 border text-muted-foreground text-xs font-medium tracking-wide uppercase"
                   >
                     <Filter className="w-2.5 h-2.5" />
                     Filters
+                    <SquareArrowRight className="w-3 h-3 opacity-75" />
                   </Badge>
-                  <FilterList filters={filters.filters} list={list} />
                 </div>
-              ) : null}
-            </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FilterList filters={filters.filters} list={list} />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="pb-1 pr-2 pl-3.5">
               <PaginationStats
@@ -738,6 +701,9 @@ export const OrderPage = () => {
               <>
                 <div className="grid grid-cols-1 divide-y">
                   {dataGetter.get("items").data.map((order) => (
+                    // <>
+                    // {JSON.stringify(order)}
+                    // </>
                     <OrderDetailsComponent
                       key={order.id}
                       order={{
@@ -828,7 +794,7 @@ export const OrderPage = () => {
           <ProcessOrdersDialog
             isOpen={isProcessOrdersDialogOpen}
             onClose={() => setIsProcessOrdersDialogOpen(false)}
-            orders={data?.items || []}
+            orders={qualifyingOrders}
             // orders={Array(20)
             //   .fill()
             //   .flatMap(() => data?.items || [])}

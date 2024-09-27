@@ -120,7 +120,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
         <div className="z-10 bg-gradient-to-t from-white to-transparent dark:from-zinc-950 dark:to-transparent absolute bottom-0 left-0 right-0 h-36 pointer-events-none" />
       )}
       {channelItems.length ? (
-        <div>
+        <div className="relative grid gap-3">
           {channelItems
             .slice(0, showAll ? channelItems.length : 6)
             .map((channel) => (

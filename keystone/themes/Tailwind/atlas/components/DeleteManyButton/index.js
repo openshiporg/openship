@@ -77,7 +77,6 @@ export function DeleteManyButton({
                   },
                 });
 
-                console.log({ data, errors });
 
                 const { successfulItems, unsuccessfulItems, successMessage } =
                   data[list.gqlNames.deleteManyMutationName].reduce(

@@ -143,13 +143,13 @@ function FieldGroup(props) {
       aria-labelledby={labelId}
       aria-describedby={props.description === null ? undefined : descriptionId}
     >
-      <details open={!props.collapsed}>
-        <summary className="list-none outline-none [&::-webkit-details-marker]:hidden">
+      <details open={!props.collapsed} className="group">
+        <summary className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer">
           <div className="flex gap-1.5 items-center">
             <div
               className={cn(
                 buttonVariants({ variant: "secondary" }),
-                "mt-[1px] self-start px-1 h-5"
+                "self-start p-1 transition-transform group-open:rotate-90"
               )}
             >
               <ChevronRight className="size-3" />

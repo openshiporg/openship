@@ -49,7 +49,6 @@ export function statelessSessions({
             },
             query: `id user { id }`,
           });
-          // console.log({ data });
           if (!data?.user?.id) return;
           return { itemId: data.user.id, listKey };
         } catch (err) {
@@ -157,6 +156,7 @@ export default withAuth(
       provider: "postgresql" ?? process.env.DATABASE_PROVIDER,
       url: databaseURL,
       useMigrations: true,
+      // enableLogging: ['query', 'info', 'warn', 'error'],
     },
     lists: models,
     graphql: {

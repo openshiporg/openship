@@ -37,6 +37,7 @@ import {
   SheetTitle,
 } from "../../primitives/default/ui/sheet";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";
+import { Badge } from "../../primitives/default/ui/badge";
 
 export const useDeleteItem = (listKey) => {
   const list = useList(listKey);
@@ -109,20 +110,22 @@ export const useUpdateItem = (listKey) => {
   return { handleUpdate, updateLoading, updateError };
 };
 
-function DeleteButton({ itemLabel, itemId, list, onClose }) {
+export function DeleteButton({ itemLabel, itemId, list, onClose, children }) {
   const { handleDelete, deleteLoading } = useDeleteItem(list.key);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   return (
     <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="destructive"
-          onClick={() => setIsConfirmModalOpen(true)}
-          className="h-7"
-        >
-          Delete
-        </Button>
+        {children || (
+          <Button
+            variant="destructive"
+            onClick={() => setIsConfirmModalOpen(true)}
+            className="h-7"
+          >
+            Delete
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -269,7 +272,9 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
     >
       <SheetContent className="flex flex-col">
         <SheetHeader className="border-b">
-          <SheetTitle>Edit {list.singular}</SheetTitle>
+          <SheetTitle className="flex flex-col gap-1">
+            Edit {list.singular}
+          </SheetTitle>
           <SheetDescription>
             <div className="flex flex-col gap-4 -mt-1 -mb-3">
               <span>
@@ -290,6 +295,7 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
                   disabled={!changedFields.size}
                 />
               </div>
+              <div><Badge color="zinc" className="border text-xs font-medium tracking-wide">ID: {itemId}</Badge></div>
             </div>
           </SheetDescription>
         </SheetHeader>

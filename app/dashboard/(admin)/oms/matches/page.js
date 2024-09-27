@@ -1,726 +1,456 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  gql,
-  useApolloClient,
-  useMutation,
-  useQuery,
-} from "@keystone-6/core/admin-ui/apollo";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@ui/card";
-import { Separator } from "@ui/separator";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@ui/collapsible";
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, gql, useApolloClient } from "@apollo/client";
+import { Input } from "@ui/input";
 import { Button } from "@ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/tabs";
+import { Badge, BadgeButton } from "@ui/badge";
+import { Search, ArrowUpDown } from "lucide-react";
+import { Drawer, DrawerContent, DrawerTrigger } from "@ui/drawer";
+import { MultiSelect } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/multi-select";
+import { SyncInventoryDialog } from "./(components)/SyncInventoryDialog";
+import { MatchList } from "./(components)/MatchList";
+import { ShowMatchesButton } from "./(components)/ShowMatchesButton";
+import { MatchDetailsDialog } from "./(components)/MatchDetailsDialog";
 import {
-  AlertTriangle,
-  Box,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsUpDown,
-  Circle,
-  CircleCheck,
-  Loader,
-  Loader2,
-  Square,
-  Triangle,
-} from "lucide-react";
-import { Avatar, AvatarImage } from "@ui/avatar";
-import { Skeleton } from "@ui/skeleton";
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/breadcrumb";
+import { Link } from "next-view-transitions";
+import { cn } from "@keystone/utils/cn";
+import { buttonVariants } from "@ui/button";
+import { ChevronRight } from "lucide-react";
 import {
-  Dialog,
-  DialogTrigger,
-  DialogTitle,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogFooter,
-} from "@ui/dialog";
-import { Badge } from "@ui/badge";
+  CircleStackIcon,
+  Square2StackIcon,
+  Square3Stack3DIcon,
+} from "@heroicons/react/16/solid";
 
-const FETCH_MATCHES_QUERY = gql`
-  query FETCH_MATCHES_QUERY {
-    matches {
+const SEARCH_SHOP_PRODUCTS = gql`
+  query SearchShopProducts($shopId: ID!, $searchEntry: String) {
+    searchShopProducts(shopId: $shopId, searchEntry: $searchEntry) {
+      image
+      title
+      productId
+      variantId
+      price
+      availableForSale
+      productLink
+      inventory
+      inventoryTracked
+    }
+  }
+`;
+
+const SEARCH_CHANNEL_PRODUCTS = gql`
+  query SearchChannelProducts($channelId: ID!, $searchEntry: String) {
+    searchChannelProducts(channelId: $channelId, searchEntry: $searchEntry) {
+      image
+      title
+      productId
+      variantId
+      price
+      availableForSale
+      productLink
+      inventory
+      inventoryTracked
+    }
+  }
+`;
+
+const ALL_SHOPS_QUERY = gql`
+  query ALL_SHOPS_QUERY {
+    shops {
       id
-      input {
-        id
-        quantity
-        productId
-        variantId
-        lineItemId
-        externalDetails {
-          title
-          image
-          price
-          productLink
-          inventory
-          inventoryTracked
-          error
-        }
-        shop {
-          id
-          name
-        }
-      }
-      output {
-        id
-        quantity
-        productId
-        variantId
-        lineItemId
-        externalDetails {
-          title
-          image
-          price
-          productLink
-          inventory
-          inventoryTracked
-          error
-        }
-        price
-        channel {
-          id
-          name
-        }
-      }
+      name
     }
   }
 `;
 
-const FETCH_FILTERED_MATCHES_QUERY = gql`
-  query FETCH_FILTERED_MATCHES_QUERY {
-    getFilteredMatches {
+const ALL_CHANNELS_QUERY = gql`
+  query ALL_CHANNELS_QUERY {
+    channels {
       id
-      input {
-        id
-        quantity
-        productId
-        variantId
-        lineItemId
-        externalDetails {
-          title
-          image
-          price
-          productLink
-          inventory
-          inventoryTracked
-          error
-        }
-        shop {
-          id
-          name
-        }
-      }
-      output {
-        id
-        quantity
-        productId
-        variantId
-        lineItemId
-        externalDetails {
-          title
-          image
-          price
-          productLink
-          inventory
-          inventoryTracked
-          error
-        }
-        price
-        channel {
-          id
-          name
-        }
-      }
+      name
     }
   }
 `;
 
-const UPDATE_SHOP_PRODUCT_MUTATION = gql`
-  mutation UpdateShopProduct(
-    $shopId: ID!
-    $variantId: ID!
-    $productId: ID!
-    $inventoryDelta: Int
-  ) {
-    updateShopProduct(
-      shopId: $shopId
-      variantId: $variantId
-      productId: $productId
-      inventoryDelta: $inventoryDelta
-    ) {
-      error
-      success
-      updatedVariant {
-        inventory
-      }
+const SYNC_INVENTORY = gql`
+  mutation SyncInventory($ids: [ID!]!) {
+    syncInventory(ids: $ids) {
+      id
     }
   }
 `;
 
-const MatchHeader = ({
-  match,
-  children,
-  defaultOpen = false,
-  isLoading = false,
-  isSynced = false,
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const MatchesPage = () => {
+  const [searchString, setSearchString] = useState("");
+  const [selectedTab, setSelectedTab] = useState("shop");
+  const [selectedShopIds, setSelectedShopIds] = useState([]);
+  const [selectedChannelIds, setSelectedChannelIds] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sortField, setSortField] = useState("title");
+  const [sortDirection, setSortDirection] = useState("asc");
 
-  return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="flex p-3 bg-muted/30">
-        <CollapsibleTrigger asChild>
-          <button
-            type="button"
-            className="flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium text-zinc-500 bg-white border-zinc-200 hover:bg-zinc-100 hover:text-zinc-700 focus:ring-2 focus:ring-blue-700 focus:text-zinc-700 dark:bg-zinc-950 dark:border-zinc-900 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 dark:focus:ring-blue-500 dark:focus:text-white"
-          >
-            {match.id}
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </CollapsibleTrigger>
-        {match.input.length === 1 &&
-          match.output.length === 1 &&
-          match.input[0].quantity === 1 &&
-          match.output[0].quantity === 1 &&
-          match.input[0].externalDetails.inventory &&
-          match.output[0].externalDetails.inventory && (
-            <Button
-              variant="secondary"
-              className="ml-auto text-muted-foreground py-0"
-            >
-              <span>{match.input[0].externalDetails.inventory}</span>
-              <ChevronRight className="h-4 w-4 mx-1" />
-              <span>{match.output[0].externalDetails.inventory}</span>
-            </Button>
-          )}
-        {isLoading ? (
-          <Loader2 className="mt-0.5 ml-2 animate-spin text-blue-600" />
-        ) : isSynced ? (
-          <CircleCheck className="mt-0.5 h-5.5 w-5.5 ml-2 text-green-600" />
-        ) : null}
-      </div>
-      <CollapsibleContent>{children}</CollapsibleContent>
-    </Collapsible>
-  );
-};
+  const { data: shopsData } = useQuery(ALL_SHOPS_QUERY);
+  const { data: channelsData } = useQuery(ALL_CHANNELS_QUERY);
 
-const SyncDialog = () => {
-  const { data, loading, error } = useQuery(FETCH_FILTERED_MATCHES_QUERY);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncingSuccessful, setSyncingSuccessful] = useState(false);
-  const [syncingMatchIds, setSyncingMatchIds] = useState(new Set());
-  const [syncedMatchIds, setSyncedMatchIds] = useState(new Set());
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [updateShopProduct] = useMutation(UPDATE_SHOP_PRODUCT_MUTATION);
-  const apolloClient = useApolloClient();
+  const [syncInventory] = useMutation(SYNC_INVENTORY);
+  const client = useApolloClient();
 
-  const updateProducts = async () => {
-    if (!data?.getFilteredMatches) return false;
-
-    setIsSyncing(true);
-    const syncingIds = new Set(syncingMatchIds);
-    const syncedIds = new Set(syncedMatchIds);
-    let success = true;
-
-    for (const [index, match] of data.getFilteredMatches.entries()) {
-      const input = match.input[0];
-      const output = match.output[0];
-      syncingIds.add(match.id);
-      setSyncingMatchIds(new Set(syncingIds));
-
-      // Automatically cycle to the next match
-      setCurrentMatchIndex(index);
-
-      try {
-        await updateShopProduct({
-          variables: {
-            shopId: input.shop.id,
-            variantId: input.variantId,
-            productId: input.productId,
-            inventoryDelta:
-              output.externalDetails.inventory -
-              input.externalDetails.inventory,
-          },
-        });
-        syncedIds.add(match.id);
-      } catch (err) {
-        console.error(
-          `Error updating shop product for match ${match.id}:`,
-          err
-        );
-        success = false;
-      }
+  // Use useEffect to set all shops and channels as selected when data is loaded
+  useEffect(() => {
+    if (shopsData?.shops) {
+      setSelectedShopIds(shopsData.shops.map((shop) => shop.id));
     }
+  }, [shopsData]);
 
-    setSyncingMatchIds(new Set());
-    setSyncedMatchIds(new Set(syncedIds));
-    setIsSyncing(false);
+  useEffect(() => {
+    if (channelsData?.channels) {
+      setSelectedChannelIds(channelsData.channels.map((channel) => channel.id));
+    }
+  }, [channelsData]);
 
-    return success;
+  const handleSearch = (e) => {
+    if (e.key === "Enter") {
+      setSearchString(e.target.value);
+    }
   };
 
-  const handleConfirm = async () => {
-    setIsSyncing(true);
-    const successful = await updateProducts();
-    setSyncingSuccessful(successful);
-    setIsSyncing(false);
+  const handleSort = (field) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
   };
 
-  const handleCloseAndRefetch = async () => {
-    await apolloClient.refetchQueries({
-      include: [FETCH_FILTERED_MATCHES_QUERY, FETCH_MATCHES_QUERY],
+  const sortProducts = (products) => {
+    return [...products].sort((a, b) => {
+      if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
+      if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
+      return 0;
     });
-    setIsDialogOpen(false);
-    setSyncingSuccessful(false);
-    setIsSyncing(false);
-    setSyncingMatchIds(new Set());
-    setSyncedMatchIds(new Set());
-    setCurrentMatchIndex(0); // Reset the carousel index
   };
 
-  return (
-    <Dialog
-      open={isDialogOpen}
-      onOpenChange={(isOpen) => setIsDialogOpen(isOpen)}
-    >
-      <DialogTrigger className="ml-auto">
-        <Button onClick={() => setIsDialogOpen(true)}>Sync Inventory</Button>
-      </DialogTrigger>
-      {isDialogOpen && (
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Sync Inventory</DialogTitle>
-            <DialogDescription>
-              {data?.getFilteredMatches?.length > 0
-                ? `Confirm syncing inventory data for ${
-                    data.getFilteredMatches.length
-                  } match${data.getFilteredMatches.length > 1 ? "es" : ""}`
-                : "No matches found needing inventory sync"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-1 py-4 relative overflow-hidden">
-            {error ? (
-              <p>Error: {error.message}</p>
-            ) : loading ? (
-              Array.from({ length: 3 }, (_, index) => (
-                <div key={index} className="animate-pulse">
-                  <Card>
-                    <div className="p-3 bg-muted/30">
-                      <Skeleton className="h-6 w-1/4" />
-                    </div>
-                    <Separator />
-                    <div className="p-3">
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-6 w-full mt-4" />
-                    </div>
-                  </Card>
-                </div>
-              ))
-            ) : data?.getFilteredMatches?.length > 0 ? (
-              <AnimatedCards
-                data={data}
-                syncingMatchIds={syncingMatchIds}
-                syncedMatchIds={syncedMatchIds}
-              />
+  const renderProductList = (products) => {
+    const sortedProducts = sortProducts(products);
+    return sortedProducts.map((product) => (
+      <div
+        key={`${product.productId}-${product.variantId}`}
+        className="first:mt-2 mt-0 border flex space-x-2 p-2 bg-background rounded-md"
+      >
+        {product.image && (
+          <img
+            src={product.image}
+            alt={product.title}
+            className="border w-16 h-16 object-cover rounded-md"
+          />
+        )}
+        <div className="flex-grow">
+          <div className="text-sm font-medium">{product.title}</div>
+          <div className="text-xs text-gray-500">
+            {product.productId} | {product.variantId}
+          </div>
+          <div className="text-sm font-medium">${product.price}</div>
+        </div>
+        <ShowMatchesButton product={product} />
+      </div>
+    ));
+  };
+
+  const ShopSummary = ({ shopId }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const shop = shopsData?.shops.find((s) => s.id === shopId);
+
+    const { data: shopProductsData, loading: shopProductsLoading } = useQuery(
+      SEARCH_SHOP_PRODUCTS,
+      {
+        variables: { shopId, searchEntry: searchString },
+        skip: !isOpen,
+      }
+    );
+
+    const handleToggle = () => {
+      setIsOpen(!isOpen);
+    };
+
+    return (
+      <details open={isOpen} className="p-4 border rounded-lg bg-muted group">
+        <summary
+          onClick={(e) => {
+            e.preventDefault();
+            handleToggle();
+          }}
+          className="list-none outline-none cursor-pointer"
+        >
+          <div className="flex gap-3 items-center">
+            <div
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "self-start p-1 transition-transform group-open:rotate-90"
+              )}
+            >
+              <ChevronRight className="size-3" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <text className="relative text-lg/5 font-medium">
+                {shop?.name}
+              </text>
+            </div>
+          </div>
+        </summary>
+        {isOpen && (
+          <div className="ml-8 max-h-[60vh] overflow-y-auto flex flex-col gap-2">
+            {shopProductsLoading ? (
+              <div>Loading...</div>
+            ) : shopProductsData?.searchShopProducts?.length > 0 ? (
+              renderProductList(shopProductsData.searchShopProducts)
             ) : (
-              // {Array.from({ length: 100 }, (_, index) => ({
-              //   ...data.getFilteredMatches[
-              //     index % data.getFilteredMatches.length
-              //   ],
-              //   id: `test-${index + 1}`,
-              // })).map((match, index) => {
-              //   return (
-              //     <div
-              //       key={match.id}
-              //       onClick={() => handleCarouselChange(index)}
-              //     >
-              //       <Card>
-              //         <MatchHeader
-              //           match={match}
-              //           isLoading={syncingMatchIds.has(match.id)}
-              //           isSynced={syncedMatchIds.has(match.id)}
-              //         >
-              //           <Separator />
-              //           <ProductDetailsCollapsible
-              //             items={match.input}
-              //             title="Shop Product"
-              //           />
-              //           <Separator />
-              //           <ProductDetailsCollapsible
-              //             items={match.output}
-              //             title="Channel Product"
-              //           />
-              //         </MatchHeader>
-              //       </Card>
-              //     </div>
-              //   );
-              // })}
-              <div className="flex flex-col items-center p-10 border-dashed border-2 rounded-sm">
-                <div className="flex opacity-40">
-                  <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-                  <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-                  <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
-                </div>
+              <div>
+                <Badge
+                  className="mt-2 border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
+                  color="red"
+                >
+                  No Products Found
+                </Badge>
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={isSyncing}
+        )}
+      </details>
+    );
+  };
+
+  const ChannelSummary = ({ channelId }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const channel = channelsData?.channels.find((c) => c.id === channelId);
+
+    const { data: channelProductsData, loading: channelProductsLoading } =
+      useQuery(SEARCH_CHANNEL_PRODUCTS, {
+        variables: { channelId, searchEntry: searchString },
+        skip: !isOpen,
+      });
+
+    const handleToggle = () => {
+      setIsOpen(!isOpen);
+    };
+
+    return (
+      <details open={isOpen} className="p-4 border rounded-lg bg-muted group">
+        <summary
+          onClick={(e) => {
+            e.preventDefault();
+            handleToggle();
+          }}
+          className="list-none outline-none cursor-pointer"
+        >
+          <div className="flex gap-3 items-center">
+            <div
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "self-start p-1 transition-transform group-open:rotate-90"
+              )}
             >
-              {data?.getFilteredMatches?.length === 0 ? "Close" : "Cancel"}
-            </Button>
-            {isSyncing ? (
-              <Button disabled={isSyncing}>Syncing...</Button>
-            ) : syncingSuccessful ? (
-              <Button onClick={handleCloseAndRefetch}>Confirm</Button>
+              <ChevronRight className="size-3" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <text className="relative text-lg/5 font-medium">
+                {channel?.name}
+              </text>
+            </div>
+          </div>
+        </summary>
+        {isOpen && (
+          <div className="ml-8 max-h-[60vh] overflow-y-auto flex flex-col gap-2">
+            {channelProductsLoading ? (
+              <div>Loading...</div>
+            ) : channelProductsData?.searchChannelProducts?.length > 0 ? (
+              renderProductList(channelProductsData.searchChannelProducts)
             ) : (
-              data?.getFilteredMatches?.length > 0 && (
-                <Button onClick={handleConfirm}>Sync Inventory</Button>
-              )
+              <div>
+                <Badge
+                  className="mt-2 border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
+                  color="red"
+                >
+                  No Products Found
+                </Badge>
+              </div>
             )}
-          </DialogFooter>
-        </DialogContent>
-      )}
-    </Dialog>
-  );
-};
+          </div>
+        )}
+      </details>
+    );
+  };
 
-const MatchesComponent = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { data, loading, error } = useQuery(FETCH_MATCHES_QUERY);
-
-  if (error) return <p>Error fetching matches: {error.message}</p>;
+  const handleMatchAction = async (action, matchId) => {
+    try {
+      switch (action) {
+        case "sync":
+          await syncInventory({ variables: { ids: [matchId] } });
+          // Refetch queries to update the UI
+          await client.refetchQueries({
+            include: [SEARCH_SHOP_PRODUCTS, SEARCH_CHANNEL_PRODUCTS],
+          });
+          break;
+        case "edit":
+          // Implement edit logic here
+          console.log("Edit match:", matchId);
+          break;
+        case "delete":
+          // Implement delete logic here
+          console.log("Delete match:", matchId);
+          break;
+        default:
+          console.log("Unknown action:", action);
+      }
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex">
-        <div className="flex-col items-center">
+    <main className="container mx-auto p-4">
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink as={Link} href="/dashboard">
+              Dashboard
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Matches</BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col sm:flex-row mb-4 gap-2 justify-between">
+        <div>
           <h1 className="text-lg font-semibold md:text-2xl">Matches</h1>
           <p className="text-muted-foreground">
-            <span>Sync inventory based on matches</span>
+            Manage and sync inventory matches across shops and channels
           </p>
         </div>
-        <SyncDialog />
-      </div>
-      {/* <AnimatedCards /> */}
-
-      <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 pb-12">
-        {loading
-          ? Array.from({ length: 3 }, (_, index) => (
-              <div key={index} className="animate-pulse">
-                <Card>
-                  <div className="p-3 bg-muted/30">
-                    <Skeleton className="h-6 w-1/4" />
-                  </div>
-                  <Separator />
-                  <div className="p-3">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-6 w-full mt-4" />
-                  </div>
-                </Card>
-              </div>
-            ))
-          : data.matches.map((match) => (
-              <div key={match.id}>
-                <Card>
-                  <MatchHeader match={match}>
-                    <Separator />
-                    <ProductDetailsCollapsible
-                      items={match.input}
-                      title="Shop Product"
-                    />
-                    <Separator />
-                    <ProductDetailsCollapsible
-                      items={match.output}
-                      title="Channel Product"
-                    />
-                  </MatchHeader>
-                </Card>
-              </div>
-            ))}
-      </div>
-    </div>
-  );
-};
-
-const ProductDetailsCollapsible = ({ items, title, defaultOpen = true }) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const isShopProduct = title === "Shop Product";
-
-  return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className={`flex flex-col gap-2 p-3 ${
-        isShopProduct
-          ? "bg-green-50/40 dark:bg-emerald-900/20"
-          : "bg-blue-50/30 dark:bg-indigo-900/10"
-      }`}
-    >
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className={`flex items-center rounded-sm shadow-sm uppercase tracking-wide border max-w-fit gap-2 text-nowrap pl-2.5 pr-1 py-[3px] text-sm font-medium ${
-            isShopProduct
-              ? "text-emerald-500 bg-white border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-emerald-700 dark:bg-emerald-950 dark:border-emerald-900 dark:text-emerald-300 dark:hover:text-white dark:hover:bg-emerald-700 dark:focus:ring-blue-500 dark:focus:text-white"
-              : "text-blue-500 bg-white border-blue-200 hover:bg-blue-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-300 dark:hover:text-white dark:hover:bg-blue-700 dark:focus:ring-blue-500 dark:focus:text-white"
-          }`}
-        >
-          {items.length} {title}
-          {items.length > 1 && "s"}
-          <ChevronsUpDown className="h-4 w-4" />
-        </button>
-
-        {/* {isShopProduct ? (
-          <div>
-            <Badge
-              color="emerald"
-              className="bg-white text-sm uppercase tracking-wide rounded-sm"
-            >
-              {items.length} {title}
-              {items.length > 1 && "s"}
-              <ChevronsUpDown className="h-4 w-4" />
-            </Badge>
-          </div>
-        ) : (
-          <div>
-            <Badge
-              color="indigo"
-              className="bg-opacity-5 text-sm uppercase tracking-wide rounded-sm"
-            >
-              {items.length} {title}
-              {items.length > 1 && "s"}
-              <ChevronsUpDown className="h-4 w-4" />
-            </Badge>
-          </div>
-        )} */}
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-2">
-        {items.map((item, index) => (
-          <div key={item.id + "-details-" + index}>
-            {item.externalDetails.error ? (
-              <div className="border bg-background rounded-sm flex overflow-hidden">
-                <Badge
-                  color="red"
-                  className="m-2 py-2 rounded-sm border border-red-300 dark:border-red-800"
-                  // className="py-1.5 px-1.5 flex flex-col gap-1 my-auto mr-2 items-center ml-auto shadow-xs uppercase tracking-wide border text-nowrap text-xs font-medium text-zinc-500 bg-white border-zinc-200 rounded-sm hover:bg-zinc-100 hover:text-zinc-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-zinc-700 dark:bg-zinc-950 dark:border-zinc-900 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 dark:focus:ring-blue-500 dark:focus:text-white"
-                >
-                  <AlertTriangle className="my-auto size-8 p-2" />
-                </Badge>
-                <div className="grid p-2">
-                  <div className="uppercase font-normal tracking-wide text-xs text-muted-foreground">
-                    {item.shop?.name || item.channel?.name}
-                  </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    {item.productId} | {item.variantId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    QTY: {item.quantity}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="border p-2 bg-background rounded-sm flex items-center gap-4">
-                <Avatar
-                  className="border rounded-sm h-12 w-12"
-                  src={item.externalDetails?.image}
-                  alt={item.externalDetails?.title}
-                />
-                <div className="grid">
-                  <div className="uppercase font-normal tracking-wide text-xs text-muted-foreground">
-                    {item.shop?.name || item.channel?.name}
-                  </div>
-                  <a
-                    href={item.externalDetails?.productLink}
-                    className="text-sm font-medium"
-                  >
-                    {item.externalDetails?.title ||
-                      "Details could not be fetched"}
-                  </a>
-                  <p className="text-xs text-muted-foreground">
-                    {item.productId} | {item.variantId}
-                  </p>
-                  {/* <p className="text-sm font-medium">
-                ${item.externalDetails?.price}
-              </p> */}
-                  {/* <p className="text-sm dark:text-emerald-500 font-medium">
-                  ${parseFloat(item.externalDetails?.price).toFixed(2)}
-                </p> */}
-                  {item.quantity > 1 ? (
-                    <div className="flex gap-2 items-center">
-                      <p className="text-sm dark:text-emerald-500 font-medium">
-                        $
-                        {(
-                          parseFloat(item.externalDetails?.price) *
-                          item.quantity
-                        ).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        (${parseFloat(item.externalDetails?.price).toFixed(2)} x{" "}
-                        {item.quantity})
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-sm dark:text-emerald-500 font-medium">
-                      ${parseFloat(item.externalDetails?.price).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1 pt-1 items-center mb-auto ml-auto shadow-xs uppercase tracking-wide border text-nowrap px-2 py-[2px] text-xs font-medium text-zinc-500 bg-white border-zinc-200 rounded-sm hover:bg-zinc-100 hover:text-zinc-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-zinc-700 dark:bg-zinc-950 dark:border-zinc-900 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 dark:focus:ring-blue-500 dark:focus:text-white">
-                  {!item.externalDetails?.inventoryTracked ? (
-                    <AlertTriangle className="w-3 h-3" />
-                  ) : (
-                    <Box className="w-3 h-3" strokeWidth={2.5} />
-                  )}
-                  <span className="text-center">
-                    {item.externalDetails?.inventory !== null
-                      ? item.externalDetails?.inventory >= 1e9
-                        ? `${(item.externalDetails?.inventory / 1e9).toFixed(
-                            1
-                          )}B`
-                        : item.externalDetails?.inventory >= 1e6
-                        ? `${(item.externalDetails?.inventory / 1e6).toFixed(
-                            1
-                          )}M`
-                        : item.externalDetails?.inventory >= 1e3
-                        ? `${(item.externalDetails?.inventory / 1e3).toFixed(
-                            1
-                          )}k`
-                        : item.externalDetails?.inventory.toString()
-                      : "N/A"}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-};
-
-// const cardData = Array.from({ length: 100 }, (_, index) => ({
-//   ...data.getFilteredMatches[index % data.getFilteredMatches.length],
-//   id: `test-${index + 1}`,
-// }));
-
-const AnimatedCards = ({ data, syncingMatchIds, syncedMatchIds }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const cardData = data.getFilteredMatches;
-  const cardCount = cardData.length;
-
-  const handleNextCard = () => {
-    setSelectedIndex((prevIndex) => (prevIndex + 1) % cardCount);
-  };
-
-  const handlePrevCard = () => {
-    setSelectedIndex((prevIndex) => (prevIndex - 1 + cardCount) % cardCount);
-  };
-
-  const getCardClassName = (index) => {
-    const visibleCards = Math.min(3, cardCount);
-
-    if (selectedIndex === index) {
-      return "relative z-50 translate-x-0 scale-[1]";
-    } else if (cardCount >= 2 && index === (selectedIndex + 1) % cardCount) {
-      return "z-40 -translate-y-[1rem] scale-[.95]";
-    } else if (cardCount >= 3 && index === (selectedIndex + 2) % cardCount) {
-      return "z-30 -translate-y-[2rem] scale-[.9]";
-    } else if (index < visibleCards) {
-      return ""; // Show the card without any special styling
-    } else {
-      return "hidden"; // Hide cards that are not visible
-    }
-  };
-
-  return (
-    <section className="pt-8">
-      <div className="relative mx-auto max-w-full">
-        {cardData.map((card, index) => (
-          <input
-            key={card.id}
-            id={`article-${index + 1}`}
-            type="radio"
-            name="slider"
-            className={`peer/${index + 1} sr-only`}
-            checked={selectedIndex === index}
-            onChange={() => setSelectedIndex(index)}
-          />
-        ))}
-        {cardData.map((match, index) => (
-          <div
-            key={match.id}
-            className={`absolute inset-0 z-20 transition-all duration-500
-              ${getCardClassName(index)}`}
-          >
-            <label
-              className="absolute inset-0 cursor-pointer"
-              htmlFor={`article-${index + 1}`}
-              onClick={() => setSelectedIndex(index)}
-            >
-              <span className="sr-only">{`Match ${index + 1}`}</span>
-            </label>
-            <article>
-              <Card>
-                <MatchHeader
-                  match={match}
-                  isLoading={syncingMatchIds.has(match.id)}
-                  isSynced={syncedMatchIds.has(match.id)}
-                >
-                  <Separator />
-                  <ProductDetailsCollapsible
-                    items={match.input}
-                    title="Shop Product"
-                  />
-                  <Separator />
-                  <ProductDetailsCollapsible
-                    items={match.output}
-                    title="Channel Product"
-                  />
-                </MatchHeader>
-              </Card>
-            </article>
-          </div>
-        ))}
-        <div className="flex mt-2">
-          <Button
-            variant="secondary"
-            className="px-1.5 py-1"
-            onClick={handlePrevCard}
-            aria-label="Previous Card"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            className="ml-auto px-1.5 py-1"
-            onClick={handleNextCard}
-            aria-label="Next Card"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center space-x-2">
+          <SyncInventoryDialog />
+          <MatchDetailsDialog />
         </div>
       </div>
-    </section>
+
+      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList variant="solid" className="border w-auto shadow-inner">
+          <TabsTrigger
+            value="shop"
+            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
+          >
+            <Square3Stack3DIcon className="w-3.5 h-3.5" />
+            Shop Products
+          </TabsTrigger>
+          <TabsTrigger
+            value="channel"
+            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
+          >
+            <CircleStackIcon className="w-3.5 h-3.5" />
+            Channel Products
+          </TabsTrigger>
+          <TabsTrigger
+            value="matches"
+            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
+          >
+            <Square2StackIcon className="w-4 h-4" />
+            Matches
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="shop">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="search"
+                className="pl-10"
+                placeholder="Search products..."
+                value={searchString}
+                onChange={(e) => setSearchString(e.target.value)}
+              />
+            </div>
+          </div>
+          <MultiSelect
+            options={
+              shopsData?.shops.map((shop) => ({
+                label: shop.name,
+                value: shop.id,
+              })) || []
+            }
+            onValueChange={setSelectedShopIds}
+            defaultValue={selectedShopIds}
+            placeholder={
+              <Badge
+                color="sky"
+                className="border mr-1 flex items-center gap-2 text-sm py-0.5 pr-1 pl-1.5"
+              >
+                Select shop...
+              </Badge>
+            }
+            className="text-base mb-4 bg-background"
+          />
+
+          <div className="space-y-4">
+            {selectedShopIds.map((shopId) => (
+              <ShopSummary key={shopId} shopId={shopId} />
+            ))}
+          </div>
+        </TabsContent>
+        <TabsContent value="channel">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="search"
+                className="pl-10"
+                placeholder="Search products..."
+                value={searchString}
+                onChange={(e) => setSearchString(e.target.value)}
+              />
+            </div>
+          </div>
+          <MultiSelect
+            options={
+              channelsData?.channels.map((channel) => ({
+                label: channel.name,
+                value: channel.id,
+              })) || []
+            }
+            onValueChange={setSelectedChannelIds}
+            defaultValue={selectedChannelIds}
+            placeholder={
+              <Badge
+                color="sky"
+                className="border mr-1 flex items-center gap-2 text-sm py-0.5 pr-1 pl-1.5"
+              >
+                Select channel...
+              </Badge>
+            }
+            className="text-base mb-4"
+          />
+
+          <div className="space-y-4">
+            {selectedChannelIds.map((channelId) => (
+              <ChannelSummary key={channelId} channelId={channelId} />
+            ))}
+          </div>
+        </TabsContent>
+        <TabsContent value="matches">
+          <MatchList onMatchAction={handleMatchAction} />
+        </TabsContent>
+      </Tabs>
+    </main>
   );
 };
 
-export default MatchesComponent;
+export default MatchesPage;

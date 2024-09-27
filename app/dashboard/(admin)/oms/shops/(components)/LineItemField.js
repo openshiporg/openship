@@ -63,7 +63,7 @@ export const LineItemField = ({
           {productId} | {variantId}
         </div>
         <div className="flex items-center justify-between mt-1">
-          <div className="text-sm font-semibold text-green-600">
+          <div className="text-sm font-semibold">
             ${(price * quantity).toFixed(2)}
             {quantity > 1 && (
               <span className="font-normal text-muted-foreground ml-2">

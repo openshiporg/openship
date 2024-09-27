@@ -1,6 +1,5 @@
 export async function getMatches({ orderId, context }) {
   async function createCartItems({ matches }) {
-    console.log({ matches });
     if (matches.length > 0) {
       let result;
       for (const existingMatch of matches) {
@@ -16,19 +15,24 @@ export async function getMatches({ orderId, context }) {
           const { getProductFunction } = channel.platform;
 
           if (!getProductFunction) {
-            throw new Error("Search products function not configured.");
+            throw new Error("Get product function not configured.");
           }
 
           let product;
           if (getProductFunction.startsWith("http")) {
-            const params = new URLSearchParams({
-              productId: productId,
-              variantId: variantId,
-              domain: channel.domain,
-              accessToken: channel.accessToken,
-            }).toString();
+            const response = await fetch(getProductFunction, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                productId: productId,
+                variantId: variantId,
+                domain: channel.domain,
+                accessToken: channel.accessToken,
+              }),
+            });
 
-            const response = await fetch(`${getProductFunction}?${params}`);
             if (!response.ok) {
               throw new Error(
                 `Failed to fetch product: ${response.statusText}`

@@ -1,14 +1,10 @@
-import { relationship } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { relationship, virtual } from "@keystone-6/core/fields";
+import { graphql, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const Match = list({
   access: {
-    // create: isSignedIn,
-    // read: rules.canReadMatches,
-    // update: rules.canUpdateMatches,
-    // delete: rules.canUpdateMatches,
     operation: {
       create: isSignedIn,
       query: isSignedIn,
@@ -26,13 +22,11 @@ export const Match = list({
     output: relationship({
       ref: "ChannelItem.matches",
       many: true,
-      // ui: { displayMode: "cards", cardFields: ["productId", "variantId"] },
     }),
     user: relationship({
       ref: "User.matches",
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
-          // Default to the currently logged in user on create.
           if (
             operation === "create" &&
             !resolvedData.user &&
@@ -42,6 +36,77 @@ export const Match = list({
           }
           return resolvedData.user;
         },
+      },
+    }),
+    // ... existing fields ...
+
+    // Virtual Fields
+    outputPriceChanged: virtual({
+      field: graphql.field({
+        type: graphql.Float,
+        async resolve(item, args, context) {
+          const match = await context.query.Match.findOne({
+            where: { id: item.id },
+            query: "output { priceChanged }",
+          });
+
+          if (match?.output && match.output.length > 0) {
+            return match.output.reduce(
+              (total, output) => total + output.priceChanged,
+              0
+            );
+          }
+          return 0;
+        },
+      }),
+    }),
+    inventoryNeedsToBeSynced: virtual({
+      field: graphql.field({
+        type: graphql.object()({
+          name: "MatchInventoryData",
+          fields: {
+            syncEligible: graphql.field({ type: graphql.Boolean }),
+            sourceQuantity: graphql.field({ type: graphql.Int }),
+            targetQuantity: graphql.field({ type: graphql.Int }),
+          },
+        }),
+        async resolve(item, args, context) {
+          const match = await context.query.Match.findOne({
+            where: { id: item.id },
+            query: `
+              input { quantity externalDetails { inventory } }
+              output { quantity externalDetails { inventory } }
+            `,
+          });
+
+          const result = {
+            syncEligible: false,
+            sourceQuantity: null,
+            targetQuantity: null,
+          };
+
+          if (match?.input?.length === 1 && match?.output?.length === 1) {
+            const input = match.input[0];
+            const output = match.output[0];
+
+            if (
+              input.quantity === 1 &&
+              output.quantity === 1 &&
+              input.externalDetails?.inventory !== undefined &&
+              output.externalDetails?.inventory !== undefined
+            ) {
+              result.syncEligible = true;
+              result.sourceQuantity = input.externalDetails.inventory;
+              result.targetQuantity = output.externalDetails.inventory;
+            }
+          }
+
+          return result;
+        },
+      }),
+      ui: {
+        query:
+          "{ syncEligible sourceQuantity targetQuantity }",
       },
     }),
 
@@ -61,7 +126,11 @@ export const Match = list({
                 variantId: { equals: item.variantId },
                 quantity: { equals: item.quantity },
                 shop: { id: { equals: item.shop.connect.id } },
-                user: { id: { equals: item.user?.connect?.id || context.session?.itemId } },
+                user: {
+                  id: {
+                    equals: item.user?.connect?.id || context.session?.itemId,
+                  },
+                },
               },
               query: "id",
             });
@@ -89,7 +158,11 @@ export const Match = list({
                 variantId: { equals: item.variantId },
                 quantity: { equals: item.quantity },
                 channel: { id: { equals: item.channel.connect.id } },
-                user: { id: { equals: item.user?.connect?.id || context.session?.itemId } },
+                user: {
+                  id: {
+                    equals: item.user?.connect?.id || context.session?.itemId,
+                  },
+                },
               },
               query: "id",
             });

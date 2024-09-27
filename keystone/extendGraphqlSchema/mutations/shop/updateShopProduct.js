@@ -25,16 +25,20 @@ async function updateShopProduct(
 
   if (updateProductFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: shop.domain,
-      accessToken: shop.accessToken,
-      variantId,
-      productId,
-      inventoryDelta,
-      price,
-    }).toString();
-
-    const response = await fetch(`${updateProductFunction}?${params}`);
+    const response = await fetch(updateProductFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: shop.domain,
+        accessToken: shop.accessToken,
+        variantId,
+        productId,
+        inventoryDelta,
+        price,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to update product: ${response.statusText}`);

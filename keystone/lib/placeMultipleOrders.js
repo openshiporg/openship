@@ -100,7 +100,6 @@ export async function placeMultipleOrders({ ids, query }) {
       `,
     });
 
-    console.log({ cartChannels });
 
     for (const {
       domain,
@@ -133,7 +132,6 @@ export async function placeMultipleOrders({ ids, query }) {
         metadata,
       };
 
-      console.log({ body });
 
       const { createPurchaseFunction } = platform;
 
@@ -174,20 +172,17 @@ export async function placeMultipleOrders({ ids, query }) {
           }
         } else {
           // Internal function call
-          console.log("inside else");
 
           const platformFunctions = await import(
             `../../channelAdapters/${createPurchaseFunction}.js`
           );
 
-          console.log({ platformFunctions });
 
           if (platformFunctions.createPurchase) {
             const orderPlacementRes = await platformFunctions.createPurchase(
               body
             );
 
-            console.log({ orderPlacementRes });
 
             if (orderPlacementRes.error) {
               await updateCartItems({

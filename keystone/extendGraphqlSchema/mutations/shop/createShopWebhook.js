@@ -21,14 +21,18 @@ async function createShopWebhook(root, { shopId, topic, endpoint }, context) {
 
   if (createWebhookFunction.startsWith("http")) {
     // External API call
-    const params = new URLSearchParams({
-      domain: shop.domain,
-      accessToken: shop.accessToken,
-      topic,
-      endpoint,
-    }).toString();
-
-    const response = await fetch(`${createWebhookFunction}?${params}`);
+    const response = await fetch(createWebhookFunction, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: shop.domain,
+        accessToken: shop.accessToken,
+        topic,
+        endpoint,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to create webhook: ${response.statusText}`);

@@ -26,6 +26,11 @@ import {
   useDeleteItem,
   useUpdateItem,
 } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/button";
+import { DeleteButton } from "@keystone/themes/Tailwind/atlas/components/EditItemDrawer";
+import { useList } from "@keystone/keystoneProvider";
+import { useApolloClient } from "@keystone-6/core/admin-ui/apollo";
 
 export const OrderDetailsComponent = ({
   order,
@@ -35,12 +40,10 @@ export const OrderDetailsComponent = ({
   channels,
   loadingActions,
   removeEditItemButton,
-  renderButtons,
+  renderButtons
 }) => {
-  const { handleDelete: deleteCartItem, deleteLoading: deleteCartItemLoading } =
-    useDeleteItem("CartItem");
-  const { handleUpdate: updateCartItem, updateLoading: updateCartItemLoading } =
-    useUpdateItem("CartItem");
+  const list = useList('Order');
+  const client = useApolloClient();
 
   const handleAddToCart = (product, channelId) => {
     onOrderAction("addToCart", order.id, {
@@ -51,6 +54,14 @@ export const OrderDetailsComponent = ({
       productId: product.productId,
       variantId: product.variantId,
       quantity: product.quantity || 1,
+    });
+  };
+
+  const { handleUpdate, updateLoading } = useUpdateItem("Order");
+
+  const handleAcceptError = async () => {
+    await handleUpdate(order.id, {
+      orderError: "",
     });
   };
 
@@ -79,12 +90,7 @@ export const OrderDetailsComponent = ({
       icon: <PencilSquareIcon className="w-4 h-4" />,
       onClick: () => openEditDrawer(order.id, "Order"),
     },
-    {
-      buttonText: "DELETE ORDER",
-      color: "red",
-      icon: <TrashIcon className="w-4 h-4" />,
-      onClick: () => onOrderAction("deleteOrder", order.id),
-    },
+    // "DELETE ORDER" button removed from here
   ];
 
   const currentAction = Object.entries(loadingActions).find(
@@ -108,23 +114,29 @@ export const OrderDetailsComponent = ({
     }
   };
 
+  const handleDeleteComplete = async () => {
+    await client.refetchQueries({ include: "active" });
+    // Add any additional logic needed after deletion
+  };
+
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value={order.orderId} className="border-0">
-        <div className="px-4 py-2 flex items-start justify-between w-full border-b">
+        <div className="px-4 py-2 flex justify-between w-full border-b">
           <div className="flex flex-col items-start text-left gap-1.5">
             <div className="flex items-center space-x-4">
               <span className="uppercase font-medium text-sm">
                 {order.orderName}
+                {/* {order.readyToProcess && (
+                  <Badge color="green" className="ml-2">
+                    {order.readyToProcess}
+                  </Badge>
+                )} */}
               </span>
               <span className="text-xs font-medium opacity-65">
                 {order.date}
               </span>
-              {order.orderError && (
-                <Badge color="red" className="text-xs">
-                  Error
-                </Badge>
-              )}
+
               <span className="text-xs font-medium text-muted-foreground">
                 {order.shop?.name}
               </span>
@@ -140,72 +152,95 @@ export const OrderDetailsComponent = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {currentAction && (
-              <Badge
-                color="zinc"
-                className="uppercase tracking-wide font-medium text-xs flex items-center gap-1.5 border py-0.5"
+          <div className="flex flex-col justify-between">
+            <div className="flex items-center justify-end space-x-2">
+              {currentAction && (
+                <Badge
+                  color="zinc"
+                  className="uppercase tracking-wide font-medium text-xs flex items-center gap-1.5 border py-0.5"
                 >
-                <RiLoader2Fill className="size-3.5 shrink-0 animate-spin" />
-                {getLoadingText(currentAction)}
-              </Badge>
-            )}
-            {renderButtons && renderButtons()}
-            {!removeEditItemButton && (
-              <Dropdown>
-                <DropdownButton variant="secondary" className="border p-1">
-                  <MoreVertical className="h-3 w-3" />
-                </DropdownButton>
-                <DropdownMenu anchor="bottom end">
-                  {orderButtons.map((button) => (
-                    <DropdownItem
-                      key={button.buttonText}
-                      onClick={button.onClick}
-                      className="text-muted-foreground flex gap-2 font-medium tracking-wide"
-                      disabled={loadingActions[button.buttonText]?.[order.id]}
+                  <RiLoader2Fill className="size-3.5 shrink-0 animate-spin" />
+                  {getLoadingText(currentAction)}
+                </Badge>
+              )}
+              {!removeEditItemButton && (
+                <Dropdown>
+                  <DropdownButton variant="secondary" className="border p-1">
+                    <MoreVertical className="h-3 w-3" />
+                  </DropdownButton>
+                  <DropdownMenu anchor="bottom end">
+                    {orderButtons.map((button) => (
+                      <DropdownItem
+                        key={button.buttonText}
+                        onClick={button.onClick}
+                        className="text-muted-foreground flex gap-2 font-medium tracking-wide"
+                        disabled={loadingActions[button.buttonText]?.[order.id]}
+                      >
+                        <span>{button.icon}</span>
+                        {button.buttonText}
+                      </DropdownItem>
+                    ))}
+                    {/* Manually add the DELETE ORDER button at the bottom */}
+                    {/* <DeleteButton
+                      itemLabel={order.orderName}
+                      itemId={order.id}
+                      list={list}
+                      // onClose={handleDeleteComplete}
                     >
-                      <span>{button.icon}</span>
-                      {button.buttonText}
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
-              </Dropdown>
-            )}
-            <AccordionTrigger hideArrow className="py-0">
-              <Badge color="zinc" className="border p-1">
-                <ChevronDown className="h-3 w-3" />
+                      <DropdownItem
+                        className="text-muted-foreground flex gap-2 font-medium tracking-wide"
+                        // disabled={loadingActions["DELETE ORDER"]?.[order.id]}
+                      >
+                        <span><TrashIcon className="h-4 w-4" /></span>
+                        DELETE ORDER
+                      </DropdownItem>
+                    </DeleteButton> */}
+                  </DropdownMenu>
+                </Dropdown>
+              )}
+              <AccordionTrigger hideArrow className="py-0">
+                <Badge color="zinc" className="border p-1">
+                  <ChevronDown className="h-3 w-3" />
+                </Badge>
+              </AccordionTrigger>
+              {renderButtons && renderButtons()}
+
+            </div>
+            {order.orderError && (
+              <Badge
+                color="red"
+                className="flex flex-wrap gap-2 items-center border text-xs font-medium tracking-wide uppercase py-0.5 shadow-xs"
+              >
+                <AlertTriangle className="h-3 w-3" />
+                <span>Error: {order.orderError}</span>
+                <Button
+                  variant="secondary"
+                  className="text-muted-foreground flex items-center border bg-background -mr-1.5 py-0 px-1.5 text-[.6rem]"
+                  onClick={handleAcceptError}
+                  disabled={updateLoading}
+                  isLoading={updateLoading}
+                >
+                  ACCEPT
+                </Button>
               </Badge>
-            </AccordionTrigger>
+            )}
           </div>
         </div>
         <AccordionContent>
           <div className="divide-y">
             <ProductDetailsCollapsible
-              items={order.lineItems}
+              orderId={order.id}
               title="Line Item"
-              defaultOpen={true}
               openEditDrawer={openEditDrawer}
-              removeEditItemButton={removeEditItemButton}
+              totalItems={order.lineItemsCount}
             />
             <ProductDetailsCollapsible
-              items={order.cartItems}
+              orderId={order.id}
               title="Cart Item"
-              defaultOpen={true}
               openEditDrawer={openEditDrawer}
-              removeEditItemButton={removeEditItemButton}
-              updateItem={updateCartItem}
-              deleteItem={deleteCartItem}
-              updateLoading={updateCartItemLoading}
-              deleteLoading={deleteCartItemLoading}
+              totalItems={order.cartItemsCount}
             />
           </div>
-          {order.orderError && (
-            <div className="flex items-center mt-1">
-              <Badge color="red" className="text-xs mr-2">
-                Error: {order.orderError}
-              </Badge>
-            </div>
-          )}
           <ChannelSearchAccordion
             channels={channels}
             onAddItem={handleAddToCart}

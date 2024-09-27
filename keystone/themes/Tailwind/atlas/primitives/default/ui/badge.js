@@ -9,6 +9,7 @@ const badgeVariants = cva(
   {
     variants: {
       color: {
+        white: "bg-white text-black group-hover:bg-white/25 dark:group-hover:bg-white/20 border-white/80 dark:border-white/10",
         red: "bg-red-500/15 text-red-700 group-hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:group-hover:bg-red-500/20 border-red-200 dark:border-red-900/50",
         orange:
           "bg-orange-500/15 text-orange-700 group-hover:bg-orange-500/25 dark:bg-orange-500/10 dark:text-orange-400 dark:group-hover:bg-orange-500/20 border-orange-200 dark:border-orange-900/50",
@@ -49,13 +50,15 @@ function Badge({ className, color, ...props }) {
 }
 
 const BadgeButton = React.forwardRef(function BadgeButton(
-  { color, className, isLoading, loadingText, children, ...props },
+  { color, className, isLoading, loadingText, children, isDisabled, ...props },
   ref
 ) {
+  const disabledClass = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
+  
   return "href" in props ? (
     <Link
       {...props}
-      className="group relative inline-flex rounded-md focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500"
+      className={`group relative inline-flex rounded-md focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500 ${disabledClass}`}
       ref={ref}
     >
       <TouchTarget>
@@ -65,8 +68,9 @@ const BadgeButton = React.forwardRef(function BadgeButton(
   ) : (
     <button
       {...props}
-      className="group relative inline-flex rounded-md focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500"
+      className={`group relative inline-flex rounded-md focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500 ${disabledClass}`}
       ref={ref}
+      disabled={isDisabled}
     >
       <TouchTarget>
         <Badge color={color} className={className}>

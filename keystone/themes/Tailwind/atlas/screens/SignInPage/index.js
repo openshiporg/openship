@@ -215,12 +215,7 @@ export function SignInTemplate({
               >
                 SIGN IN
               </Button>
-              {/* <button
-                className="tracking-wider h-11 md:h-12 w-full group relative m-1 inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-b-2 border-l-2 border-r-2 border-blue-700 bg-gradient-to-tr from-blue-600 to-blue-500 px-4 py-1 text-white shadow-lg transition duration-100 ease-in-out active:translate-y-0.5 active:border-blue-600 active:shadow-none"
-                onClick={() => console.log("Hello")}
-              >
-                <span className="relative font-medium">SIGN IN</span>
-              </button> */}
+          
             </CardFooter>
           </Card>
         </form>

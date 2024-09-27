@@ -363,7 +363,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
   );
   const router = useRouter();
 
-  const adminPath = basePath
+  const adminPath = basePath;
 
   return (
     <Fragment>
@@ -432,6 +432,8 @@ export const ItemPage = ({ params }) => {
 export const ItemPageTemplate = ({ listKey, id }) => {
   const list = useList(listKey);
 
+  console.log(list.fields);
+
   const { query, selectedFields } = useMemo(() => {
     const selectedFields = Object.entries(list.fields)
       .filter(
@@ -444,6 +446,7 @@ export const ItemPageTemplate = ({ listKey, id }) => {
         return list.fields[fieldKey].controller.graphqlSelection;
       })
       .join("\n");
+    console.log({ selectedFields });
     return {
       selectedFields,
       query: gql`
