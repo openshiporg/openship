@@ -247,7 +247,7 @@ export const Order = list({
               // Internal function call
               try {
                 const shopAdapters = await import(
-                  `../../../shopAdapters/${orderLinkFunction}.js`
+                  `../../shopAdapters/${orderLinkFunction}.js`
                 );
                 const result = await shopAdapters.generateOrderLink({
                   domain: shop.domain,
