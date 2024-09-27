@@ -651,6 +651,7 @@ input UserRelateToManyForCreateInput {
 type Order {
   id: ID!
   orderId: String
+  orderLink: String
   orderName: String
   email: String
   firstName: String
@@ -1569,6 +1570,7 @@ type ShopPlatform {
   appKey: String
   appSecret: String
   callbackUrl: String
+  orderLinkFunction: String
   updateProductFunction: String
   getWebhooksFunction: String
   deleteWebhookFunction: String
@@ -1601,6 +1603,7 @@ input ShopPlatformWhereInput {
   name: StringFilter
   appKey: StringFilter
   appSecret: StringFilter
+  orderLinkFunction: StringFilter
   updateProductFunction: StringFilter
   getWebhooksFunction: StringFilter
   deleteWebhookFunction: StringFilter
@@ -1625,6 +1628,7 @@ input ShopPlatformOrderByInput {
   name: OrderDirection
   appKey: OrderDirection
   appSecret: OrderDirection
+  orderLinkFunction: OrderDirection
   updateProductFunction: OrderDirection
   getWebhooksFunction: OrderDirection
   deleteWebhookFunction: OrderDirection
@@ -1646,6 +1650,7 @@ input ShopPlatformUpdateInput {
   name: String
   appKey: String
   appSecret: String
+  orderLinkFunction: String
   updateProductFunction: String
   getWebhooksFunction: String
   deleteWebhookFunction: String
@@ -1674,6 +1679,7 @@ input ShopPlatformCreateInput {
   name: String
   appKey: String
   appSecret: String
+  orderLinkFunction: String
   updateProductFunction: String
   getWebhooksFunction: String
   deleteWebhookFunction: String

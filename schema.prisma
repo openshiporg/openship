@@ -263,6 +263,7 @@ model ShopPlatform {
   name                           String   @default("")
   appKey                         String   @default("")
   appSecret                      String   @default("")
+  orderLinkFunction              String   @default("")
   updateProductFunction          String   @default("")
   getWebhooksFunction            String   @default("")
   deleteWebhookFunction          String   @default("")

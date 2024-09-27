@@ -117,21 +117,16 @@ export function InitPage({
 
   return (
     <div
-      className={`h-screen flex flex-col justify-center items-center bg-[#0f172a] heropattern-topography-zinc-500/10 dark:bg-background`}
+      className={`h-screen flex justify-center items-center bg-[#0f172a] heropattern-topography-zinc-500/10 dark:bg-background`}
     >
-      <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
+      <div className="flex flex-col gap-2 md:gap-4 basis-[450px] px-2">
         <form onSubmit={onSubmit}>
           <Card className="overflow-hidden shadow-sm dark:bg-zinc-950">
-            <CardHeader className="mb-4 p-0">
-              <CardTitle className="text-zinc-700 dark:text-white text-xl">
-                <div className="heropattern-topography-zinc-200 dark:heropattern-topography-zinc-800/50 px-6 py-3 border-b bg-muted dark:bg-zinc-900">
-                  <Logo size="lg" />
-                </div>
-                <div className="px-6 pt-4"> Create Admin</div>
+            <CardHeader>
+              <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
+                CREATE ADMIN
+                <div className="h-1 w-36 mt-0.5 bg-gradient-to-r from-[#9a6a39] to-[#eeba7e] dark:from-[#9a6a39] dark:to-[#eeba7e]"></div>
               </CardTitle>
-              <CardDescription className="px-6 text-sm">
-                Create the first user on this instance
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {error && (
@@ -150,13 +145,14 @@ export function InitPage({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full text-md tracking-wider h-11 md:h-12 font-semibold"
+                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#d7a76e] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100"
                 isLoading={
                   loading ||
                   data?.authenticate?.__typename ===
                     `${listKey}AuthenticationWithPasswordSuccess`
                 }
                 type="submit"
+                variant="light"
               >
                 GET STARTED
               </Button>

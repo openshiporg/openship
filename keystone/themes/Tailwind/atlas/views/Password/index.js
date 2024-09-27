@@ -93,8 +93,8 @@ export const Field = ({
                 isSet: value.isSet,
               });
             }}
-            className="uppercase tracking-wide"
-            variant="secondary"
+            className="border border-gray-300 dark:border-gray-700 uppercase tracking-wide py-2 px-4"
+            variant="light"
           >
             {value.isSet ? "Change Password" : "Set Password"}
           </Button>
@@ -106,7 +106,7 @@ export const Field = ({
             {/* <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
               New Password
             </VisuallyHidden> */}
-            <div style={{ flexGrow: 1, flexBasis: "300px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
               <TextInput
                 id={`${field.path}-new-password`}
                 autoFocus
@@ -125,7 +125,7 @@ export const Field = ({
                 }}
               />
             </div>
-            <div style={{ flexGrow: 1, flexBasis: "300px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
               <label
                 htmlFor={`${field.path}-confirm-password`}
                 className="sr-only"
