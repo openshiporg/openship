@@ -108,12 +108,25 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
 
   if (loading) {
     return (
-      <div className="relative grid gap-3 sm:grid-cols-2 xl:grid-cols-3 overflow-hidden">
-        {Array(6)
-          .fill(0)
-          .map((_, index) => (
-            <Skeleton key={index} className="border h-32 w-full rounded-lg" />
-          ))}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {Array(6).fill(0).map((_, index) => (
+          <div key={index} className="overflow-hidden rounded-xl border flex flex-col gap-5 relative dark:bg-black dark:border-white/15">
+            <div className="px-4 pt-4 flex items-start gap-4">
+              <Skeleton className="h-14 w-14 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+            <div className="px-4">
+              <Skeleton className="h-8 w-full" />
+            </div>
+            <div className="px-4 pb-4">
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

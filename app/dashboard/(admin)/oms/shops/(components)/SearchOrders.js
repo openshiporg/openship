@@ -368,9 +368,9 @@ const OrderDetailsComponent = ({ order, shopId, onSelect, isSearchResult }) => {
         <div className="px-4 py-2 flex items-start justify-between w-full border-b">
           <div className="flex flex-col items-start text-left gap-1.5">
             <div className="flex items-center space-x-4">
-              <span className="uppercase font-medium text-sm">
+              <a href={order.link} target="_blank" rel="noopener noreferrer" className="uppercase font-medium text-sm">
                 {order.orderName}
-              </span>
+              </a>
               <span className="text-xs font-medium opacity-65">
                 {order.date}
               </span>
@@ -410,12 +410,12 @@ const OrderDetailsComponent = ({ order, shopId, onSelect, isSearchResult }) => {
               defaultOpen={true}
             />
             {order.cartItems && order.cartItems.length > 0 && (
-              // <ProductDetailsCollapsible
-              //   items={order.cartItems}
-              //   title="Cart Item"
-              //   defaultOpen={true}
-              // />
-              <>{JSON.stringify(order.cartItems)}</>
+              <ProductDetailsCollapsible
+                items={order.cartItems}
+                title="Cart Item"
+                defaultOpen={true}
+              />
+              // <>{JSON.stringify(order.cartItems)}</>
             )}
           </div>
         </AccordionContent>

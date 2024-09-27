@@ -26,6 +26,7 @@ export const SHOP_PLATFORMS_QUERY = gql`
     items: shopPlatforms(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
       id
       name
+      orderLinkFunction
       updateProductFunction
       getWebhooksFunction
       deleteWebhookFunction

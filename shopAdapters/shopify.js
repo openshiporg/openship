@@ -715,6 +715,16 @@ export async function addCartToPlatformOrder({
   return { order: orderUpdate?.order };
 }
 
+export function generateOrderLink({ domain, orderId }) {
+  // Extract the numeric order ID from the gid
+  const numericOrderId = orderId.split('/').pop();
+  
+  // Construct the order link
+  const orderLink = `https://${domain}/admin/orders/${numericOrderId}`;
+  
+  return { orderLink };
+}
+
 export async function addTracking({ order, trackingCompany, trackingNumber }) {
   const FETCH_FULFILLMENT_ORDER = gql`
     query ($id: ID!) {

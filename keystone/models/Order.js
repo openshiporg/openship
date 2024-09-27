@@ -190,6 +190,87 @@ export const Order = list({
   },
   fields: {
     orderId: text(),
+    orderLink: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        async resolve(item, args, context) {
+          const order = await context.query.Order.findOne({
+            where: { id: item.id },
+            query: `
+              id
+              orderId
+              shop {
+                id
+                domain
+                platform {
+                  id
+                  orderLinkFunction
+                }
+              }
+            `,
+          });
+
+          if (!order || !order.shop) {
+            return null;
+          }
+
+          const { shop } = order;
+
+          if (shop.platform && shop.platform.orderLinkFunction) {
+            const { orderLinkFunction } = shop.platform;
+
+            if (orderLinkFunction.startsWith("http")) {
+              // External API call
+              try {
+                const response = await fetch(orderLinkFunction, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    domain: shop.domain,
+                    orderId: order.orderId,
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error(`Failed to generate order link: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                return result.orderLink;
+              } catch (error) {
+                console.error("Error generating order link:", error);
+                return `${shop.domain}/orders/${order.orderId}`;
+              }
+            } else {
+              // Internal function call
+              try {
+                const shopAdapters = await import(
+                  `../../../shopAdapters/${orderLinkFunction}.js`
+                );
+                const result = await shopAdapters.generateOrderLink({
+                  domain: shop.domain,
+                  orderId: order.orderId,
+                });
+
+                if (result.error) {
+                  throw new Error(result.error);
+                }
+
+                return result.orderLink;
+              } catch (error) {
+                console.error("Error generating order link:", error);
+                return `${shop.domain}/orders/${order.orderId}`;
+              }
+            }
+          } else {
+            // Default behavior if no orderLinkFunction is specified
+            return `${shop.domain}/orders/${order.orderId}`;
+          }
+        },
+      }),
+    }),
     orderName: text(),
     email: text(),
     firstName: text(),

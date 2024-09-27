@@ -2,8 +2,6 @@
 import { keystoneContext } from "@keystone/keystoneContext";
 
 const handler = async (req, res) => {
-  res.status(200).json({ received: true });
-
   const { channelId } = req.query;
   try {
     // Find the channel and its platform
@@ -16,7 +14,8 @@ const handler = async (req, res) => {
       await platformFunctions.createTrackingWebhookHandler(req, res);
 
     if (error) {
-      return res.status(200).json({ error: "Missing fields needed to create tracking" });
+      console.error("Missing fields needed to create tracking");
+      return;
     }
 
     const foundCartItems = await keystoneContext.sudo().query.CartItem.findMany({
@@ -37,10 +36,9 @@ const handler = async (req, res) => {
         },
       });
     }
-    return res.status(200).json({ success: "Fulfillment Uploaded" });
+    console.log("Fulfillment Uploaded");
   } catch (error) {
     console.error("Error creating tracking:", error);
-    return res.status(500).json({ error: "Error creating tracking" });
   }
 };
 

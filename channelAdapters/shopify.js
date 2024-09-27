@@ -1,6 +1,26 @@
 import { GraphQLClient, gql } from "graphql-request";
 import ShopifyToken from "shopify-token";
 
+// Add this constant at the top of the file
+const REQUIRED_SCOPES = [
+  "read_products",
+  "write_orders",
+  "read_fulfillments",
+  "write_fulfillments",
+  "read_customers",
+  "write_customers",
+  "read_shipping",
+  "write_draft_orders",
+  "read_draft_orders",
+  "read_price_rules",
+  "write_price_rules",
+  "read_inventory",
+  "write_inventory",
+  "read_locations",
+  "write_merchant_managed_fulfillment_orders",
+  "read_merchant_managed_fulfillment_orders",
+];
+
 // Function to search products
 export async function searchProducts({ domain, accessToken, searchEntry }) {
   const shopifyClient = new GraphQLClient(
@@ -236,7 +256,7 @@ export async function createPurchase({
   }
 
   const orderRes = await fetch(
-    `https://${
+    `https://
       domain
     }/admin/api/2020-04/orders/${draftOrderComplete.draftOrder.order.id
       .split("/")
@@ -410,7 +430,7 @@ export function oauth(domain, config) {
     config.apiKey
   }&scope=${scopes.join(",")}&redirect_uri=${redirectUri}`;
 
-  window.location.href = authUrl; // Redirect using window.location.href
+  window.location.href = authUrl;
 }
 
 export async function callback(

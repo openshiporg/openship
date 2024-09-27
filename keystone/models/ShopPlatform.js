@@ -47,6 +47,12 @@ export const ShopPlatform = list({
       label: "Adapter Functions",
       description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
+        orderLinkFunction: text({
+          isRequired: true,
+          ui: {
+            description: "Function to generate the order link for this platform",
+          },
+        }),
         updateProductFunction: text({
           isRequired: true,
         }),
