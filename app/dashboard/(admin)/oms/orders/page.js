@@ -224,6 +224,7 @@ const ORDERS_QUERY = gql`
     items: orders(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
       id
       orderId
+      orderLink
       orderName
       email
       firstName
@@ -286,8 +287,6 @@ export const OrderPage = () => {
   const selectedShop =
     searchParams.get("!shop_matches")?.replace(/^"|"$/g, "") || null;
 
-
-
   const statuses = [
     "PENDING",
     "INPROCESS",
@@ -297,10 +296,6 @@ export const OrderPage = () => {
     "COMPLETE",
   ];
   const { data: shopsData } = useQuery(ALL_SHOPS_QUERY);
-
-  const shops = useMemo(() => {
-    return shopsData?.shops || [];
-  }, [shopsData]);
 
   const { listViewFieldModesByField, filterableFields, orderableFields } =
     useMemo(() => {
@@ -692,11 +687,7 @@ export const OrderPage = () => {
                 pageSize={pageSize}
               />
             </div>
-            <StatusShopFilter
-              statuses={statuses}
-              shops={shops}
-              orderCounts={orderCounts}
-            />
+            <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
             {data?.items?.length ? (
               <>
                 <div className="grid grid-cols-1 divide-y">

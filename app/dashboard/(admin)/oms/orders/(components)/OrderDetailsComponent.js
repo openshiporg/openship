@@ -125,14 +125,14 @@ export const OrderDetailsComponent = ({
         <div className="px-4 py-2 flex justify-between w-full border-b">
           <div className="flex flex-col items-start text-left gap-1.5">
             <div className="flex items-center space-x-4">
-              <span className="uppercase font-medium text-sm">
+              <a href={order.orderLink} target="_blank" rel="noopener noreferrer" className="uppercase font-medium text-sm">
                 {order.orderName}
-                {/* {order.readyToProcess && (
-                  <Badge color="green" className="ml-2">
-                    {order.readyToProcess}
-                  </Badge>
-                )} */}
-              </span>
+              </a>
+              {/* {order.readyToProcess && (
+                <Badge color="green" className="ml-2">
+                  {order.readyToProcess}
+                </Badge>
+              )} */}
               <span className="text-xs font-medium opacity-65">
                 {order.date}
               </span>

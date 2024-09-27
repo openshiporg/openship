@@ -7,7 +7,7 @@ import { RelationshipSelect } from "@keystone/themes/Tailwind/atlas/components/R
 import { useList } from "@keystone/keystoneProvider";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 
-export const StatusShopFilter = ({ statuses, shops, orderCounts }) => {
+export const StatusShopFilter = ({ statuses, orderCounts }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
