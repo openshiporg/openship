@@ -1459,6 +1459,7 @@ type Shop {
   name: String
   domain: String
   accessToken: String
+  linkMode: ShopLinkModeType
   links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: LinkWhereUniqueInput): [Link!]
   linksCount(where: LinkWhereInput! = {}): Int
   platform: ShopPlatform
@@ -1470,6 +1471,11 @@ type Shop {
   user: User
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+enum ShopLinkModeType {
+  sequential
+  simultaneous
 }
 
 input ShopWhereUniqueInput {
@@ -1484,6 +1490,7 @@ input ShopWhereInput {
   name: StringFilter
   domain: StringFilter
   accessToken: StringFilter
+  linkMode: ShopLinkModeTypeNullableFilter
   links: LinkManyRelationFilter
   platform: ShopPlatformWhereInput
   orders: OrderManyRelationFilter
@@ -1493,11 +1500,19 @@ input ShopWhereInput {
   updatedAt: DateTimeFilter
 }
 
+input ShopLinkModeTypeNullableFilter {
+  equals: ShopLinkModeType
+  in: [ShopLinkModeType!]
+  notIn: [ShopLinkModeType!]
+  not: ShopLinkModeTypeNullableFilter
+}
+
 input ShopOrderByInput {
   id: OrderDirection
   name: OrderDirection
   domain: OrderDirection
   accessToken: OrderDirection
+  linkMode: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -1506,6 +1521,7 @@ input ShopUpdateInput {
   name: String
   domain: String
   accessToken: String
+  linkMode: ShopLinkModeType
   links: LinkRelateToManyForUpdateInput
   platform: ShopPlatformRelateToOneForUpdateInput
   orders: OrderRelateToManyForUpdateInput
@@ -1531,6 +1547,7 @@ input ShopCreateInput {
   name: String
   domain: String
   accessToken: String
+  linkMode: ShopLinkModeType
   links: LinkRelateToManyForCreateInput
   platform: ShopPlatformRelateToOneForCreateInput
   orders: OrderRelateToManyForCreateInput

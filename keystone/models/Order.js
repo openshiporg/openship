@@ -12,6 +12,29 @@ import { trackingFields } from "./trackingFields";
 import { placeMultipleOrders } from "../lib/placeMultipleOrders";
 import { getMatches } from "../extendGraphqlSchema/mutations/addMatchToCart";
 
+async function applyDynamicWhereClause(context, linkId, orderId) {
+  const link = await context.query.Link.findOne({
+    where: { id: linkId },
+    query: 'id dynamicWhereClause',
+  });
+
+  if (!link || !link.dynamicWhereClause) {
+    return null;
+  }
+
+  const whereClause = {
+    ...link.dynamicWhereClause,
+    id: { equals: orderId },
+  };
+
+  const matchedOrder = await context.query.Order.findOne({
+    where: whereClause,
+    query: 'id',
+  });
+
+  return matchedOrder;
+}
+
 export const Order = list({
   hooks: {
     beforeOperation: async ({ listKey, operation, item, context }) => {
@@ -42,8 +65,12 @@ export const Order = list({
               id
             }
             shop {
+              id
               name
+              linkMode
               links {
+                id
+                rank
                 channel {
                   id
                   name
@@ -64,24 +91,51 @@ export const Order = list({
           `,
         });
 
-        if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
-          const cartItemsFromLink = await sudoContext.query.CartItem.createMany(
-            {
-              data: order.lineItems.map((c) => ({
-                ...c,
-                channel: {
-                  connect: { id: order.shop?.links[0]?.channel?.id },
-                },
-                order: { connect: { id: item.id } },
-                user: { connect: { id: order.user?.id } },
-              })),
-            }
-          );
+        if (item.linkOrder && order.shop?.links.length > 0) {
+          const links = order.shop.links.sort((a, b) => a.rank - b.rank);
+          let matchedLinks = [];
 
-          if (item.processOrder) {
-            const processedOrder = await placeMultipleOrders({
-              ids: [item.id],
-              query: sudoContext.query,
+          if (order.shop.linkMode === 'sequential') {
+            for (const link of links) {
+              const matchedOrder = await applyDynamicWhereClause(sudoContext, link.id, order.id);
+              if (matchedOrder) {
+                matchedLinks.push(link);
+                break;
+              }
+            }
+          } else if (order.shop.linkMode === 'simultaneous') {
+            for (const link of links) {
+              const matchedOrder = await applyDynamicWhereClause(sudoContext, link.id, order.id);
+              if (matchedOrder) {
+                matchedLinks.push(link);
+              }
+            }
+          }
+
+          if (matchedLinks.length > 0) {
+            for (const link of matchedLinks) {
+              await sudoContext.query.CartItem.createMany({
+                data: order.lineItems.map((c) => ({
+                  ...c,
+                  channel: { connect: { id: link.channel.id } },
+                  order: { connect: { id: item.id } },
+                  user: { connect: { id: order.user?.id } },
+                })),
+              });
+            }
+
+            if (item.processOrder) {
+              await placeMultipleOrders({
+                ids: [item.id],
+                query: sudoContext.query,
+              });
+            }
+          } else {
+            await sudoContext.query.Order.updateOne({
+              where: { id: item.id },
+              data: {
+                orderError: "No matching link found for this order",
+              },
             });
           }
         } else if (item.matchOrder) {

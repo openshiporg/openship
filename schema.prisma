@@ -238,20 +238,21 @@ model ChannelItem {
 }
 
 model Shop {
-  id          String        @id @default(cuid())
-  name        String        @default("")
-  domain      String        @default("")
-  accessToken String        @default("")
-  links       Link[]        @relation("Link_shop")
-  platform    ShopPlatform? @relation("Shop_platform", fields: [platformId], references: [id])
-  platformId  String?       @map("platform")
-  orders      Order[]       @relation("Order_shop")
-  shopItems   ShopItem[]    @relation("ShopItem_shop")
+  id          String            @id @default(cuid())
+  name        String            @default("")
+  domain      String            @default("")
+  accessToken String            @default("")
+  linkMode    ShopLinkModeType? @default(sequential)
+  links       Link[]            @relation("Link_shop")
+  platform    ShopPlatform?     @relation("Shop_platform", fields: [platformId], references: [id])
+  platformId  String?           @map("platform")
+  orders      Order[]           @relation("Order_shop")
+  shopItems   ShopItem[]        @relation("ShopItem_shop")
   metadata    Json?
-  user        User?         @relation("Shop_user", fields: [userId], references: [id])
-  userId      String?       @map("user")
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @default(now())
+  user        User?             @relation("Shop_user", fields: [userId], references: [id])
+  userId      String?           @map("user")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @default(now())
 
   @@index([platformId])
   @@index([userId])
@@ -332,4 +333,9 @@ model Link {
   @@index([shopId])
   @@index([channelId])
   @@index([userId])
+}
+
+enum ShopLinkModeType {
+  sequential
+  simultaneous
 }
