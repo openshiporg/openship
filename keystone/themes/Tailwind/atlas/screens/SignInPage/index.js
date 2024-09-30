@@ -152,22 +152,12 @@ export function SignInTemplate({
       <div className="flex flex-col gap-2 md:gap-4 basis-[450px] px-2">
         <form onSubmit={onSubmit}>
           <Card className="overflow-hidden shadow-sm dark:bg-zinc-950">
-            {/* <CardHeader className="mb-4 p-0">
-              <CardTitle className="text-zinc-700 dark:text-white text-xl">
-                <div className="heropattern-topography-zinc-200 dark:heropattern-topography-zinc-800/50 px-6 py-3 border-b bg-muted dark:bg-zinc-900">
-                  <Logo size="lg" />
-                </div>
-                <div className="px-6 pt-4">{title}</div>
-              </CardTitle>
-              
-              <CardDescription className="px-6 text-sm">
-                Credentials required to access dashboard
-              </CardDescription>
-            </CardHeader> */}
             <CardHeader>
               <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
-                SIGN IN
-                <div className="h-1 w-20 mt-0.5 bg-gradient-to-r from-green-700 to-green-200 dark:from-green-800 dark:to-green-600"></div>
+                <div className="inline-block">
+                  <span>SIGN IN</span>
+                  <div className="h-1 mt-0.5 bg-gradient-to-r from-green-700 to-green-200 dark:from-green-800 dark:to-green-600"></div>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>

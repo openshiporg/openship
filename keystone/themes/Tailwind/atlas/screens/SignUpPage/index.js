@@ -124,8 +124,10 @@ export const SignUpPage = () => {
           <Card className="overflow-hidden shadow-sm dark:bg-zinc-950">
             <CardHeader>
               <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
-                SIGN UP
-                <div className="h-1 w-20 mt-0.5 bg-gradient-to-r from-blue-700 to-blue-200 dark:from-blue-800 dark:to-blue-600"></div>
+                <div className="inline-block">
+                  <span>SIGN UP</span>
+                  <div className="h-1 mt-0.5 bg-gradient-to-r from-blue-700 to-blue-200 dark:from-blue-800 dark:to-blue-600"></div>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -185,7 +187,7 @@ export const SignUpPage = () => {
           </Alert>
         )}
 
-        <div className="text-center mt-4">
+        <div className="text-center">
           <span className="text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
             <Link href="/dashboard/signin" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300">
