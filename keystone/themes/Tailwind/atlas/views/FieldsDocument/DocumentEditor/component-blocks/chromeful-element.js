@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback, Fragment } from "react";
 import { useSelected } from "slate-react";
-import { ToolbarGroup, ToolbarButton, ToolbarSeparator } from "@keystone/primitives";
 import { NotEditable } from "./api";
 import { clientSideValidateProp } from "./utils";
 import { FormValueContentFromPreviewProps } from "./form-from-preview";
@@ -12,6 +11,7 @@ import {
   TooltipTrigger,
 } from "../../primitives/default/ui/tooltip";
 import { Button } from "../../primitives/default/ui/button";
+import { ToolbarGroup, ToolbarButton, ToolbarSeparator } from "../primitives";
 
 export function ChromefulComponentBlockElement(props) {
   const selected = useSelected();
