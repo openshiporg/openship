@@ -5,7 +5,7 @@ import { ItemPage } from "@keystone/themes/Tailwind/atlas/screens/ItemPage";
 import { HomePage } from "@keystone/themes/Tailwind/atlas/screens/HomePage";
 import { CreateItemPage } from "@keystone/themes/Tailwind/atlas/screens/CreateItemPage";
 import { SignInPage } from "@keystone/themes/Tailwind/atlas/screens/SignInPage";
-import { SignUpPage } from "../themes/Tailwind/atlas/screens/SignUpPage";
+import { SignUpPage } from "@keystone/themes/Tailwind/atlas/screens/SignUpPage";
 import { ResetPage } from "@keystone/themes/Tailwind/atlas/screens/ResetPage";
 import { InitPage } from "@keystone/themes/Tailwind/atlas/screens/InitPage";
 import { NoAccessPage } from "@keystone/themes/Tailwind/atlas/screens/NoAccessPage";
