@@ -18,11 +18,14 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Platforms</h2>
-        <div className="grid grid-cols-4 gap-4">
+      <div>
+        <h2 className="text-xs font-normal mb-3 text-muted-foreground">
+          Platforms
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-7 w-7 rounded-lg" /> 
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-10 rounded-full" />
+            <Skeleton key={i} className="h-7 w-24 rounded-lg" />
           ))}
         </div>
       </div>
@@ -51,8 +54,13 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
         <CreatePlatform
           refetch={refetch}
           trigger={
-            <Button variant="secondary" className="p-1.5">
+            <Button
+              variant="secondary"
+              className="p-1.5 flex items-center gap-2 uppercase text-xs"
+            >
               <Plus className="size-3.5" />
+
+              {platforms.length === 0 && "Create platform to get started"}
             </Button>
           }
         />
