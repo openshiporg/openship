@@ -1,9 +1,9 @@
-import { CellLink } from "@keystone/components/CellLink";
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { TextArea } from "@keystone/components/TextArea";
+import { CellLink } from "../../components/CellLink";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
+import { FieldDescription } from "../../components/FieldDescription";
+import { TextArea } from "../../components/TextArea";
 
 export const Field = ({
   field,
@@ -31,7 +31,7 @@ export const Field = ({
           value={value}
         />
         {forceValidation && (
-          <span className="text-red-600 dark:text-red-500 text-sm">
+          <span className="text-red-600 dark:text-red-700 text-sm">
             {"Invalid JSON"}
           </span>
         )}

@@ -5,9 +5,9 @@ import bytes from "bytes"
 import { Fragment, useEffect, useMemo, useRef, useState } from "react"
 import { jsx, Stack, Text } from "@keystone-ui/core"
 
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
 
 import { Button } from "@keystone-ui/button"
 

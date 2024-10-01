@@ -4,10 +4,13 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  ColumnDef,
   flexRender,
 } from "@tanstack/react-table";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { useList } from "@keystone/keystoneProvider";
+import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
+import { useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { AdminLink } from "../AdminLink";
 import {
   Table,
   TableBody,
@@ -15,18 +18,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@keystone/primitives/default/ui/table";
-import { useList } from "@keystone/keystoneProvider";
-import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
-import { Checkbox, CheckboxControl } from "@keystone/components/Checkbox";
-import { useSearchParams } from "next/navigation";
-import { Input } from "@keystone/primitives/default/ui/input";
-import { SortDirectionArrow } from "@keystone/themes/KeystoneUI/components/SortDirectionArrow";
-
-import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
-import { cn } from "@keystone/utils/cn";
+} from "../../primitives/default/ui/table";
+import { CheckboxControl } from "../Checkbox";
 
 export function ListTable({
   selectedFields,
@@ -94,14 +87,12 @@ export function ListTable({
             checked={selectedItems.has(itemId)}
             className="cursor-default"
             onChange={() => {
-              console.log("Before change:", selectedItems);
               const newSelectedItems = new Set(selectedItems);
               if (selectedItems.has(itemId)) {
                 newSelectedItems.delete(itemId);
               } else {
                 newSelectedItems.add(itemId);
               }
-              console.log("After changes:", newSelectedItems);
               onSelectedItemsChange(newSelectedItems);
             }}
           />
@@ -210,12 +201,12 @@ export function ListTable({
 
   return (
     <Table>
-      <TableHeader className="bg-muted/30">
+      <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead
-                className="text-nowrap text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+                className="text-nowrap text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase"
                 key={header.id}
               >
                 {header.isPlaceholder

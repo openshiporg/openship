@@ -8,9 +8,9 @@ import { Popover } from "@keystone-ui/popover";
 import { MoreHorizontalIcon } from "@keystone-ui/icons/icons/MoreHorizontalIcon";
 import { ChevronRightIcon } from "@keystone-ui/icons/icons/ChevronRightIcon";
 import { useKeystone } from "@keystone/keystoneProvider";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
-import { SignoutButton } from "@keystone/components/SignoutButton";
+import { SignoutButton } from "../SignoutButton";
 import { usePathname } from "next/navigation";
 
 export const NavItem = ({ href, children, isSelected: _isSelected }) => {

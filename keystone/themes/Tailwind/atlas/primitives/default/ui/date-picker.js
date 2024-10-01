@@ -21,19 +21,19 @@ const triggerStyles = tv({
     // base
     "peer flex w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 py-2 shadow-sm outline-none transition-all sm:text-sm",
     // background color
-    "bg-white dark:bg-gray-950 ",
+    "bg-white dark:bg-zinc-950 ",
     // border color
-    "border-gray-300 dark:border-gray-800",
+    "border-zinc-300 dark:border-zinc-800",
     // text color
-    "text-gray-900 dark:text-gray-50",
+    "text-zinc-900 dark:text-zinc-50",
     // placeholder color
-    "placeholder-gray-400 dark:placeholder-gray-500",
+    "placeholder-zinc-400 dark:placeholder-zinc-500",
     // hover
-    "hover:bg-gray-50 hover:dark:bg-gray-950/50",
+    "hover:bg-zinc-50 hover:dark:bg-zinc-950/50",
     // disabled
     "disabled:pointer-events-none",
-    "disabled:bg-gray-100 disabled:text-gray-400",
-    "disabled:dark:border-gray-800 disabled:dark:bg-gray-800 disabled:dark:text-gray-500",
+    "disabled:bg-zinc-100 disabled:text-zinc-400",
+    "disabled:dark:border-zinc-800 disabled:dark:bg-zinc-800 disabled:dark:text-zinc-500",
     // focus
     focusInput,
     // invalid (optional)
@@ -55,12 +55,12 @@ const Trigger = React.forwardRef(
           className={cx(triggerStyles({ hasError }), className)}
           {...props}
         >
-          <RiCalendar2Fill className="size-5 shrink-0 text-gray-400 dark:text-gray-600" />
-          <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900 dark:text-gray-50">
+          <RiCalendar2Fill className="size-5 shrink-0 text-zinc-400 dark:text-zinc-600" />
+          <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-zinc-900 dark:text-zinc-50">
             {children ? (
               children
             ) : placeholder ? (
-              <span className="text-gray-400 dark:text-gray-600">
+              <span className="text-zinc-400 dark:text-zinc-600">
                 {placeholder}
               </span>
             ) : null}
@@ -92,8 +92,8 @@ const CalendarPopover = React.forwardRef(
             "relative z-50 w-fit rounded-md border text-sm shadow-xl shadow-black/[2.5%]", // widths
             "min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]", // heights
             "max-h-[var(--radix-popover-content-available-height)]", // border color
-            "border-gray-300 dark:border-gray-800", // background color
-            "bg-white dark:bg-gray-950", // transition
+            "border-zinc-300 dark:border-zinc-800", // background color
+            "bg-white dark:bg-zinc-950", // transition
             "will-change-[transform,opacity]",
             "data-[state=closed]:animate-hide",
             "data-[state=open]:data-[side=bottom]:animate-slideDownAndFade data-[state=open]:data-[side=left]:animate-slideLeftAndFade data-[state=open]:data-[side=right]:animate-slideRightAndFade data-[state=open]:data-[side=top]:animate-slideUpAndFade",
@@ -198,13 +198,13 @@ const PresetContainer = ({
               className={cx(
                 // base
                 "relative w-full overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2.5 py-1.5 text-left text-base shadow-sm outline-none transition-all sm:border-none sm:py-2 sm:text-sm sm:shadow-none", // text color
-                "text-gray-700 dark:text-gray-300", // border color
-                "border-gray-300 dark:border-gray-800", // focus
+                "text-zinc-700 dark:text-zinc-300", // border color
+                "border-zinc-300 dark:border-zinc-800", // focus
                 focusRing, // background color
-                "focus-visible:bg-gray-100 focus-visible:dark:bg-gray-900",
-                "hover:bg-gray-100 hover:dark:bg-gray-900",
+                "focus-visible:bg-zinc-100 focus-visible:dark:bg-zinc-900",
+                "hover:bg-zinc-100 hover:dark:bg-zinc-900",
                 {
-                  "bg-gray-100 dark:bg-gray-900": matchesCurrent(preset),
+                  "bg-zinc-100 dark:bg-zinc-900": matchesCurrent(preset),
                 }
               )}
               onClick={() => handleClick(preset)}
@@ -324,7 +324,7 @@ const SingleDatePicker = ({
               <div
                 className={cx(
                   "relative flex h-14 w-full items-center sm:h-full sm:w-40",
-                  "border-b border-gray-300 sm:border-b-0 sm:border-r dark:border-gray-800",
+                  "border-b border-zinc-300 sm:border-b-0 sm:border-r dark:border-zinc-800",
                   "overflow-auto"
                 )}
               >
@@ -351,7 +351,7 @@ const SingleDatePicker = ({
                 initialFocus
                 {...props}
               />
-              <div className="flex items-center gap-x-2 border-t border-gray-300 p-3 dark:border-gray-800">
+              <div className="flex items-center gap-x-2 border-t border-zinc-300 p-3 dark:border-zinc-800">
                 <Button
                   variant="secondary"
                   className="h-8 w-full"
@@ -474,7 +474,7 @@ const RangeDatePicker = ({
               <div
                 className={cx(
                   "relative flex h-16 w-full items-center sm:h-full sm:w-40",
-                  "border-b border-gray-300 sm:border-b-0 sm:border-r dark:border-gray-800",
+                  "border-b border-zinc-300 sm:border-b-0 sm:border-r dark:border-zinc-800",
                   "overflow-auto"
                 )}
               >
@@ -503,13 +503,13 @@ const RangeDatePicker = ({
                 className="overflow-x-scroll"
                 classNames={{
                   months:
-                    "flex flex-row divide-x divide-gray-300 dark:divide-gray-800 overflow-x-scroll",
+                    "flex flex-row divide-x divide-zinc-300 dark:divide-zinc-800 overflow-x-scroll",
                 }}
                 {...props}
               />
-              <div className="border-t border-gray-300 p-3 sm:flex sm:items-center sm:justify-between dark:border-gray-800">
-                <p className={cx("text-gray-900 dark:text-gray-50")}>
-                  <span className="text-gray-700 dark:text-gray-300">
+              <div className="border-t border-zinc-300 p-3 sm:flex sm:items-center sm:justify-between dark:border-zinc-800">
+                <p className={cx("text-zinc-900 dark:text-zinc-50")}>
+                  <span className="text-zinc-700 dark:text-zinc-300">
                     {translations?.range ?? "Range"}:
                   </span>{" "}
                   <span className="font-medium">{displayRange}</span>

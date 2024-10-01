@@ -9,7 +9,7 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 const minusIcon = <MinusIcon size="small" />;
 

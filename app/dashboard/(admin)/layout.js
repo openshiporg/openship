@@ -1,6 +1,6 @@
 "use client";
-import { AdminLayout } from "@keystone/components/AdminLayout";
+import { DashboardLayout } from "@keystone/screens";
 
 export default function Layout({ children }) {
-  return <AdminLayout>{children}</AdminLayout>;
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

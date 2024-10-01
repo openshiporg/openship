@@ -1,6 +1,5 @@
 "use client";
 
-import { InitPage } from "@keystone/screens/InitPage";
-import { SignInPage } from "@keystone/screens/SignInPage";
+import { InitPage } from "@keystone/screens";
 
-export default InitPage
+export default InitPage;

@@ -1,20 +1,18 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import FocusLock from "react-focus-lock";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CalendarIcon } from "lucide-react";
 
-import { InputButton } from "@keystone/components/InputButton";
 import { deserializeDate } from "@keystone/utils/deserializeDate";
 import { formatDate } from "@keystone/utils/formatDate";
 import { formatDateType } from "@keystone/utils/formatDateType";
 import { dateFormatPlaceholder } from "@keystone/utils/dateFormatPlaceholder";
-import { Calendar } from "@keystone/components/Calendar";
+import { cn } from "@keystone/utils/cn";
+import { Calendar } from "../Calendar";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@keystone/primitives/default/ui/popover";
-import { Button, buttonVariants } from "@keystone/primitives/default/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@keystone/utils/cn";
+} from "../../primitives/default/ui/popover";
+import { buttonVariants } from "../../primitives/default/ui/button";
 
 export function useEventCallback(callback) {
   const callbackRef = useRef(callback);
@@ -65,7 +63,7 @@ export const DatePicker = ({
           <button
             onClick={() => setOpen(true)}
             className={cn(
-              buttonVariants({ variant: "plain" }),
+              buttonVariants({ variant: "light" }),
               "text-sm h-10 font-normal border w-full shadow-sm justify-start",
               !(formattedDate || dateFormatPlaceholder) &&
                 "text-muted-foreground"

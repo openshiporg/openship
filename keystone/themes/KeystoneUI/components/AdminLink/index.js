@@ -3,9 +3,10 @@
 
 import Link from "next/link";
 import { jsx } from "@keystone-ui/core";
+import { basePath } from "@keystone/index";
 
 export const AdminLink = ({ href, children, ...props }) => {
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
   
   if (typeof href === "object" && href.pathname) {
     href.pathname = `${adminPath}${href.pathname}`;

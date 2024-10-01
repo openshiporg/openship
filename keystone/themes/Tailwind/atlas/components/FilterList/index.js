@@ -4,14 +4,15 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@keystone/primitives/default/ui/popover";
-import { Button } from "@keystone/primitives/default/ui/button";
+} from "../../primitives/default/ui/popover";
+import { Button } from "../../primitives/default/ui/button";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import { Separator } from "../../primitives/default/ui/separator";
+import { useList } from "@keystone/keystoneProvider";
 
 export function FilterList({ filters, list }) {
   return (
-    <div className="pl-1 no-scrollbar overflow-x-auto flex gap-2">
+    <div className="flex flex-wrap gap-2 w-full">
       {filters.map((filter) => {
         const field = list.fields[filter.field];
         return (
@@ -53,10 +54,10 @@ function FilterPill({ filter, field }) {
       placement="bottom"
     >
       <PopoverTrigger asChild>
-        <div class="rounded-md inline-flex shadow-XS" role="group">
+        <div className="rounded-md inline-flex shadow-XS" role="group">
           <button
             type="button"
-            className="text-nowrap px-3 py-[3px] text-xs font-medium text-slate-500 bg-white border border-slate-200 border-r-0 rounded-s-md hover:bg-slate-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:text-white dark:hover:bg-slate-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            className="text-nowrap px-3 py-[3px] text-xs font-medium text-zinc-500 bg-white border border-zinc-200 border-r-0 rounded-s-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-200 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
           >
             {field.label}{" "}
             <Label
@@ -72,7 +73,7 @@ function FilterPill({ filter, field }) {
               e.stopPropagation();
               onRemove();
             }}
-            class="px-1 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-e-md hover:bg-slate-200 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:hover:text-white dark:hover:bg-slate-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            className="px-1 text-sm font-medium text-zinc-900 bg-white border border-zinc-200 rounded-e-md hover:bg-zinc-200 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
           >
             <XIcon size={14} className="stroke-muted-foreground" />
           </button>
@@ -122,12 +123,10 @@ function EditDialog({ filter, field, onClose }) {
       </div>
       <Separator />
       <div className="flex justify-between px-2 pb-2">
-        <Button variant="plain" onClick={onClose} size="xs">
+        <Button variant="light" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" size="xs">
-          Save
-        </Button>
+        <Button type="submit">Save</Button>
       </div>
     </form>
   );

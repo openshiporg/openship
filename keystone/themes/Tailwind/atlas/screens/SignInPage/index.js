@@ -11,19 +11,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@keystone/primitives/default/ui/card";
+} from "../../primitives/default/ui/card";
 
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Input } from "@keystone/primitives/default/ui/input";
-import { Label } from "@keystone/primitives/default/ui/label";
+import { Button } from "../../primitives/default/ui/button";
+import { Input } from "../../primitives/default/ui/input";
+import { Label } from "../../primitives/default/ui/label";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@keystone/primitives/default/ui/alert";
+} from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Logo } from "@keystone/logo";
 import { Outfit } from "next/font/google";
+import { Logo } from "../../components/Logo";
 
 const montserrat = Outfit({ subsets: ["latin"] });
 
@@ -147,23 +147,19 @@ export function SignInTemplate({
 }) {
   return (
     <div
-      className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}
+      className={`px-2 h-screen flex justify-center items-center bg-[#0f172a] heropattern-topography-zinc-500/10 dark:bg-background`}
     >
-      <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
-        <div className="mx-auto">
-          <Logo size="lg" />
-        </div>
+      <div className="flex flex-col gap-2 md:gap-4 basis-[450px] px-2">
         <form onSubmit={onSubmit}>
-          <Card className="shadow-sm dark:bg-gray-900/25">
+          <Card className="overflow-hidden shadow-sm dark:bg-zinc-950">
             <CardHeader>
-              <CardTitle className="text-slate-700 dark:text-white text-xl">
-                {title}
+              <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
+                <div className="inline-block">
+                  <span>SIGN IN</span>
+                  <div className="h-1 mt-0.5 bg-gradient-to-r from-green-700 to-green-200 dark:from-green-800 dark:to-green-600"></div>
+                </div>
               </CardTitle>
-              <CardDescription className="text-sm">
-                Credentials required to access dashboard
-              </CardDescription>
             </CardHeader>
-
             <CardContent>
               <div className="grid w-full items-center gap-4">
                 <div className="flex flex-col space-y-1.5">
@@ -202,10 +198,10 @@ export function SignInTemplate({
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex flex-col justify-between">
               <Button
-                className="w-full text-md tracking-wider h-11 md:h-12"
-                color="blue"
+                variant="light"
+                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900 dark:text-gray-100"
                 isLoading={
                   loading ||
                   // this is for while the page is loading but the mutation has finished successfully
@@ -221,14 +217,15 @@ export function SignInTemplate({
 
         {error && (
           <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
         )}
         {data?.authenticate?.__typename === failureTypename && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
+          <Alert
+            variant="destructive"
+            className="mt-4 bg-red-100 dark:bg-red-900"
+          >
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{data?.authenticate.message}</AlertDescription>
           </Alert>
@@ -237,3 +234,40 @@ export function SignInTemplate({
     </div>
   );
 }
+
+// import { Button } from "@/components/ui/button"
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import Link from "next/link"
+
+// export default function Component() {
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-[#1a2332]">
+//       <Card className="w-full max-w-md">
+//         <CardHeader>
+//           <CardTitle className="text-2xl font-bold">
+//             SIGN IN
+//             <div className="h-1 w-16 bg-green-500 mt-1"></div>
+//           </CardTitle>
+//         </CardHeader>
+//         <CardContent className="space-y-4">
+//           <div className="space-y-2">
+//             <Label htmlFor="email">Email</Label>
+//             <Input id="email" placeholder="you@awesome.com" type="email" />
+//           </div>
+//           <div className="space-y-2">
+//             <div className="flex justify-between items-center">
+//               <Label htmlFor="password">Password</Label>
+//               <Link className="text-sm text-gray-400 hover:text-gray-300" href="#">
+//                 Forgot password
+//               </Link>
+//             </div>
+//             <Input id="password" placeholder="supersecretpassword" type="password" />
+//           </div>
+//           <Button className="w-full bg-green-500 hover:bg-green-600 text-white">SIGN IN</Button>
+//         </CardContent>
+//       </Card>
+//     </div>
+//   )
+// }

@@ -1,16 +1,16 @@
 import { Fragment, useState } from "react";
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { Select, MultiSelect } from "@keystone/components/Select";
-import { Radio } from "@keystone/components/Radio";
-import { CellLink } from "@keystone/components/CellLink";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
+import { Select, MultiSelect } from "../../components/Select";
+import { Radio } from "../../components/Radio";
+import { CellLink } from "../../components/CellLink";
+import { Button } from "../../primitives/default/ui/button";
 import {
   ToggleGroup,
   ToggleGroupItem,
-} from "@keystone/primitives/default/ui/toggle-group";
+} from "../../primitives/default/ui/toggle-group";
 
 export const Field = ({
   field,
@@ -22,7 +22,7 @@ export const Field = ({
   const [hasChanged, setHasChanged] = useState(false);
   const validationMessage =
     (hasChanged || forceValidation) && !validate(value, field.isRequired) ? (
-      <span className="text-red-600 dark:text-red-500 text-sm">
+      <span className="text-red-600 dark:text-red-700 text-sm">
         {field.label} is required
       </span>
     ) : null;
@@ -224,6 +224,7 @@ export const controller = (config) => {
             options={optionsWithStringValues}
             value={props.value}
             autoFocus
+            className={props.className}
           />
         );
       },

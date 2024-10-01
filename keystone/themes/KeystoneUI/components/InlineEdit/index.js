@@ -2,9 +2,9 @@ import { useCallback, useState } from "react";
 
 import { Button } from "@keystone-ui/button";
 import { Stack } from "@keystone-ui/core";
-import { useToasts } from "@keystone/components/Toast";
+import { useToasts } from "../Toast";
 import { useFieldsObj } from "@keystone/utils/useFieldObj";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
 import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import {
   deserializeValue,

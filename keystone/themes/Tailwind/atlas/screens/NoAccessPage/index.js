@@ -1,6 +1,6 @@
 import { ErrorContainer } from "@keystone-6/core/admin-ui/components";
-import { SignoutButton } from "@keystone/components/SignoutButton";
 import { AlertTriangleIcon } from "lucide-react";
+import { SignoutButton } from "../../components/SignoutButton";
 
 export function NoAccessPage({ sessionsEnabled }) {
   return (

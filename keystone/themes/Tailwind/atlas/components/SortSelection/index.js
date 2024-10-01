@@ -1,13 +1,12 @@
 import { useSort } from "@keystone/utils/useSort";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@keystone/primitives/default/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuItem,
-} from "@keystone/primitives/default/ui/dropdown-menu";
+} from "../../primitives/default/ui/dropdown-menu-depracated";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import {
   ArrowDown,
@@ -15,9 +14,11 @@ import {
   ArrowDownZa,
   ArrowUp,
   ArrowUpDown,
+  X,
 } from "lucide-react";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { cloneElement } from "react";
+import { Badge, BadgeButton } from "../../primitives/default/ui/badge";
 
 export function SortSelection({ list, orderableFields, dropdownTrigger }) {
   const sort = useSort(list, orderableFields);
@@ -32,39 +33,49 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
   }
 
   const sortIcons = {
-    ASC: <ArrowDownAz />,
-    DESC: <ArrowDownZa />,
+    ASC: <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">ASC</Badge>, 
+    DESC: <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">DESC</Badge>,
   };
 
-  const defaultTrigger = (
-    <Button size="sm">
-      {sort ? (
-        <>
-          {sort.direction === "ASC" ? (
-            <ArrowDown className="h-4 w-4" />
-          ) : (
-            <ArrowUp className="h-4 w-4" />
-          )}
-          {list.fields[sort.field].label}
-        </>
-      ) : (
-        <>
-          <ArrowUpDown className="h-4 w-4" />
-          Sort
-        </>
-      )}
-    </Button>
+  const triggerContent = sort ? (
+    <>
+      {list.fields[sort.field].label.toUpperCase()}
+      {sortIcons[sort.direction]}
+    </>
+  ) : (
+    <>
+      <ArrowUpDown size={12} className="stroke-muted-foreground" />
+      SORT
+    </>
   );
+
+  const resetSort = () => {
+    const newQueryParams = new URLSearchParams(query);
+    newQueryParams.delete('sortBy');
+    router.push(`${pathname}?${newQueryParams.toString()}`);
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {dropdownTrigger
-          ? cloneElement(dropdownTrigger, { asChild: true })
-          : defaultTrigger}
+        {cloneElement(dropdownTrigger, {
+          children: triggerContent,
+        })}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+        <div className="flex items-center justify-between py-1.5">
+          <DropdownMenuLabel className="py-0">Sort by</DropdownMenuLabel>
+          {sort && (
+            <BadgeButton
+              onClick={resetSort}
+              color="red"
+              aria-label="Reset sort"
+              className="mr-2 text-xs uppercase border tracking-wide font-medium py-0.5 px-1.5"
+            >
+              Clear
+            </BadgeButton>
+          )}
+        </div>
         <DropdownMenuSeparator />
         <ScrollArea vpClassName="max-h-72">
           {[...orderableFields, noFieldOption.value].map((fieldPath) => {
@@ -101,7 +112,10 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
                   router.push(`${pathname}?${newQueryParams}`);
                 }}
               >
-                {option.label}
+                <span className="flex items-center justify-between w-full">
+                  {option.label}
+                  {sort?.field === option.value && sortIcons[sort.direction]}
+                </span>
               </DropdownMenuItem>
             );
           })}

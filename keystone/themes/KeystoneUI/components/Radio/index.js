@@ -4,7 +4,7 @@
 import { Fragment, forwardRef } from "react";
 import { jsx, VisuallyHidden } from "@keystone-ui/core";
 import { useIndicatorStyles, useIndicatorTokens } from "./hooks/indicators";
-import { ControlLabel } from "@keystone/components/ControlLabel";
+import { ControlLabel } from "../ControlLabel";
 
 const dotSizeMap = {
   small: 12,

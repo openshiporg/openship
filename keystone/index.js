@@ -5,13 +5,15 @@ import * as cookie from "cookie";
 // import { statelessSessions } from "@keystone-6/core/session";
 import { permissionsList } from "./models/fields";
 import "dotenv/config";
-import { extendGraphqlSchema } from "./mutations";
+import { extendGraphqlSchema } from "./extendGraphqlSchema";
 import { models } from "./models";
 import { sendPasswordResetEmail } from "./utils/mail";
 
 const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
 const listKey = "User";
+
+export const basePath = "/dashboard"
 
 const sessionConfig = {
   maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?
@@ -47,7 +49,6 @@ export function statelessSessions({
             },
             query: `id user { id }`,
           });
-          // console.log({ data });
           if (!data?.user?.id) return;
           return { itemId: data.user.id, listKey };
         } catch (err) {
@@ -155,6 +156,7 @@ export default withAuth(
       provider: "postgresql" ?? process.env.DATABASE_PROVIDER,
       url: databaseURL,
       useMigrations: true,
+      // enableLogging: ['query', 'info', 'warn', 'error'],
     },
     lists: models,
     graphql: {
@@ -162,7 +164,7 @@ export default withAuth(
     },
     ui: {
       isAccessAllowed: ({ session }) => !!session,
-      basePath: "/dashboard",
+      basePath
     },
     session: statelessSessions(sessionConfig),
     experimental: {

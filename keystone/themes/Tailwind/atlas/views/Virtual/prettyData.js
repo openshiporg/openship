@@ -17,9 +17,9 @@ export function PrettyData({ data }) {
   if (typeof data === "string") prettyData = data
   else if (typeof data === "number") prettyData = data
   else if (typeof data === "object") {
-    prettyData = <pre>{stringify(data)}</pre>
+    prettyData = <pre className="max-w-full overflow-auto whitespace-pre-wrap">{stringify(data)}</pre>
   } else {
-    prettyData = <pre>{stringify(data)}</pre>
+    prettyData = <pre className="max-w-full overflow-auto whitespace-pre-wrap">{stringify(data)}</pre>
   }
 
   return <Fragment>{prettyData}</Fragment>

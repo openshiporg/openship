@@ -4,19 +4,19 @@
 import { jsx, Box, VisuallyHidden } from "@keystone-ui/core";
 import { CheckboxControl } from "@keystone-ui/fields";
 import { ArrowRightCircleIcon } from "@keystone-ui/icons/icons/ArrowRightCircleIcon";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { getRootGraphQLFieldsFromFieldController } from "@keystone-6/core/admin-ui/utils";
-import { CellLink } from "@keystone/components/CellLink";
-import { Pagination } from "@keystone/components/Pagination";
+import { CellLink } from "../CellLink";
+import { Pagination } from "../Pagination";
 
-import { SortDirectionArrow } from "@keystone/components/SortDirectionArrow";
-import { TableBodyCell } from '@keystone/components/TableBodyCell';
-import { TableContainer } from "@keystone/components/TableContainer";
-import { TableHeaderCell } from "@keystone/components/TableHeaderCell";
-import { TableHeaderRow } from "@keystone/components/TableHeaderRow";
+import { SortDirectionArrow } from "../SortDirectionArrow";
+import { TableBodyCell } from '../TableBodyCell';
+import { TableContainer } from "../TableContainer";
+import { TableHeaderCell } from "../TableHeaderCell";
+import { TableHeaderRow } from "../TableHeaderRow";
 import { useList } from "@keystone/keystoneProvider";
 
 export function ListTable({

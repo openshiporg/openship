@@ -1,5 +1,5 @@
 "use client";
 
-import { NoAccessPage } from "@keystone/screens/NoAccessPage";
+import { NoAccessPage } from "@keystone/screens";
 
-export default NoAccessPage
+export default NoAccessPage;

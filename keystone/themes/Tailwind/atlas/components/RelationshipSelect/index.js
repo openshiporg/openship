@@ -18,7 +18,9 @@ import {
   useApolloClient,
   useQuery,
 } from "@keystone-6/core/admin-ui/apollo";
-import { MultiSelect, Select, selectComponents } from "@keystone/components/Select";
+import { MultiSelect, Select, selectComponents } from "../Select";
+import { Button } from "../../primitives/default/ui/button";
+import { AdminLink } from "../AdminLink";
 
 function useIntersectionObserver(cb, ref) {
   const cbRef = useRef(cb);
@@ -243,6 +245,10 @@ export const RelationshipSelect = ({
     return <span>Error</span>;
   }
 
+  const isValueArray = Array.isArray(state.value);
+  const visibleOptions = isValueArray ? state.value.slice(0, 2) : [state.value].filter(Boolean);
+  const remainingCount = isValueArray ? state.value.length - visibleOptions.length : 0;
+
   if (state.kind === "one") {
     return (
       <LoadingIndicatorContext.Provider value={loadingIndicatorContextVal}>
@@ -287,29 +293,41 @@ export const RelationshipSelect = ({
 
   return (
     <LoadingIndicatorContext.Provider value={loadingIndicatorContextVal}>
-      <MultiSelect
-        // and useState setters log a warning if a second argument is passed
-        onInputChange={(val) => setSearch(val)}
-        isLoading={loading || isLoading}
-        autoFocus={autoFocus}
-        components={relationshipSelectComponents}
-        portalMenu={portalMenu}
-        value={state.value.map((value) => ({
-          value: value.id,
-          label: value.label,
-          data: value.data,
-        }))}
-        options={options}
-        onChange={(value) => {
-          state.onChange(
-            value.map((x) => ({ id: x.value, label: x.label, data: x.data }))
-          );
-        }}
-        placeholder={placeholder}
-        controlShouldRenderValue={controlShouldRenderValue}
-        isClearable={controlShouldRenderValue}
-        isDisabled={isDisabled}
-      />
+      <div>
+        <MultiSelect
+          // this is necessary because react-select passes a second argument to onInputChange
+          // and useState setters log a warning if a second argument is passed
+          onInputChange={(val) => setSearch(val)}
+          isLoading={loading || isLoading}
+          autoFocus={autoFocus}
+          components={relationshipSelectComponents}
+          portalMenu={portalMenu}
+          value={state.value.map((value) => ({
+            value: value.id,
+            label: value.label,
+            // @ts-ignore
+            data: value.data,
+          }))}
+          options={options}
+          onChange={(value) => {
+            state.onChange(
+              value.map((x) => ({ id: x.value, label: x.label, data: x.data }))
+            );
+          }}
+          placeholder={placeholder}
+          controlShouldRenderValue={controlShouldRenderValue}
+          isClearable={controlShouldRenderValue}
+          isDisabled={isDisabled}
+        />
+
+        {/* {remainingCount > 0 && (
+          <ShowMoreButton
+            list={list}
+            remainingCount={remainingCount}
+            value={state.value}
+          />
+        )} */}
+      </div>
     </LoadingIndicatorContext.Provider>
   );
 };
@@ -328,4 +346,21 @@ const relationshipSelectComponents = {
       </selectComponents.MenuList>
     );
   },
+};
+
+// New component for the "Show More" button
+const ShowMoreButton = ({ list, remainingCount, value }) => {
+  const ids = Array.isArray(value)
+    ? value.slice(0, 100).map(({ id }) => id)
+    : [value?.id].filter(Boolean);
+
+  const query = `!id_in="${ids.join(",")}"`;
+
+  return (
+    <Button variant="light">
+      <AdminLink href={`/${list.path}?${query}`}>
+        Show {remainingCount} More {list.plural}
+      </AdminLink>
+    </Button>
+  );
 };

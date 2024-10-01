@@ -6,8 +6,8 @@ export const ORDER_FRAGMENT = gql`
     orderId
     orderName
     email
-    first_name
-    last_name
+    firstName
+    lastName
     streetAddress1
     streetAddress2
     city
@@ -33,7 +33,6 @@ export const ORDER_FRAGMENT = gql`
       channel {
         id
         name
-        createPurchaseEndpoint
       }
     }
     lineItems {
@@ -166,8 +165,8 @@ export const CHANNEL_ORDERS_QUERY = gql`
       orderId
       orderName
       email
-      first_name
-      last_name
+      firstName
+      lastName
       streetAddress1
       streetAddress2
       city

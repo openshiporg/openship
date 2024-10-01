@@ -1,20 +1,19 @@
-import { AdminLink } from "@keystone/components/AdminLink";
-
 import { Fragment, useState } from "react";
 
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
-
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { FieldLegend } from "@keystone/components/FieldLegend";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
+import { cn } from "@keystone/utils/cn";
 
-import { Cards } from "@keystone/components/Cards";
-import { CreateItemDrawer } from "@keystone/components/CreateItemDrawer";
-import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
+import { FieldLegend } from "../../components/FieldLegend";
+import { AdminLink } from "../../components/AdminLink";
+import { CreateItemDrawer } from "../../components/CreateItemDrawer";
+import { RelationshipSelect } from "../../components/RelationshipSelect";
+import { Cards } from "../../components/Cards";
+import { Button, buttonVariants } from "../../primitives/default/ui/button";
 
 function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   function constructQuery({ refFieldKey, itemId, value }) {
@@ -29,7 +28,7 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   if (value.kind === "many") {
     const query = constructQuery({ refFieldKey, value, itemId });
     return (
-      <Button variant="plain">
+      <Button variant="light" className="bg-transparent">
         <AdminLink href={`/${list.path}?${query}`}>
           View related {list.plural}
         </AdminLink>
@@ -38,10 +37,11 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   }
 
   return (
-    <AdminLink href={`/${list.path}/${value.value?.id}`}>
-      <Button variant="plain">
-        View {list.singular} details
-      </Button>
+    <AdminLink
+      className={cn(buttonVariants({ variant: "light" }), "bg-transparent")}
+      href={`/${list.path}/${value.value?.id}`}
+    >
+      View {list.singular} details
     </AdminLink>
   );
 }
@@ -144,85 +144,88 @@ export const Field = ({
                   }
             }
           />
-          <div className="flex space-x-2">
-            {onChange !== undefined &&
-              !field.hideCreate &&
-              onChange !== undefined && (
-                <CreateItemDrawer
-                  listKey={foreignList.key}
-                  trigger={
-                    <Button
-                      // disabled={isDrawerOpen}
-                      // onClick={() => {
-                      //   setIsDrawerOpen(true);
-                      // }}
-                      // variant="secondary"
-                      // variant="plain"
-                    >
-                      Create related {foreignList.singular}
-                    </Button>
-                  }
-                  onClose={() => {
-                    setIsDrawerOpen(false);
-                  }}
-                  onCreate={(val) => {
-                    setIsDrawerOpen(false);
-                    if (value.kind === "many") {
-                      onChange({
-                        ...value,
-                        value: [...value.value, val],
-                      });
-                    } else if (value.kind === "one") {
-                      onChange({
-                        ...value,
-                        value: val,
-                      });
+          {!field.hideButtons && (
+            <div className="flex space-x-2">
+              {onChange !== undefined &&
+                !field.hideCreate &&
+                onChange !== undefined && (
+                  <CreateItemDrawer
+                    listKey={foreignList.key}
+                    isDrawerOpen={isDrawerOpen}
+                    setIsDrawerOpen={setIsDrawerOpen}
+                    trigger={
+                      <Button
+                        // disabled={isDrawerOpen}
+                        // onClick={() => {
+                        //   setIsDrawerOpen(true);
+                        // }}
+                        // variant="secondary"
+                        variant="secondary"
+                      >
+                        Create related {foreignList.singular}
+                      </Button>
                     }
-                  }}
+                    onClose={() => {
+                      setIsDrawerOpen(false);
+                    }}
+                    onCreate={(val) => {
+                      setIsDrawerOpen(false);
+                      if (value.kind === "many") {
+                        onChange({
+                          ...value,
+                          value: [...value.value, val],
+                        });
+                      } else if (value.kind === "one") {
+                        onChange({
+                          ...value,
+                          value: val,
+                        });
+                      }
+                    }}
+                  />
+                )}
+              {onChange !== undefined &&
+                authenticatedItem.state === "authenticated" &&
+                authenticatedItem.listKey === field.refListKey &&
+                (value.kind === "many"
+                  ? value.value.find((x) => x.id === authenticatedItem.id) ===
+                    undefined
+                  : value.value?.id !== authenticatedItem.id) && (
+                  <Button
+                    onClick={() => {
+                      const val = {
+                        label: authenticatedItem.label,
+                        id: authenticatedItem.id,
+                      };
+                      if (value.kind === "many") {
+                        onChange({
+                          ...value,
+                          value: [...value.value, val],
+                        });
+                      } else {
+                        onChange({
+                          ...value,
+                          value: val,
+                        });
+                      }
+                    }}
+                  >
+                    {value.kind === "many" ? "Add " : "Set as "}
+                    {authenticatedItem.label}
+                  </Button>
+                )}
+              {!!(value.kind === "many"
+                ? value.value.length
+                : value.kind === "one" && value.value) && (
+                <LinkToRelatedItems
+                  itemId={value.id}
+                  refFieldKey={field.refFieldKey}
+                  list={foreignList}
+                  value={value}
                 />
               )}
-            {onChange !== undefined &&
-              authenticatedItem.state === "authenticated" &&
-              authenticatedItem.listKey === field.refListKey &&
-              (value.kind === "many"
-                ? value.value.find((x) => x.id === authenticatedItem.id) ===
-                  undefined
-                : value.value?.id !== authenticatedItem.id) && (
-                <Button
-                  color="emerald"
-                  onClick={() => {
-                    const val = {
-                      label: authenticatedItem.label,
-                      id: authenticatedItem.id,
-                    };
-                    if (value.kind === "many") {
-                      onChange({
-                        ...value,
-                        value: [...value.value, val],
-                      });
-                    } else {
-                      onChange({
-                        ...value,
-                        value: val,
-                      });
-                    }
-                  }}
-                >
-                  {value.kind === "many" ? "Add " : "Set as "}
-                  {authenticatedItem.label}
-                </Button>
-              )}
-            {!!(value.kind === "many"
-              ? value.value.length
-              : value.kind === "one" && value.value) && (
-              <LinkToRelatedItems
-                itemId={value.id}
-                refFieldKey={field.refFieldKey}
-                list={foreignList}
-                value={value}
-              />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Fragment>
     </FieldContainer>
@@ -252,14 +255,14 @@ export const Cell = ({ field, item }) => {
         <Fragment key={item.id}>
           {!!index ? ", " : ""}
           <AdminLink
-            href={`/${list.path}/[id]`}
-            as={`/${list.path}/${item.id}`}
+            // href={`/${list.path}/[id]`}
+            href={`/${list.path}/${item.id}`}
           >
             {item.label || item.id}
           </AdminLink>
         </Fragment>
       ))}
-      {overflow ? `, and ${overflow} more` : null}
+      <span className="opacity-50 font-medium">{overflow ? `, and ${overflow} more` : null}</span>
     </CellContainer>
   );
 };
@@ -339,13 +342,13 @@ export const controller = (config) => {
             displayOptions: cardsDisplayOptions,
           }
         : config.fieldMeta.many
-          ? {
-              id: null,
-              kind: "many",
-              initialValue: [],
-              value: [],
-            }
-          : { id: null, kind: "one", value: null, initialValue: null },
+        ? {
+            id: null,
+            kind: "many",
+            initialValue: [],
+            value: [],
+          }
+        : { id: null, kind: "one", value: null, initialValue: null },
     deserialize: (data) => {
       if (config.fieldMeta.displayMode === "count") {
         return {
@@ -359,8 +362,8 @@ export const controller = (config) => {
           (Array.isArray(data[config.path])
             ? data[config.path]
             : data[config.path]
-              ? [data[config.path]]
-              : []
+            ? [data[config.path]]
+            : []
           ).map((x) => x.id)
         );
         return {
@@ -413,6 +416,7 @@ export const controller = (config) => {
             onChange(newItems.map((item) => item.id).join(","));
           },
         };
+        console.log({refLabelField, refSearchFields, value})
         return (
           <RelationshipSelect
             controlShouldRenderValue

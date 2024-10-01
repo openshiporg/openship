@@ -1,5 +1,5 @@
 import { useTheme } from "@keystone-ui/core";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
 /**
  * This is the component you should use when linking a Cell to an item (i.e when the Cell supports

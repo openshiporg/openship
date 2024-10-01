@@ -1,5 +1,5 @@
 import { Fragment, useRef } from "react";
-import { Sheet } from "@keystone/primitives/default/ui/sheet";
+import { Sheet } from "../../primitives/default/ui/sheet";
 
 export const DrawerBase = ({
   children,
@@ -20,7 +20,7 @@ export const DrawerBase = ({
   };
 
   return (
-    <Sheet ref={containerRef} tabIndex={-1} {...props}>
+    <Sheet tabIndex={-1} {...props}>
       {children}
     </Sheet>
   );

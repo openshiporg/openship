@@ -1,14 +1,14 @@
-import { Fields } from "@keystone/components/Fields";
 import { useKeystone, useList } from "@keystone/keystoneProvider";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
-import { Container } from "@keystone/components/Container";
-import { AdminLink } from "@keystone/components/AdminLink";
-
 import { useRouter } from "next/navigation";
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Link } from "next-view-transitions";
+import { Fields } from "../../components/Fields";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
+import { Container } from "../../components/Container";
+import { AdminLink } from "../../components/AdminLink";
+import { Button } from "../../primitives/default/ui/button";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,8 +16,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@keystone/primitives/default/ui/breadcrumb";
-import Link from "next/link";
+} from "../../primitives/default/ui/breadcrumb";
+import { basePath } from "@keystone/index";
 
 export const CreateItemPage = ({ params }) => {
   const listKey = params.listKey;
@@ -35,7 +35,7 @@ export const CreateItemPage = ({ params }) => {
 
   const router = useRouter();
 
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || "/dashboard";
+  const adminPath = basePath
 
   return (
     <Container>
@@ -51,7 +51,7 @@ export const CreateItemPage = ({ params }) => {
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 {list.isSingleton ? (
-                  <div className="ml-1 text-md font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
                     {list.label}
                   </div>
                 ) : (
@@ -111,14 +111,12 @@ export const CreateItemPage = ({ params }) => {
           <div className="mt-10 flex">
             <Button
               isLoading={createItem.state === "loading"}
-              color="blue"
               onClick={async () => {
                 const item = await createItem.create();
                 if (item) {
                   router.push(`${adminPath}/${list.path}/${item.id}`);
                 }
               }}
-              // size="lg"
               className="ml-auto"
             >
               Create {list.singular}

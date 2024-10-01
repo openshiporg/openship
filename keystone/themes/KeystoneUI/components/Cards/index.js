@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
-import { InlineEdit } from "@keystone/components/InlineEdit";
-import { InlineCreate } from "@keystone/components/InlineCreate";
-import { RelationshipSelect } from "@keystone/components/RelationshipSelect";
+import { LoadingIcon } from "../LoadingIcon";
+import { InlineEdit } from "../InlineEdit";
+import { InlineCreate } from "../InlineCreate";
+import { RelationshipSelect } from "../RelationshipSelect";
 
 import { forwardRefWithAs } from "@keystone/utils/forwardRefWithAs";
 import { useItemState } from "@keystone/utils/useItemState";
@@ -26,7 +26,7 @@ import {
   getRootGraphQLFieldsFromFieldController,
   makeDataGetter,
 } from "@keystone-6/core/admin-ui/utils";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
 const CardContainer = forwardRefWithAs(({ mode = "view", ...props }, ref) => {
   const { tones } = useTheme();

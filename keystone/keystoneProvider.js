@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useRef } from "react";
 import { keystoneDefinitions } from "./keystoneDefinitions";
 import { createUploadLink } from "apollo-upload-client";
 import { useAdminMeta } from "./utils/useAdminMeta";
@@ -8,10 +8,9 @@ import {
   InMemoryCache,
 } from "@keystone-6/core/admin-ui/apollo";
 import { useLazyMetadata } from "./utils/useLazyMetadata";
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
-import { ErrorBoundary } from "@keystone/components/ErrorBoundary";
 import { fieldViews } from "./fieldViews";
 import { Logo } from "./logo";
+import { LoadingIcon, ErrorBoundary } from "./screens";
 
 const KeystoneContext = createContext(undefined);
 
@@ -74,17 +73,21 @@ export const Provider = (props) => {
 };
 
 export const KeystoneProvider = ({ children }) => {
-  const lazyMetadataQuery = {
+  const lazyMetadataQueryRef = useRef({
     kind: "Document",
     definitions: keystoneDefinitions,
-  };
+  });
+
+  const adminConfigRef = useRef({
+    components: { Logo },
+  });
 
   return (
     <Provider
-      lazyMetadataQuery={lazyMetadataQuery}
+      lazyMetadataQuery={lazyMetadataQueryRef.current}
       fieldViews={fieldViews}
       adminMetaHash="p7mmo"
-      adminConfig={{ components: { Logo } }}
+      adminConfig={adminConfigRef.current}
       apiPath="/api/graphql"
     >
       <ErrorBoundary>{children}</ErrorBoundary>
@@ -100,7 +103,6 @@ export const useKeystone = () => {
     );
   }
   if (value.adminMeta.state === "error") {
-    console.log(value.adminMeta);
     throw new Error("An error occurred when loading Admin Metadata");
   }
   return {
@@ -130,7 +132,6 @@ export const useRawKeystone = () => {
       "useRawKeystone must be called inside a KeystoneProvider component"
     );
   }
-  console.log({ value });
   return value;
 };
 

@@ -4,7 +4,7 @@ import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 
 import { cn } from "@keystone/utils/cn";
-import { Dialog, DialogContent } from "@/registry/default/ui/dialog";
+import { Dialog, DialogContent } from "./dialog";
 
 const Command = React.forwardRef(({ className, ...props }, ref) => (
   <CommandPrimitive

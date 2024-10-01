@@ -1,5 +1,10 @@
 import { memo, useId, useMemo } from "react";
-import { FieldDescription } from "@keystone/components/FieldDescription";
+import { FieldDescription } from "../FieldDescription";
+import { Separator } from "../../primitives/default/ui/separator";
+import { Button, buttonVariants } from "../../primitives/default/ui/button";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@keystone/utils/cn";
+import { Badge } from "../../primitives/default/ui/badge";
 
 const RenderField = memo(function RenderField({
   field,
@@ -10,7 +15,10 @@ const RenderField = memo(function RenderField({
 }) {
   return (
     <field.views.Field
-      field={field.controller}
+      field={{
+        ...field.controller,
+        hideButtons: field.fieldMeta?.hideButtons,
+      }}
       onChange={useMemo(() => {
         if (onChange === undefined) return undefined;
         return (value) => {
@@ -52,7 +60,9 @@ export function Fields({
           fieldKey,
           <div key={fieldKey}>
             {field.label}:{" "}
-            <span className="text-red-600 dark:text-red-500 text-sm">{val.errors[0].message}</span>
+            <span className="text-red-600 dark:text-red-700 text-sm">
+              {val.errors[0].message}
+            </span>
           </div>,
         ];
       }
@@ -62,13 +72,14 @@ export function Fields({
           key={fieldKey}
           field={field}
           value={val.value}
-          forceValidation={forceValidation && invalidFields.has(fieldKey)}
+          forceValidation={forceValidation}
+          invalidFields={invalidFields.has(fieldKey)}
           onChange={fieldMode === "edit" ? onChange : undefined}
-          // autoFocus={index === 0}
         />,
       ];
     })
   );
+
   const rendered = [];
   const fieldGroups = new Map();
   for (const group of groups) {
@@ -77,6 +88,7 @@ export function Fields({
       fieldGroups.set(field.path, state);
     }
   }
+
   for (const field of Object.values(fields)) {
     const fieldKey = field.path;
     if (fieldGroups.has(fieldKey)) {
@@ -93,7 +105,13 @@ export function Fields({
         continue;
       }
       rendered.push(
-        <FieldGroup label={group.label} description={group.description}>
+        <FieldGroup
+          key={group.label}
+          count={group.fields.length}
+          label={group.label}
+          description={group.description}
+          collapsed={group.collapsed}
+        >
           {renderedFieldsInGroup}
         </FieldGroup>
       );
@@ -118,35 +136,54 @@ function FieldGroup(props) {
   const descriptionId = useId();
   const labelId = useId();
 
-  const divider = <div className="h-full w-px" />;
+  const divider = <Separator orientation="vertical" />;
   return (
     <div
       role="group"
       aria-labelledby={labelId}
       aria-describedby={props.description === null ? undefined : descriptionId}
     >
-      <details open>
-        <summary className="list-none outline-none">
-          <div className="flex space-x-4">
-            <div className="p-0 h-10 w-10 focus:[apply-focus-styles] open:rotate-90">
-              {downChevron}
+      <details open={!props.collapsed} className="group">
+        <summary className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer">
+          <div className="flex gap-1.5 items-center">
+            <div
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "self-start p-1 transition-transform group-open:rotate-90"
+              )}
+            >
+              <ChevronRight className="size-3" />
             </div>
             {divider}
-            <text id={labelId} className="relative text-lg font-bold">
-              {props.label}
-            </text>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <text id={labelId} className="relative text-lg/5 font-medium">
+                  {props.label}
+                </text>
+                <Badge className="text-[.7rem] py-0.5 uppercase tracking-wide font-medium">
+                  {props.children.filter((item) => item !== undefined).length}{" "}
+                  FIELD
+                  {props.children.filter((item) => item !== undefined).length >
+                  1
+                    ? "S"
+                    : ""}
+                </Badge>
+              </div>
+              {props.description !== null && (
+                <FieldDescription
+                  className="opacity-50 text-sm"
+                  id={descriptionId}
+                >
+                  {props.description}
+                </FieldDescription>
+              )}
+            </div>
           </div>
         </summary>
-        <div className="flex space-x-4">
-          <div />
+        <div className="flex ml-[2.25rem] mt-2">
           {divider}
-          <div>
-            {props.description !== null && (
-              <FieldDescription id={descriptionId}>
-                {props.description}
-              </FieldDescription>
-            )}
-            <div className="mt-12 space-y-12">{props.children}</div>
+          <div className="w-full">
+            <div className="space-y-4">{props.children}</div>
           </div>
         </div>
       </details>

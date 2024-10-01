@@ -6,21 +6,22 @@ import { writeFile, mkdir } from "fs";
 import { join } from "path";
 
 const viewMappings = {
-  "@keystone-6/core/fields/types/text/views": "@keystone/views/Text",
-  "@keystone-6/core/fields/types/password/views": "@keystone/views/Password",
-  "@keystone-6/core/fields/types/relationship/views":
-    "@keystone/views/Relationship",
-  "@keystone-6/core/fields/types/json/views": "@keystone/views/JSON",
-  "@keystone-6/core/fields/types/timestamp/views": "@keystone/views/Timestamp",
-  "@keystone-6/core/fields/types/checkbox/views": "@keystone/views/Checkbox",
-  "@keystone-6/core/fields/types/select/views": "@keystone/views/Select",
-  "@keystone-6/core/fields/types/integer/views": "@keystone/views/Integer",
-  "@keystone-6/core/fields/types/float/views": "@keystone/views/Float",
-  "@keystone-6/core/fields/types/image/views": "@keystone/views/Image",
-  "@keystone-6/core/fields/types/virtual/views": "@keystone/views/Virtual",
+  [`@keystone-6/core/fields/types/text/views`]: `@keystone/views/Text`,
+  [`@keystone-6/core/fields/types/password/views`]: `@keystone/views/Password`,
+  [`@keystone-6/core/fields/types/relationship/views`]: `@keystone/views/Relationship`,
+  [`@keystone-6/core/fields/types/json/views`]: `@keystone/views/JSON`,
+  [`@keystone-6/core/fields/types/timestamp/views`]: `@keystone/views/Timestamp`,
+  [`@keystone-6/core/fields/types/checkbox/views`]: `@keystone/views/Checkbox`,
+  [`@keystone-6/core/fields/types/select/views`]: `@keystone/views/Select`,
+  [`@keystone-6/core/fields/types/integer/views`]: `@keystone/views/Integer`,
+  [`@keystone-6/core/fields/types/float/views`]: `@keystone/views/Float`,
+  [`@keystone-6/core/fields/types/image/views`]: `@keystone/views/Image`,
+  [`@keystone-6/core/fields/types/virtual/views`]: `@keystone/views/Virtual`,
 };
 
-// console.log(viewMappings["@keystone-6/core/fields/types/timestamp/views"]);
+export function areArraysEqual(a, b) {
+  return a.length === b.length && a.every((x, i) => x === b[i])
+}
 
 const lists = initialiseLists(config);
 
@@ -80,7 +81,6 @@ const createFieldViewsFile = () => {
       console.error("Error writing file:", err);
       return;
     }
-    console.log("fieldViews.js created successfully in the keystone folder.");
   });
 };
 
@@ -180,7 +180,6 @@ export function initialiseLists(config) {
 
   // Do some introspection
   // introspectGraphQLTypes(listsRef);
-  // console.log(listsRef.ShippingMethodTaxLine);
   return listsRef;
 }
 
@@ -646,8 +645,8 @@ function getListsWithInitialisedFields(
             fieldMode: _isEnabled.update
               ? fieldModes.item
               : _isEnabled.read && fieldModes.item !== "hidden"
-                ? "read"
-                : "hidden",
+              ? "read"
+              : "hidden",
           },
 
           listView: {
@@ -673,10 +672,10 @@ function getListsWithInitialisedFields(
       (list.fields.label
         ? "label"
         : list.fields.name
-          ? "name"
-          : list.fields.title
-            ? "title"
-            : "id");
+        ? "name"
+        : list.fields.title
+        ? "title"
+        : "id");
 
     const searchFields = new Set(list.ui?.searchFields ?? []);
     if (searchFields.has("id")) {

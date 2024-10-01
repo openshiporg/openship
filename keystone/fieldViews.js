@@ -8,9 +8,11 @@ import * as view2 from "@keystone/views/Password";
 import * as view3 from "@keystone/views/Relationship";
 import * as view4 from "@keystone/views/Timestamp";
 import * as view5 from "@keystone/views/Checkbox";
-import * as view6 from "@keystone/views/Float";
+import * as view6 from "@keystone/views/Virtual";
 import * as view7 from "@keystone/views/JSON";
-import * as view8 from "@keystone/views/Integer";
+import * as view8 from "@keystone/views/Float";
+import * as view9 from "@keystone/views/Integer";
+import * as view10 from "@keystone/views/Select";
 
 export const fieldViews = [
   view0,
@@ -21,5 +23,7 @@ export const fieldViews = [
   view5,
   view6,
   view7,
-  view8
+  view8,
+  view9,
+  view10
 ];

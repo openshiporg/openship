@@ -1,13 +1,11 @@
-import { Drawer } from "@keystone/components/Modals";
-
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
-
 import { useKeystone, useList } from "@keystone/keystoneProvider";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
-import { LoadingIcon } from "@keystone/components/LoadingIcon";
+import { Drawer } from "../Modals";
+import { Fields } from "../Fields";
+import { GraphQLErrorNotice } from "../GraphQLErrorNotice";
+import { LoadingIcon } from "../LoadingIcon";
 
-export function CreateItemDrawer({ listKey, onClose, onCreate, trigger }) {
+export function CreateItemDrawer({ listKey, onClose, onCreate, trigger, isDrawerOpen, setIsDrawerOpen }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
   const createItemState = useCreateItem(list);
@@ -15,6 +13,8 @@ export function CreateItemDrawer({ listKey, onClose, onCreate, trigger }) {
   return (
     <Drawer
       title={`Create ${list.singular}`}
+      isDrawerOpen={isDrawerOpen}
+      setIsDrawerOpen={setIsDrawerOpen}
       trigger={trigger}
       actions={{
         confirm: {
@@ -23,7 +23,7 @@ export function CreateItemDrawer({ listKey, onClose, onCreate, trigger }) {
           action: async () => {
             const item = await createItemState.create();
             if (!item) {
-              throw new Error('Failed to create item'); // Throw an error if the item is not created
+              throw new Error("Failed to create item"); // Throw an error if the item is not created
             }
             if (item) {
               onCreate({ id: item.id, label: item.label || item.id });

@@ -6,7 +6,7 @@ import {
   InfoIcon,
   XIcon,
 } from "lucide-react";
-import { useToast } from "@keystone/primitives/default/ui/use-toast";
+import { useToast } from "../../primitives/default/ui/use-toast";
 import {
   Toast,
   ToastClose,
@@ -14,7 +14,7 @@ import {
   ToastProvider as TP,
   ToastTitle,
   ToastViewport,
-} from "@keystone/primitives/default/ui/toast";
+} from "../../primitives/default/ui/toast";
 // Provider
 // ------------------------------
 

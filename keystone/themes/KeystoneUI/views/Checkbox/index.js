@@ -2,11 +2,11 @@
 /** @jsx jsx */
 
 import { jsx, useTheme } from "@keystone-ui/core"
-import { Checkbox } from "@keystone/components/Checkbox"
-import { FieldContainer } from "@keystone/components/FieldContainer"
-import { FieldLabel } from "@keystone/components/FieldLabel"
-import { FieldDescription } from "@keystone/components/FieldDescription"
-import { CellContainer } from "@keystone/components/CellContainer"
+import { Checkbox } from "../../components/Checkbox"
+import { FieldContainer } from "../../components/FieldContainer"
+import { FieldLabel } from "../../components/FieldLabel"
+import { FieldDescription } from "../../components/FieldDescription"
+import { CellContainer } from "../../components/CellContainer"
 
 export const Field = ({ field, value, onChange, autoFocus }) => {
   const { fields, typography, spacing } = useTheme()

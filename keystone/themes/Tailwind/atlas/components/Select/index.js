@@ -1,6 +1,9 @@
 import { cn } from "@keystone/utils/cn";
-import { ChevronDown, ChevronDownIcon, Loader2, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
+import { RiLoader2Fill } from "@remixicon/react";
 import ReactSelect, { components, mergeStyles } from "react-select";
+import React, { useState, useCallback } from "react";
+import { Button } from "../../primitives/default/ui/button";
 export { components as selectComponents } from "react-select";
 
 const portalTarget =
@@ -17,14 +20,15 @@ const placeholderStyles =
 const selectInputStyles =
   "inline-grid [grid-template-columns:min-content_auto] col-start-1 col-end-3 row-start-1 row-end-2 pl-1 py-0.5";
 const singleValueContainerStyles = "items-center flex grid flex-1 flex-wrap";
-const multiValueContainerStyles = "items-center flex flex-1 flex-wrap gap-1";
+const multiValueContainerStyles =
+  "flex items-center flex-1 flex-wrap gap-1";
 const singleValueStyles =
   "col-start-1 col-end-3 row-start-1 row-end-2 leading-7 ml-1";
 const multiValueStyles =
   "shadow-sm overflow-hidden flex min-w-0 border-[1.5px] bg-background rounded-md items-center pl-2 gap-1 mr-1";
 const multiValueLabelStyles = "pr-1 leading-6 text-sm";
 const multiValueRemoveStyles =
-  "border-l-[1.5px] hover:bg-slate-50 dark:bg-slate-500/10 text-slate-500 dark:text-slate-600 dark:hover:bg-slate-500/20";
+  "border-l-[1.5px] hover:bg-zinc-50 dark:bg-zinc-500/10 text-zinc-500 dark:text-zinc-600 dark:hover:bg-zinc-500/20";
 const indicatorsContainerStyles =
   "items-center self-stretch flex flex-shrink-0 box-border";
 const clearIndicatorStyles =
@@ -43,9 +47,9 @@ const noOptionsMessageStyles =
 // };
 
 const optionStyles = {
-  base: "text-slate-900 dark:text-slate-200 relative rounded-sm cursor-pointer flex w-full items-center pr-2 py-2 pl-4",
-  focus: "bg-slate-50 dark:bg-slate-700",
-  selected: "font-bold bg-slate-100 dark:bg-slate-800",
+  base: "text-zinc-900 dark:text-zinc-200 relative rounded-sm cursor-pointer flex w-full items-center pr-2 py-2 pl-4",
+  focus: "bg-zinc-50 dark:bg-zinc-700",
+  selected: "font-bold bg-zinc-100 dark:bg-zinc-800",
 };
 
 const menuStyles =
@@ -77,7 +81,10 @@ const DropdownIndicator = (props) => {
 
 const LoadingIndicator = () => {
   return (
-    <Loader2 strokeWidth={2.5} className="h-5 w-5 animate-spin opacity-45" />
+    <RiLoader2Fill
+      className="size-5 shrink-0 animate-spin"
+      aria-hidden="true"
+    />
   );
 };
 
@@ -146,7 +153,17 @@ export function Select({
           ),
         noOptionsMessage: () => noOptionsMessageStyles,
       }}
-      styles={styleProxy}
+      styles={{
+        ...styleProxy,
+        menuPortal: (defaultStyles) => ({
+          ...defaultStyles,
+          zIndex: 9999,
+        }),
+        menu: (defaultStyles) => ({
+          ...defaultStyles,
+          zIndex: 9999,
+        }),
+      }}
       components={{
         LoadingIndicator,
         MultiValueRemove,
@@ -217,7 +234,36 @@ export function MultiSelect({
         MultiValueRemove,
         ClearIndicator,
         DropdownIndicator,
+        Control: CustomValueContainer,
+        // Control: CustomControl,
       }}
     />
   );
 }
+
+const CustomValueContainer = ({ children, ...props }) => {
+  return (
+    <components.Control {...props}>
+      <div className="flex flex-wrap gap-1 max-h-72 overflow-y-auto">{children[0]}</div>
+      {children[1]}
+    </components.Control>
+  );
+};
+
+const CustomControl = ({ children, ...props }) => {
+  return (
+    <components.Control {...props}>
+      {React.Children.map(children, (child) => {
+        if (child.type.name === "ValueContainer") {
+          return React.cloneElement(child, {}, [
+            <div key="values" className="max-h-72 overflow-y-auto">
+              {child.props.children[0]}
+            </div>,
+            child.props.children[1], // This is typically the input
+          ]);
+        }
+        return child;
+      })}
+    </components.Control>
+  );
+};

@@ -4,12 +4,12 @@
 import { jsx } from '@keystone-ui/core';
 import { useState } from "react"
 import { useFormattedInput } from '@keystone/utils/useFormattedInput';
-import { FieldContainer } from '@keystone/components/FieldContainer';
-import { FieldDescription } from '@keystone/components/FieldDescription';
-import { FieldLabel } from '@keystone/components/FieldLabel';
-import { TextInput } from '@keystone/components/TextInput';
-import { CellContainer } from '@keystone/components/CellContainer';
-import { CellLink } from '@keystone/components/CellLink';
+import { FieldContainer } from '../../components/FieldContainer';
+import { FieldDescription } from '../../components/FieldDescription';
+import { FieldLabel } from '../../components/FieldLabel';
+import { TextInput } from '../../components/TextInput';
+import { CellContainer } from '../../components/CellContainer';
+import { CellLink } from '../../components/CellLink';
 
 function IntegerInput({
   value,

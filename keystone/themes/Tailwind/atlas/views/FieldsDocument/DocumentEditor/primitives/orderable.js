@@ -18,7 +18,7 @@ import {
 import { createContext, useContext } from "react";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { Trash2Icon } from "lucide-react";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 
 const RemoveContext = createContext(null);
 

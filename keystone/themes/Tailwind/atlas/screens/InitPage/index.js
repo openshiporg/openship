@@ -10,9 +10,9 @@ import {
 } from "@keystone-6/core/admin-ui/utils";
 import { useRedirect } from "@keystone/utils/useRedirect";
 import { useReinitContext, useKeystone } from "@keystone/keystoneProvider";
-import Head from "next/head";
-import { Fields } from "@keystone/components/Fields";
-import { GraphQLErrorNotice } from "@keystone/components/GraphQLErrorNotice";
+import { Outfit } from "next/font/google";
+import { Button } from "../../primitives/default/ui/button";
+import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import {
   Card,
   CardContent,
@@ -20,13 +20,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@keystone/primitives/default/ui/card";
-import { Button } from "@keystone/primitives/default/ui/button";
-import { Logo } from "@keystone/logo";
-import { Outfit } from "next/font/google";
+} from "../../primitives/default/ui/card";
+import { Logo } from "../../components/Logo";
+import { Fields } from "../../components/Fields";
 
 const montserrat = Outfit({ subsets: ["latin"] });
-
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],
@@ -118,18 +116,17 @@ export function InitPage({
   };
 
   return (
-    <div className={`h-screen flex flex-col justify-center items-center bg-slate-50/75 dark:bg-background`}>
-      <div className="flex flex-col gap-2 md:gap-4 w-[350px]">
-        <div className="mx-auto">
-          <Logo size="lg" />
-        </div>
+    <div
+      className={`h-screen flex justify-center items-center bg-[#0f172a] heropattern-topography-zinc-500/10 dark:bg-background`}
+    >
+      <div className="flex flex-col gap-2 md:gap-4 basis-[450px] px-2">
         <form onSubmit={onSubmit}>
-          <Card className="shadow-sm dark:bg-gray-900/25">
+          <Card className="overflow-hidden shadow-sm dark:bg-zinc-950">
             <CardHeader>
-              <CardTitle className="text-slate-700 dark:text-white text-xl">Create Admin</CardTitle>
-              <CardDescription className="text-sm">
-                Create the first user on this instance
-              </CardDescription>
+              <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
+                CREATE ADMIN
+                <div className="h-1 w-36 mt-0.5 bg-gradient-to-r from-[#9a6a39] to-[#eeba7e] dark:from-[#9a6a39] dark:to-[#eeba7e]"></div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {error && (
@@ -148,20 +145,36 @@ export function InitPage({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full tracking-wider h-11 md:h-12"
-                color="emerald"
+                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#d7a76e] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100"
                 isLoading={
                   loading ||
                   data?.authenticate?.__typename ===
                     `${listKey}AuthenticationWithPasswordSuccess`
                 }
                 type="submit"
+                variant="light"
               >
                 GET STARTED
               </Button>
             </CardFooter>
           </Card>
         </form>
+
+        {/* {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+        {data?.authenticate?.__typename === failureTypename && (
+          <Alert
+            variant="destructive"
+            className="mt-4 bg-red-100 dark:bg-red-900"
+          >
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{data?.authenticate.message}</AlertDescription>
+          </Alert>
+        )} */}
       </div>
     </div>
   );

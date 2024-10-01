@@ -51,7 +51,7 @@ const Leaf = ({ leaf, text, children, attributes }) => {
 
   if (code) {
     children = (
-      <code className="bg-gray-200 rounded-xs inline-block font-mono text-sm px-1">
+      <code className="bg-zinc-200 rounded-xs inline-block font-mono text-sm px-1">
         {children}
       </code>
     );

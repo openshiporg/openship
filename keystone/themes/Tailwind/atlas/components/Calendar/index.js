@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Calendar as TailwindCalendar } from "@keystone/primitives/default/ui/calendar";
+import { Calendar as TailwindCalendar } from "../../primitives/default/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@keystone/primitives/default/ui/popover";
-import { Button } from "@keystone/primitives/default/ui/button";
+} from "../../primitives/default/ui/popover";
+import { Button } from "../../primitives/default/ui/button";
 
 export const Calendar = ({ ...props }) => {
   const [date, setDate] = useState(new Date());

@@ -2,17 +2,17 @@ import { Fragment, useState } from "react";
 
 // @ts-ignore
 import dumbPasswords from "dumb-passwords";
-import { CellContainer } from "@keystone/components/CellContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldLabel } from "@keystone/components/FieldLabel";
-import { TextInput } from "@keystone/components/TextInput";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { CellContainer } from "../../components/CellContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldLabel } from "../../components/FieldLabel";
+import { TextInput } from "../../components/TextInput";
+import { Button } from "../../primitives/default/ui/button";
 import { EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
 import {
   ToggleGroup,
   ToggleGroupItem,
-} from "@keystone/primitives/default/ui/toggle-group";
+} from "../../primitives/default/ui/toggle-group";
 
 function validate(value, validation, fieldLabel) {
   if (
@@ -68,7 +68,7 @@ export const Field = ({
     ? validate(value, field.validation, field.label)
     : undefined;
   const validation = validationMessage && (
-    <span className="text-red-600 dark:text-red-500 text-sm">
+    <span className="text-red-600 dark:text-red-700 text-sm">
       {validationMessage}
     </span>
   );
@@ -93,7 +93,8 @@ export const Field = ({
                 isSet: value.isSet,
               });
             }}
-            className="uppercase tracking-wide"
+            className="border border-gray-300 dark:border-gray-700 uppercase tracking-wide py-2 px-4"
+            variant="light"
           >
             {value.isSet ? "Change Password" : "Set Password"}
           </Button>
@@ -105,7 +106,7 @@ export const Field = ({
             {/* <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
               New Password
             </VisuallyHidden> */}
-            <div style={{ flexGrow: 1, flexBasis: "300px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
               <TextInput
                 id={`${field.path}-new-password`}
                 autoFocus
@@ -124,7 +125,7 @@ export const Field = ({
                 }}
               />
             </div>
-            <div style={{ flexGrow: 1, flexBasis: "300px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
               <label
                 htmlFor={`${field.path}-confirm-password`}
                 className="sr-only"
@@ -153,7 +154,7 @@ export const Field = ({
               onClick={() => {
                 setShowInputValue(!showInputValue);
               }}
-              variant="outline"
+              variant="secondary"
             >
               <span className="sr-only">
                 {showInputValue ? "Hide Text" : "Show Text"}
@@ -172,7 +173,7 @@ export const Field = ({
                   isSet: value.isSet,
                 });
               }}
-              variant="outline"
+              variant="secondary"
             >
               <span className="sr-only">Cancel</span>
               <XIcon className="w-5 h-5" />

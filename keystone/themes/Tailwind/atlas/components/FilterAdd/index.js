@@ -1,7 +1,7 @@
 import { Fragment, cloneElement, useMemo, useState } from "react";
 import { useList } from "@keystone/keystoneProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@keystone/primitives/default/ui/button";
+import { Button } from "../../primitives/default/ui/button";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@keystone/primitives/default/ui/select";
+} from "../../primitives/default/ui/select";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,9 +23,9 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from "@keystone/primitives/default/ui/dropdown-menu";
-import { ScrollArea } from "@keystone/primitives/default/ui/scroll-area";
-import { Separator } from "@keystone/primitives/default/ui/separator";
+} from "../../primitives/default/ui/dropdown-menu-depracated";
+import { ScrollArea } from "../../primitives/default/ui/scroll-area";
+import { Separator } from "../../primitives/default/ui/separator";
 
 export function FilterAdd({ listKey, filterableFields, dropdownTrigger }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,7 +34,7 @@ export function FilterAdd({ listKey, filterableFields, dropdownTrigger }) {
     <button
       type="button"
       onClick={() => setIsOpen(true)}
-      className="shadow-sm border p-[.15rem] mt-[2px] text-sm font-medium text-gray-900 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="shadow-sm border p-[.15rem] mt-[2px] text-sm font-medium text-zinc-900 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
     >
       <PlusIcon size={13} className="stroke-muted-foreground" />
     </button>
@@ -138,8 +138,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
               onClick={() => {
                 setState({ kind: "selecting-field" });
               }}
-              size="xs"
-              variant="outline"
+              variant="secondary"
             >
               <div className="sr-only">Back</div>
               <ChevronLeftIcon className="w-4 h-4" />
@@ -164,7 +163,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
             Object.keys(filtersByFieldThenType).map((fieldPath) => (
               <button
                 key={fieldPath}
-                className="rounded-sm px-2 py-1.5 text-sm w-full text-left hover:bg-gray-100 dark:hover:bg-gray-900"
+                className="rounded-sm px-2 py-1.5 text-sm w-full text-left hover:bg-zinc-100 dark:hover:bg-zinc-900"
                 onClick={() => handleSelectField(fieldPath)}
               >
                 {list.fields[fieldPath].label}
@@ -205,16 +204,18 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
               const { Filter } =
                 fieldsWithFilters[state.fieldPath].controller.filter;
               return (
-                <Filter
-                  type={state.filterType}
-                  value={state.filterValue}
-                  onChange={(value) => {
-                    setState((state) => ({
-                      ...state,
-                      filterValue: value,
-                    }));
-                  }}
-                />
+                <div className="pb-3">
+                  <Filter
+                    type={state.filterType}
+                    value={state.filterValue}
+                    onChange={(value) => {
+                      setState((state) => ({
+                        ...state,
+                        filterValue: value,
+                      }));
+                    }}
+                  />
+                </div>
               );
             })()}
         </ScrollArea>
@@ -222,12 +223,10 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
           <>
             <DropdownMenuSeparator />
             <div className="flex justify-between px-1">
-              <Button onClick={onClose} variant="plain" size="xs">
+              <Button onClick={onClose} variant="light">
                 Cancel
               </Button>
-              <Button type="submit" size="xs">
-                Apply
-              </Button>
+              <Button type="submit">Apply</Button>
             </div>
           </>
         )}

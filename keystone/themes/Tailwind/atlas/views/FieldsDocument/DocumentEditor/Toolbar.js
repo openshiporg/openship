@@ -40,7 +40,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 export function Toolbar({ documentFeatures, viewState }) {
   const relationship = useContext(DocumentFieldRelationshipsContext);

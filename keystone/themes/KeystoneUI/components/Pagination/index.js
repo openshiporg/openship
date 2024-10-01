@@ -3,7 +3,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Stack, useTheme } from "@keystone-ui/core";
 import { Select } from "@keystone-ui/fields";
 import { ChevronRightIcon, ChevronLeftIcon } from "@keystone-ui/icons";
-import { AdminLink } from "@keystone/components/AdminLink";
+import { AdminLink } from "../AdminLink";
 
 const getPaginationStats = ({ list, pageSize, currentPage, total }) => {
   let stats = "";

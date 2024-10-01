@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,51 +16,21 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@keystone/*": [
-        "keystone/*"
-      ],
-      "@assets/*": [
-        "assets/*"
-      ],
-      "@config/*": [
-        "config/*"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@utils/*": [
-        "utils/*"
-      ],
-      "@primitives/*": [
-        "primitives/*"
-      ],
-      "@pages/*": [
-        "pages/*"
-      ],
-      "@graphql/*": [
-        "graphql/*"
-      ],
-      "@svg": [
-        "svg"
-      ],
-      "@keystone/components/*": [
-        "keystone/themes/Tailwind/atlas/components/*"
-      ],
-      "@keystone/screens/*": [
-        "keystone/themes/Tailwind/atlas/screens/*"
-      ],
-      "@keystone/views/*": [
-        "keystone/themes/Tailwind/atlas/views/*"
-      ],
-      "@keystone/primitives/*": [
-        "keystone/themes/Tailwind/atlas/primitives/*"
-      ]
+      "@keystone/*": ["keystone/*"],
+      "@shopAdapters/*": ["shopAdapters/*"],
+      "@channelAdapters/*": ["channelAdapters/*"],
+      "@assets/*": ["assets/*"],
+      "@config/*": ["config/*"],
+      "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"],
+      "@primitives/*": ["primitives/*"],
+      // we are using the UI in the atlas theme for oms so we hardcode this, we should abstract the ui library in the future
+      "@ui/*": ["keystone/themes/Tailwind/atlas/primitives/default/ui/*"],
+      "@pages/*": ["pages/*"],
+      "@graphql/*": ["graphql/*"],
+      "@svg": ["svg"]
     }
   },
-  "include": [
-    "**/*.js"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.js"],
+  "exclude": ["node_modules"]
 }

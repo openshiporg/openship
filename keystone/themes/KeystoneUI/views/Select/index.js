@@ -5,12 +5,12 @@ import { jsx, Stack } from "@keystone-ui/core"
 import { SegmentedControl } from "@keystone-ui/segmented-control"
 import { Button } from "@keystone-ui/button"
 import { Text } from "@keystone-ui/core"
-import { CellContainer } from "@keystone/components/CellContainer"
-import { FieldContainer } from "@keystone/components/FieldContainer"
-import { FieldDescription } from "@keystone/components/FieldDescription"
-import { FieldLabel } from "@keystone/components/FieldLabel"
-import { MultiSelect, Select } from '@keystone/components/Select';
-import { Radio } from "@keystone/components/Radio"
+import { CellContainer } from "../../components/CellContainer"
+import { FieldContainer } from "../../components/FieldContainer"
+import { FieldDescription } from "../../components/FieldDescription"
+import { FieldLabel } from "../../components/FieldLabel"
+import { MultiSelect, Select } from '../../components/Select';
+import { Radio } from "../../components/Radio"
 
 export const Field = ({
   field,

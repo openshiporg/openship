@@ -3,7 +3,7 @@
 import { jsx, Stack, useTheme, Text } from "@keystone-ui/core";
 import { memo, useContext, useId, useMemo } from "react";
 import { ButtonContext } from "@keystone-ui/button";
-import { FieldDescription } from "@keystone/components/FieldDescription";
+import { FieldDescription } from "../FieldDescription";
 
 const RenderField = memo(function RenderField({
   field,

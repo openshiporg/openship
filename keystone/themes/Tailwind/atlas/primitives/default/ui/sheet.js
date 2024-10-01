@@ -73,7 +73,7 @@ SheetContent.displayName = SheetPrimitive.Content.displayName
 const SheetHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left p-6",
+      "flex flex-col space-y-2 text-left p-6",
       className
     )}
     {...props}

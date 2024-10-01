@@ -2,7 +2,7 @@ export function LoadingIcon() {
   return (
     <div className="flex justify-center mt-12">
       <svg
-        className="mt-auto animate-spin h-10 w-10 text-slate"
+        className="mt-auto animate-spin h-10 w-10 text-zinc"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

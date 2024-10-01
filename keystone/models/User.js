@@ -43,7 +43,9 @@ export const User = list({
       },
     }),
     shops: relationship({ ref: "Shop.user", many: true }),
+    shopPlatforms: relationship({ ref: "ShopPlatform.user", many: true }),
     channels: relationship({ ref: "Channel.user", many: true }),
+    channelPlatforms: relationship({ ref: "ChannelPlatform.user", many: true }),
     orders: relationship({ ref: "Order.user", many: true }),
     lineItems: relationship({ ref: "LineItem.user", many: true }),
     cartItems: relationship({ ref: "CartItem.user", many: true }),
@@ -52,11 +54,6 @@ export const User = list({
     apiKeys: relationship({ ref: "apiKey.user", many: true }),
     matches: relationship({ ref: "Match.user", many: true }),
     links: relationship({ ref: "Link.user", many: true }),
-    channelMetafields: relationship({
-      ref: "ChannelMetafield.user",
-      many: true,
-    }),
-    shopMetafields: relationship({ ref: "ShopMetafield.user", many: true }),
     trackingDetails: relationship({ ref: "TrackingDetail.user", many: true }),
     role: relationship({
       ref: "Role.assignedTo",

@@ -7,9 +7,9 @@ import { createDocumentEditor, DocumentEditor } from "./DocumentEditor";
 import { clientSideValidateProp } from "./DocumentEditor/component-blocks/utils";
 import { ForceValidationProvider } from "./DocumentEditor/utils";
 import { isValidURL } from "./DocumentEditor/isValidURL";
-import { FieldContainer } from "@keystone/components/FieldContainer";
-import { FieldDescription } from "@keystone/components/FieldDescription";
-import { FieldLabel } from "@keystone/components/FieldLabel";
+import { FieldContainer } from "../../components/FieldContainer";
+import { FieldDescription } from "../../components/FieldDescription";
+import { FieldLabel } from "../../components/FieldLabel";
 
 export const Field = ({
   field,

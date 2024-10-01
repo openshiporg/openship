@@ -9,7 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@keystone/primitives/default/ui/tooltip";
+} from "../../primitives/default/ui/tooltip";
 
 export const insertBlockquote = (editor) => {
   const isActive = isElementActive(editor, "blockquote");

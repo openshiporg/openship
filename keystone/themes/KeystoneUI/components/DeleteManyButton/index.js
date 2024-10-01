@@ -7,8 +7,8 @@ import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 
 import { Button } from "@keystone-ui/button";
 
-import { useToasts } from "@keystone/components/Toast";
-import { AlertDialog } from "@keystone/components/Modals";
+import { useToasts } from "../Toast";
+import { AlertDialog } from "../Modals";
 
 export function DeleteManyButton({ selectedItems, list, refetch }) {
   const [deleteItems, deleteItemsState] = useMutation(

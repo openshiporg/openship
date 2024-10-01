@@ -1,4 +1,4 @@
-import { useToast as useNewToast } from "@keystone/primitives/default/ui/use-toast";
+import { useToast as useNewToast } from "../../primitives/default/ui/use-toast";
 
 export const useToasts = () => {
   const { toast } = useNewToast();
@@ -12,6 +12,7 @@ export const useToasts = () => {
       title: title,
       description: message,
       status: status,
+      tone,
       // Include any other necessary properties for the new toast
     });
   };

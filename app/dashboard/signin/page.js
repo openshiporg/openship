@@ -1,5 +1,5 @@
 "use client";
 
-import { SignInPage } from "@keystone/screens/SignInPage";
+import { SignInPage } from "@keystone/screens";
 
-export default SignInPage
+export default SignInPage;

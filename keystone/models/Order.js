@@ -1,18 +1,39 @@
-import { LineItem } from "./LineItem";
 import {
-  integer,
   text,
   relationship,
-  virtual,
   float,
   json,
   checkbox,
+  virtual,
 } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { graphql, list } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 import { placeMultipleOrders } from "../lib/placeMultipleOrders";
-import { getMatches } from "../mutations/addMatchToCart";
+import { getMatches } from "../extendGraphqlSchema/mutations/addMatchToCart";
+
+async function applyDynamicWhereClause(context, linkId, orderId) {
+  const link = await context.query.Link.findOne({
+    where: { id: linkId },
+    query: 'id dynamicWhereClause',
+  });
+
+  if (!link || !link.dynamicWhereClause) {
+    return null;
+  }
+
+  const whereClause = {
+    ...link.dynamicWhereClause,
+    id: { equals: orderId },
+  };
+
+  const matchedOrder = await context.query.Order.findOne({
+    where: whereClause,
+    query: 'id',
+  });
+
+  return matchedOrder;
+}
 
 export const Order = list({
   hooks: {
@@ -44,8 +65,12 @@ export const Order = list({
               id
             }
             shop {
+              id
               name
+              linkMode
               links {
+                id
+                rank
                 channel {
                   id
                   name
@@ -62,52 +87,68 @@ export const Order = list({
               variantId
               sku
             }
+            cartItemsCount
           `,
         });
 
-        console.log({ order });
+        if (item.linkOrder && order.shop?.links.length > 0) {
+          const links = order.shop.links.sort((a, b) => a.rank - b.rank);
+          let matchedLinks = [];
 
-        if (item.linkOrder && order.shop?.links[0]?.channel?.id) {
-          console.log("linkOrder", item.linkOrder);
-          console.log("linkedOrderFound", order.shop?.links[0]?.channel?.id);
-
-          const cartItemsFromLink = await sudoContext.query.CartItem.createMany(
-            {
-              data: order.lineItems.map((c) => ({
-                ...c,
-                channel: {
-                  connect: { id: order.shop?.links[0]?.channel?.id },
-                },
-                order: { connect: { id: item.id } },
-                user: { connect: { id: order.user?.id } },
-              })),
+          if (order.shop.linkMode === 'sequential') {
+            for (const link of links) {
+              const matchedOrder = await applyDynamicWhereClause(sudoContext, link.id, order.id);
+              if (matchedOrder) {
+                matchedLinks.push(link);
+                break;
+              }
             }
-          );
+          } else if (order.shop.linkMode === 'simultaneous') {
+            for (const link of links) {
+              const matchedOrder = await applyDynamicWhereClause(sudoContext, link.id, order.id);
+              if (matchedOrder) {
+                matchedLinks.push(link);
+              }
+            }
+          }
 
-          console.log({ cartItemsFromLink });
+          if (matchedLinks.length > 0) {
+            for (const link of matchedLinks) {
+              await sudoContext.query.CartItem.createMany({
+                data: order.lineItems.map((c) => ({
+                  ...c,
+                  channel: { connect: { id: link.channel.id } },
+                  order: { connect: { id: item.id } },
+                  user: { connect: { id: order.user?.id } },
+                })),
+              });
+            }
 
-          if (item.processOrder) {
-            const processedOrder = await placeMultipleOrders({
-              ids: [item.id],
-              query: sudoContext.query,
+            if (item.processOrder) {
+              await placeMultipleOrders({
+                ids: [item.id],
+                query: sudoContext.query,
+              });
+            }
+          } else {
+            await sudoContext.query.Order.updateOne({
+              where: { id: item.id },
+              data: {
+                orderError: "No matching link found for this order",
+              },
             });
           }
-        } else {
-          console.log("else");
-          console.log({ item });
-
+        } else if (item.matchOrder) {
           if (item.matchOrder) {
             const cartItemsFromMatch = await getMatches({
               orderId: item.id,
               context: sudoContext,
             });
-            console.log({ cartItemsFromMatch });
 
             const order = await sudoContext.query.Order.findOne({
               where: { id: item.id },
               query: `id orderError`,
             });
-            console.log("PENDING", order);
             if (order?.orderError) {
               const updatedOrder = await sudoContext.query.Order.updateOne({
                 where: { id: item.id },
@@ -124,20 +165,22 @@ export const Order = list({
               }
             }
           }
+        } else if (order.cartItemsCount > 0 && item.processOrder) {
+          // Process the order if there are cart items and processOrder is true
+          const processedOrder = await placeMultipleOrders({
+            ids: [item.id],
+            query: sudoContext.query,
+          });
         }
       }
     },
   },
   access: {
-    // create: isSignedIn,
-    // read: rules.canReadOrders,
-    // update: rules.canUpdateOrders,
-    // delete: rules.canUpdateOrders,
     operation: {
       create: isSignedIn,
       query: isSignedIn,
       update: isSignedIn,
-      delete: isSignedIn
+      delete: isSignedIn,
     },
     filter: {
       query: rules.canReadOrders,
@@ -146,11 +189,92 @@ export const Order = list({
     },
   },
   fields: {
-    orderId: float(),
+    orderId: text(),
+    orderLink: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        async resolve(item, args, context) {
+          const order = await context.query.Order.findOne({
+            where: { id: item.id },
+            query: `
+              id
+              orderId
+              shop {
+                id
+                domain
+                platform {
+                  id
+                  orderLinkFunction
+                }
+              }
+            `,
+          });
+
+          if (!order || !order.shop) {
+            return null;
+          }
+
+          const { shop } = order;
+
+          if (shop.platform && shop.platform.orderLinkFunction) {
+            const { orderLinkFunction } = shop.platform;
+
+            if (orderLinkFunction.startsWith("http")) {
+              // External API call
+              try {
+                const response = await fetch(orderLinkFunction, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    domain: shop.domain,
+                    orderId: order.orderId,
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error(`Failed to generate order link: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                return result.orderLink;
+              } catch (error) {
+                console.error("Error generating order link:", error);
+                return `${shop.domain}/orders/${order.orderId}`;
+              }
+            } else {
+              // Internal function call
+              try {
+                const shopAdapters = await import(
+                  `../../shopAdapters/${orderLinkFunction}.js`
+                );
+                const result = await shopAdapters.generateOrderLink({
+                  domain: shop.domain,
+                  orderId: order.orderId,
+                });
+
+                if (result.error) {
+                  throw new Error(result.error);
+                }
+
+                return result.orderLink;
+              } catch (error) {
+                console.error("Error generating order link:", error);
+                return `${shop.domain}/orders/${order.orderId}`;
+              }
+            }
+          } else {
+            // Default behavior if no orderLinkFunction is specified
+            return `${shop.domain}/orders/${order.orderId}`;
+          }
+        },
+      }),
+    }),
     orderName: text(),
     email: text(),
-    first_name: text(),
-    last_name: text(),
+    firstName: text(),
+    lastName: text(),
     streetAddress1: text(),
     streetAddress2: text(),
     city: text(),
@@ -190,6 +314,38 @@ export const Order = list({
     linkOrder: checkbox(),
     matchOrder: checkbox(),
     processOrder: checkbox(),
+    readyToProcess: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        async resolve(item, args, context) {
+          const order = await context.query.Order.findOne({
+            where: { id: item.id },
+            query: "orderError status",
+          });
+          if (order.orderError) {
+            return `NOT READY: Order Error - ${order.orderError}`;
+          }
+
+          if (order.status !== "PENDING") {
+            return `NOT READY: Status is ${order.status}, needs to be PENDING`;
+          }
+
+          const cartItemsReadyToBeProcessed = await context.query.CartItem.count({
+            where: {
+              order: { id: { equals: item.id } },
+              AND: [{ error: { equals: "" } }, { purchaseId: { equals: "" } }],
+            },
+          });
+          if (cartItemsReadyToBeProcessed === 0) {
+            return "NOT READY: No cart items ready to be processed, some may have errors";
+          }
+          return "READY";
+        },
+      }),
+    }),
     ...trackingFields,
   },
+  // ui: {
+  //   listView: { initialColumns: ["lineItems", "cartItems"] },
+  // },
 });

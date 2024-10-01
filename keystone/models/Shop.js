@@ -4,8 +4,10 @@ import {
   relationship,
   virtual,
   float,
+  json,
+  select,
 } from "@keystone-6/core/fields";
-import { list } from "@keystone-6/core";
+import { graphql, list, group } from "@keystone-6/core";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -19,7 +21,7 @@ export const Shop = list({
       create: isSignedIn,
       query: isSignedIn,
       update: isSignedIn,
-      delete: isSignedIn
+      delete: isSignedIn,
     },
     filter: {
       query: rules.canReadShops,
@@ -28,30 +30,49 @@ export const Shop = list({
     },
   },
   fields: {
-    name: text(),
-    type: text(),
-    domain: text({ isIndexed: "unique" }),
-    accessToken: text(),
-    searchProductsEndpoint: text(),
-    searchOrdersEndpoint: text(),
-    updateProductEndpoint: text(),
+    name: text({ validation: { isRequired: true } }),
 
-    getWebhooksEndpoint: text(),
-    createWebhookEndpoint: text(),
-    deleteWebhookEndpoint: text(),
+    ...group({
+      label: "Credentials",
+      description: "Shop credentials",
+      fields: {
+        domain: text(),
+        accessToken: text(),
+      },
+    }),
+    linkMode: select({
+      type: 'enum',
+      options: [
+        { label: 'Sequential', value: 'sequential' },
+        { label: 'Simultaneous', value: 'simultaneous' },
+      ],
+      defaultValue: 'sequential',
+    }),
+    links: relationship({ ref: "Link.shop", many: true }),
+
+    platform: relationship({
+      ref: "ShopPlatform.shops",
+      ui: {
+        displayMode: "select",
+        labelField: "name",
+      },
+    }),
 
     orders: relationship({ ref: "Order.shop", many: true }),
     shopItems: relationship({ ref: "ShopItem.shop", many: true }),
 
-    links: relationship({ ref: "Link.shop", many: true }),
-    metafields: relationship({ ref: "ShopMetafield.shop", many: true }),
+    metadata: json(),
 
     user: relationship({
       ref: "User.shops",
       hooks: {
         resolveInput({ operation, resolvedData, context }) {
           // Default to the currently logged in user on create.
-          if (operation === 'create' && !resolvedData.user && context.session?.itemId) {
+          if (
+            operation === "create" &&
+            !resolvedData.user &&
+            context.session?.itemId
+          ) {
             return { connect: { id: context.session?.itemId } };
           }
           return resolvedData.user;
@@ -59,5 +80,6 @@ export const Shop = list({
       },
     }),
     ...trackingFields,
+
   },
 });
