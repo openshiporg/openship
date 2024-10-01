@@ -22,10 +22,7 @@ import {
   AlertTitle,
 } from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Outfit } from "next/font/google";
 import Link from "next/link";
-
-const montserrat = Outfit({ subsets: ["latin"] });
 
 const SIGNUP_MUTATION = gql`
   mutation SIGNUP_MUTATION(
@@ -95,7 +92,10 @@ export const SignUpPage = () => {
           },
         });
 
-        if (signInRes.data.authenticateUserWithPassword.__typename === "UserAuthenticationWithPasswordSuccess") {
+        if (
+          signInRes.data.authenticateUserWithPassword.__typename ===
+          "UserAuthenticationWithPasswordSuccess"
+        ) {
           await reinitContext();
           router.push(redirect);
         } else {
@@ -104,7 +104,9 @@ export const SignUpPage = () => {
       }
     } catch (error) {
       if (
-        error?.message.includes("Unique constraint failed on the fields: (`email`)")
+        error?.message.includes(
+          "Unique constraint failed on the fields: (`email`)"
+        )
       ) {
         router.push("/dashboard/signin");
       } else {
@@ -190,7 +192,10 @@ export const SignUpPage = () => {
         <div className="text-center">
           <span className="text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
-            <Link href="/dashboard/signin" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link
+              href="/dashboard/signin"
+              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               Sign In
             </Link>
           </span>

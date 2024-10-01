@@ -22,9 +22,7 @@ import {
   AlertTitle,
 } from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Outfit } from "next/font/google";
 
-const montserrat = Outfit({ subsets: ["latin"] });
 
 const RESET_MUTATION = gql`
   mutation RESET_MUTATION(

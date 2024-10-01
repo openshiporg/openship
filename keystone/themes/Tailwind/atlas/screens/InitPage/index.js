@@ -10,7 +10,6 @@ import {
 } from "@keystone-6/core/admin-ui/utils";
 import { useRedirect } from "@keystone/utils/useRedirect";
 import { useReinitContext, useKeystone } from "@keystone/keystoneProvider";
-import { Outfit } from "next/font/google";
 import { Button } from "../../primitives/default/ui/button";
 import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import {
@@ -21,10 +20,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../../primitives/default/ui/card";
-import { Logo } from "../../components/Logo";
 import { Fields } from "../../components/Fields";
 
-const montserrat = Outfit({ subsets: ["latin"] });
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],

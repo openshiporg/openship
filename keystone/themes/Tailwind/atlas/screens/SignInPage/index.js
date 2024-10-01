@@ -21,11 +21,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "../../primitives/default/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { Outfit } from "next/font/google";
-import { Logo } from "../../components/Logo";
 
-const montserrat = Outfit({ subsets: ["latin"] });
 
 export const SignInPage = ({
   identityField = "email",
