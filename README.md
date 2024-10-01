@@ -125,5 +125,4 @@ Openship wouldn't be here without these great projects
 - [Keystone.js](https://keystonejs.com/)
 - [Prisma](https://prisma.io/)
 - [Shadcn/ui](https://mantine.dev/)
-
-[Full Credits](https://github.com/openshiporg/openship/blob/main/package.json)
+- [Full Credits](https://github.com/openshiporg/openship/blob/main/package.json)
