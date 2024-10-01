@@ -26,6 +26,11 @@ const nextConfig = {
         destination: "/api/graphql",
         permanent: false,
       },
+      {
+        source: "/",
+        destination: "/dashboard",
+        permanent: true,
+      },
     ];
   },
 };
