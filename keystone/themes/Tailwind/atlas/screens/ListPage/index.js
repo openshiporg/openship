@@ -141,7 +141,6 @@ export const ListPageTemplate = ({ listKey }) => {
   const sort = useSort(list, orderableFields);
   const filters = useFilters(list, filterableFields);
 
-
   const searchFields = Object.keys(list.fields).filter(
     (key) => list.fields[key].search
   );
@@ -280,7 +279,7 @@ export const ListPageTemplate = ({ listKey }) => {
                 )} */}
             </BreadcrumbList>
           </Breadcrumb>
-          <div className="flex mt-2 mb-4">
+          <div className="flex flex-col sm:flex-row mt-2 mb-4 gap-4 justify-between">
             <div className="flex-col items-center">
               <h1 className="text-lg font-semibold md:text-2xl">
                 {list.label}
@@ -297,9 +296,7 @@ export const ListPageTemplate = ({ listKey }) => {
               </p>
             </div>
             {data.count || query.search || filters.filters.length ? (
-              <div className="ml-auto">
-                {showCreate && <CreateButtonLink list={list} />}
-              </div>
+              <div>{showCreate && <CreateButtonLink list={list} />}</div>
             ) : null}
           </div>
           <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
@@ -381,7 +378,7 @@ export const ListPageTemplate = ({ listKey }) => {
                   dropdownTrigger={
                     <button
                       type="button"
-                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-gray-600 bg-white dark:bg-slate-800 rounded-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:text-slate-300 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+                      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
                     >
                       <Columns3 size={12} className="stroke-muted-foreground" />
                       COLUMNS
