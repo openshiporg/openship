@@ -17,7 +17,7 @@ const RenderField = memo(function RenderField({
     <field.views.Field
       field={{
         ...field.controller,
-        hideButtons: field.fieldMeta.hideButtons,
+        hideButtons: field.fieldMeta?.hideButtons,
       }}
       onChange={useMemo(() => {
         if (onChange === undefined) return undefined;

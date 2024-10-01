@@ -203,18 +203,19 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
             (() => {
               const { Filter } =
                 fieldsWithFilters[state.fieldPath].controller.filter;
-              console.log({ state });
               return (
-                <Filter
-                  type={state.filterType}
-                  value={state.filterValue}
-                  onChange={(value) => {
-                    setState((state) => ({
-                      ...state,
-                      filterValue: value,
-                    }));
-                  }}
-                />
+                <div className="pb-3">
+                  <Filter
+                    type={state.filterType}
+                    value={state.filterValue}
+                    onChange={(value) => {
+                      setState((state) => ({
+                        ...state,
+                        filterValue: value,
+                      }));
+                    }}
+                  />
+                </div>
               );
             })()}
         </ScrollArea>
