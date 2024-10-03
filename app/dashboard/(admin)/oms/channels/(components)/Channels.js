@@ -29,6 +29,12 @@ import {
   differenceInMinutes,
   differenceInHours,
 } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@ui/tooltip";
 
 export const CHANNELS_QUERY = gql`
   query (
@@ -80,6 +86,17 @@ function formatDate(dateString) {
     return format(date, "PPP");
   }
 }
+
+const tabsData = [
+  { value: "orders", icon: TicketIcon, label: "Orders" },
+  {
+    value: "matches",
+    icon: Square2StackIcon,
+    label: "Matches",
+    count: "channelItemsCount",
+  },
+  { value: "webhooks", icon: Webhook, label: "Webhooks" },
+];
 
 export const Channels = ({ openDrawer, selectedPlatform }) => {
   const { data, loading, error, refetch } = useQuery(CHANNELS_QUERY, {
@@ -145,92 +162,90 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
             .map((channel) => (
               <div key={channel.id} className="flex flex-col -space-y-4">
                 <div className="overflow-hidden rounded-xl pt-4 border flex flex-col gap-5 relative *:relative dark:bg-black dark:border-white/15 before:absolute before:inset-0 before:border-white before:from-zinc-100 dark:before:border-white/20 before:bg-gradient-to-bl dark:before:from-zinc-500/15 dark:before:to-transparent before:shadow dark:before:shadow-zinc-950">
-                  <div className="px-4 flex flex-col sm:flex-row sm:items-start gap-4">
-                    <div className="self-start">
-                      <Badge
-                        color="teal"
-                        className="uppercase tracking-wide border-2 text-xl flex items-center justify-center w-14 h-14 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
-                      >
-                        {channel.name.slice(0, 2)}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <h3 className="mr-2">{channel.name}</h3>
+                  <div className="px-4 flex gap-1 justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="self-start">
+                        <Badge
+                          color="teal"
+                          className="uppercase tracking-wide border-2 text-xl flex items-center justify-center w-14 h-14 font-medium rounded-[calc(theme(borderRadius.xl)-1px)]"
+                        >
+                          {channel.name.slice(0, 2)}
+                        </Badge>
                       </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <h3 className="mr-2">{channel.name}</h3>
+                        </div>
 
-                      <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-sm">
-                        {channel.platform ? (
-                          <div className="text-muted-foreground/75 flex items-center gap-2">
-                            <div className="rounded-full text-teal-400 bg-teal-400/20 dark:text-teal-500 dark:bg-teal-400/20 p-1">
-                              <div className="h-2 w-2 rounded-full bg-current" />
+                        <div className="flex flex-wrap flex-col sm:flex-row sm:items-center gap-2 text-zinc-500 dark:text-zinc-400 text-sm">
+                          {channel.platform ? (
+                            <div className="text-muted-foreground/75 flex items-center gap-2">
+                              <div className="rounded-full text-teal-400 bg-teal-400/20 dark:text-teal-500 dark:bg-teal-400/20 p-1">
+                                <div className="h-2 w-2 rounded-full bg-current" />
+                              </div>
+                              {channel.platform.name}
                             </div>
-                            {channel.platform.name}
-                          </div>
-                        ) : (
-                          <div className="text-red-500 flex items-center gap-2 font-medium">
-                            <div className="rounded-full text-red-400 bg-red-400/20 dark:text-red-400 dark:bg-red-400/10 p-1">
-                              <div className="h-2 w-2 rounded-full bg-current" />
+                          ) : (
+                            <div className="text-red-500 flex items-center gap-2 font-medium">
+                              <div className="rounded-full text-red-400 bg-red-400/20 dark:text-red-400 dark:bg-red-400/10 p-1">
+                                <div className="h-2 w-2 rounded-full bg-current" />
+                              </div>
+                              Platform not connected
                             </div>
-                            Platform not connected
-                          </div>
-                        )}
-                        <span className="block size-1 rounded-full bg-muted-foreground/50" />
-                        <p className="text-muted-foreground text-sm font-light">
-                          Last updated {formatDate(channel.updatedAt)}
-                        </p>
+                          )}
+                          <span className="hidden sm:block size-1 rounded-full bg-muted-foreground/50" />
+                          <p className="text-muted-foreground text-sm font-light">
+                            Last updated {formatDate(channel.updatedAt)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <Button
-                      variant="secondary"
-                      className="ml-auto px-1.5"
-                      onClick={() => openDrawer(channel.id, "Channel")}
-                    >
-                      <EllipsisVertical className="size-2.5" />
-                    </Button>
+                    <div>
+                      <Button
+                        variant="secondary"
+                        className="px-1.5"
+                        onClick={() => openDrawer(channel.id, "Channel")}
+                      >
+                        <EllipsisVertical className="size-2.5" />
+                      </Button>
+                    </div>
                   </div>
                   <Tabs>
-                    <TabsList className="px-4" variant="line">
-                      <TabsTrigger value="orders" className="inline-flex gap-2">
-                        <TicketIcon
-                          className="-ml-1 size-4"
-                          aria-hidden="true"
-                        />
-                        Orders
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="matches"
-                        className="inline-flex gap-2"
-                      >
-                        <Square2StackIcon
-                          className="-ml-1 size-4"
-                          aria-hidden="true"
-                        />
-                        Matches
-                        <Badge
-                          color="zinc"
-                          className="opacity-75 text-[.8rem]/3 px-1.5 border"
-                        >
-                          {channel.channelItemsCount}
-                        </Badge>
-                      </TabsTrigger>
-                      {/* <TabsTrigger value="links" className="inline-flex gap-2">
-                        <LinkIcon className="-ml-1 size-4" aria-hidden="true" />
-                        Links
-                        <Badge
-                          color="zinc"
-                          className="opacity-75 text-[.8rem]/3 px-1.5 border"
-                        >
-                          {channel.linksCount}
-                        </Badge>
-                      </TabsTrigger> */}
-                      <TabsTrigger
-                        value="webhooks"
-                        className="inline-flex gap-2 -mb-[3px]"
-                      >
-                        <Webhook className="-ml-1 size-4" aria-hidden="true" />
-                        Webhooks
-                      </TabsTrigger>
+                    <TabsList
+                      className="px-4 flex flex-wrap gap-2"
+                      variant="line"
+                    >
+                      <TooltipProvider>
+                        {tabsData.map((tab) => (
+                          <Tooltip key={tab.value}>
+                            <TooltipTrigger asChild>
+                              <TabsTrigger
+                                value={tab.value}
+                                className="inline-flex items-center gap-1.5"
+                              >
+                                <tab.icon
+                                  className="size-5 sm:size-4"
+                                  aria-hidden="true"
+                                />
+                                <span className="hidden sm:inline">
+                                  {tab.label}
+                                </span>
+                                {tab.count && (
+                                  <Badge
+                                    color="zinc"
+                                    className="opacity-75 text-[.65rem]/3 px-1 border ml-1"
+                                  >
+                                    {channel[tab.count]}
+                                  </Badge>
+                                )}
+                              </TabsTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="sm:hidden">
+                              {tab.label}
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </TooltipProvider>
                     </TabsList>
                     <div className="-mb-1 px-4">
                       <TabsContent value="webhooks">
@@ -243,24 +258,14 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                           <Webhooks channelId={channel.id} />
                         </p>
                       </TabsContent>
-                      {/* <TabsContent value="links">
-                        <p className="text-sm text-gray-500 sm:text-gray-500">
-                          <div>
-                            <Links
-                              channelId={channel.id}
-                              links={channel.links}
-                              refetch={refetch}
-                              editItem={openDrawer}
-                            />
-                          </div>
-                        </p>
-                      </TabsContent> */}
                       <TabsContent value="orders">
-                        <SearchOrders
-                          channelId={channel.id}
-                          searchEntry=""
-                          pageSize={10}
-                        />
+                        <div className="h-[300px]">
+                          <SearchOrders
+                            channelId={channel.id}
+                            searchEntry=""
+                            pageSize={10}
+                          />
+                        </div>
                       </TabsContent>
                     </div>
                   </Tabs>

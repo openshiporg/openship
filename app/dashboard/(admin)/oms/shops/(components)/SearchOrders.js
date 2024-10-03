@@ -275,7 +275,7 @@ function ShopCollapsible({
           e.preventDefault();
           setIsOpen(!isOpen);
         }}
-        className="list-none outline-none cursor-pointer"
+        className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer"
       >
         <div className="flex gap-3 items-center">
           <div

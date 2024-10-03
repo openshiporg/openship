@@ -144,26 +144,60 @@ const MatchesPage = () => {
     return sortedProducts.map((product) => (
       <div
         key={`${product.productId}-${product.variantId}`}
-        className="first:mt-2 mt-0 border flex space-x-2 p-2 bg-background rounded-md"
+        className="first:mt-2 mt-0 border flex flex-wrap lg:flex-nowrap p-2 bg-background rounded-md"
       >
-        {product.image && (
-          <img
-            src={product.image}
-            alt={product.title}
-            className="border w-16 h-16 object-cover rounded-md"
-          />
-        )}
-        <div className="flex-grow">
+        <div className="w-16 h-16 flex-shrink-0">
+          {product.image && (
+            <img
+              src={product.image}
+              alt={product.title}
+              className="border w-full h-full object-cover rounded-md"
+            />
+          )}
+        </div>
+        <div className="flex-grow order-3 lg:order-2 w-full lg:w-auto lg:px-4 mt-2 lg:mt-0">
           <div className="text-sm font-medium">{product.title}</div>
           <div className="text-xs text-gray-500">
             {product.productId} | {product.variantId}
           </div>
           <div className="text-sm font-medium">${product.price}</div>
         </div>
-        <ShowMatchesButton product={product} />
+        <div className="ml-auto order-2 lg:order-3">
+          <ShowMatchesButton product={product} />
+        </div>
       </div>
     ));
   };
+
+  // const renderProductList = (products) => {
+  //   const sortedProducts = sortProducts(products);
+  //   return sortedProducts.map((product) => (
+  //     <div
+  //       key={`${product.productId}-${product.variantId}`}
+  //       className="first:mt-2 mt-0 border flex flex-col gap-1 sm:flex-row p-2 bg-background rounded-md justify-between"
+  //     >
+  //       <div className="flex flex-col sm:flex-row gap-2">
+  //         {product.image && (
+  //           <img
+  //             src={product.image}
+  //             alt={product.title}
+  //             className="border w-16 h-16 object-cover rounded-md"
+  //           />
+  //         )}
+  //         <div className="flex-grow">
+  //           <div className="text-sm font-medium">{product.title}</div>
+  //           <div className="text-xs text-gray-500">
+  //             {product.productId} | {product.variantId}
+  //           </div>
+  //           <div className="text-sm font-medium">${product.price}</div>
+  //         </div>
+  //       </div>
+  //       <div>
+  //         <ShowMatchesButton product={product} />
+  //       </div>
+  //     </div>
+  //   ));
+  // };
 
   const ShopSummary = ({ shopId }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -188,7 +222,7 @@ const MatchesPage = () => {
             e.preventDefault();
             handleToggle();
           }}
-          className="list-none outline-none cursor-pointer"
+          className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer"
         >
           <div className="flex gap-3 items-center">
             <div
@@ -249,7 +283,7 @@ const MatchesPage = () => {
             e.preventDefault();
             handleToggle();
           }}
-          className="list-none outline-none cursor-pointer"
+          className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer"
         >
           <div className="flex gap-3 items-center">
             <div
@@ -317,7 +351,7 @@ const MatchesPage = () => {
   };
 
   return (
-    <main className="container mx-auto p-4">
+    <main>
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -330,11 +364,11 @@ const MatchesPage = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex flex-col sm:flex-row mb-4 gap-2 justify-between">
+      <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
         <div>
-          <h1 className="text-lg font-semibold md:text-2xl">Matches</h1>
+          <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
           <p className="text-muted-foreground">
-            Manage and sync inventory matches across shops and channels
+            Manage matches across shops and channels
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -344,7 +378,10 @@ const MatchesPage = () => {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList variant="solid" className="border w-auto shadow-inner">
+        <TabsList
+          variant="solid"
+          className="border w-auto shadow-inner flex-wrap"
+        >
           <TabsTrigger
             value="shop"
             className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
@@ -368,7 +405,7 @@ const MatchesPage = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="shop">
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="flex items-center space-x-2 mb-2">
             <div className="relative flex-grow">
               <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
               <Input
@@ -392,7 +429,7 @@ const MatchesPage = () => {
             placeholder={
               <Badge
                 color="sky"
-                className="border mr-1 flex items-center gap-2 text-sm py-0.5 pr-1 pl-1.5"
+                className="uppercase tracking-wide border mr-1 flex items-center gap-2 text-[.825rem] py-0.5 px-2 font-medium"
               >
                 Select shop...
               </Badge>
@@ -407,12 +444,12 @@ const MatchesPage = () => {
           </div>
         </TabsContent>
         <TabsContent value="channel">
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="flex items-center space-x-2 mb-2">
             <div className="relative flex-grow">
               <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
               <Input
                 type="search"
-                className="pl-10"
+                className="pl-10 shadow-none"
                 placeholder="Search products..."
                 value={searchString}
                 onChange={(e) => setSearchString(e.target.value)}
@@ -431,7 +468,7 @@ const MatchesPage = () => {
             placeholder={
               <Badge
                 color="sky"
-                className="border mr-1 flex items-center gap-2 text-sm py-0.5 pr-1 pl-1.5"
+                className="uppercase tracking-wide border mr-1 flex items-center gap-2 text-[.825rem] py-0.5 px-2 font-medium"
               >
                 Select channel...
               </Badge>

@@ -5,37 +5,58 @@ import { Channels } from "./(components)/Channels";
 import { CreateChannel } from "./(components)/CreateChannel";
 import { PlatformCard } from "./(components)/PlatformCard";
 import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
+import { Link } from "next-view-transitions";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@keystone/themes/Tailwind/atlas/primitives/default/ui/breadcrumb";
 
 const ChannelsPage = () => {
   const { openEditDrawer } = useDrawer();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
   return (
-    <div>
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-baseline justify-between border-b pb-6 pt-8 gap-4">
-          <h1 className="text-4xl font-bold tracking-tight">Channels</h1>
-          <div className="flex gap-4 items-center">
-            <CreateChannel />
-          </div>
-        </div>
+    <main>
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink as={Link} href="/dashboard">
+              Dashboard
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Channels</BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-        <section className="pt-6 flex flex-col gap-4">
-          <div>
-            <PlatformCard
-              openDrawer={openEditDrawer}
-              setSelectedPlatform={setSelectedPlatform}
-            />
-          </div>
-          <div>
-            <Channels
-              openDrawer={openEditDrawer}
-              selectedPlatform={selectedPlatform}
-            />
-          </div>
-        </section>
-      </main>
-    </div>
+      <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
+        <div>
+          <h1 className="text-xl font-semibold md:text-2xl">Channels</h1>
+          <p className="text-muted-foreground">Manage channels and their products</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <CreateChannel />
+        </div>
+      </div>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <PlatformCard
+            openDrawer={openEditDrawer}
+            setSelectedPlatform={setSelectedPlatform}
+          />
+        </div>
+        <div>
+          <Channels
+            openDrawer={openEditDrawer}
+            selectedPlatform={selectedPlatform}
+          />
+        </div>
+      </section>
+    </main>
   );
 };
 

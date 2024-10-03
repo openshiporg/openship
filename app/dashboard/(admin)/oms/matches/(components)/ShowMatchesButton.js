@@ -100,19 +100,28 @@ export const ShowMatchesButton = ({ product, onMatchAction }) => {
 
   return (
     <Sheet onOpenChange={handleSheetOpen}>
-      <SheetTrigger asChild>
+      <SheetTrigger>
         <Button
-          className="mt-auto cursor-pointer text-xs border font-medium uppercase tracking-wide py-1 px-1.5"
+          className="text-nowrap cursor-pointer text-xs border font-medium uppercase tracking-wide py-1 px-1.5"
           variant="secondary"
           isLoading={countLoading}
+          disabled={countData?.matchesCount === 0}
         >
-          Show Matches
+          {countData?.matchesCount}
+          {" "}Match{countData?.matchesCount !== 1 && "es"}
+        </Button>
+
+        {/* <Badge
+          color="zinc"
+          className="uppercase tracking-wide border flex items-center gap-2 text-[.825rem] py-0.5 px-2 font-medium"
+        >
+          Matches
           {!countLoading && countData && (
-            <Badge className="border py-0.5 px-1.5 text-xs ml-2">
+            <Badge color="zinc"className="border py-0.5 px-1.5 text-xs">
               {countData.matchesCount}
             </Badge>
           )}
-        </Button>
+        </Badge> */}
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
