@@ -355,10 +355,12 @@ const MatchesPage = () => {
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} href="/dashboard">
-              Dashboard
+            <BreadcrumbLink>
+              <Link href="/dashboard">Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>OMS</BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Matches</BreadcrumbItem>
         </BreadcrumbList>

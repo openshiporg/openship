@@ -153,25 +153,25 @@ export const HomePage = () => {
             title="Orders"
             icon={TicketIcon}
             color="orange"
-            href="/dashboard/oms/orders"
+            href="/oms/orders"
           />
           <OmsCard
             title="Shops"
             icon={Square3Stack3DIcon}
             color="indigo"
-            href="/dashboard/oms/shops"
+            href="/oms/shops"
           />
           <OmsCard
             title="Channels"
             icon={CircleStackIcon}
             color="emerald"
-            href="/dashboard/oms/channels"
+            href="/oms/channels"
           />
           <OmsCard
             title="Matches"
             icon={Square2StackIcon}
             color="violet"
-            href="/dashboard/oms/matches"
+            href="/oms/matches"
           />
         </div>
       </div>

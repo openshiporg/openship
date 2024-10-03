@@ -23,10 +23,12 @@ const ChannelsPage = () => {
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} href="/dashboard">
-              Dashboard
+            <BreadcrumbLink>
+              <Link href="/dashboard">Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>OMS</BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Channels</BreadcrumbItem>
         </BreadcrumbList>
@@ -35,7 +37,9 @@ const ChannelsPage = () => {
       <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
         <div>
           <h1 className="text-xl font-semibold md:text-2xl">Channels</h1>
-          <p className="text-muted-foreground">Manage channels and their products</p>
+          <p className="text-muted-foreground">
+            Manage channels and their products
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <CreateChannel />

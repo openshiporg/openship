@@ -535,6 +535,8 @@ export const OrderPage = () => {
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
+              <BreadcrumbItem>OMS</BreadcrumbItem>
+              <BreadcrumbSeparator />
               <BreadcrumbItem>{list.label}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
