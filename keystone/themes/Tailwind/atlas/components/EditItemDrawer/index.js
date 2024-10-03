@@ -29,6 +29,7 @@ import {
 import { useToasts } from "../Toast";
 import { DrawerBase } from "../Modals/DrawerBase";
 import {
+  Sheet,
   SheetClose,
   SheetContent,
   SheetDescription,
@@ -263,14 +264,14 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
   };
 
   return (
-    <DrawerBase
+    <Sheet
       onSubmit={handleSave}
       onClose={closeDrawer}
       onOpenChange={closeDrawer}
       width="narrow"
       open={open}
     >
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex flex-col w-full sm:w-[540px]">
         <SheetHeader className="border-b">
           <SheetTitle className="flex flex-col gap-1">
             Edit {list.singular}
@@ -347,7 +348,7 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
             )}
           </div>
         </ScrollArea>
-        <SheetFooter className="flex justify-between gap-0 border-t p-2">
+        <SheetFooter className="border-t p-2">
           <SheetClose asChild>
             <Button
               variant="secondary"
@@ -374,6 +375,6 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
           </Button>
         </SheetFooter>
       </SheetContent>
-    </DrawerBase>
+    </Sheet>
   );
 }
