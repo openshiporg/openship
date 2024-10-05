@@ -23,6 +23,7 @@ import {
 } from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@keystone/utils/cn";
 
 const SIGNUP_MUTATION = gql`
   mutation SIGNUP_MUTATION(
@@ -171,7 +172,12 @@ export const SignUpPage = () => {
             <CardFooter className="flex flex-col justify-between">
               <Button
                 variant="light"
-                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 dark:text-gray-100"
+                className={cn(
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 dark:text-gray-100",
+                  {
+                    "opacity-50": loading,
+                  }
+                )}
                 isLoading={loading}
                 type="submit"
               >

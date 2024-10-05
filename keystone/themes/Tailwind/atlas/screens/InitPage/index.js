@@ -20,8 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "../../primitives/default/ui/card";
+import { Logo } from "../../components/Logo";
 import { Fields } from "../../components/Fields";
-
+import { cn } from "@keystone/utils/cn";
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],
@@ -142,7 +143,15 @@ export function InitPage({
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button
-                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#d7a76e] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100"
+                className={cn(
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#d7a76e] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100",
+                  {
+                    "opacity-50":
+                      loading ||
+                      data?.authenticate?.__typename ===
+                        `${listKey}AuthenticationWithPasswordSuccess`,
+                  }
+                )}
                 isLoading={
                   loading ||
                   data?.authenticate?.__typename ===

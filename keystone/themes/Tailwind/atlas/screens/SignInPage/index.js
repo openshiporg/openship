@@ -21,7 +21,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "../../primitives/default/ui/alert";
-
+import { cn } from "@keystone/utils/cn";
 
 export const SignInPage = ({
   identityField = "email",
@@ -197,7 +197,15 @@ export function SignInTemplate({
             <CardFooter className="flex flex-col justify-between">
               <Button
                 variant="light"
-                className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900 dark:text-gray-100"
+                className={cn(
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900 dark:text-gray-100",
+                  {
+                    "opacity-50":
+                      loading ||
+                      // this is for while the page is loading but the mutation has finished successfully
+                      data?.authenticate?.__typename === successTypename,
+                  }
+                )}
                 isLoading={
                   loading ||
                   // this is for while the page is loading but the mutation has finished successfully
@@ -230,40 +238,3 @@ export function SignInTemplate({
     </div>
   );
 }
-
-// import { Button } from "@/components/ui/button"
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import Link from "next/link"
-
-// export default function Component() {
-//   return (
-//     <div className="min-h-screen flex items-center justify-center bg-[#1a2332]">
-//       <Card className="w-full max-w-md">
-//         <CardHeader>
-//           <CardTitle className="text-2xl font-bold">
-//             SIGN IN
-//             <div className="h-1 w-16 bg-green-500 mt-1"></div>
-//           </CardTitle>
-//         </CardHeader>
-//         <CardContent className="space-y-4">
-//           <div className="space-y-2">
-//             <Label htmlFor="email">Email</Label>
-//             <Input id="email" placeholder="you@awesome.com" type="email" />
-//           </div>
-//           <div className="space-y-2">
-//             <div className="flex justify-between items-center">
-//               <Label htmlFor="password">Password</Label>
-//               <Link className="text-sm text-gray-400 hover:text-gray-300" href="#">
-//                 Forgot password
-//               </Link>
-//             </div>
-//             <Input id="password" placeholder="supersecretpassword" type="password" />
-//           </div>
-//           <Button className="w-full bg-green-500 hover:bg-green-600 text-white">SIGN IN</Button>
-//         </CardContent>
-//       </Card>
-//     </div>
-//   )
-// }
