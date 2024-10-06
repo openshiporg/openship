@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   useQuery,
@@ -87,6 +87,8 @@ import {
   ArrowPathRoundedSquareIcon,
   PlusIcon,
 } from "@heroicons/react/16/solid";
+
+import { OrdersTable } from "./(components)/OrdersTable";
 
 const PLACE_ORDERS = gql`
   mutation PLACE_ORDERS($ids: [ID!]!) {
@@ -525,7 +527,7 @@ export const OrderPage = () => {
     <>
       {metaQuery.error ? (
         "Error..."
-      ) : data && metaQuery.data ? (
+      ) : metaQuery.data ? (
         <main className="items-start gap-2 sm:py-0 md:gap-4">
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
@@ -614,18 +616,22 @@ export const OrderPage = () => {
 
             <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
               <div className="flex flex-wrap gap-2 w-full items-center">
-                <PaginationNavigation
-                  list={list}
-                  total={data.count}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                />
-                <PaginationDropdown
-                  list={list}
-                  total={data.count}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                />
+                {data ? (
+                  <>
+                    <PaginationNavigation
+                      list={list}
+                      total={data.count}
+                      currentPage={currentPage}
+                      pageSize={pageSize}
+                    />
+                    <PaginationDropdown
+                      list={list}
+                      total={data.count}
+                      currentPage={currentPage}
+                      pageSize={pageSize}
+                    />
+                  </>
+                ) : null}
                 <SortSelection
                   list={list}
                   orderableFields={orderableFields}
@@ -681,81 +687,35 @@ export const OrderPage = () => {
               </div>
             )}
 
-            <div className="pb-1 pr-2 pl-3.5">
-              <PaginationStats
-                list={list}
-                total={data.count}
-                currentPage={currentPage}
-                pageSize={pageSize}
-              />
-            </div>
-            <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
-            {data?.items?.length ? (
-              <>
-                <div className="grid grid-cols-1 divide-y">
-                  {dataGetter.get("items").data.map((order) => (
-                    // <>
-                    // {JSON.stringify(order)}
-                    // </>
-                    <OrderDetailsComponent
-                      key={order.id}
-                      order={{
-                        ...order,
-                        date: new Date(order.createdAt).toLocaleString(),
-                      }}
-                      shopId={order.shop?.id}
-                      onOrderAction={handleOrderAction}
-                      openEditDrawer={openEditDrawer}
-                      channels={channels}
-                      loadingActions={loadingActions}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div>
-                <div className="flex flex-col items-center p-10 border-dashed border-2 rounded-lg m-5">
-                  <div className="flex opacity-40">
-                    <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-                    <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-                    <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
-                  </div>
-                  {query.search || filters.filters.length ? (
-                    <>
-                      <span className="pt-4 font-semibold">
-                        No <span className="lowercase"> {list.label} </span>{" "}
-                      </span>
-                      <span className="text-muted-foreground pb-4">
-                        Found{" "}
-                        {searchParam
-                          ? `matching your search`
-                          : `matching your filters`}{" "}
-                      </span>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          updateSearchString("");
-                          const path = window.location.pathname;
-                          push(path);
-                        }}
-                      >
-                        Clear filters &amp; search
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="pt-4 font-semibold">
-                        No <span className="lowercase"> {list.label} </span>
-                      </span>
-                      <span className="text-muted-foreground pb-4">
-                        Get started by creating a new one.{" "}
-                      </span>
-                      {showCreate && <CreateButtonLink list={list} />}
-                    </>
-                  )}
-                </div>
+            {data ? (
+              <div className="pb-1 pr-2 pl-3.5">
+                <PaginationStats
+                  list={list}
+                  total={data.count}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                />
               </div>
-            )}
+            ) : null}
+            
+            <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
+
+            <OrdersTable
+              data={data}
+              error={error}
+              listKey={listKey}
+              list={list}
+              handleOrderAction={handleOrderAction}
+              openEditDrawer={openEditDrawer}
+              channels={channels}
+              loadingActions={loadingActions}
+              query={query}
+              filters={filters}
+              searchParam={searchParam}
+              updateSearchString={updateSearchString}
+              push={push}
+              showCreate={showCreate}
+            />
           </div>
 
           <Dialog

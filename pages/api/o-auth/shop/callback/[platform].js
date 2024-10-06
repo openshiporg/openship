@@ -1,6 +1,14 @@
 import { gql } from "graphql-request";
-import { CREATE_SHOP_MUTATION } from "@graphql/shops";
 import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
+
+
+export const CREATE_SHOP_MUTATION = gql`
+  mutation CREATE_SHOP_MUTATION($data: ShopCreateInput!) {
+    createShop(data: $data) {
+      id
+    }
+  }
+`;
 
 const PLATFORM_QUERY = gql`
   query GetShopPlatform($id: ID!) {

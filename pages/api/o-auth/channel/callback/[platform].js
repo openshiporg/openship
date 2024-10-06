@@ -1,6 +1,13 @@
 import { gql } from "graphql-request";
-import { CREATE_CHANNEL_MUTATION } from "@graphql/channels";
 import { checkAuth, gqlClient } from "keystone/lib/checkAuth";
+
+export const CREATE_CHANNEL_MUTATION = gql`
+  mutation CREATE_CHANNEL_MUTATION($data: ChannelCreateInput!) {
+    createChannel(data: $data) {
+      id
+    }
+  }
+`;
 
 const PLATFORM_QUERY = gql`
   query GetChannelPlatform($id: ID!) {
