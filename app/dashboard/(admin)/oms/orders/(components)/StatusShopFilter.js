@@ -129,7 +129,7 @@ export const StatusShopFilter = ({ statuses, orderCounts }) => {
           searchFields={["name"]} // Adjust if there are other searchable fields
           isLoading={loading}
           // isDisabled={onChange === undefined}
-          placeholder="Showing all orders"
+          placeholder="Showing all shop orders"
           state={state}
         />
       </div>

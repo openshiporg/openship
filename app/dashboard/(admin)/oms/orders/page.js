@@ -616,22 +616,18 @@ export const OrderPage = () => {
 
             <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
               <div className="flex flex-wrap gap-2 w-full items-center">
-                {data ? (
-                  <>
-                    <PaginationNavigation
-                      list={list}
-                      total={data.count}
-                      currentPage={currentPage}
-                      pageSize={pageSize}
-                    />
-                    <PaginationDropdown
-                      list={list}
-                      total={data.count}
-                      currentPage={currentPage}
-                      pageSize={pageSize}
-                    />
-                  </>
-                ) : null}
+                <PaginationNavigation
+                  list={list}
+                  total={data?.count || 0}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                />
+                <PaginationDropdown
+                  list={list}
+                  total={data?.count || 0}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                />
                 <SortSelection
                   list={list}
                   orderableFields={orderableFields}
@@ -687,16 +683,14 @@ export const OrderPage = () => {
               </div>
             )}
 
-            {data ? (
-              <div className="pb-1 pr-2 pl-3.5">
-                <PaginationStats
-                  list={list}
-                  total={data.count}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                />
-              </div>
-            ) : null}
+            <div className="pb-1 pr-2 pl-3.5">
+              <PaginationStats
+                list={list}
+                total={data?.count || 0}
+                currentPage={currentPage}
+                pageSize={pageSize}
+              />
+            </div>
             
             <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
 
