@@ -3,6 +3,7 @@ import { useMutation, gql } from "@keystone-6/core/admin-ui/apollo";
 import { useRouter } from "next/navigation";
 import { useReinitContext, useRawKeystone } from "@keystone/keystoneProvider";
 import { useRedirect } from "@keystone/utils/useRedirect";
+import { basePath } from "@keystone/index"; // Import basePath
 
 import {
   Card,
@@ -22,8 +23,8 @@ import {
   AlertTitle,
 } from "../../primitives/default/ui/alert";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
 import { cn } from "@keystone/utils/cn";
+import { AdminLink } from "../../components/AdminLink";
 
 const SIGNUP_MUTATION = gql`
   mutation SIGNUP_MUTATION(
@@ -109,7 +110,7 @@ export const SignUpPage = () => {
           "Unique constraint failed on the fields: (`email`)"
         )
       ) {
-        router.push("/dashboard/signin");
+        router.push(`${basePath}/signin`); // Use basePath here
       } else {
         setError(error?.message || "An error occurred during sign up.");
       }
@@ -198,12 +199,12 @@ export const SignUpPage = () => {
         <div className="text-center">
           <span className="text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
-            <Link
-              href="/dashboard/signin"
+            <AdminLink
+              href="/signin"
               className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
             >
               Sign In
-            </Link>
+            </AdminLink>
           </span>
         </div>
       </div>

@@ -44,7 +44,7 @@ export const CreateItemPage = ({ params }) => {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/dashboard">Dashboard</Link>
+                <AdminLink href="/">Dashboard</AdminLink>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

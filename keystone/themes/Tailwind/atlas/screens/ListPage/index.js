@@ -259,7 +259,7 @@ export const ListPageTemplate = ({ listKey }) => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink>
-                  <Link href="/dashboard">Dashboard</Link>
+                  <AdminLink href="/">Dashboard</AdminLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -267,13 +267,13 @@ export const ListPageTemplate = ({ listKey }) => {
               {/* {list.isSingleton ? (
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href={`/dashboard/${list.path}`}>{list.label}</Link>
+                      <AdminLink href={`/${list.path}`}>{list.label}</AdminLink>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                 ) : (
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link href={`/dashboard/${list.path}`}>{list.label}</Link>
+                      <AdminLink href={`/${list.path}`}>{list.label}</AdminLink>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                 )} */}

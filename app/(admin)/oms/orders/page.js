@@ -89,6 +89,7 @@ import {
 } from "@heroicons/react/16/solid";
 
 import { OrdersTable } from "./(components)/OrdersTable";
+import { AdminLink } from "@keystone/themes/Tailwind/atlas/components/AdminLink";
 
 const PLACE_ORDERS = gql`
   mutation PLACE_ORDERS($ids: [ID!]!) {
@@ -533,7 +534,7 @@ export const OrderPage = () => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink>
-                  <Link href="/dashboard">Dashboard</Link>
+                  <AdminLink href="/">Dashboard</AdminLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />

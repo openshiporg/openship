@@ -45,7 +45,7 @@ $ yarn install
 $ yarn dev
 ```
 
-### Openship: http://localhost:3000/dashboard
+### Openship: http://localhost:3000
 
 Once the application is running, go to localhost:3000. If there are no users in the database, you'll be redirected to localhost:3000/init where you can create the admin user.
 

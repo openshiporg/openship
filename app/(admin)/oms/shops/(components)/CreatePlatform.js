@@ -24,11 +24,11 @@ import {
   SelectValue,
 } from "@ui/select";
 import { Label } from "@ui/label";
-import { channelAdapters as adapters } from "../../../../../../channelAdapters";
-import { getFilteredProps } from "./CreateChannel";
+import { shopAdapters as adapters } from "../../../../../shopAdapters";
+import { getFilteredProps } from "./CreateShop";
 import { Badge } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/badge";
 
-export const channelAdapters = {
+export const shopAdapters = {
   ...adapters,
   Medusa: "soon",
   Magento: "soon",
@@ -39,22 +39,26 @@ export function CreatePlatform({ refetch, trigger }) {
   const [selectedPlatform, setSelectedPlatform] = useState(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const list = useList("ChannelPlatform");
+  const list = useList("ShopPlatform");
   const { create, props, state, error } = useCreateItem(list);
   const { createViewFieldModes } = useKeystone();
 
   const keysToUpdateCustom = [
     "name",
-    "createPurchaseFunction",
+    "orderLinkFunction",
+    "updateProductFunction",
     "getWebhooksFunction",
     "deleteWebhookFunction",
     "createWebhookFunction",
     "searchProductsFunction",
     "getProductFunction",
-    "cancelPurchaseWebhookHandler",
-    "createTrackingWebhookHandler",
+    "searchOrdersFunction",
+    "addTrackingFunction",
+    "addCartToPlatformOrderFunction",
     "oAuthFunction",
     "oAuthCallbackFunction",
+    "cancelOrderWebhookHandler",
+    "createOrderWebhookHandler",
     "appKey",
     "appSecret",
   ];
@@ -139,7 +143,7 @@ export function CreatePlatform({ refetch, trigger }) {
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Channel Platform</DialogTitle>
+          <DialogTitle>Create Shop Platform</DialogTitle>
           <DialogDescription>
             {selectedPlatform === "custom"
               ? "Create a custom platform from scratch by providing the necessary fields"
@@ -159,11 +163,11 @@ export function CreatePlatform({ refetch, trigger }) {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel className="-ml-6">Templates</SelectLabel>
-                {Object.keys(channelAdapters).map((key) => (
+                {Object.keys(shopAdapters).map((key) => (
                   <SelectItem
                     key={key}
                     value={key}
-                    disabled={channelAdapters[key] === "soon"}
+                    disabled={shopAdapters[key] === "soon"}
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                   </SelectItem>

@@ -16,27 +16,8 @@ import {
   SidebarSection,
   SidebarSpacer,
 } from "../../primitives/default/ui/sidebar";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownMenu,
-  DropdownItem,
-  DropdownDivider,
-  DropdownLabel,
-} from "../../primitives/default/ui/dropdown-menu";
-import { Avatar } from "../../primitives/default/ui/avatar";
 import { Logo } from "../Logo";
-import { Link } from "next-view-transitions";
-import {
-  ArrowRightStartOnRectangleIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Cog8ToothIcon,
-  LightBulbIcon,
-  PlusIcon,
-  ShieldCheckIcon,
-  UserIcon,
-} from "@heroicons/react/16/solid";
+
 import {
   Cog6ToothIcon,
   HomeIcon,
@@ -57,6 +38,7 @@ import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { AccountDropdown } from "./AccountDropdown";
 import { ThemeToggle } from "./ThemeToggle";
 import { AccountDropdownMobile } from "./AccountDropdownMobile";
+import { AdminLink } from "../AdminLink";
 
 export function NavigationSidebar({
   authenticatedItem,
@@ -85,23 +67,23 @@ export function NavigationSidebar({
           </SidebarHeader>
           <SidebarBody className="flex flex-col">
             <SidebarSection>
-              <SidebarItem key="dashboard" href="/dashboard">
+              <SidebarItem key="dashboard" href="/" as={AdminLink}>
                 <HomeIcon className="w-6 h-6" />
                 <SidebarLabel>Home</SidebarLabel>
               </SidebarItem>
-              <SidebarItem key="orders" href="/dashboard/oms/orders">
+              <SidebarItem key="orders" href="/oms/orders" as={AdminLink}>
                 <TicketIcon className="w-6 h-6" />
                 <SidebarLabel>Orders</SidebarLabel>
               </SidebarItem>
-              <SidebarItem key="shops" href="/dashboard/oms/shops">
+              <SidebarItem key="shops" href="/oms/shops" as={AdminLink}>
                 <Square3Stack3DIcon className="w-6 h-6" />
                 <SidebarLabel>Shops</SidebarLabel>
               </SidebarItem>
-              <SidebarItem key="channels" href="/dashboard/oms/channels">
+              <SidebarItem key="channels" href="/oms/channels" as={AdminLink}>
                 <CircleStackIcon className="w-6 h-6" />
                 <SidebarLabel>Channels</SidebarLabel>
               </SidebarItem>
-              <SidebarItem key="matches" href="/dashboard/oms/matches">
+              <SidebarItem key="matches" href="/oms/matches" as={AdminLink}>
                 <Square2StackIcon className="w-6 h-6" />
                 <SidebarLabel>Matches</SidebarLabel>
               </SidebarItem>
@@ -118,7 +100,7 @@ export function NavigationSidebar({
             {!isDashboardCollapsed && (
               <SidebarSection className="flex-1 overflow-y-auto no-scrollbar min-h-0 mb-1 gap-0">
                 {sidebarLinks.map(({ title, href }) => (
-                  <SidebarItem className="ml-4" key={href} href={`/dashboard${href}`}>
+                  <SidebarItem className="ml-4" key={href} href={href} as={AdminLink}>
                     {title}
                   </SidebarItem>
                 ))}

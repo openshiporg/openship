@@ -3,6 +3,7 @@ import { useMutation, gql } from "@keystone-6/core/admin-ui/apollo";
 import { useRouter } from "next/navigation";
 import { useReinitContext, useRawKeystone } from "@keystone/keystoneProvider";
 import { useRedirect } from "@keystone/utils/useRedirect";
+import { basePath } from "@keystone/index"; // Import basePath
 
 import {
   Card,
@@ -82,7 +83,7 @@ export function ResetPage() {
           setError(data.redeemUserPasswordResetToken.message);
         } else {
           setSuccess("Password has been reset. You can now sign in.");
-          setTimeout(() => router.push("/dashboard/signin"), 3000);
+          setTimeout(() => router.push(`${basePath}/signin`), 3000); // Use basePath here
         }
       } else {
         const { data } = await requestResetMutate({

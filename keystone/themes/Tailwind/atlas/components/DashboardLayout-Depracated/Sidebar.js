@@ -12,6 +12,7 @@ import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 import { RiRefreshLine } from "@remixicon/react";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { Logo } from "../Logo";
+import { AdminLink } from "../AdminLink";
 
 export function Sidebar({ sidebarNav, authenticatedItem, children }) {
   const sidebar = useRef(null);
@@ -100,17 +101,17 @@ export function SideBarUI({
         <Logo />
       </Link>
       <nav className="grid items-start px-2 font-medium lg:px-4">
-        <Link
-          href="/dashboard"
+        <AdminLink
+          href="/"
           className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary"
         >
           <div className="bg-emerald-50/50 dark:bg-emerald-900/20 shadow-sm border-[1.5px] border-emerald-200 dark:border-emerald-800 rounded-lg p-1.5">
             <Home className="h-4 w-4 stroke-emerald-500" />
           </div>
           Orders
-        </Link>
-        <Link
-          href="/dashboard/oms/matches"
+        </AdminLink>
+        <AdminLink
+          href="/oms/matches"
           className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary"
         >
           <div className="bg-rose-50/50 dark:bg-rose-900/20 shadow-sm border-[1.5px] border-rose-200 dark:border-rose-800 rounded-lg p-1.5">
@@ -120,7 +121,7 @@ export function SideBarUI({
             />
           </div>
           Matches
-        </Link>
+        </AdminLink>
         <Link
           href="/api/graphql"
           className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary"
@@ -171,7 +172,7 @@ export function SideBarUI({
                 >
                   {sidebarNav.map(({ title, href }) => (
                     <li className="max-h-full">
-                      <SidebarLink className="pt-3" href={`/dashboard${href}`}>
+                      <SidebarLink as={AdminLink} className="pt-3" href={`${href}`}>
                         {title}
                       </SidebarLink>
                     </li>

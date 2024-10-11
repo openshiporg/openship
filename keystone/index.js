@@ -13,7 +13,7 @@ const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
 const listKey = "User";
 
-export const basePath = "/dashboard"
+export const basePath = "/"
 
 const sessionConfig = {
   maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?

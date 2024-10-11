@@ -302,31 +302,6 @@ export const MatchList = ({ onMatchAction, showCreate }) => {
         "Error..."
       ) : metaQuery.data ? (
         <main className="items-start gap-2 sm:py-0 md:gap-4">
-          {/* <Breadcrumb className="hidden md:flex">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink>
-                  <Link href="/dashboard">Dashboard</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>{list.label}</BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <div className="flex mt-2 mb-4">
-            <div className="flex-col items-center">
-              <h1 className="text-lg font-semibold md:text-2xl">{list.label}</h1>
-              <p className="text-muted-foreground">
-                {list.description ||
-                  `Create and manage ${list.label.toLowerCase()}`}
-              </p>
-            </div>
-            {data?.count || searchString || filters.filters.length ? (
-              <div className="ml-auto">
-                {showCreate && <CreateButtonLink list={list} />}
-              </div>
-            ) : null}
-          </div> */}
           <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
             <div className="flex gap-3 py-3 px-3">
               <div className="relative w-full">

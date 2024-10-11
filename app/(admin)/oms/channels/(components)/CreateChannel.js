@@ -15,12 +15,12 @@ import {
 import { Fields } from "@keystone/themes/Tailwind/atlas/components/Fields";
 import { useQuery, gql } from "@keystone-6/core/admin-ui/apollo";
 import { GraphQLErrorNotice } from "@keystone/themes/Tailwind/atlas/components/GraphQLErrorNotice";
-import { SHOP_PLATFORMS_QUERY } from "./ShopPlatforms";
-import { SHOPS_QUERY } from "./Shops";
+import { CHANNEL_PLATFORMS_QUERY } from "./ChannelPlatforms";
+import { CHANNELS_QUERY } from "./Channels";
 
-const GET_SHOP_PLATFORM_DETAILS = gql`
+const GET_CHANNEL_PLATFORM_DETAILS = gql`
   query ($id: ID!) {
-    shopPlatform(where: { id: $id }) {
+    channelPlatform(where: { id: $id }) {
       id
       name
       appKey
@@ -95,12 +95,12 @@ export function getFilteredProps(props, modifications, defaultCollapse) {
   };
 }
 
-export function CreateShop() {
+export function CreateChannel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const list = useList("Shop");
+  const list = useList("Channel");
   const { create, props, state, error } = useCreateItem(list);
-  const { refetch } = useQuery(SHOPS_QUERY, {
+  const { refetch } = useQuery(CHANNELS_QUERY, {
     variables: {
       where: { OR: [] },
       take: 50,
@@ -128,7 +128,7 @@ export function CreateShop() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Shop</DialogTitle>
+          <DialogTitle>Create Channel</DialogTitle>
           <DialogDescription>
             Select a platform and fill in the necessary fields
           </DialogDescription>
@@ -150,9 +150,9 @@ export function CreateShop() {
             </Button>
           </DialogClose>
           {platformId && (
-            <CreateShopButton
+            <CreateChannelButton
               platformId={platformId}
-              handleShopCreation={create}
+              handleChannelCreation={create}
               refetch={refetch}
               props={props}
               state={state}
@@ -166,7 +166,7 @@ export function CreateShop() {
 }
 
 function TriggerButton({ setIsDialogOpen }) {
-  const { data, loading, error } = useQuery(SHOP_PLATFORMS_QUERY, {
+  const { data, loading, error } = useQuery(CHANNEL_PLATFORMS_QUERY, {
     variables: {
       where: { OR: [] },
       take: 50,
@@ -180,20 +180,20 @@ function TriggerButton({ setIsDialogOpen }) {
       onClick={() => setIsDialogOpen(true)}
       disabled={error || loading || data?.count === 0}
     >
-      Create Shop
+      Create Channel
     </Button>
   );
 }
 
 export function FilteredFields({ platformId, props }) {
-  const { data, loading, error } = useQuery(GET_SHOP_PLATFORM_DETAILS, {
+  const { data, loading, error } = useQuery(GET_CHANNEL_PLATFORM_DETAILS, {
     variables: { id: platformId },
   });
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error loading platform data.</p>;
 
-  const platformData = data?.shopPlatform;
+  const platformData = data?.channelPlatform;
 
   let modifications = [];
 
@@ -225,22 +225,22 @@ export function FilteredFields({ platformId, props }) {
   );
 }
 
-export function CreateShopButton({
+export function CreateChannelButton({
   platformId,
-  handleShopCreation,
+  handleChannelCreation,
   refetch,
   props,
   state,
   setIsDialogOpen,
 }) {
-  const { data, loading, error } = useQuery(GET_SHOP_PLATFORM_DETAILS, {
+  const { data, loading, error } = useQuery(GET_CHANNEL_PLATFORM_DETAILS, {
     variables: { id: platformId },
   });
 
   if (loading) return <Button disabled>Loading...</Button>;
   if (error) return <Button disabled>{JSON.stringify(error)}</Button>;
 
-  const platformData = data?.shopPlatform;
+  const platformData = data?.channelPlatform;
 
   const handleClick = async () => {
     if (
@@ -250,7 +250,7 @@ export function CreateShopButton({
       platformData?.oAuthCallbackFunction
     ) {
       const { oauth, scopes } = await import(
-        `../../../../../../shopAdapters/${platformData.oAuthFunction}`
+        `../../../../../channelAdapters/${platformData.oAuthFunction}`
       );
 
       const config = {
@@ -263,7 +263,7 @@ export function CreateShopButton({
       const domain = props.value.domain?.value?.inner?.value;
       oauth(domain, config);
     } else {
-      const item = await handleShopCreation();
+      const item = await handleChannelCreation();
       if (item) {
         refetch();
         setIsDialogOpen(false);
@@ -279,7 +279,7 @@ export function CreateShopButton({
     >
       {platformData?.oAuthFunction && platformData?.oAuthCallbackFunction && platformData?.appKey && platformData?.appSecret
         ? `Install App on ${platformData.name}`
-        : "Create Shop"}
+        : "Create Channel"}
     </Button>
   );
 }

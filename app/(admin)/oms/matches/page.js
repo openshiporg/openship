@@ -29,6 +29,7 @@ import {
   Square2StackIcon,
   Square3Stack3DIcon,
 } from "@heroicons/react/16/solid";
+import { AdminLink } from "@keystone/themes/Tailwind/atlas/components/AdminLink";
 
 const SEARCH_SHOP_PRODUCTS = gql`
   query SearchShopProducts($shopId: ID!, $searchEntry: String) {
@@ -168,36 +169,6 @@ const MatchesPage = () => {
       </div>
     ));
   };
-
-  // const renderProductList = (products) => {
-  //   const sortedProducts = sortProducts(products);
-  //   return sortedProducts.map((product) => (
-  //     <div
-  //       key={`${product.productId}-${product.variantId}`}
-  //       className="first:mt-2 mt-0 border flex flex-col gap-1 sm:flex-row p-2 bg-background rounded-md justify-between"
-  //     >
-  //       <div className="flex flex-col sm:flex-row gap-2">
-  //         {product.image && (
-  //           <img
-  //             src={product.image}
-  //             alt={product.title}
-  //             className="border w-16 h-16 object-cover rounded-md"
-  //           />
-  //         )}
-  //         <div className="flex-grow">
-  //           <div className="text-sm font-medium">{product.title}</div>
-  //           <div className="text-xs text-gray-500">
-  //             {product.productId} | {product.variantId}
-  //           </div>
-  //           <div className="text-sm font-medium">${product.price}</div>
-  //         </div>
-  //       </div>
-  //       <div>
-  //         <ShowMatchesButton product={product} />
-  //       </div>
-  //     </div>
-  //   ));
-  // };
 
   const ShopSummary = ({ shopId }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -356,7 +327,7 @@ const MatchesPage = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Link href="/dashboard">Dashboard</Link>
+              <AdminLink href="/">Dashboard</AdminLink>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Channels } from "./(components)/Channels";
-import { CreateChannel } from "./(components)/CreateChannel";
+import { Shops } from "./(components)/Shops";
+import { CreateShop } from "./(components)/CreateShop";
 import { PlatformCard } from "./(components)/PlatformCard";
 import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
 import { Link } from "next-view-transitions";
@@ -13,8 +13,9 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/breadcrumb";
+import { AdminLink } from "@keystone/themes/Tailwind/atlas/components/AdminLink";
 
-const ChannelsPage = () => {
+const ShopsPage = () => {
   const { openEditDrawer } = useDrawer();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
@@ -24,25 +25,25 @@ const ChannelsPage = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Link href="/dashboard">Dashboard</Link>
+              <AdminLink href="/">Dashboard</AdminLink>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>OMS</BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Channels</BreadcrumbItem>
+          <BreadcrumbItem>Shops</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
         <div>
-          <h1 className="text-xl font-semibold md:text-2xl">Channels</h1>
+          <h1 className="text-xl font-semibold md:text-2xl">Shops</h1>
           <p className="text-muted-foreground">
-            Manage channels and their products
+            Manage shops and their products
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <CreateChannel />
+          <CreateShop />
         </div>
       </div>
 
@@ -54,7 +55,7 @@ const ChannelsPage = () => {
           />
         </div>
         <div>
-          <Channels
+          <Shops
             openDrawer={openEditDrawer}
             selectedPlatform={selectedPlatform}
           />
@@ -64,4 +65,4 @@ const ChannelsPage = () => {
   );
 };
 
-export default ChannelsPage;
+export default ShopsPage;

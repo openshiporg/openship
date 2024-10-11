@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Shops } from "./(components)/Shops";
-import { CreateShop } from "./(components)/CreateShop";
+import { Channels } from "./(components)/Channels";
+import { CreateChannel } from "./(components)/CreateChannel";
 import { PlatformCard } from "./(components)/PlatformCard";
 import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
-import { Link } from "next-view-transitions";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,8 +12,9 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/breadcrumb";
+import { AdminLink } from "@keystone/themes/Tailwind/atlas/components/AdminLink";
 
-const ShopsPage = () => {
+const ChannelsPage = () => {
   const { openEditDrawer } = useDrawer();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
@@ -24,25 +24,25 @@ const ShopsPage = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Link href="/dashboard">Dashboard</Link>
+              <AdminLink href="/">Dashboard</AdminLink>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>OMS</BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Shops</BreadcrumbItem>
+          <BreadcrumbItem>Channels</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
         <div>
-          <h1 className="text-xl font-semibold md:text-2xl">Shops</h1>
+          <h1 className="text-xl font-semibold md:text-2xl">Channels</h1>
           <p className="text-muted-foreground">
-            Manage shops and their products
+            Manage channels and their products
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <CreateShop />
+          <CreateChannel />
         </div>
       </div>
 
@@ -54,7 +54,7 @@ const ShopsPage = () => {
           />
         </div>
         <div>
-          <Shops
+          <Channels
             openDrawer={openEditDrawer}
             selectedPlatform={selectedPlatform}
           />
@@ -64,4 +64,4 @@ const ShopsPage = () => {
   );
 };
 
-export default ShopsPage;
+export default ChannelsPage;
