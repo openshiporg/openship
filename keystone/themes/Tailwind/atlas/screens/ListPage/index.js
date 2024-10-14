@@ -56,7 +56,7 @@ import {
 } from "../../components/Pagination";
 import { Input } from "../../primitives/default/ui/input";
 import { Badge } from "../../primitives/default/ui/badge";
-import ListDataTable from "../../components/ListDataTable";
+import { AdminLink } from "../../components/AdminLink";
 
 let listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
