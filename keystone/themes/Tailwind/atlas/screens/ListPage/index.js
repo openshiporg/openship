@@ -28,7 +28,6 @@ import {
   ChevronRight,
   Columns3,
 } from "lucide-react";
-import { Link } from "next-view-transitions";
 
 import { CreateButtonLink } from "../../components/CreateButtonLink";
 import { DeleteManyButton } from "../../components/DeleteManyButton";

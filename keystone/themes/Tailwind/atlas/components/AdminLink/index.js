@@ -1,5 +1,5 @@
 import { basePath } from '@keystone/index';
-import { Link } from 'next-view-transitions';
+import Link from 'next/link';
 
 export const AdminLink = ({ href, children, ...props }) => {
   const adminPath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;

@@ -5,7 +5,6 @@ import { Shops } from "./(components)/Shops";
 import { CreateShop } from "./(components)/CreateShop";
 import { PlatformCard } from "./(components)/PlatformCard";
 import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
-import { Link } from "next-view-transitions";
 import {
   Breadcrumb,
   BreadcrumbItem,

@@ -1,5 +1,5 @@
 import { useRawKeystone } from "@keystone/keystoneProvider";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 
 export const Logo = ({ className }) => {
   const { adminConfig } = useRawKeystone();

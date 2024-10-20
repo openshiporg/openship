@@ -20,7 +20,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@keystone/themes/Tailwind/atlas/primitives/default/ui/breadcrumb";
-import { Link } from "next-view-transitions";
 import { cn } from "@keystone/utils/cn";
 import { buttonVariants } from "@ui/button";
 import { ChevronRight } from "lucide-react";

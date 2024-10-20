@@ -14,7 +14,6 @@ import { useFilters } from "@keystone/utils/useFilters";
 import { useQueryParamsFromLocalStorage } from "@keystone/utils/useQueryParamsFromLocalStorage";
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { useSort } from "@keystone/utils/useSort";
-import { Link } from "next-view-transitions";
 import { useToasts } from "@keystone/screens";
 import { useDrawer } from "@keystone/themes/Tailwind/atlas/components/Modals/drawer-context";
 import { OrderDetailsComponent } from "./(components)/OrderDetailsComponent";

@@ -12,7 +12,6 @@ import {
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
 import { AlertTriangle } from "lucide-react";
-import { Link } from "next-view-transitions";
 import { useList } from "@keystone/keystoneProvider";
 import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";

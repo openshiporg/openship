@@ -6,7 +6,6 @@ import { useFilter } from "@keystone/utils/useFilter";
 import { useFilters } from "@keystone/utils/useFilters";
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { useSort } from "@keystone/utils/useSort";
-import { Link } from "next-view-transitions";
 import {
   Search,
   ArrowUpDown,

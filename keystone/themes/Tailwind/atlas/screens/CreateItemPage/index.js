@@ -3,7 +3,6 @@ import { useCreateItem } from "@keystone/utils/useCreateItem";
 import { useRouter } from "next/navigation";
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
-import { Link } from "next-view-transitions";
 import { Fields } from "../../components/Fields";
 import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import { Container } from "../../components/Container";
