@@ -123,7 +123,7 @@ export function InitPage({
             <CardHeader>
               <CardTitle className="text-lg font-bold tracking-wide text-slate-600 dark:text-white">
                 CREATE ADMIN
-                <div className="h-1 w-36 mt-0.5 bg-gradient-to-r from-[#9a6a39] to-[#eeba7e] dark:from-[#9a6a39] dark:to-[#eeba7e]"></div>
+                <div className="h-1 w-36 mt-0.5 bg-gradient-to-r from-[#9a6a39] to-[#eeba7e] dark:from-[#9a6a39] dark:to-[#9c7952]"></div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -144,7 +144,7 @@ export function InitPage({
             <CardFooter className="flex justify-between">
               <Button
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#d7a76e] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100",
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#a37f53] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100",
                   {
                     "opacity-50":
                       loading ||
