@@ -1,5 +1,5 @@
 import { Trash2Icon } from "lucide-react";
-import { ToolbarButton } from "@keystone/primitives";
+import { ToolbarButton } from "../primitives";
 import {
   Tooltip,
   TooltipContent,

@@ -59,14 +59,15 @@ export const MultiSelect = React.forwardRef(
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <button
+          <Button
             ref={ref}
             {...props}
+            variant="secondary"
             role="combobox"
             aria-expanded={isOpen}
             className={cn(
-              "rounded-md flex items-center w-full justify-between p-1.5 bg-background border",
-              // selectedValues.length > 0 ? "h-full" : "h-10",
+              "w-full justify-between",
+              selectedValues.length > 0 ? "h-full" : "h-10",
               className
             )}
           >
@@ -76,7 +77,7 @@ export const MultiSelect = React.forwardRef(
                   <Badge
                     key={value}
                     color="sky"
-                    className="border mr-1 flex items-center gap-2 text-[.825rem] py-0.5 pr-1 pl-1.5"
+                    className="border mr-1 flex items-center gap-2 text-sm py-0.5 pr-1 pl-1.5"
                   >
                     {options.find((option) => option.value === value)?.label}
                     <Badge
@@ -101,7 +102,7 @@ export const MultiSelect = React.forwardRef(
               )}
             </div>
             <ChevronDown className="h-4 w-4 opacity-50" />
-          </button>
+          </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-2 border" align="start">
           <div className="flex flex-col">

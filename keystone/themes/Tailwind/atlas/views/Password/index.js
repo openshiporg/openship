@@ -93,7 +93,7 @@ export const Field = ({
                 isSet: value.isSet,
               });
             }}
-            className="border border-gray-300 dark:border-gray-700 uppercase tracking-wide py-2 px-4"
+            className="text-xs shadow-sm border border-zinc-200 dark:border-zinc-800 uppercase tracking-wide py-2.5 px-4 bg-muted/40 dark:bg-zinc-800/40"
             variant="light"
           >
             {value.isSet ? "Change Password" : "Set Password"}

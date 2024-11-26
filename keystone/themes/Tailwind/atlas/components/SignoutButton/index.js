@@ -1,9 +1,25 @@
 import { Button } from "../../primitives/default/ui/button";
+import { useEffect } from "react";
+import { gql, useMutation } from "@keystone-6/core/admin-ui/apollo";
 
-export function SignoutButton({ loading, endSession, children }) {
+const END_SESSION = gql`
+  mutation EndSession {
+    endSession
+  }
+`;
+
+const SignoutButton = ({ children }) => {
+  const [endSession, { loading, data }] = useMutation(END_SESSION);
+  useEffect(() => {
+    if (data?.endSession) {
+      window.location.reload();
+    }
+  }, [data]);
+
   return (
     <Button size="sm" isLoading={loading} onClick={() => endSession()}>
-      {children || "Sign out"}
-    </Button>
+    {children || "Sign out"}
+  </Button>
   );
-}
+};
+export { SignoutButton };

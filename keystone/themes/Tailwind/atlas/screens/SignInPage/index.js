@@ -159,7 +159,7 @@ export function SignInTemplate({
             <CardContent>
               <div className="grid w-full items-center gap-4">
                 <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="identity" className="text-md capitalize">
+                  <Label htmlFor="identity" className="text-sm capitalize">
                     {identityField}
                   </Label>
                   <Input
@@ -176,7 +176,7 @@ export function SignInTemplate({
                 </div>
                 {mode === "signin" && (
                   <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="identity" className="text-md capitalize">
+                    <Label htmlFor="identity" className="text-sm capitalize">
                       {secretField}
                     </Label>
                     <Input

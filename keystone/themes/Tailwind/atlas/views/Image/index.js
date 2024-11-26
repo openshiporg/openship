@@ -1,13 +1,15 @@
 import { FieldContainer } from "../../components/FieldContainer";
 import { FieldLabel } from "../../components/FieldLabel";
 import { validateImage, ImageWrapper } from "./Field";
+import { CellLink } from "../../components/CellLink";
 
 export { Field } from "./Field";
 
-export const Cell = ({ item, field }) => {
+export const Cell = ({ item, field, linkTo }) => {
   const data = item[field.path];
   if (!data) return null;
-  return (
+  
+  const content = (
     <div>
       <img
         className="w-36 h-36 rounded-sm"
@@ -16,7 +18,16 @@ export const Cell = ({ item, field }) => {
       />
     </div>
   );
+
+  return linkTo ? (
+    <CellLink {...linkTo}>{content}</CellLink>
+  ) : (
+    content
+  );
 };
+
+Cell.supportsLinkTo = true
+
 
 export const CardValue = ({ item, field }) => {
   const data = item[field.path];

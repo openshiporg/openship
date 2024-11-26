@@ -4,13 +4,13 @@ import { cva } from "class-variance-authority";
 import { cn } from "@keystone/utils/cn";
 
 const alertVariants = cva(
-  "border border-destructive/50 relative w-full rounded-lg p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "border relative w-full rounded-lg p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
     variants: {
       variant: {
         default: "bg-background text-foreground",
         destructive:
-          "text-rose-600 dark:text-red-500 bg-rose-50 dark:bg-red-950",
+          "border-destructive/50 text-rose-600 dark:text-red-500 bg-rose-50 dark:bg-red-950",
       },
     },
     defaultVariants: {
