@@ -16,6 +16,7 @@ import {
   SidebarSection,
   SidebarSpacer,
 } from "../../primitives/default/ui/sidebar";
+
 import { Logo } from "../Logo";
 
 import {
@@ -36,9 +37,17 @@ import { SidebarLayout } from "../../primitives/default/ui/sidebar-layout";
 import { Badge } from "../../primitives/default/ui/badge";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { AccountDropdown } from "./AccountDropdown";
-import { ThemeToggle } from "./ThemeToggle";
 import { AccountDropdownMobile } from "./AccountDropdownMobile";
 import { AdminLink } from "../AdminLink";
+
+// Try to import customNavItems, fallback to empty array if not found
+let customNavItems = [];
+try {
+  const navItems = require("@keystone/index").customNavItems;
+  if (navItems) customNavItems = navItems;
+} catch (e) {
+  // Project doesn't have customNavItems defined
+}
 
 export function NavigationSidebar({
   authenticatedItem,
@@ -71,22 +80,12 @@ export function NavigationSidebar({
                 <HomeIcon className="w-6 h-6" />
                 <SidebarLabel>Home</SidebarLabel>
               </SidebarItem>
-              <SidebarItem key="orders" href="/oms/orders" as={AdminLink}>
-                <TicketIcon className="w-6 h-6" />
-                <SidebarLabel>Orders</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem key="shops" href="/oms/shops" as={AdminLink}>
-                <Square3Stack3DIcon className="w-6 h-6" />
-                <SidebarLabel>Shops</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem key="channels" href="/oms/channels" as={AdminLink}>
-                <CircleStackIcon className="w-6 h-6" />
-                <SidebarLabel>Channels</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem key="matches" href="/oms/matches" as={AdminLink}>
-                <Square2StackIcon className="w-6 h-6" />
-                <SidebarLabel>Matches</SidebarLabel>
-              </SidebarItem>
+              {customNavItems?.map(({ title, href, icon: Icon }) => (
+                <SidebarItem key={href} href={href} as={AdminLink}>
+                  <Icon className="w-6 h-6" />
+                  <SidebarLabel>{title}</SidebarLabel>
+                </SidebarItem>
+              ))}
             </SidebarSection>
             <SidebarHeading
               className="mb-4 mt-2 flex items-center justify-between cursor-pointer pt-2"
@@ -100,7 +99,12 @@ export function NavigationSidebar({
             {!isDashboardCollapsed && (
               <SidebarSection className="flex-1 overflow-y-auto no-scrollbar min-h-0 mb-1 gap-0">
                 {sidebarLinks.map(({ title, href }) => (
-                  <SidebarItem className="ml-4" key={href} href={href} as={AdminLink}>
+                  <SidebarItem
+                    className="ml-4"
+                    key={href}
+                    href={href}
+                    as={AdminLink}
+                  >
                     {title}
                   </SidebarItem>
                 ))}

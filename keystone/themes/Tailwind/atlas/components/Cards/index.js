@@ -96,11 +96,12 @@ export function Cards({
   }, [value]);
 
   if (itemsState.kind === "loading") {
-    return (
-      <div>
-        <LoadingIcon label={`Loading items for ${field.label} field`} />
-      </div>
-    );
+    // return (
+    //   <div>
+    //     <LoadingIcon label={`Loading items for ${field.label} field`} />
+    //   </div>
+    // );
+    return null;
   }
   if (itemsState.kind === "error") {
     return (

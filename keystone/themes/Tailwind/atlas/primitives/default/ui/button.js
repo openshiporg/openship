@@ -9,6 +9,7 @@ const buttonVariants = cva(
   [
     "relative inline-flex items-center justify-center rounded-md px-3 py-1.5 text-center text-sm font-medium shadow-sm transition-all duration-100 ease-in-out",
     "focus:ring-2 focus:ring-offset-1 focus:ring-offset-background",
+    "disabled:hover:bg-inherit disabled:hover:from-inherit disabled:hover:to-inherit"
   ],
   {
     variants: {

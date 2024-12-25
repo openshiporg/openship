@@ -198,17 +198,15 @@ export function SignInTemplate({
               <Button
                 variant="light"
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900 dark:text-gray-100",
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 [&:not(:disabled)]:hover:from-green-700 [&:not(:disabled)]:hover:to-green-800 dark:from-green-700 dark:to-green-800 [&:not(:disabled)]:dark:hover:from-green-800 [&:not(:disabled)]:dark:hover:to-green-900 dark:text-gray-100",
                   {
-                    "opacity-50":
+                    "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
                       loading ||
-                      // this is for while the page is loading but the mutation has finished successfully
                       data?.authenticate?.__typename === successTypename,
                   }
                 )}
                 isLoading={
                   loading ||
-                  // this is for while the page is loading but the mutation has finished successfully
                   data?.authenticate?.__typename === successTypename
                 }
                 type="submit"

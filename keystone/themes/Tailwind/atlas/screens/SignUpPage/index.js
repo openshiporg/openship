@@ -174,9 +174,10 @@ export const SignUpPage = () => {
               <Button
                 variant="light"
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 dark:text-gray-100",
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 [&:not(:disabled)]:hover:from-blue-700 [&:not(:disabled)]:hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 [&:not(:disabled)]:dark:hover:from-blue-800 [&:not(:disabled)]:dark:hover:to-blue-900 dark:text-gray-100",
                   {
-                    "opacity-50": loading,
+                    "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
+                      loading,
                   }
                 )}
                 isLoading={loading}

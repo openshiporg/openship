@@ -520,7 +520,8 @@ export const ListPageTemplate = ({ listKey }) => {
           </div>
         </main>
       ) : (
-        <LoadingIcon label="Loading item data" />
+        // <LoadingIcon label="Loading item data" />
+        null
       )}
     </>
   );

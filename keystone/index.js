@@ -8,6 +8,12 @@ import "dotenv/config";
 import { extendGraphqlSchema } from "./extendGraphqlSchema";
 import { models } from "./models";
 import { sendPasswordResetEmail } from "./utils/mail";
+import {
+  TicketIcon,
+  Square3Stack3DIcon,
+  CircleStackIcon,
+  Square2StackIcon,
+} from "@heroicons/react/20/solid";
 
 const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
@@ -146,6 +152,29 @@ const { withAuth } = createAuth({
   },
 });
 
+export const customNavItems = [
+  {
+    title: 'Orders',
+    href: '/oms/orders',
+    icon: TicketIcon
+  },
+  {
+    title: 'Shops',
+    href: '/oms/shops',
+    icon: Square3Stack3DIcon
+  },
+  {
+    title: 'Channels',
+    href: '/oms/channels',
+    icon: CircleStackIcon
+  },
+  {
+    title: 'Matches',
+    href: '/oms/matches',
+    icon: Square2StackIcon
+  }
+];
+
 export default withAuth(
   config({
     // db: { provider: 'sqlite', url: 'file:./app.db' },
@@ -164,7 +193,7 @@ export default withAuth(
     },
     ui: {
       isAccessAllowed: ({ session }) => !!session,
-      basePath
+      basePath,
     },
     session: statelessSessions(sessionConfig),
     experimental: {

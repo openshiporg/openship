@@ -30,10 +30,14 @@ function InternalKeystoneProvider({
     await refetch();
   };
 
-  if (adminMeta.state === "loading") {
-    return <LoadingIcon label="Loading Admin Metadata" size="large" />;
-  }
+  // if (adminMeta.state === "loading") {
+  //   return <LoadingIcon label="Loading Admin Metadata" size="large" />;
+  // }
 
+  if (adminMeta.state === "loading") {
+    return null;
+  }
+  
   return (
     <KeystoneContext.Provider
       value={{

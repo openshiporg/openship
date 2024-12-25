@@ -144,7 +144,7 @@ export function InitPage({
             <CardFooter className="flex justify-between">
               <Button
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#a37f53] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100",
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] [&:not(:disabled)]:hover:from-[#7d5322] [&:not(:disabled)]:hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#a37f53] [&:not(:disabled)]:dark:hover:from-[#7d5322] [&:not(:disabled)]:dark:hover:to-[#c79760] dark:text-gray-100",
                   {
                     "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
                       loading ||

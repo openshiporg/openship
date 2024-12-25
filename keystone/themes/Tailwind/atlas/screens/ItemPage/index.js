@@ -563,7 +563,8 @@ export const ItemPageTemplate = ({ listKey, id }) => {
         </div>
       </div>
       {loading ? (
-        <LoadingIcon label="Loading item data" />
+        // <LoadingIcon label="Loading item data" />
+        null
       ) : metaQueryErrors ? (
         <div>
           <Alert variant="destructive">{metaQueryErrors[0].message}</Alert>

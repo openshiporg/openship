@@ -60,7 +60,8 @@ export function CreateItemDrawer({ listKey, onClose, onCreate, trigger, isDrawer
         />
       )}
       {createViewFieldModes.state === "loading" && (
-        <LoadingIcon label="Loading create form" />
+        // <LoadingIcon label="Loading create form" />
+        null
       )}
       {createItemState.error && (
         <GraphQLErrorNotice
