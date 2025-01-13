@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/FieldsDocument";
+export * from "@keystone/themes/Tailwind/orion/views/FieldsDocument";

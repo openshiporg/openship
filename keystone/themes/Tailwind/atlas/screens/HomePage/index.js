@@ -143,7 +143,7 @@ export const HomePage = () => {
         </p>
       </div>
 
-      {/* OMS section */}
+      {/* Platform section */}
       <div className="mb-6">
         <h2 className="tracking-wide uppercase font-medium mb-2 text-muted-foreground">
           Order Management System
@@ -153,25 +153,25 @@ export const HomePage = () => {
             title="Orders"
             icon={TicketIcon}
             color="orange"
-            href="/oms/orders"
+            href="/platform/orders"
           />
           <OmsCard
             title="Shops"
             icon={Square3Stack3DIcon}
             color="indigo"
-            href="/oms/shops"
+            href="/platform/shops"
           />
           <OmsCard
             title="Channels"
             icon={CircleStackIcon}
             color="emerald"
-            href="/oms/channels"
+            href="/platform/channels"
           />
           <OmsCard
             title="Matches"
             icon={Square2StackIcon}
             color="violet"
-            href="/oms/matches"
+            href="/platform/matches"
           />
         </div>
       </div>

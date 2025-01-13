@@ -9,7 +9,7 @@ import {
 } from "@keystone-6/core/admin-ui/apollo";
 import { useLazyMetadata } from "./utils/useLazyMetadata";
 import { fieldViews } from "./fieldViews";
-import { Logo } from "./logo";
+import { Logo, LogoIcon } from "./logo";
 import { LoadingIcon, ErrorBoundary } from "./screens";
 
 const KeystoneContext = createContext(undefined);
@@ -83,7 +83,7 @@ export const KeystoneProvider = ({ children }) => {
   });
 
   const adminConfigRef = useRef({
-    components: { Logo },
+    components: { Logo, LogoIcon },
   });
 
   return (

@@ -13,7 +13,7 @@ import {
   Square3Stack3DIcon,
   CircleStackIcon,
   Square2StackIcon,
-} from "@heroicons/react/20/solid";
+} from "@heroicons/react/24/outline";
 
 const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
@@ -155,22 +155,22 @@ const { withAuth } = createAuth({
 export const customNavItems = [
   {
     title: 'Orders',
-    href: '/oms/orders',
+    href: '/platform/orders',
     icon: TicketIcon
   },
   {
     title: 'Shops',
-    href: '/oms/shops',
+    href: '/platform/shops',
     icon: Square3Stack3DIcon
   },
   {
     title: 'Channels',
-    href: '/oms/channels',
+    href: '/platform/channels',
     icon: CircleStackIcon
   },
   {
     title: 'Matches',
-    href: '/oms/matches',
+    href: '/platform/matches',
     icon: Square2StackIcon
   }
 ];

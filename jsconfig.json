@@ -24,8 +24,8 @@
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],
       "@primitives/*": ["primitives/*"],
-      // we are using the UI in the atlas theme for oms so we hardcode this, we should abstract the ui library in the future
-      "@ui/*": ["keystone/themes/Tailwind/atlas/primitives/default/ui/*"],
+      // we are using the UI in the orion theme for oms so we hardcode this, we should abstract the ui library in the future
+      "@ui/*": ["keystone/themes/Tailwind/orion/primitives/default/ui/*"],
       "@pages/*": ["pages/*"],
       "@graphql/*": ["graphql/*"],
       "@svg": ["svg"]

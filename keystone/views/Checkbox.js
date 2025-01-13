@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Checkbox";
+export * from "@keystone/themes/Tailwind/orion/views/Checkbox";

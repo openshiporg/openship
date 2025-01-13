@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Float";
+export * from "@keystone/themes/Tailwind/orion/views/Float";

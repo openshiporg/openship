@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Timestamp";
+export * from "@keystone/themes/Tailwind/orion/views/Timestamp";

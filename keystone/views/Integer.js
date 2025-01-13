@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Integer";
+export * from "@keystone/themes/Tailwind/orion/views/Integer";

@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Password";
+export * from "@keystone/themes/Tailwind/orion/views/Password";

@@ -1,1 +1,1 @@
-export * from "@keystone/themes/Tailwind/atlas/views/Image";
+export * from "@keystone/themes/Tailwind/orion/views/Image";
