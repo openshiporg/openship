@@ -149,7 +149,7 @@ export function ResetPage() {
             </CardContent>
             <CardFooter className="flex flex-col justify-between">
               <Button
-                variant="light"
+                variant="secondary"
                 className="w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 dark:from-orange-700 dark:to-orange-800 dark:hover:from-orange-800 dark:hover:to-orange-900 dark:text-gray-100"
                 isLoading={loading}
                 type="submit"

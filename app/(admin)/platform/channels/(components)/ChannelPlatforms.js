@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-} from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu-depracated";
+} from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu";
 import { CreatePlatform } from "./CreatePlatform";
 
 export const CHANNEL_PLATFORMS_QUERY = gql`
@@ -62,10 +62,11 @@ const ChannelPlatformsContent = ({ data, openDrawer, showAll }) => {
       <div key={index} className="flex items-center">
         <Button
           variant="secondary"
-          className="p-1"
+          size="icon"
+          className="border [&_svg]:size-2.5 h-5 w-5"
           onClick={() => openDrawer(platform.id, "ChannelPlatform")}
         >
-          <EllipsisVertical className="size-2.5" />
+          <EllipsisVertical />
         </Button>
         <label
           htmlFor={`filter-${platform.id}`}

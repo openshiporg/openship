@@ -175,17 +175,15 @@ const RecommendedWebhookItem = ({ webhook, refetch, shopId }) => {
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <div className="flex gap-2 items-center">
+          
           <Button
+            variant="secondary"
+            size="icon"
+            className="border [&_svg]:size-2.5 h-5 w-5"
             onClick={handleCreate}
             disabled={loading}
-            variant="secondary"
-            className="p-0.5 flex items-center gap-3"
           >
-            {loading ? (
-              <RiLoader2Fill className="size-3.5 py-0.5 animate-spin" />
-            ) : (
-              <Plus className="size-3.5" />
-            )}
+            {loading ? <RiLoader2Fill className="animate-spin" /> : <Plus />}
           </Button>
           <span className="text-xs font-medium">{webhook.topic}</span>
           <TooltipProvider>

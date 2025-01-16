@@ -25,7 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../primitives/default/ui/dropdown-menu-depracated"
+} from "../../../primitives/default/ui/dropdown-menu"
 import {
   SidebarMenu,
   SidebarMenuButton,

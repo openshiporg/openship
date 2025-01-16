@@ -117,15 +117,16 @@ export const SearchOrders = ({
             variant="secondary"
             onClick={handlePreviousPage}
             disabled={skip === 0}
-            className="h-10 px-2.5"
+            className="h-10 px-2.5 border"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+
           <Button
             variant="secondary"
             onClick={handleNextPage}
             disabled={orders.length < pageSize}
-            className="h-10 px-2.5"
+            className="h-10 px-2.5 border"
           >
             <ArrowRight className="h-5 w-5" />
           </Button>

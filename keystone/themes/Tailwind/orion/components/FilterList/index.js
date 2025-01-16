@@ -123,7 +123,7 @@ function EditDialog({ filter, field, onClose }) {
       </div>
       <Separator />
       <div className="flex justify-between px-2 pb-2">
-        <Button variant="light" onClick={onClose}>
+        <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
         <Button type="submit">Save</Button>

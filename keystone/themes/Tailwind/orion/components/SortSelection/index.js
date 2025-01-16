@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuItem,
-} from "../../primitives/default/ui/dropdown-menu-depracated";
+} from "../../primitives/default/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import {
   ArrowDown,

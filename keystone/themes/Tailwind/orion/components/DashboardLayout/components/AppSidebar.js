@@ -39,7 +39,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../../primitives/default/ui/dropdown-menu-depracated";
+} from "../../../primitives/default/ui/dropdown-menu";
 import { HomeIcon } from "@heroicons/react/24/outline";
 
 // Try to import customNavItems, fallback to empty array if not found

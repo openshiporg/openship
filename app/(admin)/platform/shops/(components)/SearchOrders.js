@@ -137,14 +137,14 @@ export function SearchOrders({
               variant="secondary"
               onClick={() => handlePreviousPage(Math.max(0, skip - pageSize))}
               disabled={skip === 0}
-              className="h-10 px-2.5"
+              className="h-10 px-2.5 border"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Button
               variant="secondary"
               onClick={() => handleNextPage(skip + pageSize, after)}
-              className="h-10 px-2.5"
+              className="h-10 px-2.5 border"
             >
               <ArrowRight className="h-5 w-5" />
             </Button>

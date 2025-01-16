@@ -23,7 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from "../../primitives/default/ui/dropdown-menu-depracated";
+} from "../../primitives/default/ui/dropdown-menu";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { Separator } from "../../primitives/default/ui/separator";
 
@@ -138,7 +138,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
               onClick={() => {
                 setState({ kind: "selecting-field" });
               }}
-              variant="secondary"
+              variant="outline"
             >
               <div className="sr-only">Back</div>
               <ChevronLeftIcon className="w-4 h-4" />
@@ -223,7 +223,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
           <>
             <DropdownMenuSeparator />
             <div className="flex justify-between px-1">
-              <Button onClick={onClose} variant="light">
+              <Button onClick={onClose} variant="secondary">
                 Cancel
               </Button>
               <Button type="submit">Apply</Button>

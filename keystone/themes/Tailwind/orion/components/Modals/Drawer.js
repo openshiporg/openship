@@ -57,7 +57,7 @@ export const Drawer = ({
               <Button
                 onClick={safeClose}
                 disabled={confirm.loading}
-                variant="light"
+                variant="secondary"
               >
                 {cancel.label}
               </Button>

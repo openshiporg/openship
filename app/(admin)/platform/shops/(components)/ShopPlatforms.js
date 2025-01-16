@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-} from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu-depracated";
+} from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu";
 import { CreatePlatform } from "./CreatePlatform";
 
 export const SHOP_PLATFORMS_QUERY = gql`

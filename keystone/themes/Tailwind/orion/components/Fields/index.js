@@ -145,15 +145,17 @@ function FieldGroup(props) {
     >
       <details open={!props.collapsed} className="group">
         <summary className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer">
-          <div className="flex gap-1.5 items-center">
-            <div
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "self-start p-1 transition-transform group-open:rotate-90"
-              )}
-            >
-              <ChevronRight className="size-3" />
-            </div>
+          <div className="flex gap-1.5">
+            <span>
+              <div
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon" }),
+                  "border self-start transition-transform group-open:rotate-90 [&_svg]:size-3 h-6 w-6"
+                )}
+              >
+                <ChevronRight />
+              </div>
+            </span>
             {divider}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">

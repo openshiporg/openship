@@ -125,7 +125,7 @@ export function InlineEdit({
           )}
           value={state.value}
         />
-        <div className="flex space-x-2">
+        <div className="flex gap-1 flex-wrap">
           <Button isLoading={loading} size="sm" type="submit">
             Save
           </Button>

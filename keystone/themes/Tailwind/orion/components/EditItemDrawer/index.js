@@ -138,7 +138,7 @@ export function DeleteButton({ itemLabel, itemId, list, onClose, children }) {
         <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => setIsConfirmModalOpen(false)}
             >
               Close
@@ -166,7 +166,7 @@ function ResetChangesButton({ onReset, disabled }) {
   return (
     <Dialog open={isConfirmModalOpen} onOpenChange={setConfirmModalOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" disabled={disabled} className="h-7">
+        <Button variant="outline" disabled={disabled} className="h-7">
           Reset changes
         </Button>
       </DialogTrigger>
@@ -178,7 +178,7 @@ function ResetChangesButton({ onReset, disabled }) {
         <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => setConfirmModalOpen(false)}
             >
               Close
@@ -351,7 +351,7 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
         <SheetFooter className="border-t p-2">
           <SheetClose asChild>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 if (
                   !changedFields.size ||

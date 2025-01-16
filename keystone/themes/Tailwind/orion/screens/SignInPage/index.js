@@ -3,6 +3,7 @@ import { useMutation, gql } from "@keystone-6/core/admin-ui/apollo";
 import { useRouter } from "next/navigation";
 import { useReinitContext, useRawKeystone } from "@keystone/keystoneProvider";
 import { useRedirect } from "@keystone/utils/useRedirect";
+import { RiLoader2Fill } from "@remixicon/react";
 
 import {
   Card,
@@ -22,6 +23,7 @@ import {
   AlertTitle,
 } from "../../primitives/default/ui/alert";
 import { cn } from "@keystone/utils/cn";
+import { buttonVariants } from "../../primitives/default/ui/button";
 
 export const SignInPage = ({
   identityField = "email",
@@ -195,24 +197,22 @@ export function SignInTemplate({
               </div>
             </CardContent>
             <CardFooter className="flex flex-col justify-between">
-              <Button
-                variant="light"
+              <button
+                type="submit"
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-green-600 to-green-700 [&:not(:disabled)]:hover:from-green-700 [&:not(:disabled)]:hover:to-green-800 dark:from-green-700 dark:to-green-800 [&:not(:disabled)]:dark:hover:from-green-800 [&:not(:disabled)]:dark:hover:to-green-900 dark:text-gray-100",
+                  buttonVariants({ variant: "secondary" }),
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900 dark:text-gray-100 disabled:opacity-50 disabled:hover:from-green-600 disabled:hover:to-green-700 dark:disabled:hover:from-green-700 dark:disabled:hover:to-green-800",
                   {
-                    "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
-                      loading ||
-                      data?.authenticate?.__typename === successTypename,
+                    "opacity-50": loading || data?.authenticate?.__typename === successTypename
                   }
                 )}
-                isLoading={
-                  loading ||
-                  data?.authenticate?.__typename === successTypename
-                }
-                type="submit"
+                disabled={loading || data?.authenticate?.__typename === successTypename}
               >
+                {(loading || data?.authenticate?.__typename === successTypename) && (
+                  <RiLoader2Fill className="size-4 shrink-0 animate-spin" />
+                )}
                 SIGN IN
-              </Button>
+              </button>
             </CardFooter>
           </Card>
         </form>

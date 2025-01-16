@@ -39,7 +39,7 @@ function ArrayFieldPreview(props) {
           ]);
         }}
       >
-        <div className="flex space-x-2">
+        <div className="flex gap-1 flex-wrap">
           <PlusCircleIcon size="smallish" /> <span>Add</span>
         </div>
       </Button>
@@ -199,7 +199,7 @@ const OrderableItemInForm = memo(function OrderableItemInForm(props) {
     <OrderableItem elementKey={props.elementKey}>
       <div className="space-y-4">
         <div className="flex space-x-3">
-          <div className="flex space-x-2 items-center cursor-pointer">
+          <div className="flex gap-1 flex-wrap items-center cursor-pointer">
             <DragHandle />
           </div>
           <Button onClick={() => setModalState({

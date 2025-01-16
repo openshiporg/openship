@@ -353,7 +353,7 @@ const SingleDatePicker = ({
               />
               <div className="flex items-center gap-x-2 border-t border-zinc-300 p-3 dark:border-zinc-800">
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   className="h-8 w-full"
                   type="button"
                   onClick={onCancel}
@@ -361,7 +361,6 @@ const SingleDatePicker = ({
                   {translations?.cancel ?? "Cancel"}
                 </Button>
                 <Button
-                  variant="primary"
                   className="h-8 w-full"
                   type="button"
                   onClick={onApply}
@@ -516,7 +515,7 @@ const RangeDatePicker = ({
                 </p>
                 <div className="mt-2 flex items-center gap-x-2 sm:mt-0">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     className="h-8 w-full sm:w-fit"
                     type="button"
                     onClick={onCancel}
@@ -524,7 +523,6 @@ const RangeDatePicker = ({
                     {translations?.cancel ?? "Cancel"}
                   </Button>
                   <Button
-                    variant="primary"
                     className="h-8 w-full sm:w-fit"
                     type="button"
                     onClick={onApply}

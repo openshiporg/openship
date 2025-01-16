@@ -28,7 +28,7 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   if (value.kind === "many") {
     const query = constructQuery({ refFieldKey, value, itemId });
     return (
-      <Button variant="light" className="bg-transparent">
+      <Button variant="ghost">
         <AdminLink href={`/${list.path}?${query}`}>
           View related {list.plural}
         </AdminLink>
@@ -37,12 +37,11 @@ function LinkToRelatedItems({ itemId, value, list, refFieldKey }) {
   }
 
   return (
-    <AdminLink
-      className={cn(buttonVariants({ variant: "light" }), "bg-transparent")}
-      href={`/${list.path}/${value.value?.id}`}
-    >
-      View {list.singular} details
-    </AdminLink>
+    <Button variant="ghost">
+      <AdminLink href={`/${list.path}/${value.value?.id}`}>
+        View {list.singular} details
+      </AdminLink>
+    </Button>
   );
 }
 
@@ -145,7 +144,7 @@ export const Field = ({
             }
           />
           {!field.hideButtons && (
-            <div className="flex space-x-2">
+            <div className="flex gap-1 flex-wrap">
               {onChange !== undefined &&
                 !field.hideCreate &&
                 onChange !== undefined && (
@@ -159,8 +158,8 @@ export const Field = ({
                         // onClick={() => {
                         //   setIsDrawerOpen(true);
                         // }}
-                        // variant="secondary"
-                        variant="secondary"
+                        // variant="outline"
+                        variant="outline"
                       >
                         Create related {foreignList.singular}
                       </Button>
@@ -262,7 +261,9 @@ export const Cell = ({ field, item }) => {
           </AdminLink>
         </Fragment>
       ))}
-      <span className="opacity-50 font-medium">{overflow ? `, and ${overflow} more` : null}</span>
+      <span className="opacity-50 font-medium">
+        {overflow ? `, and ${overflow} more` : null}
+      </span>
     </CellContainer>
   );
 };
@@ -342,13 +343,13 @@ export const controller = (config) => {
             displayOptions: cardsDisplayOptions,
           }
         : config.fieldMeta.many
-        ? {
-            id: null,
-            kind: "many",
-            initialValue: [],
-            value: [],
-          }
-        : { id: null, kind: "one", value: null, initialValue: null },
+          ? {
+              id: null,
+              kind: "many",
+              initialValue: [],
+              value: [],
+            }
+          : { id: null, kind: "one", value: null, initialValue: null },
     deserialize: (data) => {
       if (config.fieldMeta.displayMode === "count") {
         return {
@@ -362,8 +363,8 @@ export const controller = (config) => {
           (Array.isArray(data[config.path])
             ? data[config.path]
             : data[config.path]
-            ? [data[config.path]]
-            : []
+              ? [data[config.path]]
+              : []
           ).map((x) => x.id)
         );
         return {
@@ -416,7 +417,7 @@ export const controller = (config) => {
             onChange(newItems.map((item) => item.id).join(","));
           },
         };
-        console.log({refLabelField, refSearchFields, value})
+        console.log({ refLabelField, refSearchFields, value });
         return (
           <RelationshipSelect
             controlShouldRenderValue

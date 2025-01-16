@@ -186,7 +186,7 @@ export function Cards({
                         />
                       );
                     })}
-                    <div className="flex space-x-2">
+                    <div className="flex gap-1 flex-wrap">
                       {displayOptions.inlineEdit && onChange !== undefined && (
                         <Button
                           disabled={onChange === undefined}
@@ -234,15 +234,11 @@ export function Cards({
                           </Tooltip>
                         )}
                       {displayOptions.linkToItem && (
-                        <AdminLink
-                          className={cn(
-                            buttonVariants({ variant: "light" }),
-                            "bg-transparent"
-                          )}
-                          href={`/${foreignList.path}/${id}`}
-                        >
-                          View {foreignList.singular} details
-                        </AdminLink>
+                        <Button variant="ghost">
+                          <AdminLink href={`/${foreignList.path}/${id}`}>
+                            View {foreignList.singular} details
+                          </AdminLink>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -255,7 +251,7 @@ export function Cards({
       {onChange === undefined ? null : displayOptions.inlineConnect &&
         showConnectItems ? (
         <CardContainer mode="edit">
-          <div className="flex space-x-2 w-full justify-between">
+          <div className="flex gap-1 flex-wrap w-full justify-between">
             <RelationshipSelect
               autoFocus
               controlShouldRenderValue={isLoadingLazyItems}
@@ -357,7 +353,7 @@ export function Cards({
         </CardContainer>
       ) : displayOptions.inlineCreate || displayOptions.inlineConnect ? (
         <CardContainer mode="create">
-          <div className="flex space-x-2">
+          <div className="flex gap-1 flex-wrap">
             {displayOptions.inlineCreate && (
               <Button
                 disabled={onChange === undefined}

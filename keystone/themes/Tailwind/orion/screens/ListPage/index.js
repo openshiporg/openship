@@ -464,7 +464,7 @@ export const ListPageTemplate = ({ listKey }) => {
                           : `matching your filters`}{" "}
                       </span>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         onClick={() => {
                           updateSearchString("");
                           const { search, ...queries } = query;

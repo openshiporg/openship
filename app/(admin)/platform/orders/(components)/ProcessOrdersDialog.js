@@ -226,7 +226,7 @@ export const ProcessOrdersDialog = ({
           </details>
         </div>
         <DialogFooter>
-          <Button variant="light" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button

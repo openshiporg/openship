@@ -112,7 +112,7 @@ export function InlineCreate({
           onChange={setValue}
           value={value}
         />
-        <div className="flex space-x-2">
+        <div className="flex gap-1 flex-wrap">
           <Button isLoading={loading} size="sm" type="submit">
             Create {list.singular}
           </Button>

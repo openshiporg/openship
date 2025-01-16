@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../primitives/default/ui/dropdown-menu-depracated"
+} from "../../../primitives/default/ui/dropdown-menu"
 import {
   SidebarGroup,
   SidebarGroupLabel,

@@ -104,13 +104,13 @@ export const CartItem = ({
           {!removeEditItemButton && (
             <Button
               variant="secondary"
-              size="sm"
-              className="p-1"
+              size="icon"
+              className="border [&_svg]:size-3 h-6 w-6"
               onClick={() =>
                 openEditDrawer(item.id, isCartItem ? "CartItem" : "LineItem")
               }
             >
-              <MoreHorizontal className="h-3 w-3" />
+              <MoreHorizontal />
             </Button>
           )}
         </div>

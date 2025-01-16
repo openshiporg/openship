@@ -102,8 +102,9 @@ export const ShowMatchesButton = ({ product, onMatchAction }) => {
     <Sheet onOpenChange={handleSheetOpen}>
       <SheetTrigger>
         <Button
-          className="text-nowrap cursor-pointer text-xs border font-medium uppercase tracking-wide py-1 px-1.5"
+          className="text-nowrap cursor-pointer text-xs border font-medium uppercase tracking-wide py-0.5 px-1.5"
           variant="secondary"
+          size="xs"
           isLoading={countLoading}
           disabled={countData?.matchesCount === 0}
         >

@@ -77,10 +77,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import {
-  Dropdown,
-  DropdownButton,
   DropdownMenu,
-  DropdownItem,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from "@ui/dropdown-menu";
 import {
   ArrowPathRoundedSquareIcon,
@@ -542,7 +542,7 @@ export const OrderPage = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={handleProcessAll}
                   disabled={qualifyingOrders.length === 0}
                   className="h-9"
@@ -555,27 +555,29 @@ export const OrderPage = () => {
                     {qualifyingOrders.length}
                   </span>
                 </Button>
-                <Dropdown>
-                  <DropdownButton>
-                    Create Order <ChevronDown className="h-3 w-3 ml-2" />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
-                    <DropdownItem
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      Create Order <ChevronDown />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
                       onClick={() => handleCreateOrder("scratch")}
                       className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
                     >
                       <PlusIcon className="h-4 w-4" />
                       From Scratch
-                    </DropdownItem>
-                    <DropdownItem
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() => setIsCreateOrderDialogOpen(true)}
                       className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
                     >
                       <ArrowPathRoundedSquareIcon className="h-4 w-4" />
                       From Existing Orders
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 

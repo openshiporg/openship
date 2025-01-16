@@ -322,7 +322,7 @@ const MatchesPage = () => {
 
   return (
     <main>
-      <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
+      <div className="flex flex-col md:flex-row my-4 gap-2 justify-between">
         <div>
           <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
           <p className="text-muted-foreground">

@@ -379,7 +379,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="light">Close</Button>
+              <Button variant="secondary">Close</Button>
             </DialogClose>
             <Button
               variant="destructive"
@@ -678,7 +678,7 @@ function ResetChangesButton(props) {
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="secondary">Reset changes</Button>
+          <Button variant="outline">Reset changes</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -689,7 +689,7 @@ function ResetChangesButton(props) {
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="secondary">Close</Button>
+              <Button variant="outline">Close</Button>
             </DialogClose>
             <Button variant="destructive" onClick={() => props.onReset()}>
               Reset Changes

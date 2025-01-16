@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
   Circle,
   EllipsisVertical,
+  MoreVertical,
   Square,
   Triangle,
   Webhook,
@@ -203,10 +204,11 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                     <div>
                       <Button
                         variant="secondary"
-                        className="px-1.5"
+                        size="icon"
+                        className="border [&_svg]:size-3 h-6 w-6"
                         onClick={() => openDrawer(channel.id, "Channel")}
                       >
-                        <EllipsisVertical className="size-2.5" />
+                        <MoreVertical />
                       </Button>
                     </div>
                   </div>

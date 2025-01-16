@@ -62,7 +62,7 @@ export const MultiSelect = React.forwardRef(
           <Button
             ref={ref}
             {...props}
-            variant="secondary"
+            variant="outline"
             role="combobox"
             aria-expanded={isOpen}
             className={cn(
@@ -96,7 +96,7 @@ export const MultiSelect = React.forwardRef(
                 <span className="text-muted-foreground">{placeholder}</span>
               )}
               {selectedValues.length > maxCount && (
-                <Badge variant="secondary" className="mr-1 mb-1">
+                <Badge variant="outline" className="mr-1 mb-1">
                   +{selectedValues.length - maxCount} more
                 </Badge>
               )}
@@ -155,7 +155,7 @@ export const MultiSelect = React.forwardRef(
             </div>
             {selectedValues.length > 0 && (
               <Button
-                variant="light"
+                variant="secondary"
                 className="mt-2"
                 onClick={() => {
                   handleClear();

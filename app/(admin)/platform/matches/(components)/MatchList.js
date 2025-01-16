@@ -39,27 +39,9 @@ import { CreateButtonLink } from "@keystone/themes/Tailwind/orion/components/Cre
 import { Input } from "@ui/input";
 import { Button } from "@ui/button";
 import { Badge, BadgeButton } from "@ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@ui/breadcrumb";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@ui/collapsible";
-import { Separator } from "@ui/separator";
+
 import { LoadingIcon } from "@keystone/screens";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownMenu,
-  DropdownItem,
-} from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu";
-import { useDrawer } from "@keystone/themes/Tailwind/orion/components/Modals/drawer-context";
+
 import { useUpdateItem } from "@keystone/themes/Tailwind/orion/components/EditItemDrawer";
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { MatchCard } from "./MatchCard";
@@ -436,7 +418,7 @@ export const MatchList = ({ onMatchAction, showCreate }) => {
                           : `matching your filters`}{" "}
                       </span>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         onClick={() => {
                           setSearchString("");
                           const newSearchParams = new URLSearchParams(

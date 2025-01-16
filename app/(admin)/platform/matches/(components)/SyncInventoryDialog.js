@@ -196,11 +196,11 @@ export const SyncInventoryDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="py-1">
+        <Button variant="outline" className="py-1">
           Sync Inventory
-          <Badge className="ml-2 border py-0.5 px-1.5">
+          <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
             {syncableMatches.length}
-          </Badge>
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
@@ -341,7 +341,7 @@ export const SyncInventoryDialog = () => {
           </details>
         </div>
         <DialogFooter>
-          <Button variant="light" onClick={() => setIsOpen(false)}>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
           <Button

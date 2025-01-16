@@ -54,7 +54,7 @@ export const OrdersTable = ({
                   : `matching your filters`}{" "}
               </span>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => {
                   updateSearchString("");
                   const path = window.location.pathname;

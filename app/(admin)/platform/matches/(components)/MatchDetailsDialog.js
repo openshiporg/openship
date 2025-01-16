@@ -311,11 +311,10 @@ export function MatchDetailsDialog({ isOpen, onClose, match, shopId }) {
           </div>
         </div>
         <div className="p-6 border-t flex justify-end space-x-4">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            variant="primary"
             isLoading={state === "loading"}
             onClick={handleSave}
           >

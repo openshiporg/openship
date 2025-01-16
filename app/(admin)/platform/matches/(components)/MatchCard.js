@@ -102,11 +102,11 @@ const MatchHeader = ({
 
           <Button
             variant="secondary"
-            size="sm"
-            className="p-1.5"
+            size="icon"
+            className="border [&_svg]:size-3 h-6 w-6"
             onClick={() => openEditDrawer(match.id, "Match")}
           >
-            <MoreHorizontal className="h-3.5 w-3.5" />
+            <MoreHorizontal />
           </Button>
           {renderButtons && renderButtons()}
         </div>
@@ -341,8 +341,8 @@ const ProductDetailsCollapsible = ({
                   <div>
                     <Button
                       variant="secondary"
-                      size="sm"
-                      className="p-1"
+                      size="icon"
+                      className="border [&_svg]:size-3 h-6 w-6"
                       onClick={() =>
                         openEditDrawer(
                           item.id,
@@ -350,7 +350,7 @@ const ProductDetailsCollapsible = ({
                         )
                       }
                     >
-                      <MoreHorizontal className="h-3 w-3" />
+                      <MoreHorizontal />
                     </Button>
                   </div>
                 </div>

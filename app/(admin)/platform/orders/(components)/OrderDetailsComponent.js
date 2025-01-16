@@ -7,10 +7,10 @@ import {
 } from "@keystone/themes/Tailwind/orion/primitives/default/ui/accordion";
 import { Badge } from "@keystone/themes/Tailwind/orion/primitives/default/ui/badge";
 import {
-  Dropdown,
-  DropdownButton,
   DropdownMenu,
-  DropdownItem,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from "@keystone/themes/Tailwind/orion/primitives/default/ui/dropdown-menu";
 import { RiLoader2Fill } from "@remixicon/react";
 import { ProductDetailsCollapsible } from "./ProductDetailsCollapsible";
@@ -40,9 +40,9 @@ export const OrderDetailsComponent = ({
   channels,
   loadingActions,
   removeEditItemButton,
-  renderButtons
+  renderButtons,
 }) => {
-  const list = useList('Order');
+  const list = useList("Order");
   const client = useApolloClient();
 
   const handleAddToCart = (product, channelId) => {
@@ -125,7 +125,12 @@ export const OrderDetailsComponent = ({
         <div className="px-4 py-2 flex justify-between w-full border-b">
           <div className="flex flex-col items-start text-left gap-1.5">
             <div className="flex items-center space-x-4">
-              <a href={order.orderLink} target="_blank" rel="noopener noreferrer" className="uppercase font-medium text-sm">
+              <a
+                href={order.orderLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="uppercase font-medium text-sm"
+              >
                 {order.orderName}
               </a>
               {/* {order.readyToProcess && (
@@ -164,13 +169,19 @@ export const OrderDetailsComponent = ({
                 </Badge>
               )}
               {!removeEditItemButton && (
-                <Dropdown>
-                  <DropdownButton variant="secondary" className="border p-1">
-                    <MoreVertical className="h-3 w-3" />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="border [&_svg]:size-3 h-6 w-6"
+                    >
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
                     {orderButtons.map((button) => (
-                      <DropdownItem
+                      <DropdownMenuItem
                         key={button.buttonText}
                         onClick={button.onClick}
                         className="text-muted-foreground flex gap-2 font-medium tracking-wide"
@@ -178,33 +189,21 @@ export const OrderDetailsComponent = ({
                       >
                         <span>{button.icon}</span>
                         {button.buttonText}
-                      </DropdownItem>
+                      </DropdownMenuItem>
                     ))}
-                    {/* Manually add the DELETE ORDER button at the bottom */}
-                    {/* <DeleteButton
-                      itemLabel={order.orderName}
-                      itemId={order.id}
-                      list={list}
-                      // onClose={handleDeleteComplete}
-                    >
-                      <DropdownItem
-                        className="text-muted-foreground flex gap-2 font-medium tracking-wide"
-                        // disabled={loadingActions["DELETE ORDER"]?.[order.id]}
-                      >
-                        <span><TrashIcon className="h-4 w-4" /></span>
-                        DELETE ORDER
-                      </DropdownItem>
-                    </DeleteButton> */}
-                  </DropdownMenu>
-                </Dropdown>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               <AccordionTrigger hideArrow className="py-0">
-                <Badge color="zinc" className="border p-1">
-                  <ChevronDown className="h-3 w-3" />
-                </Badge>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="border [&_svg]:size-3 h-6 w-6"
+                >
+                  <ChevronDown />
+                </Button>
               </AccordionTrigger>
               {renderButtons && renderButtons()}
-
             </div>
             {order.orderError && (
               <Badge

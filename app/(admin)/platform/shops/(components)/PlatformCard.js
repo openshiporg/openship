@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@keystone-6/core/admin-ui/apollo";
-import { EllipsisVertical, Plus } from "lucide-react";
+import { MoreVertical, Plus } from "lucide-react";
 import { Button } from "@keystone/themes/Tailwind/orion/primitives/default/ui/button";
 import {
   Badge,
@@ -23,7 +23,7 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
           Platforms
         </h2>
         <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-7 w-7 rounded-lg" /> 
+          <Skeleton className="h-7 w-7 rounded-lg" />
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-7 w-24 rounded-lg" />
           ))}
@@ -56,10 +56,9 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
           trigger={
             <Button
               variant="secondary"
-              className="p-1.5 flex items-center gap-2 uppercase text-xs"
+              className="border rounded-lg h-8 w-8"
             >
-              <Plus className="size-3.5" />
-
+              <Plus />
               {platforms.length === 0 && "Create platform to get started"}
             </Button>
           }
@@ -75,15 +74,17 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
             onClick={() => handlePlatformClick(platform.id)}
           >
             {platform.name}
+
             <Button
               variant="secondary"
-              className="p-1"
+              size="icon"
+              className="border [&_svg]:size-2.5 h-5 w-5"
               onClick={(e) => {
                 e.stopPropagation();
                 openDrawer(platform.id, "ShopPlatform");
               }}
             >
-              <EllipsisVertical className="size-2" />
+              <MoreVertical />
             </Button>
           </Badge>
         ))}

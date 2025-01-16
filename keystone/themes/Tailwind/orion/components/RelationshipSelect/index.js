@@ -357,7 +357,7 @@ const ShowMoreButton = ({ list, remainingCount, value }) => {
   const query = `!id_in="${ids.join(",")}"`;
 
   return (
-    <Button variant="light">
+    <Button variant="secondary">
       <AdminLink href={`/${list.path}?${query}`}>
         Show {remainingCount} More {list.plural}
       </AdminLink>

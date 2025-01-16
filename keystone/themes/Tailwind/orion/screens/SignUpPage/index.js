@@ -25,6 +25,8 @@ import {
 import { AlertCircle } from "lucide-react";
 import { cn } from "@keystone/utils/cn";
 import { AdminLink } from "../../components/AdminLink";
+import { RiLoader2Fill } from "@remixicon/react";
+import { buttonVariants } from "../../primitives/default/ui/button";
 
 const SIGNUP_MUTATION = gql`
   mutation SIGNUP_MUTATION(
@@ -171,20 +173,22 @@ export const SignUpPage = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col justify-between">
-              <Button
-                variant="light"
+              <button
+                type="submit"
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 [&:not(:disabled)]:hover:from-blue-700 [&:not(:disabled)]:hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 [&:not(:disabled)]:dark:hover:from-blue-800 [&:not(:disabled)]:dark:hover:to-blue-900 dark:text-gray-100",
+                  buttonVariants({ variant: "secondary" }),
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 dark:text-gray-100 disabled:opacity-50 disabled:hover:from-blue-600 disabled:hover:to-blue-700 dark:disabled:hover:from-blue-700 dark:disabled:hover:to-blue-800",
                   {
-                    "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
-                      loading,
+                    "opacity-50": loading
                   }
                 )}
-                isLoading={loading}
-                type="submit"
+                disabled={loading}
               >
+                {loading && (
+                  <RiLoader2Fill className="size-4 shrink-0 animate-spin" />
+                )}
                 SIGN UP
-              </Button>
+              </button>
             </CardFooter>
           </Card>
         </form>

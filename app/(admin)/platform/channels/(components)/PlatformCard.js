@@ -23,7 +23,7 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
           Platforms
         </h2>
         <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-7 w-7 rounded-lg" /> 
+          <Skeleton className="h-7 w-7 rounded-lg" />
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-7 w-24 rounded-lg" />
           ))}
@@ -55,12 +55,8 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
         <CreatePlatform
           refetch={refetch}
           trigger={
-            <Button
-              variant="secondary"
-              className="p-1.5 flex items-center gap-2 uppercase text-xs"
-            >
-              <Plus className="size-3.5" />
-
+            <Button variant="secondary" className="border rounded-lg h-8 w-8">
+              <Plus />
               {platforms.length === 0 && "Create platform to get started"}
             </Button>
           }
@@ -75,15 +71,17 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
             onClick={() => handlePlatformClick(platform.id)}
           >
             {platform.name}
+
             <Button
               variant="secondary"
-              className="p-1"
+              size="icon"
+              className="border [&_svg]:size-2.5 h-5 w-5"
               onClick={(e) => {
                 e.stopPropagation();
                 openDrawer(platform.id, "ChannelPlatform");
               }}
             >
-              <EllipsisVertical className="size-2" />
+              <EllipsisVertical />
             </Button>
           </Badge>
         ))}

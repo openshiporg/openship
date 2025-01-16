@@ -19,7 +19,7 @@ import { cn } from "@keystone/utils/cn";
 const ListCard = ({ listKey, count, hideCreate }) => {
   const list = useList(listKey);
   return (
-    <div className="shadow-xs flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:border-white/5 dark:bg-black">
+    <div className="shadow-xs flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:bg-black">
       <div className="w-full self-end">
         <div className="text-sm text-zinc-500 dark:text-zinc-400">
           {list.isSingleton ? null : count.type === "success" ? (
@@ -72,7 +72,7 @@ const ListCard = ({ listKey, count, hideCreate }) => {
 const OmsCard = ({ title, icon: Icon, color, href }) => (
   <AdminLink
     href={href}
-    className="flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:border-white/5 dark:bg-black"
+    className="flex items-center justify-between rounded-lg bg-zinc-50 border py-2 pl-3 pr-2 dark:bg-black"
   >
     <div className="flex gap-2.5 items-center">
       <Icon

@@ -28,7 +28,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@ui/dropdown-menu-depracated";
+} from "@ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/popover";
 import { Label } from "@ui/label";
 import { useToasts } from "@keystone/screens";
@@ -82,11 +82,12 @@ export const CreateLinkButton = ({ channelId, refetch }) => {
         <div>
           <Button
             variant="secondary"
-            className="p-0.5 flex items-center gap-3"
+            size="icon"
+            className="border [&_svg]:size-2.5 h-5 w-5"
             disabled={isCreating}
             isLoading={isCreating}
           >
-            <Plus className="size-3.5" />
+            <Plus />
           </Button>
         </div>
       </DropdownMenuTrigger>
@@ -403,9 +404,10 @@ export const Links = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="secondary"
-                      className="p-0.5 flex items-center gap-3"
+                      size="icon"
+                      className="border [&_svg]:size-2.5 h-5 w-5"
                     >
-                      <Plus className="size-3.5" />
+                      <Plus />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent side="right">

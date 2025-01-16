@@ -22,7 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../primitives/default/ui/dropdown-menu-depracated";
+} from "../../primitives/default/ui/dropdown-menu";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { ArrowLeftRight } from "lucide-react";
@@ -40,12 +40,15 @@ const routePatterns = {
     pattern: /^\/platform\/([^\/]+)$/,
     crumb: (base, matches) => [
       {
-        type: "page",
-        label: "Platform"
+        type: "link",
+        label: "Platform",
+        // href: `${base}/platform`
+        href: "#"
       },
       {
         type: "page",
-        label: matches[1].charAt(0).toUpperCase() + matches[1].slice(1)
+        label: matches[1].charAt(0).toUpperCase() + matches[1].slice(1),
+        // href: `${base}/platform/${matches[1]}`
       }
     ]
   },
@@ -53,12 +56,14 @@ const routePatterns = {
     pattern: /^\/platform\/([^\/]+)\/create$/,
     crumb: (base, matches) => [
       {
-        type: "page",
-        label: "Platform"
+        type: "link",
+        label: "Platform",
+        href: `${base}/platform`
       },
       {
-        type: "page",
-        label: matches[1].charAt(0).toUpperCase() + matches[1].slice(1)
+        type: "link",
+        label: matches[1].charAt(0).toUpperCase() + matches[1].slice(1),
+        href: `${base}/platform/${matches[1]}`
       },
       {
         type: "page",

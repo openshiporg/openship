@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-} from "../../primitives/default/ui/dropdown-menu-depracated";
+} from "../../primitives/default/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";

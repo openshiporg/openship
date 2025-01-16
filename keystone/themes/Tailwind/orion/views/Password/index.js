@@ -94,7 +94,7 @@ export const Field = ({
               });
             }}
             className="text-xs shadow-sm border border-zinc-200 dark:border-zinc-800 uppercase tracking-wide py-2.5 px-4 bg-muted/40 dark:bg-zinc-800/40"
-            variant="light"
+            variant="secondary"
           >
             {value.isSet ? "Change Password" : "Set Password"}
           </Button>
@@ -106,7 +106,7 @@ export const Field = ({
             {/* <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
               New Password
             </VisuallyHidden> */}
-            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "200px" }}>
               <TextInput
                 id={`${field.path}-new-password`}
                 autoFocus
@@ -125,7 +125,7 @@ export const Field = ({
                 }}
               />
             </div>
-            <div style={{ flexGrow: 1, flexBasis: "250px" }}>
+            <div style={{ flexGrow: 1, flexBasis: "200px" }}>
               <label
                 htmlFor={`${field.path}-confirm-password`}
                 className="sr-only"
@@ -154,7 +154,9 @@ export const Field = ({
               onClick={() => {
                 setShowInputValue(!showInputValue);
               }}
-              variant="secondary"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
             >
               <span className="sr-only">
                 {showInputValue ? "Hide Text" : "Show Text"}
@@ -173,7 +175,9 @@ export const Field = ({
                   isSet: value.isSet,
                 });
               }}
-              variant="secondary"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
             >
               <span className="sr-only">Cancel</span>
               <XIcon className="w-5 h-5" />

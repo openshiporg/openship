@@ -208,7 +208,7 @@ export function CreatePlatform({ refetch, trigger }) {
 
         <DialogFooter>
           <Button
-            variant="light"
+            variant="outline"
             onClick={handleDialogClose} // Clear fields and close dialog
           >
             Cancel

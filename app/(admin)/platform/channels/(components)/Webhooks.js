@@ -177,16 +177,13 @@ const RecommendedWebhookItem = ({ webhook, refetch, channelId }) => {
       <div className="flex items-center justify-between">
         <div className="flex gap-2 items-center">
           <Button
+            variant="secondary"
+            size="icon"
+            className="border [&_svg]:size-2.5 h-5 w-5"
             onClick={handleCreate}
             disabled={loading}
-            variant="secondary"
-            className="p-0.5 flex items-center gap-3"
           >
-            {loading ? (
-              <RiLoader2Fill className="size-3.5 py-0.5 animate-spin" />
-            ) : (
-              <Plus className="size-3.5" />
-            )}
+            {loading ? <RiLoader2Fill className="animate-spin" /> : <Plus />}
           </Button>
           <span className="text-xs font-medium">{webhook.topic}</span>
           <TooltipProvider>
@@ -244,7 +241,8 @@ export const Webhooks = ({ channelId }) => {
           const existingWebhook = webhooks.find(
             (w) =>
               w.topic === webhook.topic &&
-              w.callbackUrl === webhook.callbackUrl.replace("[channelId]", channelId)
+              w.callbackUrl ===
+                webhook.callbackUrl.replace("[channelId]", channelId)
           );
           return !existingWebhook ? (
             <RecommendedWebhookItem

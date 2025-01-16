@@ -30,7 +30,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@ui/dropdown-menu-depracated";
+} from "@ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/popover";
 import { Label } from "@ui/label";
 import { useToasts } from "@keystone/screens";
@@ -336,7 +336,7 @@ export const Links = ({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
-                    variant="light" 
+                    variant="outline" 
                     className="text-xs flex items-center gap-1 p-0.5 bg-transparent text-muted-foreground"
                     disabled={updateShopLoading}
                     isLoading={updateShopLoading}

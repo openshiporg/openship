@@ -23,6 +23,8 @@ import {
 import { Logo } from "../../components/Logo";
 import { Fields } from "../../components/Fields";
 import { cn } from "@keystone/utils/cn";
+import { buttonVariants } from "../../primitives/default/ui/button";
+import { RiLoader2Fill } from "@remixicon/react";
 
 export function InitPage({
   fieldPaths = ["name", "email", "password"],
@@ -142,26 +144,22 @@ export function InitPage({
               />
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button
+              <button
+                type="submit"
                 className={cn(
-                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase transition-all duration-200 ease-in-out bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] [&:not(:disabled)]:hover:from-[#7d5322] [&:not(:disabled)]:hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#a37f53] [&:not(:disabled)]:dark:hover:from-[#7d5322] [&:not(:disabled)]:dark:hover:to-[#c79760] dark:text-gray-100",
+                  buttonVariants({ variant: "secondary" }),
+                  "w-full text-md tracking-wide h-11 md:h-12 font-semibold text-white uppercase bg-gradient-to-r from-[#8d5e32] to-[#d7a76e] hover:from-[#7d5322] hover:to-[#c79760] dark:from-[#8d5e32] dark:to-[#a37f53] dark:hover:from-[#7d5322] dark:hover:to-[#c79760] dark:text-gray-100 disabled:opacity-50 disabled:hover:from-[#8d5e32] disabled:hover:to-[#d7a76e] dark:disabled:hover:from-[#8d5e32] dark:disabled:hover:to-[#a37f53]",
                   {
-                    "opacity-50 dark:from-zinc-800 dark:to-zinc-600 from-zinc-400 to-zinc-600":
-                      loading ||
-                      data?.authenticate?.__typename ===
-                        `${listKey}AuthenticationWithPasswordSuccess`,
+                    "opacity-50": loading || data?.authenticate?.__typename === `${listKey}AuthenticationWithPasswordSuccess`
                   }
                 )}
-                isLoading={
-                  loading ||
-                  data?.authenticate?.__typename ===
-                    `${listKey}AuthenticationWithPasswordSuccess`
-                }
-                type="submit"
-                variant="light"
+                disabled={loading || data?.authenticate?.__typename === `${listKey}AuthenticationWithPasswordSuccess`}
               >
+                {(loading || data?.authenticate?.__typename === `${listKey}AuthenticationWithPasswordSuccess`) && (
+                  <RiLoader2Fill className="size-4 shrink-0 animate-spin" />
+                )}
                 GET STARTED
-              </Button>
+              </button>
             </CardFooter>
           </Card>
         </form>

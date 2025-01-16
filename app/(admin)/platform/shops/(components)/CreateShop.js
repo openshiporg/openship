@@ -145,7 +145,7 @@ export function CreateShop() {
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="light" onClick={handleDialogClose}>
+            <Button variant="outline" onClick={handleDialogClose}>
               Cancel
             </Button>
           </DialogClose>
@@ -176,7 +176,6 @@ function TriggerButton({ setIsDialogOpen }) {
 
   return (
     <Button
-      variant="secondary"
       onClick={() => setIsDialogOpen(true)}
       disabled={error || loading || data?.count === 0}
     >
@@ -273,7 +272,6 @@ export function CreateShopButton({
 
   return (
     <Button
-      variant="primary"
       isLoading={state === "loading"}
       onClick={handleClick}
     >
