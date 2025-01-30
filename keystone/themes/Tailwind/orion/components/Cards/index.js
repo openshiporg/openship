@@ -27,7 +27,7 @@ const CardContainer = forwardRefWithAs(({ mode = "view", ...props }, ref) => {
   return (
     <div
       ref={ref}
-      className="pl-8 relative before:content-[' '] before:bg-blue-500 before:rounded-full before:w-1 before:h-full before:absolute before:left-0 before:top-0 before:bottom-0 before:z-10"
+      className="pl-4 relative before:content-[' '] before:bg-muted-foreground before:rounded-xl before:w-1 before:h-full before:absolute before:left-0 before:top-0 before:bottom-0 before:z-10"
       {...props}
     />
   );
@@ -159,7 +159,7 @@ export function Cards({
                     }}
                   />
                 ) : (
-                  <div className="space-y-10">
+                  <div className="space-y-4">
                     {displayOptions.cardFields.map((fieldPath) => {
                       const field = foreignList.fields[fieldPath];
                       const itemForField = {};
@@ -190,6 +190,8 @@ export function Cards({
                       {displayOptions.inlineEdit && onChange !== undefined && (
                         <Button
                           disabled={onChange === undefined}
+                          size="sm"
+                          variant="outline"
                           onClick={() => {
                             onChange({
                               ...value,
@@ -251,7 +253,7 @@ export function Cards({
       {onChange === undefined ? null : displayOptions.inlineConnect &&
         showConnectItems ? (
         <CardContainer mode="edit">
-          <div className="flex gap-1 flex-wrap w-full justify-between">
+          <div className="flex gap-1 flex-col flex-wrap w-full">
             <RelationshipSelect
               autoFocus
               controlShouldRenderValue={isLoadingLazyItems}
@@ -324,9 +326,15 @@ export function Cards({
                 })(),
               }}
             />
-            <Button onClick={() => setShowConnectItems(false)}>
-              {hideConnectItemsLabel}
-            </Button>
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowConnectItems(false)}
+              >
+                {hideConnectItemsLabel}
+              </Button>
+            </div>
           </div>
         </CardContainer>
       ) : value.itemBeingCreated ? (
@@ -357,6 +365,7 @@ export function Cards({
             {displayOptions.inlineCreate && (
               <Button
                 disabled={onChange === undefined}
+                variant="outline"
                 onClick={() => {
                   onChange({
                     ...value,
@@ -369,6 +378,7 @@ export function Cards({
             )}
             {displayOptions.inlineConnect && (
               <Button
+                variant="outline"
                 onClick={() => {
                   setShowConnectItems(true);
                   setHideConnectItemsLabel("Cancel");

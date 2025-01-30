@@ -7,12 +7,13 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "../../primitives/default/ui/dropdown-menu";
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { Badge } from "../../primitives/default/ui/badge";
 import { cloneElement, useState } from "react";
+import { Columns3 } from "lucide-react";
 
 function isArrayEqual(arrA, arrB) {
   if (arrA.length !== arrB.length) return false;
@@ -44,12 +45,7 @@ export const fieldSelectionOptionsComponents = {
   Option,
 };
 
-export function FieldSelection({
-  list,
-  fieldModesByFieldPath,
-  rightSection,
-  dropdownTrigger,
-}) {
+function FieldSelectionContent({ onClose, list, fieldModesByFieldPath }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,6 +55,7 @@ export function FieldSelection({
   for (let [key, value] of searchParams.entries()) {
     query[key] = value;
   }
+
   const selectedFields = useSelectedFields(list, fieldModesByFieldPath);
 
   const setNewSelectedFields = (selectedFields) => {
@@ -68,7 +65,7 @@ export function FieldSelection({
         pathname +
           "?" +
           new URLSearchParams({
-            otherQueryFields,
+            ...otherQueryFields,
           })
       );
     } else {
@@ -94,53 +91,59 @@ export function FieldSelection({
     }
   });
 
-  const defaultTrigger = (
-    <Button size="sm" className="data-[state=open]:bg-muted/20">
-      Column
-      {selectedFields.size === 1 ? "" : "s"}{" "}
-      <Badge className="ml-0.5 px-1 py-0 text-xs">{selectedFields.size}</Badge>
-    </Button>
+  return (
+    <DropdownMenuContent align="start" className="w-[200px]">
+      <DropdownMenuLabel>Display columns</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <ScrollArea className="h-[300px]">
+        {fields.map((field) => (
+          <DropdownMenuCheckboxItem
+            key={field.value}
+            checked={selectedFields.has(field.value)}
+            onCheckedChange={(checked) => {
+              const newSelectedFields = new Set(selectedFields);
+              if (checked) {
+                newSelectedFields.add(field.value);
+              } else {
+                newSelectedFields.delete(field.value);
+              }
+              setNewSelectedFields(Array.from(newSelectedFields));
+            }}
+            disabled={field.isDisabled}
+          >
+            {field.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </ScrollArea>
+    </DropdownMenuContent>
+  );
+}
+
+export function FieldSelection({ list, fieldModesByFieldPath, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const DefaultTrigger = () => (
+    <button
+      type="button"
+      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+    >
+      <Columns3 size={12} className="stroke-muted-foreground" />
+      COLUMNS
+    </button>
   );
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        {dropdownTrigger
-          ? cloneElement(dropdownTrigger, { asChild: true })
-          : defaultTrigger}
+        {children || <DefaultTrigger />}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuLabel className="flex items-center">
-          Columns<div className="ml-auto">{rightSection}</div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <ScrollArea vpClassName="max-h-72">
-          {fields.map((field) => {
-            return (
-              <DropdownMenuCheckboxItem
-                key={field.value}
-                className="capitalize"
-                onSelect={(event) => event.preventDefault()}
-                checked={selectedFields.has(field.value)}
-                onCheckedChange={(isChecked) => {
-                  const newSelectedFields = new Set(selectedFields);
-                  if (isChecked) {
-                    newSelectedFields.add(field.value);
-                  } else {
-                    newSelectedFields.delete(field.value);
-                  }
-                  setNewSelectedFields(
-                    Array.from(newSelectedFields),
-                    field.value
-                  );
-                }}
-              >
-                {field.label}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
+      {isOpen && (
+        <FieldSelectionContent
+          onClose={() => setIsOpen(false)}
+          list={list}
+          fieldModesByFieldPath={fieldModesByFieldPath}
+        />
+      )}
     </DropdownMenu>
   );
 }

@@ -1803,6 +1803,7 @@ type MatchInventoryData {
   syncEligible: Boolean
   sourceQuantity: Int
   targetQuantity: Int
+  syncNeeded: Boolean
 }
 
 input MatchWhereUniqueInput {

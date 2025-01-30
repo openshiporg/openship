@@ -3,13 +3,13 @@ import * as React from "react";
 import { cn } from "@keystone/utils/cn";
 
 const Table = React.forwardRef(({ className, ...props }, ref) => (
-  <div className="relative max-w-full overflow-auto no-scrollbar">
+  // <div className="relative max-w-full overflow-auto no-scrollbar">
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
       {...props}
     />
-  </div>
+  // </div>
 ));
 Table.displayName = "Table";
 

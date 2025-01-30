@@ -99,11 +99,11 @@ export const ProcessOrdersDialog = ({
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "self-start p-1 transition-transform group-open:rotate-90"
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
-                  <ChevronRight className="size-3" />
+                  <ChevronRight />
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-col gap-1">
@@ -169,11 +169,11 @@ export const ProcessOrdersDialog = ({
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "self-start p-1 transition-transform group-open:rotate-90"
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
-                  <ChevronRight className="size-3" />
+                  <ChevronRight />
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-col gap-1">
@@ -226,18 +226,18 @@ export const ProcessOrdersDialog = ({
           </details>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={handleProcessOrders}
             disabled={selectedOrders.length === 0}
           >
             Process Orders
-            <Badge className="ml-2 border py-0.5 px-1.5">
+            <span className="-me-1 ms-1 inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground">
               {selectedOrders.length}
-            </Badge>
+            </span>
           </Button>
         </DialogFooter>
       </DialogContent>

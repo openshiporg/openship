@@ -125,12 +125,12 @@ export function InlineEdit({
           )}
           value={state.value}
         />
-        <div className="flex gap-1 flex-wrap">
+        <div className="flex gap-1 flex-wrap justify-end">
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button isLoading={loading} size="sm" type="submit">
             Save
-          </Button>
-          <Button size="sm" onClick={onCancel}>
-            Cancel
           </Button>
         </div>
       </div>

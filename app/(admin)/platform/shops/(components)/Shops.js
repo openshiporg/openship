@@ -8,8 +8,11 @@ import {
   EllipsisVertical,
   MoreVertical,
   Square,
+  SquareStack,
+  Ticket,
   Triangle,
   Webhook,
+  LinkIcon
 } from "lucide-react";
 import {
   DescriptionDetails,
@@ -28,18 +31,9 @@ import { Button } from "@keystone/themes/Tailwind/orion/primitives/default/ui/bu
 import { Webhooks } from "./Webhooks";
 import { Avatar } from "@keystone/themes/Tailwind/orion/primitives/default/ui/avatar";
 import { Squircle } from "@squircle-js/react";
-import {
-  Cog6ToothIcon,
-  Cog8ToothIcon,
-  CogIcon,
-  LinkIcon,
-  Square2StackIcon,
-  Square3Stack3DIcon,
-  TicketIcon,
-} from "@heroicons/react/16/solid";
 import { Links } from "./Links";
 import { RiCalculatorLine, RiMapPin2Line } from "@remixicon/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/dynamic-tabs";
 import { SearchOrders } from "./SearchOrders";
 import {
   Tooltip,
@@ -47,6 +41,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/tooltip";
+import { ScrollArea, ScrollBar } from "@ui/scroll-area";
+import { MatchList } from "../../matches/(components)/MatchList";
 
 export const SHOPS_QUERY = gql`
   query (
@@ -97,16 +93,17 @@ function formatDate(dateString) {
 }
 
 const tabsData = [
-  { value: "orders", icon: TicketIcon, label: "Orders", count: "ordersCount" },
+  { value: "orders", icon: Ticket, label: "Orders", count: "ordersCount" },
   {
     value: "matches",
-    icon: Square2StackIcon,
+    icon: SquareStack,
     label: "Matches",
     count: "shopItemsCount",
   },
   { value: "links", icon: LinkIcon, label: "Links", count: "linksCount" },
   { value: "webhooks", icon: Webhook, label: "Webhooks" },
 ];
+
 
 export const Shops = ({ openDrawer, selectedPlatform }) => {
   const { data, loading, error, refetch } = useQuery(SHOPS_QUERY, {
@@ -220,77 +217,76 @@ export const Shops = ({ openDrawer, selectedPlatform }) => {
                   </div>
                 </div>
                 <Tabs>
-                  <TabsList
-                    className="px-4 flex flex-wrap gap-2"
-                    variant="line"
-                  >
-                    <TooltipProvider>
+                  <ScrollArea>
+                    <TabsList className="justify-start w-full h-auto gap-2 rounded-none bg-transparent px-3 py-1">
                       {tabsData.map((tab) => (
-                        <Tooltip key={tab.value}>
-                          <TooltipTrigger asChild>
-                            <TabsTrigger
-                              value={tab.value}
-                              className="inline-flex items-center gap-1.5"
-                            >
-                              <tab.icon
-                                className="size-5 sm:size-4 "
-                                aria-hidden="true"
-                              />
-                              <span className="hidden sm:inline">
-                                {tab.label}
-                              </span>
-                              {tab.count && (
-                                <Badge
-                                  color="zinc"
-                                  className="opacity-75 text-[.65rem]/3 px-1 border ml-1"
-                                >
-                                  {shop[tab.count]}
-                                </Badge>
-                              )}
-                            </TabsTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="sm:hidden">
-                            {tab.label}
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-                    </TooltipProvider>
-                  </TabsList>
-                  <div className="-mb-1 px-4">
-                    <TabsContent value="webhooks">
-                      <p className="text-sm text-gray-500 sm:text-gray-500">
-                        <div className="mb-3 text-sm text-zinc-500 dark:text-zinc-200">
-                          <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                            Create platform webhooks to keep Openship in sync
-                          </div>
-                        </div>
-                        <Webhooks shopId={shop.id} />
-                      </p>
-                    </TabsContent>
-                    <TabsContent value="links">
-                      <p className="text-sm text-gray-500 sm:text-gray-500">
-                        <div>
-                          <Links
-                            shopId={shop.id}
-                            links={shop.links}
-                            linkMode={shop.linkMode}
-                            refetch={refetch}
-                            editItem={openDrawer}
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className="text-foreground/50 relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent data-[state=active]:text-foreground/75"
+                        >
+                          <tab.icon
+                            className="-ms-0.5 me-1.5 opacity-60"
+                            size={16}
+                            strokeWidth={2}
+                            aria-hidden="true"
                           />
-                        </div>
-                      </p>
-                    </TabsContent>
-                    <TabsContent value="orders">
-                      <div className="h-[300px]">
-                        {/* Adjust the height as needed */}
-                        <SearchOrders
+                          <span className="hidden sm:inline">{tab.label}</span>
+                          {tab.count && (
+                            <span className="opacity-50 ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
+                              {shop[tab.count]}
+                            </span>
+                          )}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                  
+                  <TabsContent value="orders" className="bg-background p-4 border-t">
+                    <div className="h-[300px] overflow-y-auto">
+                      <SearchOrders
+                        shopId={shop.id}
+                        searchEntry=""
+                        pageSize={10}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="matches" className="bg-background p-4 border-t">
+                    <div className="h-[300px] overflow-y-auto">
+                      <MatchList
+                        shopId={shop.id}
+                        onMatchAction={() => {}}
+                        showCreate={false}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="links" className="bg-background p-4 border-t">
+                    <p className="text-sm text-gray-500 sm:text-gray-500">
+                      <div>
+                        <Links
                           shopId={shop.id}
-                          searchEntry=""
-                          pageSize={10}
+                          links={shop.links}
+                          linkMode={shop.linkMode}
+                          refetch={refetch}
+                          editItem={openDrawer}
                         />
                       </div>
-                    </TabsContent>
-                  </div>
+                    </p>
+                  </TabsContent>
+                  
+                  <TabsContent value="webhooks" className="bg-background p-4 border-t">
+                    <p className="text-sm text-gray-500 sm:text-gray-500">
+                      <div className="mb-3 text-sm text-zinc-500 dark:text-zinc-200">
+                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                          Create platform webhooks to keep Openship in sync
+                        </div>
+                      </div>
+                      <Webhooks shopId={shop.id} />
+                    </p>
+                  </TabsContent>
                 </Tabs>
               </div>
             </div>

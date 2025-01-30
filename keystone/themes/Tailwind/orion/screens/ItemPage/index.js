@@ -11,7 +11,7 @@ import {
 } from "react";
 import { models } from "@keystone/models";
 import { getNamesFromList } from "@keystone/utils/getNamesFromList";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Save, Trash2 } from "lucide-react";
 import { useList } from "@keystone/keystoneProvider";
 import { usePreventNavigation } from "@keystone/utils/usePreventNavigation";
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
@@ -54,6 +54,7 @@ import { Button } from "../../primitives/default/ui/button";
 import { LoadingIcon } from "../../components/LoadingIcon";
 import { Skeleton } from "../../primitives/default/ui/skeleton";
 import { basePath } from "@keystone/index";
+import { PageBreadcrumbs } from "../../components/PageBreadcrumbs";
 
 export function ItemPageHeader(props) {
   return (
@@ -137,27 +138,26 @@ export function ItemPageHeader(props) {
   );
 }
 
-export function ColumnLayout(props) {
-  return (
-    // this container must be relative to catch absolute children
-    // particularly the "expanded" document-field, which needs a height of 100%
-    <div
-      className="items-start grid"
-      style={{ gridTemplateColumns: "3fr 0fr" }}
-      {...props}
-    />
-  );
-}
+// Core layout components
+const ColumnLayout = (props) => (
+  <div
+    className="items-start grid"
+    style={{ gridTemplateColumns: "3fr 0fr" }}
+    {...props}
+  />
+);
 
-export function BaseToolbar(props) {
-  return (
-    // <div className="border-t-2 bottom-0 flex justify-between mt-10 pb-2 pt-2 sticky z-20 bg-background text-foreground">
-    <div className="shadow-sm bottom-3 border flex justify-between p-2 rounded-lg sticky z-20 mt-5 bg-zinc-200 dark:bg-zinc-950">
-      {props.children}
-    </div>
-  );
-}
+const StickySidebar = (props) => (
+  <div className="hidden lg:block mb-20 sticky top-8" {...props} />
+);
 
+const BaseToolbar = (props) => (
+  <div className="-mb-4 md:-mb-6 shadow-sm bottom-0 border border-b-0 flex flex-wrap justify-between p-2 rounded-t-xl sticky z-20 mt-5 bg-background gap-2">
+    {props.children}
+  </div>
+);
+
+// Utility hook
 function useEventCallback(callback) {
   const callbackRef = useRef(callback);
   const cb = useCallback((...args) => {
@@ -169,44 +169,119 @@ function useEventCallback(callback) {
   return cb;
 }
 
-function ItemForm({
-  listKey,
-  itemGetter,
-  selectedFields,
+// UI Components
+const ItemFormFields = memo(function ItemFormFields({
+  list,
+  fields,
   fieldModes,
   fieldPositions,
-  showDelete,
-  item,
+  forceValidation,
+  invalidFields,
+  value,
+  onChange,
+  position,
 }) {
-  const list = useList(listKey);
-
-  const [update, { loading, error, data }] = useMutation(
-    gql`mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
-    item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
-      ${selectedFields}
-    }
-  }`,
-    { errorPolicy: "all" }
+  return (
+    <Fields
+      groups={list.groups}
+      fieldModes={fieldModes}
+      fields={fields}
+      forceValidation={forceValidation}
+      invalidFields={invalidFields}
+      position={position}
+      fieldPositions={fieldPositions}
+      onChange={onChange}
+      value={value}
+    />
   );
-  itemGetter =
-    useMemo(() => {
-      if (data) {
-        return makeDataGetter(data, error?.graphQLErrors).get("item");
-      }
-    }, [data, error]) ?? itemGetter;
+});
 
-  const [state, setValue] = useState(() => {
-    const value = deserializeValue(list.fields, itemGetter);
-    return { value, item: itemGetter };
-  });
+const ItemFormContent = memo(function ItemFormContent({
+  list,
+  item,
+  error,
+  fieldModes,
+  fieldPositions,
+  forceValidation,
+  invalidFields,
+  value,
+  onChange,
+}) {
+  return (
+    <ColumnLayout>
+      <div className="flex-1">
+        <GraphQLErrorNotice
+          networkError={error?.networkError}
+          errors={error?.graphQLErrors?.filter((x) => x.path?.length === 1)}
+        />
+        <ItemFormFields
+          list={list}
+          fields={list.fields}
+          fieldModes={fieldModes}
+          fieldPositions={fieldPositions}
+          forceValidation={forceValidation}
+          invalidFields={invalidFields}
+          value={value}
+          onChange={onChange}
+          position="form"
+        />
+      </div>
+      <StickySidebar>
+        <div className="ml-4 w-72 flex flex-col gap-1.5">
+          <FieldLabel>Item ID</FieldLabel>
+          <code className="py-[9px] border flex px-4 items-center relative rounded-md shadow-sm bg-muted/40 font-mono text-sm font-medium">
+            {item.id}
+          </code>
+        </div>
+        <div>
+          <ItemFormFields
+            list={list}
+            fields={list.fields}
+            fieldModes={fieldModes}
+            fieldPositions={fieldPositions}
+            forceValidation={forceValidation}
+            invalidFields={invalidFields}
+            value={value}
+            onChange={onChange}
+            position="sidebar"
+          />
+        </div>
+      </StickySidebar>
+    </ColumnLayout>
+  );
+});
+
+// Logic Components
+function useItemState(list, itemGetter) {
+  const [state, setValue] = useState(() => ({
+    value: deserializeValue(list.fields, itemGetter),
+    item: itemGetter,
+  }));
+
   if (
-    !loading &&
+    itemGetter &&
     state.item.data !== itemGetter.data &&
     (itemGetter.errors || []).every((x) => x.path?.length !== 1)
   ) {
     const value = deserializeValue(list.fields, itemGetter);
     setValue({ value, item: itemGetter });
   }
+
+  return [state, setValue];
+}
+
+function useItemForm({ list, selectedFields, itemGetter }) {
+  const toasts = useToasts();
+  const [state, setValue] = useItemState(list, itemGetter);
+
+  const [update, { loading, error, data }] = useMutation(
+    gql`mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
+      item: ${list.gqlNames.updateMutationName}(where: { id: $id }, data: $data) {
+        ${selectedFields}
+      }
+    }`,
+    { errorPolicy: "all" }
+  );
 
   const { changedFields, dataForUpdate } = useChangedFieldsAndDataForUpdate(
     list.fields,
@@ -215,9 +290,8 @@ function ItemForm({
   );
 
   const invalidFields = useInvalidFields(list.fields, state.value);
-
   const [forceValidation, setForceValidation] = useState(false);
-  const toasts = useToasts();
+
   const onSave = useEventCallback(() => {
     const newForceValidation = invalidFields.size !== 0;
     setForceValidation(newForceValidation);
@@ -226,12 +300,7 @@ function ItemForm({
     update({
       variables: { data: dataForUpdate, id: state.item.get("id").data },
     })
-      // TODO -- Experimenting with less detail in the toasts, so the data lines are commented
-      // out below. If we're happy with this, clean up the unused lines.
-      .then(({ /* data, */ errors }) => {
-        // we're checking for path being undefined OR path.length === 1 because errors with a path larger than 1 will
-        // be field level errors which are handled seperately and do not indicate a failure to
-        // update the item, path being undefined generally indicates a failure in the graphql mutation itself - ie a type error
+      .then(({ errors }) => {
         const error = errors?.find(
           (x) => x.path === undefined || x.path?.length === 1
         );
@@ -243,10 +312,8 @@ function ItemForm({
           });
         } else {
           toasts.addToast({
-            // title: data.item[list.labelField] || data.item.id,
             tone: "positive",
             title: "Saved successfully",
-            // message: 'Saved successfully',
           });
         }
       })
@@ -258,117 +325,53 @@ function ItemForm({
         });
       });
   });
-  const labelFieldValue = list.isSingleton
-    ? list.label
-    : state.item.data?.[list.labelField];
-  const itemId = state.item.data?.id;
-  const hasChangedFields = !!changedFields.size;
+
+  const onReset = useEventCallback(() => {
+    setValue((state) => ({
+      item: state.item,
+      value: deserializeValue(list.fields, state.item),
+    }));
+  });
+
   usePreventNavigation(
-    useMemo(() => ({ current: hasChangedFields }), [hasChangedFields])
+    useMemo(() => ({ current: !!changedFields.size }), [changedFields.size])
   );
-  return (
-    <div className="flex">
-      <div className="flex-1">
-        <GraphQLErrorNotice
-          networkError={error?.networkError}
-          // we're checking for path.length === 1 because errors with a path larger than 1 will be field level errors
-          // which are handled seperately and do not indicate a failure to update the item
-          errors={error?.graphQLErrors.filter((x) => x.path?.length === 1)}
-        />
-        <Fields
-          groups={list.groups}
-          fieldModes={fieldModes}
-          fields={list.fields}
-          forceValidation={forceValidation}
-          invalidFields={invalidFields}
-          position="form"
-          fieldPositions={fieldPositions}
-          onChange={useCallback(
-            (value) => {
-              setValue((state) => ({
-                item: state.item,
-                value: value(state.value),
-              }));
-            },
-            [setValue]
-          )}
-          value={state.value}
-        />
-        <Toolbar
-          onSave={onSave}
-          hasChangedFields={!!changedFields.size}
-          onReset={useEventCallback(() => {
-            setValue((state) => ({
-              item: state.item,
-              value: deserializeValue(list.fields, state.item),
-            }));
-          })}
-          loading={loading}
-          deleteButton={useMemo(
-            () =>
-              showDelete ? (
-                <DeleteButton
-                  list={list}
-                  itemLabel={labelFieldValue ?? itemId}
-                  itemId={itemId}
-                />
-              ) : undefined,
-            [showDelete, list, labelFieldValue, itemId]
-          )}
-        />
-      </div>
-      <StickySidebar>
-        <div className="ml-4 w-72 flex flex-col gap-1.5">
-          <FieldLabel>Item ID</FieldLabel>
-          <code className="py-[9px] border flex px-4 items-center relative rounded-md shadow-sm bg-muted/40 font-mono text-sm font-medium">
-            {item.id}
-          </code>
-        </div>
-        <div>
-          <Fields
-            groups={list.groups}
-            fieldModes={fieldModes}
-            fields={list.fields}
-            forceValidation={forceValidation}
-            invalidFields={invalidFields}
-            position="sidebar"
-            fieldPositions={fieldPositions}
-            onChange={useCallback(
-              (value) => {
-                setValue((state) => ({
-                  item: state.item,
-                  value: value(state.value),
-                }));
-              },
-              [setValue]
-            )}
-            value={state.value}
-          />
-        </div>
-      </StickySidebar>
-    </div>
-  );
+
+  return {
+    state,
+    setValue,
+    loading,
+    error,
+    forceValidation,
+    invalidFields,
+    changedFields,
+    onSave,
+    onReset,
+  };
 }
 
+// Main Components
 function DeleteButton({ itemLabel, itemId, list }) {
   const toasts = useToasts();
   const [deleteItem, { loading }] = useMutation(
     gql`mutation ($id: ID!) {
-    ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
-      id
-    }
-  }`,
+      ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
+        id
+      }
+    }`,
     { variables: { id: itemId } }
   );
   const router = useRouter();
-
   const adminPath = basePath;
 
   return (
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="destructive">Delete</Button>
+          <Button variant="destructive" className="rounded-t-[calc(theme(borderRadius.lg)-1px)]">
+            <Trash2 className="md:mr-2" />
+            <span className="hidden md:inline">Delete</span>
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -379,7 +382,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
           </text>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="secondary">Close</Button>
+              <Button variant="outline">Close</Button>
             </DialogClose>
             <Button
               variant="destructive"
@@ -395,9 +398,7 @@ function DeleteButton({ itemLabel, itemId, list }) {
                   });
                 }
                 router.push(
-                  list.isSingleton
-                    ? `${adminPath}`
-                    : `${adminPath}/${list.path}`
+                  list.isSingleton ? `${adminPath}` : `${adminPath}/${list.path}`
                 );
                 return toasts.addToast({
                   title: itemLabel,
@@ -415,6 +416,130 @@ function DeleteButton({ itemLabel, itemId, list }) {
   );
 }
 
+function ItemForm({
+  list,
+  itemGetter,
+  selectedFields,
+  fieldModes,
+  fieldPositions,
+  item,
+  showDelete,
+}) {
+  const {
+    state,
+    setValue,
+    loading,
+    error,
+    forceValidation,
+    invalidFields,
+    changedFields,
+    onSave,
+    onReset,
+  } = useItemForm({
+    list,
+    selectedFields,
+    itemGetter,
+  });
+
+  const labelFieldValue = list.isSingleton
+    ? list.label
+    : state.item.data?.[list.labelField];
+  const itemId = state.item.data?.id;
+
+  return (
+    <Fragment>
+      <ItemFormContent
+        list={list}
+        item={item}
+        error={error}
+        fieldModes={fieldModes}
+        fieldPositions={fieldPositions}
+        forceValidation={forceValidation}
+        invalidFields={invalidFields}
+        value={state.value}
+        onChange={useCallback(
+          (value) => {
+            setValue((state) => ({
+              item: state.item,
+              value: value(state.value),
+            }));
+          },
+          [setValue]
+        )}
+      />
+      <Toolbar
+        hasChangedFields={!!changedFields.size}
+        loading={loading}
+        onSave={onSave}
+        onReset={onReset}
+        deleteButton={
+          showDelete ? (
+            <DeleteButton
+              list={list}
+              itemLabel={labelFieldValue ?? itemId}
+              itemId={itemId}
+            />
+          ) : undefined
+        }
+      />
+    </Fragment>
+  );
+}
+
+const Toolbar = memo(function Toolbar({
+  hasChangedFields,
+  loading,
+  onSave,
+  onReset,
+  deleteButton,
+}) {
+  return (
+    <BaseToolbar>
+      <div className="flex items-center gap-2 flex-wrap">
+        {deleteButton}
+        {hasChangedFields ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="rounded-t-[calc(theme(borderRadius.lg)-1px)]">
+                <span className="md:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></span>
+                <span className="hidden md:inline">Reset changes</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Reset Confirmation</DialogTitle>
+              </DialogHeader>
+              <text className="text-sm">
+                Are you sure you want to reset changes?
+              </text>
+              <DialogFooter className="mt-4">
+                <DialogClose asChild>
+                  <Button variant="outline">Close</Button>
+                </DialogClose>
+                <Button variant="destructive" onClick={onReset}>
+                  Reset Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <text className="font-medium px-5 text-sm hidden md:block">No changes</text>
+        )}
+        <Button
+          disabled={!hasChangedFields}
+          isLoading={loading}
+          onClick={onSave}
+          className="rounded-t-[calc(theme(borderRadius.lg)-1px)]"
+        >
+          <Save className="md:mr-2" />
+          <span className="hidden md:inline">Save changes</span>
+        </Button>
+      </div>
+    </BaseToolbar>
+  );
+});
+
+// Page Components
 export const ItemPage = ({ params }) => {
   const listKey = params.listKey;
   const id = params.id;
@@ -431,8 +556,6 @@ export const ItemPage = ({ params }) => {
 export const ItemPageTemplate = ({ listKey, id }) => {
   const list = useList(listKey);
 
-  console.log(list.fields);
-
   const { query, selectedFields } = useMemo(() => {
     const selectedFields = Object.entries(list.fields)
       .filter(
@@ -445,7 +568,6 @@ export const ItemPageTemplate = ({ listKey, id }) => {
         return list.fields[fieldKey].controller.graphqlSelection;
       })
       .join("\n");
-    console.log({ selectedFields });
     return {
       selectedFields,
       query: gql`
@@ -472,6 +594,7 @@ export const ItemPageTemplate = ({ listKey, id }) => {
       `,
     };
   }, [list]);
+
   let { data, error, loading } = useQuery(query, {
     variables: { id, listKey },
     errorPolicy: "all",
@@ -510,199 +633,111 @@ export const ItemPageTemplate = ({ listKey, id }) => {
   }, [dataGetter.data?.keystone?.adminMeta?.list?.fields]);
 
   const metaQueryErrors = dataGetter.get("keystone").errors;
-  const pageTitle = list.isSingleton
-    ? list.label
-    : loading
-    ? undefined
-    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id;
 
   return (
-    <div>
-      <div>
-        {/* <Breadcrumb className="hidden md:flex">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <AdminLink href="/">Dashboard</AdminLink>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                {list.isSingleton ? (
-                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
-                    {list.label}
-                  </div>
-                ) : (
-                  <AdminLink href={`/${list.path}`}>{list.label}</AdminLink>
-                )}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <ItemLabel skeletonClass={"h-5 w-[100px]"} />
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb> */}
-        <div className="flex items-center justify-between">
-          <div className="flex-col items-center mt-2 mb-4">
-            <h1 className="flex text-lg font-semibold md:text-2xl">
-              Manage <ItemLabel skeletonClass={"ml-3 h-7 w-[150px]"} />
-            </h1>
-            <p className="text-muted-foreground">
-              {list.description ? (
-                <p>{list.description}</p>
-              ) : (
-                <span>
-                  Update or delete this{" "}
-                  <span className="lowercase">{list.singular}</span>
-                </span>
-              )}
-            </p>
+    <>
+      <PageBreadcrumbs
+        items={[
+          {
+            type: "link",
+            label: "Dashboard",
+            href: "/",
+          },
+          {
+            type: "model",
+            label: list.label,
+            href: `/${list.path}`,
+            showModelSwitcher: true,
+          },
+          {
+            type: "page",
+            label: loading
+              ? "Loading..."
+              : data?.item?.[list.labelField] || data?.item?.id || id,
+          },
+        ]}
+      />
+      <main className="w-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
+        <div className="flex-col items-center">
+          <h1 className="flex text-lg font-semibold md:text-2xl">
+            Manage{" "}
+            {loading ? (
+              <Skeleton className="ml-3 h-7 w-[150px]" />
+            ) : (
+              (data?.item?.[list.labelField] || data?.item?.id || id)
+            )}
+          </h1>
+          <p className="text-muted-foreground">
+            {list.description ? (
+              <p>{list.description}</p>
+            ) : (
+              <span>
+                Update or delete this{" "}
+                <span className="lowercase">{list.singular}</span>
+              </span>
+            )}
+          </p>
+        </div>
+        {loading ? null : metaQueryErrors ? (
+          <div>
+            <Alert variant="destructive">{metaQueryErrors[0].message}</Alert>
           </div>
-        </div>
-      </div>
-      {loading ? (
-        // <LoadingIcon label="Loading item data" />
-        null
-      ) : metaQueryErrors ? (
-        <div>
-          <Alert variant="destructive">{metaQueryErrors[0].message}</Alert>
-        </div>
-      ) : (
-        <ColumnLayout>
-          {data?.item == null ? (
-            <div>
-              {error?.graphQLErrors.length || error?.networkError ? (
-                <GraphQLErrorNotice
-                  errors={error?.graphQLErrors}
-                  networkError={error?.networkError}
-                />
-              ) : list.isSingleton ? (
-                id === "1" ? (
-                  <div className="space-y-4">
+        ) : (
+          <div>
+            {data?.item == null ? (
+              <div>
+                {error?.graphQLErrors.length || error?.networkError ? (
+                  <GraphQLErrorNotice
+                    errors={error?.graphQLErrors}
+                    networkError={error?.networkError}
+                  />
+                ) : list.isSingleton ? (
+                  id === "1" ? (
+                    <div className="space-y-4">
+                      <Alert variant="destructive">
+                        <AlertTitle>System Error</AlertTitle>
+                        <AlertDescription>
+                          {list.label} doesn't exist or you don't have access to
+                          it.
+                        </AlertDescription>
+                      </Alert>
+                      {!data.keystone.adminMeta.list.hideCreate && (
+                        <CreateButtonLink list={list} />
+                      )}
+                    </div>
+                  ) : (
                     <Alert variant="destructive">
                       <AlertTitle>System Error</AlertTitle>
                       <AlertDescription>
-                        {list.label} doesn't exist or you don't have access to
-                        it.
+                        The item with id "{id}" does not exist
                       </AlertDescription>
                     </Alert>
-                    {!data.keystone.adminMeta.list.hideCreate && (
-                      <CreateButtonLink list={list} />
-                    )}
-                  </div>
+                  )
                 ) : (
                   <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
                     <AlertTitle>System Error</AlertTitle>
                     <AlertDescription>
-                      The item with id "{id}" does not exist
+                      The item with id "{id}" could not be found or you don't have
+                      access to it.
                     </AlertDescription>
                   </Alert>
-                )
-              ) : (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4 stroke-red-900 dark:stroke-red-500" />
-
-                  <AlertTitle>System Error</AlertTitle>
-                  <AlertDescription>
-                    The item with id "{id}" could not be found or you don't have
-                    access to it.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          ) : (
-            <Fragment>
+                )}
+              </div>
+            ) : (
               <ItemForm
+                list={list}
                 fieldModes={itemViewFieldModesByField}
                 fieldPositions={itemViewFieldPositionsByField}
                 selectedFields={selectedFields}
-                showDelete={!data.keystone.adminMeta.list.hideDelete}
-                listKey={listKey}
                 itemGetter={dataGetter.get("item")}
                 item={data.item}
+                showDelete={!data.keystone.adminMeta.list.hideDelete}
               />
-            </Fragment>
-          )}
-        </ColumnLayout>
-      )}
-    </div>
-  );
-
-  function ItemLabel({ skeletonClass }) {
-    return loading ? (
-      <Skeleton className={skeletonClass} />
-    ) : (
-      (data && data.item && (data.item[list.labelField] || data.item.id)) || id
-    );
-  }
-};
-
-// Styled Components
-// ------------------------------
-
-const Toolbar = memo(function Toolbar({
-  hasChangedFields,
-  loading,
-  onSave,
-  onReset,
-  deleteButton,
-}) {
-  return (
-    <BaseToolbar>
-      {deleteButton}
-
-      <div className="flex items-center gap-2">
-        {hasChangedFields ? (
-          <ResetChangesButton onReset={onReset} />
-        ) : (
-          <text className="font-medium px-5 text-sm">No changes</text>
+            )}
+          </div>
         )}
-        <Button
-          disabled={!hasChangedFields}
-          isLoading={loading}
-          onClick={onSave}
-        >
-          Save changes
-        </Button>
-      </div>
-    </BaseToolbar>
-  );
-});
-
-function ResetChangesButton(props) {
-  const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
-
-  return (
-    <Fragment>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline">Reset changes</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Reset Confirmation</DialogTitle>
-          </DialogHeader>
-          <text className="text-sm">
-            Are you sure you want to reset changes?
-          </text>
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-            <Button variant="destructive" onClick={() => props.onReset()}>
-              Reset Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Fragment>
-  );
-}
-
-const StickySidebar = (props) => {
-  return (
-    <div className="hidden lg:block mb-20 sticky top-8" {...props} />
+      </main>
+    </>
   );
 };

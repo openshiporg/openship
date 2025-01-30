@@ -56,12 +56,6 @@ import {
   DialogTrigger,
 } from "@ui/dialog";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@keystone/themes/Tailwind/orion/primitives/default/ui/tabs";
-import {
   ArrowUpDown,
   Circle,
   Search,
@@ -69,12 +63,14 @@ import {
   SquareArrowRight,
   Triangle,
   PlusCircleIcon,
-  PlusIcon as PlusIcon2,
+  PlusIcon2,
   ChevronDown,
   SearchIcon,
   Filter,
   ArrowRight,
   ChevronRight,
+  ListFilter,
+  FilterIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -89,6 +85,8 @@ import {
 
 import { OrdersTable } from "./(components)/OrdersTable";
 import { AdminLink } from "@keystone/themes/Tailwind/orion/components/AdminLink";
+import { PageBreadcrumbs } from "@keystone/themes/Tailwind/orion/components/PageBreadcrumbs";
+import { ScrollArea, ScrollBar } from "@ui/scroll-area";
 
 const PLACE_ORDERS = gql`
   mutation PLACE_ORDERS($ids: [ID!]!) {
@@ -257,6 +255,31 @@ const ORDERS_QUERY = gql`
     count: ordersCount(where: $where)
   }
 `;
+
+const BaseToolbar = (props) => (
+  <div className="-mb-4 md:-mb-6 shadow-md bottom-0 border border-b-0 flex flex-wrap justify-between p-3 rounded-t-xl sticky z-20 mt-8 bg-muted/40 gap-2">
+    {props.children}
+  </div>
+);
+
+const DiamondPlus = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="lucide lucide-diamond-plus"
+  >
+    <path d="M12 8v8" />
+    <path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z" />
+    <path d="M8 12h8" />
+  </svg>
+);
 
 export const OrderPage = () => {
   const client = useApolloClient();
@@ -524,227 +547,291 @@ export const OrderPage = () => {
   }, [data]);
 
   return (
-    <>
-      {
-        metaQuery.error ? (
-          "Error..."
-        ) : metaQuery.data ? (
-          <main className="items-start gap-2 sm:py-0 md:gap-4">
-            <div className="flex flex-col sm:flex-row mt-2 mb-4 gap-2 justify-between">
-              <div className="flex-col items-center">
-                <h1 className="text-xl font-semibold md:text-2xl">
-                  {list.label}
-                </h1>
-                <p className="text-muted-foreground">
-                  {list.description ||
-                    `Create and manage ${list.label.toLowerCase()}`}
-                </p>
+    <div className="h-screen overflow-hidden">
+      <PageBreadcrumbs
+        items={[
+          {
+            type: "link",
+            label: "Dashboard",
+            href: "/",
+          },
+          {
+            type: "page",
+            label: "Platform",
+            showModelSwitcher: true,
+            switcherType: "platform",
+          },
+          {
+            type: "page",
+            label: "Orders",
+          },
+        ]}
+      />
+      {metaQuery.error ? (
+        "Error..."
+      ) : metaQuery.data ? (
+        <main className="w-full h-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            {/* Title Section */}
+            <div className="flex flex-col gap-1">
+              <h1 className="text-2xl font-semibold">{list.label}</h1>
+              <p className="text-muted-foreground">
+                {list.description ||
+                  `Create and manage ${list.label.toLowerCase()}`}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              {/* Left Side Controls */}
+              <div className="relative flex-1 min-w-72">
+                <ListFilter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    updateSearch(searchString);
+                  }}
+                >
+                  <Input
+                    type="search"
+                    className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm"
+                    value={searchString}
+                    onChange={(e) => updateSearchString(e.target.value)}
+                    placeholder={`Search by ${
+                      searchLabels.length
+                        ? searchLabels.join(", ").toLowerCase()
+                        : "ID"
+                    }`}
+                  />
+                </form>
               </div>
-              <div className="flex items-center space-x-2">
+              <FilterAdd listKey={listKey} filterableFields={filterableFields}>
                 <Button
                   variant="outline"
-                  onClick={handleProcessAll}
-                  disabled={qualifyingOrders.length === 0}
-                  className="h-9"
+                  size="icon"
+                  className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
                 >
-                  Process Orders
-                  {/* <Badge className="ml-2 border py-0.5 px-1.5">
-                  {qualifyingOrders.length}
-                </Badge> */}
-                  <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
-                    {qualifyingOrders.length}
-                  </span>
+                  <FilterIcon className="stroke-muted-foreground" />
+                  <span className="hidden lg:inline">Filter</span>
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button>
-                      Create Order <ChevronDown />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem
-                      onClick={() => handleCreateOrder("scratch")}
-                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      From Scratch
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setIsCreateOrderDialogOpen(true)}
-                      className="text-muted-foreground flex gap-2 font-medium tracking-wide uppercase"
-                    >
-                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                      From Existing Orders
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+              </FilterAdd>
 
-            <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
-              <div className="flex gap-3 py-3 px-3">
-                <div className="relative w-full">
-                  <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      updateSearch(searchString);
-                    }}
+              <Button
+                variant="outline"
+                onClick={handleProcessAll}
+                disabled={qualifyingOrders.length === 0}
+                className="lg:px-4 lg:py-2 rounded-lg"
+              >
+                Process Orders
+                <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
+                  {qualifyingOrders.length}
+                </span>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="rounded-lg">
+                    <DiamondPlus />
+                    Create Order
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => handleCreateOrder("scratch")}
+                    className="text-muted-foreground flex gap-2 font-medium"
                   >
-                    <Input
-                      type="search"
-                      className="w-full rounded-md bg-muted/40 pl-10"
-                      value={searchString}
-                      onChange={(e) => updateSearchString(e.target.value)}
-                      placeholder={`Search by ${
-                        searchLabels.length
-                          ? searchLabels.join(", ").toLowerCase()
-                          : "ID"
-                      }`}
-                    />
-                  </form>
+                    <PlusIcon className="h-4 w-4" />
+                    From Scratch
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setIsCreateOrderDialogOpen(true)}
+                    className="text-muted-foreground flex gap-2 font-medium"
+                  >
+                    <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                    From Existing
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {filters.filters.filter((filter) => filter.field !== "status")
+              .length > 0 && (
+              <div className="flex gap-1.5 mt-1 border bg-muted/40 rounded-lg p-2 items-center">
+                <div className="flex items-center gap-1.5 border-r border-muted-foreground/30 pr-2 mr-1.5">
+                  <FilterIcon
+                    className="stroke-muted-foreground/50 size-4"
+                    strokeWidth={1.5}
+                  />
                 </div>
-              </div>
-
-              <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
-                <div className="flex flex-wrap gap-2 w-full items-center">
-                  <PaginationNavigation
-                    list={list}
-                    total={data?.count || 0}
-                    currentPage={currentPage}
-                    pageSize={pageSize}
-                  />
-                  <PaginationDropdown
-                    list={list}
-                    total={data?.count || 0}
-                    currentPage={currentPage}
-                    pageSize={pageSize}
-                  />
-                  <SortSelection
-                    list={list}
-                    orderableFields={orderableFields}
-                    dropdownTrigger={
-                      <button
-                        type="button"
-                        className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <ArrowUpDown
-                          size={12}
-                          className="stroke-muted-foreground"
-                        />
-                        SORT
-                      </button>
+                <FilterList
+                  filters={filters.filters.reduce((acc, filter) => {
+                    if (filter.field !== "status") {
+                      acc.push(filter);
                     }
-                  />
-                  <FilterAdd
-                    listKey={listKey}
-                    filterableFields={filterableFields}
-                    dropdownTrigger={
-                      <button
-                        type="button"
-                        className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <PlusIcon2
-                          size={13}
-                          className="stroke-muted-foreground"
-                        />
-                        FILTER
-                      </button>
-                    }
-                  />
-                </div>
-              </div>
-
-              {filters.filters.length > 0 && (
-                <div className="py-2 px-3 flex gap-2">
-                  <div>
-                    <Badge
-                      color="zinc"
-                      className="flex items-center gap-2 py-0.5 border text-muted-foreground text-xs font-medium tracking-wide uppercase"
-                    >
-                      <Filter className="w-2.5 h-2.5" />
-                      Filters
-                      <SquareArrowRight className="w-3 h-3 opacity-75" />
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <FilterList filters={filters.filters} list={list} />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="pb-1 pr-2 pl-3.5">
-                <PaginationStats
+                    return acc;
+                  }, [])}
                   list={list}
-                  total={data?.count || 0}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
                 />
               </div>
+            )}
 
+            {/* Filters and Sort Row */}
+            <div className="flex flex-col gap-2">
               <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
 
-              <OrdersTable
-                data={data}
-                error={error}
-                listKey={listKey}
-                list={list}
-                handleOrderAction={handleOrderAction}
-                openEditDrawer={openEditDrawer}
-                channels={channels}
-                loadingActions={loadingActions}
-                query={query}
-                filters={filters}
-                searchParam={searchParam}
-                updateSearchString={updateSearchString}
-                push={push}
-                showCreate={showCreate}
-              />
+              <div className="flex items-center gap-2">
+                <SortSelection list={list} orderableFields={orderableFields}>
+                  <Button
+                    variant="link"
+                    size="xs"
+                    className="uppercase py-1 px-0 text-xs text-muted-foreground [&_svg]:size-3"
+                  >
+                    Sorting by{" "}
+                    {sort ? (
+                      <>
+                        {list.fields[sort.field].label}
+                        {sort.direction === "ASC" ? (
+                          <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
+                            ASC
+                          </Badge>
+                        ) : (
+                          <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
+                            DESC
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <>default</>
+                    )}
+                    <ChevronDown />
+                  </Button>
+                </SortSelection>
+              </div>
             </div>
+          </div>
 
-            <Dialog
-              open={isCreateOrderDialogOpen}
-              onOpenChange={setIsCreateOrderDialogOpen}
-            >
-              <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
-                <DialogHeader>
-                  <DialogTitle>Search Existing Orders</DialogTitle>
-                  <DialogDescription>
-                    Search for an existing order to edit or view details.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex-grow overflow-y-auto">
-                  <SearchOrders
-                    shops={shopsData?.shops || []}
-                    onOrderSelect={handleOrderSelect}
+          {/* Table Section */}
+          {data?.count ? (
+            <>
+              <div className="flex flex-col flex-1 min-h-0 mb-8">
+                <ScrollArea className="h-auto border rounded-lg">
+                  <OrdersTable
+                    data={data}
+                    error={error}
+                    listKey={listKey}
+                    list={list}
+                    handleOrderAction={handleOrderAction}
+                    openEditDrawer={openEditDrawer}
+                    channels={channels}
+                    loadingActions={loadingActions}
+                    query={query}
+                    filters={filters}
+                    searchParam={searchParam}
+                    updateSearchString={updateSearchString}
+                    push={push}
+                    showCreate={showCreate}
                   />
-                </div>
-              </DialogContent>
-            </Dialog>
+                </ScrollArea>
+              </div>
 
-            <OrderDetailsDialog
-              isOpen={selectedOrder !== null}
-              onClose={() => setSelectedOrder(null)}
-              order={selectedOrder === "scratch" ? null : selectedOrder}
-              shopId={selectedOrder?.shop?.id}
-            />
-            <ProcessOrdersDialog
-              isOpen={isProcessOrdersDialogOpen}
-              onClose={() => setIsProcessOrdersDialogOpen(false)}
-              orders={qualifyingOrders}
-              // orders={Array(20)
-              //   .fill()
-              //   .flatMap(() => data?.items || [])}
-              onProcessOrders={processSelectedOrders}
-              processingOrders={processingOrders}
-            />
-          </main>
-        ) : null
-        // <LoadingIcon label="Loading item data" />
-      }
-    </>
+              <BaseToolbar>
+                {selectedItemsState.selectedItems.size > 0 ? (
+                  <div className="w-full flex flex-wrap gap-4 items-center justify-between">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      <strong>{selectedItemsState.selectedItems.size}</strong>{" "}
+                      selected
+                    </span>
+                    <DeleteManyButton
+                      list={list}
+                      selectedItems={selectedItemsState.selectedItems}
+                      refetch={refetch}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <PaginationStats
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <PaginationNavigation
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                      <PaginationDropdown
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                    </div>
+                  </>
+                )}
+              </BaseToolbar>
+            </>
+          ) : (
+            <div className="flex flex-col items-center p-10 border rounded-lg">
+              <div className="flex opacity-40">
+                <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
+                <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
+                <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
+              </div>
+              {query.search || filters.filters.length ? (
+                <>
+                  <span className="pt-4 font-semibold">
+                    No <span className="lowercase">{list.label}</span>{" "}
+                  </span>
+                  <span className="text-muted-foreground pb-4">
+                    Found{" "}
+                    {searchParam
+                      ? `matching your search`
+                      : `matching your filters`}{" "}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      updateSearchString("");
+                      const path = window.location.pathname;
+                      push(path);
+                    }}
+                  >
+                    Clear filters &amp; search
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="pt-4 font-semibold">
+                    No <span className="lowercase">{list.label}</span>
+                  </span>
+                  <span className="text-muted-foreground pb-4">
+                    Get started by creating a new one.{" "}
+                  </span>
+                  {showCreate && <CreateButtonLink list={list} />}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Keep existing dialogs */}
+          <OrderDetailsDialog
+            isOpen={selectedOrder !== null}
+            onClose={() => setSelectedOrder(null)}
+            order={selectedOrder === "scratch" ? null : selectedOrder}
+            shopId={selectedOrder?.shop?.id}
+          />
+          <ProcessOrdersDialog
+            isOpen={isProcessOrdersDialogOpen}
+            onClose={() => setIsProcessOrdersDialogOpen(false)}
+            orders={qualifyingOrders}
+            onProcessOrders={processSelectedOrders}
+            processingOrders={processingOrders}
+          />
+        </main>
+      ) : null}
+    </div>
   );
 };
 

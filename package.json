@@ -61,6 +61,7 @@
     "boring-avatars": "^1.6.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "cmdk": "^1.0.4",
     "cookie": "^0.4.1",
     "dotenv": "^16.0.0",
     "fast-deep-equal": "^3.1.3",

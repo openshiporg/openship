@@ -131,29 +131,32 @@ export function SearchOrders({
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 space-y-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-4">
           <div className="flex gap-1">
             <Button
-              variant="secondary"
+              variant="outline"
+              size="icon"
               onClick={() => handlePreviousPage(Math.max(0, skip - pageSize))}
               disabled={skip === 0}
-              className="h-10 px-2.5 border"
+              className="h-10 w-10"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft />
             </Button>
+
             <Button
-              variant="secondary"
+              variant="outline"
+              size="icon"
               onClick={() => handleNextPage(skip + pageSize, after)}
-              className="h-10 px-2.5 border"
+              className="h-10 w-10"
             >
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight />
             </Button>
           </div>
-          <div className="relative flex-grow">
+          <div className="w-full flex rounded-lg shadow-sm shadow-black/5">
             <Input
-              type="text"
+              className="-me-px flex-1 rounded-lg rounded-e-none shadow-none focus-visible:z-10"
               placeholder="Search orders..."
-              className="input pr-10"
+              type="text"
               value={searchEntry}
               onChange={(e) => setSearchEntry(e.target.value)}
               onKeyPress={(e) => {
@@ -162,14 +165,9 @@ export function SearchOrders({
                 }
               }}
             />
-            <div className="absolute right-2 top-2">
-              <BadgeButton
-                onClick={handleSearch}
-                className="border text-xs py-0.5 uppercase tracking-wide font-medium"
-              >
-                Search
-              </BadgeButton>
-            </div>
+            <button className="tracking-wide inline-flex items-center rounded-e-lg border border-input bg-background px-3 text-sm font-semibold text-muted-foreground outline-offset-2 transition-colors hover:bg-accent hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:cursor-not-allowed disabled:opacity-50">
+              SEARCH
+            </button>
           </div>
         </div>
         {shops && (
@@ -198,7 +196,7 @@ export function SearchOrders({
           </div>
         )}
       </div>
-      <div className="flex-grow overflow-y-auto mt-4">
+      <div className="flex-grow overflow-y-auto">
         {selectedShopId === "ALL" ? (
           <AllShopsAccordion
             shops={shops}
@@ -368,7 +366,12 @@ const OrderDetailsComponent = ({ order, shopId, onSelect, isSearchResult }) => {
         <div className="px-4 py-2 flex items-start justify-between w-full border-b">
           <div className="flex flex-col items-start text-left gap-1.5">
             <div className="flex items-center space-x-4">
-              <a href={order.link} target="_blank" rel="noopener noreferrer" className="uppercase font-medium text-sm">
+              <a
+                href={order.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="uppercase font-medium text-sm"
+              >
                 {order.orderName}
               </a>
               <span className="text-xs font-medium opacity-65">

@@ -49,7 +49,7 @@ export const Drawer = ({
         </SheetHeader>
 
         <ScrollArea className="overflow-auto flex-grow">
-          <div className="px-5">{children}</div>
+          <div className="px-5 py-2">{children}</div>
         </ScrollArea>
         <SheetFooter className="flex justify-between gap-2 border-t p-2">
           <SheetClose asChild>

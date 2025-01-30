@@ -4,31 +4,40 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, gql, useApolloClient } from "@apollo/client";
 import { Input } from "@ui/input";
 import { Button } from "@ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/dynamic-tabs";
 import { Badge, BadgeButton } from "@ui/badge";
-import { Search, ArrowUpDown } from "lucide-react";
+import {
+  ChevronRight,
+  House,
+  UsersRound,
+  Search,
+  ArrowUpDown,
+  PanelsTopLeft,
+  Box,
+  Layers,
+  Database,
+  Copy,
+} from "lucide-react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@ui/drawer";
-import { MultiSelect } from "@keystone/themes/Tailwind/orion/primitives/default/ui/multi-select";
+import { MultipleSelector } from "@keystone/themes/Tailwind/orion/primitives/default/ui/multi-select";
 import { SyncInventoryDialog } from "./(components)/SyncInventoryDialog";
 import { MatchList } from "./(components)/MatchList";
 import { ShowMatchesButton } from "./(components)/ShowMatchesButton";
 import { MatchDetailsDialog } from "./(components)/MatchDetailsDialog";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@keystone/themes/Tailwind/orion/primitives/default/ui/breadcrumb";
 import { cn } from "@keystone/utils/cn";
 import { buttonVariants } from "@ui/button";
-import { ChevronRight } from "lucide-react";
-import {
-  CircleStackIcon,
-  Square2StackIcon,
-  Square3Stack3DIcon,
-} from "@heroicons/react/16/solid";
 import { AdminLink } from "@keystone/themes/Tailwind/orion/components/AdminLink";
+import { PageBreadcrumbs } from "@keystone/themes/Tailwind/orion/components/PageBreadcrumbs";
+import {
+  ScrollArea,
+  ScrollBar,
+} from "@keystone/themes/Tailwind/orion/primitives/default/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@keystone/themes/Tailwind/orion/primitives/default/ui/tooltip";
 
 const SEARCH_SHOP_PRODUCTS = gql`
   query SearchShopProducts($shopId: ID!, $searchEntry: String) {
@@ -186,7 +195,10 @@ const MatchesPage = () => {
     };
 
     return (
-      <details open={isOpen} className="p-4 border rounded-lg bg-muted group">
+      <details
+        open={isOpen}
+        className="p-4 border rounded-lg bg-muted/20 group"
+      >
         <summary
           onClick={(e) => {
             e.preventDefault();
@@ -197,14 +209,14 @@ const MatchesPage = () => {
           <div className="flex gap-3 items-center">
             <div
               className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "self-start p-1 transition-transform group-open:rotate-90"
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
               )}
             >
               <ChevronRight className="size-3" />
             </div>
             <div className="flex flex-col gap-1">
-              <text className="relative text-lg/5 font-medium">
+              <text className="relative text-lg/5 font-medium text-foreground/75">
                 {shop?.name}
               </text>
             </div>
@@ -247,7 +259,10 @@ const MatchesPage = () => {
     };
 
     return (
-      <details open={isOpen} className="p-4 border rounded-lg bg-muted group">
+      <details
+        open={isOpen}
+        className="p-4 border rounded-lg bg-muted/20 group"
+      >
         <summary
           onClick={(e) => {
             e.preventDefault();
@@ -258,15 +273,15 @@ const MatchesPage = () => {
           <div className="flex gap-3 items-center">
             <div
               className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "self-start p-1 transition-transform group-open:rotate-90"
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
               )}
             >
               <ChevronRight className="size-3" />
             </div>
 
             <div className="flex flex-col gap-1">
-              <text className="relative text-lg/5 font-medium">
+              <text className="relative text-lg/5 font-medium text-foreground/75">
                 {channel?.name}
               </text>
             </div>
@@ -321,130 +336,226 @@ const MatchesPage = () => {
   };
 
   return (
-    <main>
-      <div className="flex flex-col md:flex-row my-4 gap-2 justify-between">
-        <div>
-          <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
-          <p className="text-muted-foreground">
-            Manage matches across shops and channels
-          </p>
+    <>
+      <PageBreadcrumbs
+        items={[
+          {
+            type: "link",
+            label: "Dashboard",
+            href: "/",
+          },
+          {
+            type: "page",
+            label: "Platform",
+            showModelSwitcher: true,
+            switcherType: "platform",
+          },
+          {
+            type: "page",
+            label: "Matches",
+          },
+        ]}
+      />
+      <main className="max-w-4xl mx-auto w-full p-4 md:p-6">
+        <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
+          <div>
+            <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
+            <p className="text-muted-foreground">
+              Manage matches across shops and channels
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <SyncInventoryDialog />
+            <MatchDetailsDialog />
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <SyncInventoryDialog />
-          <MatchDetailsDialog />
-        </div>
-      </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList
-          variant="solid"
-          className="border w-auto shadow-inner flex-wrap"
+        <Tabs
+          defaultValue="shop"
+          orientation="vertical"
+          className="flex w-full gap-2"
         >
-          <TabsTrigger
-            value="shop"
-            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
-          >
-            <Square3Stack3DIcon className="w-3.5 h-3.5" />
-            Shop Products
-          </TabsTrigger>
-          <TabsTrigger
-            value="channel"
-            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
-          >
-            <CircleStackIcon className="w-3.5 h-3.5" />
-            Channel Products
-          </TabsTrigger>
-          <TabsTrigger
-            value="matches"
-            className="border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm flex gap-2 items-center"
-          >
-            <Square2StackIcon className="w-4 h-4" />
-            Matches
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="shop">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="search"
-                className="pl-10"
-                placeholder="Search products..."
-                value={searchString}
-                onChange={(e) => setSearchString(e.target.value)}
-              />
-            </div>
-          </div>
-          <MultiSelect
-            options={
-              shopsData?.shops.map((shop) => ({
-                label: shop.name,
-                value: shop.id,
-              })) || []
-            }
-            onValueChange={setSelectedShopIds}
-            defaultValue={selectedShopIds}
-            placeholder={
-              <Badge
-                color="sky"
-                className="uppercase tracking-wide border mr-1 flex items-center gap-2 text-[.825rem] py-0.5 px-2 font-medium"
-              >
-                Select shop...
-              </Badge>
-            }
-            className="text-base mb-4 bg-background"
-          />
+          <TabsList className="flex-col my-auto">
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <TabsTrigger value="shop" className="py-3">
+                      <Layers size={16} strokeWidth={2} aria-hidden="true" />
+                    </TabsTrigger>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="px-2 py-1 text-xs">
+                  Shop Products
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <TabsTrigger value="channel" className="group py-3">
+                      <span className="relative">
+                        <Database
+                          size={16}
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                        {/* <span className="absolute -top-2.5 left-full min-w-4 -translate-x-1.5 border-background px-0.5 text-[10px]/[.875rem] transition-opacity group-data-[state=inactive]:opacity-50">
+                          3
+                        </span> */}
+                      </span>
+                    </TabsTrigger>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="px-2 py-1 text-xs">
+                  Channel Products
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <TabsTrigger value="matches" className="py-3">
+                      <Copy size={16} strokeWidth={2} aria-hidden="true" />
+                    </TabsTrigger>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="px-2 py-1 text-xs">
+                  Matches
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </TabsList>
+          <div className="grow rounded-lg border border-border text-start p-4">
+            <TabsContent value="shop">
+              <div className="flex flex-col gap-3 mb-4">
+                <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground">
+                  <Layers size={16} strokeWidth={2} aria-hidden="true" />
+                  Shop Products
+                </h3>
+                <div className="relative flex-grow">
+                  <Input
+                    type="search"
+                    className="text-sm h-9"
+                    placeholder="Search products..."
+                    value={searchString}
+                    onChange={(e) => setSearchString(e.target.value)}
+                  />
+                </div>
 
-          <div className="space-y-4">
-            {selectedShopIds.map((shopId) => (
-              <ShopSummary key={shopId} shopId={shopId} />
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="channel">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="search"
-                className="pl-10 shadow-none"
-                placeholder="Search products..."
-                value={searchString}
-                onChange={(e) => setSearchString(e.target.value)}
-              />
-            </div>
-          </div>
-          <MultiSelect
-            options={
-              channelsData?.channels.map((channel) => ({
-                label: channel.name,
-                value: channel.id,
-              })) || []
-            }
-            onValueChange={setSelectedChannelIds}
-            defaultValue={selectedChannelIds}
-            placeholder={
-              <Badge
-                color="sky"
-                className="uppercase tracking-wide border mr-1 flex items-center gap-2 text-[.825rem] py-0.5 px-2 font-medium"
-              >
-                Select channel...
-              </Badge>
-            }
-            className="text-base mb-4"
-          />
+                <MultipleSelector
+                  value={selectedShopIds.map((id) => ({
+                    value: id,
+                    label:
+                      shopsData?.shops.find((s) => s.id === id)?.name || id,
+                  }))}
+                  onChange={(newValue) => {
+                    setSelectedShopIds(newValue.map((item) => item.value));
+                  }}
+                  options={
+                    shopsData?.shops.map((shop) => ({
+                      label: shop.name,
+                      value: shop.id,
+                    })) || []
+                  }
+                  placeholder="Select shops"
+                  className="h-8 rounded-lg"
+                  emptyIndicator={
+                    <p className="text-center text-sm text-muted-foreground">
+                      No shops found.
+                    </p>
+                  }
+                  loadingIndicator={
+                    <p className="text-center text-sm text-muted-foreground">
+                      Loading shops...
+                    </p>
+                  }
+                />
+              </div>
 
-          <div className="space-y-4">
-            {selectedChannelIds.map((channelId) => (
-              <ChannelSummary key={channelId} channelId={channelId} />
-            ))}
+              <div className="space-y-4">
+                {selectedShopIds.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-4">
+                    Please select at least one shop to view products
+                  </div>
+                ) : (
+                  selectedShopIds.map((shopId) => (
+                    <ShopSummary key={shopId} shopId={shopId} />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="channel">
+              <div className="flex flex-col gap-3 mb-4">
+                <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground">
+                  <Database size={16} strokeWidth={2} aria-hidden="true" />
+                  Channel Products
+                </h3>
+                <div className="relative flex-grow">
+                  <Input
+                    type="search"
+                    className="text-sm h-9"
+                    placeholder="Search products..."
+                    value={searchString}
+                    onChange={(e) => setSearchString(e.target.value)}
+                  />
+                </div>
+
+                <MultipleSelector
+                  value={selectedChannelIds.map((id) => ({
+                    value: id,
+                    label:
+                      channelsData?.channels.find((c) => c.id === id)?.name ||
+                      id,
+                  }))}
+                  onChange={(newValue) => {
+                    setSelectedChannelIds(newValue.map((item) => item.value));
+                  }}
+                  options={
+                    channelsData?.channels.map((channel) => ({
+                      label: channel.name,
+                      value: channel.id,
+                    })) || []
+                  }
+                  placeholder="Select channels"
+                  className="h-8 rounded-lg"
+                  emptyIndicator={
+                    <p className="text-center text-sm text-muted-foreground">
+                      No channels found.
+                    </p>
+                  }
+                  loadingIndicator={
+                    <p className="text-center text-sm text-muted-foreground">
+                      Loading channels...
+                    </p>
+                  }
+                />
+              </div>
+              <div className="space-y-4">
+                {selectedChannelIds.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-4">
+                    Please select at least one channel to view products
+                  </div>
+                ) : (
+                  selectedChannelIds.map((channelId) => (
+                    <ChannelSummary key={channelId} channelId={channelId} />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="matches">
+              <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground mb-4">
+                <Copy size={16} strokeWidth={2} aria-hidden="true" />
+                Matches
+              </h3>
+              <MatchList onMatchAction={handleMatchAction} />
+            </TabsContent>
           </div>
-        </TabsContent>
-        <TabsContent value="matches">
-          <MatchList onMatchAction={handleMatchAction} />
-        </TabsContent>
-      </Tabs>
-    </main>
+        </Tabs>
+      </main>
+    </>
   );
 };
 

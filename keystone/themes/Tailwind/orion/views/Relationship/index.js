@@ -103,7 +103,7 @@ export const Field = ({
         {field.description}
       </FieldDescription>
       <Fragment>
-        <div className="space-y-4">
+        <div className="space-y-2">
           <RelationshipSelect
             controlShouldRenderValue
             aria-describedby={
@@ -417,7 +417,6 @@ export const controller = (config) => {
             onChange(newItems.map((item) => item.id).join(","));
           },
         };
-        console.log({ refLabelField, refSearchFields, value });
         return (
           <RelationshipSelect
             controlShouldRenderValue

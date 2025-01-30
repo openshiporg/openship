@@ -2,7 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useCreateItem } from "@keystone/utils/useCreateItem";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { useList } from "@keystone/keystoneProvider";
-import { useUpdateItem, useDeleteItem } from "@keystone/themes/Tailwind/orion/components/EditItemDrawer";
+import {
+  useUpdateItem,
+  useDeleteItem,
+} from "@keystone/themes/Tailwind/orion/components/EditItemDrawer";
 import {
   ArrowRight,
   Edit,
@@ -83,12 +86,13 @@ export const CreateLinkButton = ({ shopId, refetch }) => {
       <DropdownMenuTrigger asChild>
         <div>
           <Button
-            variant="secondary"
-            className="p-0.5 flex items-center gap-3"
+            variant="outline"
+            size="icon"
+            className="h-6 w-6"
             disabled={isCreating}
             isLoading={isCreating}
           >
-            <Plus className="size-3.5" />
+            <Plus />
           </Button>
         </div>
       </DropdownMenuTrigger>
@@ -139,7 +143,8 @@ export const Links = ({
 
   const { handleUpdate: updateLink, updateLoading } = useUpdateItem("Link");
   const { handleDelete: deleteLink, deleteLoading } = useDeleteItem("Link");
-  const { handleUpdate: updateShop, updateLoading: updateShopLoading } = useUpdateItem("Shop");
+  const { handleUpdate: updateShop, updateLoading: updateShopLoading } =
+    useUpdateItem("Shop");
 
   const toasts = useToasts();
   const list = useList("Order");
@@ -335,32 +340,38 @@ export const Links = ({
             <div className="flex items-start gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="text-xs flex items-center gap-1 p-0.5 bg-transparent text-muted-foreground"
+                  <Button
+                    variant="outline"
+                    size="sm"
                     disabled={updateShopLoading}
                     isLoading={updateShopLoading}
+                    className="h-6 px-2"
                   >
-                    {linkMode === 'sequential' ? 'Sequential' : 'Simultaneous'}
+                    {linkMode === "sequential" ? "Sequential" : "Simultaneous"}
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleLinkModeChange('sequential')}>
+                  <DropdownMenuItem
+                    onClick={() => handleLinkModeChange("sequential")}
+                  >
                     Sequential
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleLinkModeChange('simultaneous')}>
+                  <DropdownMenuItem
+                    onClick={() => handleLinkModeChange("simultaneous")}
+                  >
                     Simultaneous
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               {hasOrderChanged ? (
                 <Button
-                  variant="secondary"
-                  className="text-xs gap-3 px-2 py-0.5"
+                  variant="outline"
+                  size="sm"
                   onClick={handleSaveOrder}
                   disabled={updateLoading}
                   isLoading={updateLoading}
+                  className="h-6 px-2"
                 >
                   Save
                 </Button>
@@ -443,7 +454,15 @@ export const Links = ({
   );
 };
 
-export const Link = ({ linkMode, link, isSelected, onSelect, editItem, onDelete, isDeleting }) => {
+export const Link = ({
+  linkMode,
+  link,
+  isSelected,
+  onSelect,
+  editItem,
+  onDelete,
+  isDeleting,
+}) => {
   return (
     <div className="bg-background border rounded-lg flex justify-between p-2 tracking-wide font-medium">
       <div className="flex items-center justify-between w-full">
@@ -452,7 +471,7 @@ export const Link = ({ linkMode, link, isSelected, onSelect, editItem, onDelete,
             color="zinc"
             className="border rounded-md py-1 px-1.5 text-[.7rem]/3 flex gap-1 items-center"
           >
-            {linkMode === 'sequential' ? link.rank : '1'}
+            {linkMode === "sequential" ? link.rank : "1"}
           </Badge>
           {link.name}
         </div>

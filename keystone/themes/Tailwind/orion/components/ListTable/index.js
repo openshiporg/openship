@@ -20,6 +20,8 @@ import {
   TableRow,
 } from "../../primitives/default/ui/table";
 import { CheckboxControl } from "../Checkbox";
+import { ScrollArea, ScrollBar } from "../../primitives/default/ui/scroll-area";
+import Image from "next/image";
 
 export function ListTable({
   selectedFields,
@@ -199,42 +201,59 @@ export function ListTable({
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const works = [
+    {
+      artist: "Ornella Binni",
+      art: "https://images.unsplash.com/photo-1465869185982-5a1a7522cbcb?auto=format&fit=crop&w=300&q=80",
+    },
+    {
+      artist: "Tom Byrom",
+      art: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&fit=crop&w=300&q=80",
+    },
+    {
+      artist: "Vladimir Malyavko",
+      art: "https://images.unsplash.com/photo-1494337480532-3725c85fd2ab?auto=format&fit=crop&w=300&q=80",
+    },
+  ];
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead
-                className="text-nowrap text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase"
-                key={header.id}
-              >
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map((cell, index) => (
-              <TableCell
-                className={`text-sm ${index === 1 && "font-medium"}`}
-                key={cell.id}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <ScrollArea className="w-full whitespace-nowrap border rounded-lg">
+      <Table>
+        <TableHeader className="sticky top-0 bg-zinc-50 dark:bg-zinc-900 z-10">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  className="text-nowrap text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase"
+                  key={header.id}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell, index) => (
+                <TableCell
+                  className={`text-sm ${index === 1 && "font-medium"}`}
+                  key={cell.id}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
 

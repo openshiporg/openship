@@ -27,6 +27,6 @@ export function PaginationStats({ list, currentPage, total, pageSize }) {
       }
     }
   
-    return <span className="text-xs text-muted-foreground">Showing {stats}</span>;
+    return <span className="text-xs sm:text-sm text-muted-foreground">Showing {stats}</span>;
   }
   

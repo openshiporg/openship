@@ -17,6 +17,7 @@ import {
   BreadcrumbSeparator,
 } from "../../primitives/default/ui/breadcrumb";
 import { basePath } from "@keystone/index";
+import { PageBreadcrumbs } from "../../components/PageBreadcrumbs";
 
 export const CreateItemPage = ({ params }) => {
   const listKey = params.listKey;
@@ -34,36 +35,33 @@ export const CreateItemPage = ({ params }) => {
 
   const router = useRouter();
 
-  const adminPath = basePath
+  const adminPath = basePath;
 
   return (
-    <div>
-      <div>
-        {/* <Breadcrumb className="hidden md:flex">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <AdminLink href="/">Dashboard</AdminLink>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                {list.isSingleton ? (
-                  <div className="ml-1 text-md font-medium text-zinc-700 hover:text-blue-600 md:ml-2 dark:text-zinc-400 dark:hover:text-white">
-                    {list.label}
-                  </div>
-                ) : (
-                  <AdminLink href={`/${list.path}`}>{list.label}</AdminLink>
-                )}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Create</BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb> */}
+    <>
+      <PageBreadcrumbs
+        items={[
+          {
+            type: "link",
+            label: "Dashboard",
+            href: "/",
+          },
+          {
+            type: "model",
+            label: list.label,
+            href: `/${list.path}`,
+            showModelSwitcher: true,
+          },
+          {
+            type: "page",
+            label: "Create",
+          },
+        ]}
+      />
+
+      <main className="w-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <div className="flex-col items-center mt-2 mb-4">
+          <div className="flex-col items-center">
             <h1 className="text-lg font-semibold md:text-2xl">
               Create {list.singular}
             </h1>
@@ -79,9 +77,6 @@ export const CreateItemPage = ({ params }) => {
             </p>
           </div>
         </div>
-      </div>
-
-      <div>
         {createViewFieldModes.state === "error" && (
           <GraphQLErrorNotice
             networkError={
@@ -107,22 +102,25 @@ export const CreateItemPage = ({ params }) => {
             />
           )}
           <Fields {...createItem.props} />
-          <div className="mt-10 flex">
-            <Button
-              isLoading={createItem.state === "loading"}
-              onClick={async () => {
-                const item = await createItem.create();
-                if (item) {
-                  router.push(`${adminPath}/${list.path}/${item.id}`);
-                }
-              }}
-              className="ml-auto"
-            >
-              Create {list.singular}
-            </Button>
+          <div className="-mb-4 md:-mb-6 shadow-sm bottom-0 border border-b-0 flex justify-between p-2 rounded-t-xl sticky z-20 mt-5 bg-background">
+            <div></div>
+            <div className="flex items-center gap-2">
+              <Button
+                isLoading={createItem.state === "loading"}
+                onClick={async () => {
+                  const item = await createItem.create();
+                  if (item) {
+                    router.push(`${adminPath}/${list.path}/${item.id}`);
+                  }
+                }}
+                className="rounded-t-[calc(theme(borderRadius.lg)-1px)]"
+              >
+                Create {list.singular}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 };

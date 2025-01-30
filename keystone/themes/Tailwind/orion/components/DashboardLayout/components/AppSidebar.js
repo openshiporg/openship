@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "../../../primitives/default/ui/dropdown-menu";
 import { HomeIcon } from "@heroicons/react/24/outline";
+import { Logo } from "../../Logo";
 
 // Try to import customNavItems, fallback to empty array if not found
 let customNavItems = [];
@@ -77,9 +78,13 @@ export function AppSidebar({ sidebarLinks = [], ...props }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher />
+        <SidebarMenuButton 
+          asChild
+        >
+          <Logo />
+        </SidebarMenuButton>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="no-scrollbar">
         {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -131,7 +136,7 @@ export function AppSidebar({ sidebarLinks = [], ...props }) {
         {/* Dashboard Links - Collapsible/Dropdown */}
         <SidebarGroup>
           <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <div className="group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">
+          <div className="max-h-full overflow-y-auto group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">
             <Collapsible
               key={dashboardItem.title}
               asChild

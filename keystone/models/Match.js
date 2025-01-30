@@ -68,6 +68,7 @@ export const Match = list({
             syncEligible: graphql.field({ type: graphql.Boolean }),
             sourceQuantity: graphql.field({ type: graphql.Int }),
             targetQuantity: graphql.field({ type: graphql.Int }),
+            syncNeeded: graphql.field({ type: graphql.Boolean }),
           },
         }),
         async resolve(item, args, context) {
@@ -101,12 +102,14 @@ export const Match = list({
             }
           }
 
+          result.syncNeeded = result.syncEligible && 
+                             result.sourceQuantity !== result.targetQuantity;
+
           return result;
         },
       }),
       ui: {
-        query:
-          "{ syncEligible sourceQuantity targetQuantity }",
+        query: "{ syncEligible sourceQuantity targetQuantity syncNeeded }",
       },
     }),
 

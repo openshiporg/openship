@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../primitives/default/ui/alert-dialog";
+import { BadgeButton } from "../../primitives/default/ui/badge";
 
 export function DeleteManyButton({
   selectedItems,
@@ -49,8 +50,10 @@ export function DeleteManyButton({
             isLoading={deleteItemsState.loading}
             isDisabled={isDisabled}
             variant="destructive"
+            size="sm"
+            className="text-xs h-6 uppercase font-medium tracking-wide"
           >
-            Delete {list.label}
+            Delete {selectedItems.size} {list.label}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>

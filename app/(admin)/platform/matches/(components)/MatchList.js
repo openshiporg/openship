@@ -4,11 +4,9 @@ import { makeDataGetter } from "@keystone-6/core/admin-ui/utils";
 import { useList } from "@keystone/keystoneProvider";
 import { useFilter } from "@keystone/utils/useFilter";
 import { useFilters } from "@keystone/utils/useFilters";
-import { useQueryParamsFromLocalStorage } from "@keystone/utils/useQueryParamsFromLocalStorage";
 import { useSelectedFields } from "@keystone/utils/useSelectedFields";
 import { useSort } from "@keystone/utils/useSort";
-import { useToasts } from "@keystone/screens";
-import { useDrawer } from "@keystone/themes/Tailwind/orion/components/Modals/drawer-context";
+import { DeleteManyButton } from "@keystone/themes/Tailwind/orion/components/DeleteManyButton";
 import {
   Search,
   ArrowUpDown,
@@ -28,6 +26,7 @@ import {
   Check,
   MoreVertical,
   MoreHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { FilterAdd } from "@keystone/themes/Tailwind/orion/components/FilterAdd";
 import { FilterList } from "@keystone/themes/Tailwind/orion/components/FilterList";
@@ -48,6 +47,7 @@ import { LoadingIcon } from "@keystone/screens";
 import { useUpdateItem } from "@keystone/themes/Tailwind/orion/components/EditItemDrawer";
 import { gql, useMutation, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { MatchCard } from "./MatchCard";
+import { Skeleton } from "@keystone/themes/Tailwind/orion/primitives/default/ui/skeleton";
 
 const listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
@@ -92,6 +92,12 @@ const UPDATE_SHOP_PRODUCT_MUTATION = gql`
   }
 `;
 
+const BaseToolbar = (props) => (
+  <div className="border flex flex-wrap justify-between p-3 rounded-lg bg-muted/40 gap-2">
+    {props.children}
+  </div>
+);
+
 export const MatchList = ({ onMatchAction, showCreate }) => {
   const listKey = "Match";
   const list = useList(listKey);
@@ -130,7 +136,7 @@ export const MatchList = ({ onMatchAction, showCreate }) => {
 
   let selectedFields = useSelectedFields(list, listViewFieldModesByField);
 
-  const { data, error, refetch } = useQuery(
+  const { data, error, refetch, loading } = useQuery(
     useMemo(() => {
       let selectedGqlFields = `
         id
@@ -259,50 +265,43 @@ export const MatchList = ({ onMatchAction, showCreate }) => {
     }
   };
 
-  const renderMatchList = () => {
-    if (!data) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+  const [selectedItemsState, setSelectedItems] = useState(() => ({
+    itemsFromServer: undefined,
+    selectedItems: new Set(),
+  }));
 
-    return (
-      <div className="flex flex-col divide-y">
-        {dataGetter.get("items").data.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={match}
-            onMatchAction={onMatchAction}
-            handleAcceptPriceChange={handleAcceptPriceChange}
-            handleSyncInventory={handleSyncInventory}
-            updateChannelItemLoading={updateChannelItemLoading}
-            updateShopProductLoading={updateShopProductLoading}
-          />
-        ))}
-      </div>
-    );
-  };
+  if (data && data.items && selectedItemsState.itemsFromServer !== data.items) {
+    const newSelectedItems = new Set();
+    data.items.forEach((item) => {
+      if (selectedItemsState.selectedItems.has(item.id)) {
+        newSelectedItems.add(item.id);
+      }
+    });
+    setSelectedItems({
+      itemsFromServer: data.items,
+      selectedItems: newSelectedItems,
+    });
+  }
 
   return (
-    <>
+    <div className="overflow-hidden h-full">
       {metaQuery.error ? (
         "Error..."
       ) : metaQuery.data ? (
-        <main className="w-full max-w-4xl mx-auto p-4 md:p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div>
-              <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
-              <p className="text-muted-foreground">
-                Manage product matches between shops and channels
-              </p>
-            </div>
-          </div>
-
-          <div className="no-scrollbar overflow-x-auto border rounded-lg divide-y dark:bg-zinc-950">
-            <div className="flex gap-3 py-3 px-3">
-              <div className="relative w-full">
-                <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
-                <form onSubmit={handleSearch}>
+        <main className="flex flex-col h-full">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative max-w-[300px] min-w-[150px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearch();
+                  }}
+                >
                   <Input
                     type="search"
-                    className="w-full rounded-md bg-muted/40 pl-10"
+                    className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm"
                     value={searchString}
                     onChange={(e) => setSearchString(e.target.value)}
                     placeholder={`Search by ${
@@ -313,124 +312,161 @@ export const MatchList = ({ onMatchAction, showCreate }) => {
                   />
                 </form>
               </div>
-            </div>
 
-            <div className="flex flex-col items-start bg-zinc-300/20 dark:bg-muted/10 px-3 py-2">
-              <div className="flex flex-wrap gap-2 w-full items-center">
-                <PaginationNavigation
-                  list={list}
-                  total={data?.count}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                />
-                <PaginationDropdown
-                  list={list}
-                  total={data?.count}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                />
-                <SortSelection
-                  list={list}
-                  orderableFields={orderableFields}
-                  currentSortBy={sort?.field}
-                  currentSortOrder={sort?.direction}
-                  handleSortChange={(newSort) => {
-                    const currentSearchParams = new URLSearchParams(
-                      searchParams.toString()
-                    );
-                    if (newSort) {
-                      currentSearchParams.set(
-                        "sortBy",
-                        `${newSort.direction === "DESC" ? "-" : ""}${
-                          newSort.field
-                        }`
-                      );
-                    } else {
-                      currentSearchParams.delete("sortBy");
-                    }
-                    push(`?${currentSearchParams.toString()}`);
-                  }}
-                />
-                <FilterAdd
-                  listKey={listKey}
-                  filterableFields={filterableFields}
-                />
-              </div>
+              <FilterAdd listKey={listKey} filterableFields={filterableFields}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+                >
+                  <Filter className="stroke-muted-foreground" />
+                  <span className="hidden lg:inline">Filter</span>
+                </Button>
+              </FilterAdd>
             </div>
 
             {filters.filters.length > 0 && (
-              <div className="py-2 px-3">
-                <FilterList filters={filters.filters} list={list} />
-              </div>
-            )}
-
-            <div className="pb-1 pr-2 pl-3.5">
-              <PaginationStats
-                list={list}
-                total={data?.count || 0}
-                currentPage={currentPage}
-                pageSize={pageSize}
-              />
-            </div>
-
-            {data?.items?.length ? (
-              renderMatchList()
-            ) : (
-              <div>
-                <div className="flex flex-col items-center p-10 border-dashed border-2 rounded-lg m-5">
-                  <div className="flex opacity-40">
-                    <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-                    <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-                    <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
-                  </div>
-                  {searchString || filters.filters.length ? (
-                    <>
-                      <span className="pt-4 font-semibold">
-                        No <span className="lowercase">{list.label}</span>{" "}
-                      </span>
-                      <span className="text-muted-foreground pb-4">
-                        Found{" "}
-                        {searchString
-                          ? `matching your search`
-                          : `matching your filters`}{" "}
-                      </span>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setSearchString("");
-                          const newSearchParams = new URLSearchParams(
-                            searchParams
-                          );
-                          newSearchParams.delete("search");
-                          push(`?${newSearchParams.toString()}`);
-                          refetch();
-                        }}
-                      >
-                        Clear filters &amp; search
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="pt-4 font-semibold">
-                        No <span className="lowercase">{list.label}</span>
-                      </span>
-                      <span className="text-muted-foreground pb-4">
-                        Get started by creating a new one.{" "}
-                      </span>
-                      {showCreate && <CreateButtonLink list={list} />}
-                    </>
-                  )}
-                </div>
-              </div>
+              <FilterList filters={filters.filters} list={list} />
             )}
           </div>
+
+          {data?.items?.length ? (
+            <>
+              <div className="flex flex-col flex-1 mb-8 mt-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <SortSelection list={list} orderableFields={orderableFields}>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="uppercase py-1 px-0 text-xs text-muted-foreground [&_svg]:size-3"
+                    >
+                      Sorting by{" "}
+                      {sort ? (
+                        <>
+                          {list.fields[sort.field].label}
+                          {sort.direction === "ASC" ? (
+                            <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
+                              ASC
+                            </Badge>
+                          ) : (
+                            <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
+                              DESC
+                            </Badge>
+                          )}
+                        </>
+                      ) : (
+                        <>default</>
+                      )}
+                      <ChevronDown />
+                    </Button>
+                  </SortSelection>
+                </div>
+                <div className="divide-y border rounded-lg">
+                  {dataGetter.get("items").data.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      onMatchAction={onMatchAction}
+                      handleAcceptPriceChange={handleAcceptPriceChange}
+                      handleSyncInventory={handleSyncInventory}
+                      updateChannelItemLoading={updateChannelItemLoading}
+                      updateShopProductLoading={updateShopProductLoading}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <BaseToolbar>
+                {selectedItemsState.selectedItems.size > 0 ? (
+                  <div className="w-full flex flex-wrap gap-4 items-center justify-between">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      <strong>{selectedItemsState.selectedItems.size}</strong>{" "}
+                      selected
+                    </span>
+                    <DeleteManyButton
+                      list={list}
+                      selectedItems={selectedItemsState.selectedItems}
+                      refetch={refetch}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <PaginationStats
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <PaginationNavigation
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                      <PaginationDropdown
+                        list={list}
+                        total={data.count}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                      />
+                    </div>
+                  </>
+                )}
+              </BaseToolbar>
+            </>
+          ) : loading ? (
+            <Skeleton className="w-full h-20 mt-4" />
+          ) : (
+            <div className="flex flex-col items-center p-10 border rounded-lg">
+              <div className="flex opacity-40">
+                <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
+                <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
+                <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
+              </div>
+              {searchString || filters.filters.length ? (
+                <>
+                  <span className="pt-4 font-semibold">
+                    No <span className="lowercase">{list.label}</span>{" "}
+                  </span>
+                  <span className="text-muted-foreground pb-4">
+                    Found{" "}
+                    {searchString
+                      ? `matching your search`
+                      : `matching your filters`}{" "}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchString("");
+                      const path = window.location.pathname;
+                      push(path);
+                    }}
+                  >
+                    Clear filters &amp; search
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="pt-4 font-semibold">
+                    No <span className="lowercase">{list.label}</span>
+                  </span>
+                  <span className="text-muted-foreground pb-4">
+                    Get started by creating a new one.{" "}
+                  </span>
+                  {showCreate && <CreateButtonLink list={list} />}
+                </>
+              )}
+            </div>
+          )}
         </main>
       ) : (
         <LoadingIcon label="Loading item data" />
       )}
-    </>
+    </div>
   );
 };
 
 export default MatchList;
-

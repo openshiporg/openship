@@ -301,7 +301,7 @@ export function EditItemDrawer({ listKey, itemId, closeDrawer, open }) {
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="overflow-auto flex-grow">
-          <div className="px-5">
+          <div className="px-5 py-4">
             {createViewFieldModes.state === "error" && (
               <GraphQLErrorNotice
                 networkError={

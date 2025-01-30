@@ -46,15 +46,15 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
     }
   };
   return (
-    <div className="h-[1.45rem] bg-white dark:bg-zinc-800 dark:border-zinc-600 shadow-sm flex items-center border rounded-md overflow-hidden">
+    <div className="h-5 sm:h-6 text-xs bg-white dark:bg-zinc-800 dark:border-zinc-600 shadow-sm flex items-center border rounded-md overflow-hidden">
       <button
         type="button"
         // className="h-full border-r p-1 inline-flex justify-center items-center gap-x-2 text-sm font-medium bg-white text-zinc-800 dark:bg-zinc-800 hover:bg-zinc-100 disabled:opacity-50 disabled:pointer-events-none dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
-        className="border-0 h-full flex border-r items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+        className="text-xs sm:text-sm border-0 h-full flex border-r items-center gap-1.5 pr-1.5 pl-1.5 uppercase p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
         onClick={() => handlePageChange(parseInt(currentPageInput) - 1)}
         disabled={parseInt(currentPageInput) <= minPage}
       >
-        <ArrowLeft className="w-3 h-3" />
+        <ArrowLeft className="w-4 h-4" />
       </button>
       <div className="text-nowrap flex items-center border-r-0 px-1 text-xs h-full">
         <input
@@ -81,11 +81,11 @@ export function PaginationNavigation({ currentPage, total, pageSize }) {
       </div>
       <button
         type="button"
-        className="border-0 h-full flex border-l items-center gap-1.5 pr-1.5 pl-1.5 uppercase text-xs p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+        className="text-xs sm:text-sm border-0 h-full flex border-l items-center gap-1.5 pr-1.5 pl-1.5 uppercase p-[.15rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
         onClick={() => handlePageChange(parseInt(currentPageInput) + 1)}
         disabled={parseInt(currentPageInput) >= limit}
       >
-        <ArrowRight className="w-3 h-3" />
+        <ArrowRight className="w-4 h-" />
       </button>
     </div>
   );

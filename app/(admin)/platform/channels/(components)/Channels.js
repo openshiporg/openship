@@ -8,7 +8,8 @@ import { Badge } from "@keystone/themes/Tailwind/orion/primitives/default/ui/bad
 import { Button } from "@keystone/themes/Tailwind/orion/primitives/default/ui/button";
 import { Webhooks } from "./Webhooks";
 import { Links } from "./Links";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/dynamic-tabs";
+import { ScrollArea, ScrollBar } from "@ui/scroll-area";
 import { SearchOrders } from "./SearchOrders";
 import {
   ChevronDownIcon,
@@ -18,12 +19,14 @@ import {
   Square,
   Triangle,
   Webhook,
+  Box,
+  PanelsTopLeft,
+  Settings,
+  UsersRound,
+  Ticket,
+  SquareStack,
 } from "lucide-react";
-import {
-  TicketIcon,
-  Square2StackIcon,
-  LinkIcon,
-} from "@heroicons/react/16/solid";
+
 import {
   format,
   parseISO,
@@ -36,6 +39,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/tooltip";
+import { MatchList } from "../../matches/(components)/MatchList";
 
 export const CHANNELS_QUERY = gql`
   query (
@@ -89,10 +93,10 @@ function formatDate(dateString) {
 }
 
 const tabsData = [
-  { value: "orders", icon: TicketIcon, label: "Orders" },
+  { value: "orders", icon: Ticket, label: "Orders" },
   {
     value: "matches",
-    icon: Square2StackIcon,
+    icon: SquareStack,
     label: "Matches",
     count: "channelItemsCount",
   },
@@ -213,63 +217,70 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                     </div>
                   </div>
                   <Tabs>
-                    <TabsList
-                      className="px-4 flex flex-wrap gap-2"
-                      variant="line"
-                    >
-                      <TooltipProvider>
+                    <ScrollArea>
+                      <TabsList className="justify-start w-full h-auto gap-2 rounded-none bg-transparent px-3 py-1">
                         {tabsData.map((tab) => (
-                          <Tooltip key={tab.value}>
-                            <TooltipTrigger asChild>
-                              <TabsTrigger
-                                value={tab.value}
-                                className="inline-flex items-center gap-1.5"
-                              >
-                                <tab.icon
-                                  className="size-5 sm:size-4"
-                                  aria-hidden="true"
-                                />
-                                <span className="hidden sm:inline">
-                                  {tab.label}
-                                </span>
-                                {tab.count && (
-                                  <Badge
-                                    color="zinc"
-                                    className="opacity-75 text-[.65rem]/3 px-1 border ml-1"
-                                  >
-                                    {channel[tab.count]}
-                                  </Badge>
-                                )}
-                              </TabsTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="sm:hidden">
+                          <TabsTrigger
+                            key={tab.value}
+                            value={tab.value}
+                            className="text-foreground/50 relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent data-[state=active]:text-foreground/75"
+                          >
+                            <tab.icon
+                              className="-ms-0.5 me-1.5 opacity-60"
+                              size={16}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                            />
+                            <span className="hidden sm:inline">
                               {tab.label}
-                            </TooltipContent>
-                          </Tooltip>
+                            </span>
+                            {tab.count && (
+                              <span className="opacity-50 ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
+                                {channel[tab.count]}
+                              </span>
+                            )}
+                          </TabsTrigger>
                         ))}
-                      </TooltipProvider>
-                    </TabsList>
-                    <div className="-mb-1 px-4">
-                      <TabsContent value="webhooks">
-                        <p className="text-sm text-gray-500 sm:text-gray-500">
-                          <div className="mb-3 text-sm text-zinc-500 dark:text-zinc-200">
-                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                              Create platform webhooks to keep Openship in sync
-                            </div>
+                      </TabsList>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                    <TabsContent
+                      value="webhooks"
+                      className="bg-background p-4 border-t"
+                    >
+                      <p className="text-sm text-gray-500 sm:text-gray-500">
+                        <div className="text-sm text-zinc-500 dark:text-zinc-200">
+                          <div className="text-sm text-muted-foreground mb-4">
+                            Create platform webhooks to keep Openship in sync
                           </div>
-                          <Webhooks channelId={channel.id} />
-                        </p>
-                      </TabsContent>
-                      <TabsContent value="orders">
-                        <div className="h-[300px]">
-                          <SearchOrders
-                            channelId={channel.id}
-                            searchEntry=""
-                            pageSize={10}
-                          />
                         </div>
-                      </TabsContent>
-                    </div>
+                        <Webhooks channelId={channel.id} />
+                      </p>
+                    </TabsContent>
+                    <TabsContent
+                      value="orders"
+                      className="bg-background p-4 border-t"
+                    >
+                      <div className="h-[300px] overflow-y-auto">
+                        <SearchOrders
+                          channelId={channel.id}
+                          searchEntry=""
+                          pageSize={10}
+                        />
+                      </div>
+                    </TabsContent>
+                    <TabsContent
+                      value="matches"
+                      className="bg-background p-4 border-t"
+                    >
+                      <div className="h-[300px] overflow-y-auto">
+                        <MatchList
+                          channelId={channel.id}
+                          onMatchAction={() => {}}
+                          showCreate={false}
+                        />
+                      </div>
+                    </TabsContent>
                   </Tabs>
                 </div>
               </div>
@@ -293,7 +304,6 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
           </div>
         </div>
       )}
-
       {!showAll && channelItems.length > 6 && (
         <div className="col-span-full flex justify-center -mt-4">
           <button

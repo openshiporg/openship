@@ -20,7 +20,7 @@ import { ScrollArea } from "../../primitives/default/ui/scroll-area";
 import { cloneElement } from "react";
 import { Badge, BadgeButton } from "../../primitives/default/ui/badge";
 
-export function SortSelection({ list, orderableFields, dropdownTrigger }) {
+export function SortSelection({ list, orderableFields, children }) {
   const sort = useSort(list, orderableFields);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,16 +37,23 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
     DESC: <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">DESC</Badge>,
   };
 
-  const triggerContent = sort ? (
-    <>
-      {list.fields[sort.field].label.toUpperCase()}
-      {sortIcons[sort.direction]}
-    </>
-  ) : (
-    <>
-      <ArrowUpDown size={12} className="stroke-muted-foreground" />
-      SORT
-    </>
+  const DefaultTrigger = () => (
+    <button
+      type="button"
+      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+    >
+      {sort ? (
+        <>
+          {list.fields[sort.field].label.toUpperCase()}
+          {sortIcons[sort.direction]}
+        </>
+      ) : (
+        <>
+          <ArrowUpDown size={12} className="stroke-muted-foreground" />
+          SORT
+        </>
+      )}
+    </button>
   );
 
   const resetSort = () => {
@@ -57,10 +64,8 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        {cloneElement(dropdownTrigger, {
-          children: triggerContent,
-        })}
+      <DropdownMenuTrigger>
+        {children || <DefaultTrigger />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
         <div className="flex items-center justify-between py-1.5">
@@ -77,7 +82,7 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
           )}
         </div>
         <DropdownMenuSeparator />
-        <ScrollArea vpClassName="max-h-72">
+        <div className="max-h-[300px] overflow-y-auto">
           {[...orderableFields, noFieldOption.value].map((fieldPath) => {
             const isNoFieldOption = fieldPath === noFieldOption.value;
             const option = isNoFieldOption
@@ -119,7 +124,7 @@ export function SortSelection({ list, orderableFields, dropdownTrigger }) {
               </DropdownMenuItem>
             );
           })}
-        </ScrollArea>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

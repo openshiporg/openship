@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { gql } from "@apollo/client";
-import { Button } from "@keystone/themes/Tailwind/orion/primitives/default/ui/button";
-import { BadgeButton } from "@keystone/themes/Tailwind/orion/primitives/default/ui/badge";
+import { Button } from "@ui/button";
+import { Badge } from "@ui/badge";
 import { Input } from "@ui/input";
 import { ArrowLeft, ArrowRight, Search } from "lucide-react";
+import { OrderDetailsComponent } from "../../orders/(components)/OrderDetailsComponent";
 
 export const CHANNEL_ORDERS_QUERY = gql`
   query CHANNEL_ORDERS_QUERY(
@@ -57,6 +58,8 @@ export const CHANNEL_ORDERS_QUERY = gql`
       totalTax
       status
       createdAt
+      cartItemsCount
+      lineItemsCount
     }
   }
 `;
@@ -110,32 +113,35 @@ export const SearchOrders = ({
   const orders = data?.orders || [];
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
         <div className="flex gap-1">
           <Button
-            variant="secondary"
+            variant="outline"
+            size="icon"
             onClick={handlePreviousPage}
             disabled={skip === 0}
-            className="h-10 px-2.5 border"
+            className="h-8 w-8"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
 
           <Button
-            variant="secondary"
+            variant="outline"
+            size="icon"
             onClick={handleNextPage}
             disabled={orders.length < pageSize}
-            className="h-10 px-2.5 border"
+            className="h-8 w-8"
           >
-            <ArrowRight className="h-5 w-5" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
         <div className="relative flex-grow">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            type="text"
+            className="w-full rounded-md bg-muted/40 pl-9"
             placeholder="Search orders..."
-            className="input pr-10"
+            type="text"
             value={searchEntry}
             onChange={(e) => setSearchEntry(e.target.value)}
             onKeyPress={(e) => {
@@ -144,47 +150,38 @@ export const SearchOrders = ({
               }
             }}
           />
-          <div className="absolute right-2 top-2">
-            <BadgeButton
-              onClick={handleSearch}
-              className="border text-xs py-0.5 uppercase tracking-wide font-medium"
-            >
-              Search
-            </BadgeButton>
-          </div>
         </div>
       </div>
-      {orders.map((order) => (
-        <div key={order.id} className="mb-4 p-4 border rounded">
-          <h3 className="font-bold">{order.orderName}</h3>
-          <p>
-            {order.firstName} {order.lastName}
-          </p>
-          <p>
-            {order.streetAddress1} {order.streetAddress2}
-          </p>
-          <p>
-            {order.city}, {order.state} {order.zip}
-          </p>
-          <p>Created: {new Date(order.createdAt).toLocaleString()}</p>
-          <p>
-            Total: {order.currency} {order.totalPrice}
-          </p>
-          <p>Status: {order.status}</p>
-          <h4 className="font-semibold mt-2">Cart Items:</h4>
-          <ul className="list-disc pl-5">
-            {order.cartItems.map((item) => (
-              <li key={item.id}>
-                {item.name} - Quantity: {item.quantity}, Price: {order.currency}{" "}
-                {item.price}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-      {orders.length === 0 && (
-        <p className="text-center text-gray-500">No orders found.</p>
-      )}
+
+      <div className="divide-y border rounded-lg overflow-hidden">
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <OrderDetailsComponent
+              key={order.id}
+              order={{
+                ...order,
+                date: new Date(order.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                }),
+              }}
+              shopId={order.shop?.id}
+              onOrderAction={() => {}}
+              openEditDrawer={() => {}}
+              channels={[]}
+              loadingActions={{}}
+              removeEditItemButton={true}
+            />
+          ))
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-muted-foreground">No orders found</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

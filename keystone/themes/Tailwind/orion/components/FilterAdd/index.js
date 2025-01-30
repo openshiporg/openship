@@ -24,29 +24,26 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "../../primitives/default/ui/dropdown-menu";
-import { ScrollArea } from "../../primitives/default/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "../../primitives/default/ui/scroll-area";
 import { Separator } from "../../primitives/default/ui/separator";
 
-export function FilterAdd({ listKey, filterableFields, dropdownTrigger }) {
+export function FilterAdd({ listKey, filterableFields, children }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const defaultButton = (
+  const DefaultTrigger = () => (
     <button
       type="button"
-      onClick={() => setIsOpen(true)}
-      className="shadow-sm border p-[.15rem] mt-[2px] text-sm font-medium text-zinc-900 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="flex gap-1.5 pr-2 pl-2 tracking-wider items-center text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
     >
       <PlusIcon size={13} className="stroke-muted-foreground" />
+      FILTER
     </button>
   );
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        {/* Render custom button if provided, else render default button */}
-        {dropdownTrigger
-          ? cloneElement(dropdownTrigger, { onClick: () => setIsOpen(true) })
-          : defaultButton}
+      <DropdownMenuTrigger asChild onClick={() => setIsOpen(true)}>
+        {children || <DefaultTrigger />}
       </DropdownMenuTrigger>
       {isOpen && (
         <FilterAddPopoverContent
@@ -139,9 +136,11 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
                 setState({ kind: "selecting-field" });
               }}
               variant="outline"
+              size="icon"
+              className="[&_svg]:size-4 w-6 h-6"
             >
               <div className="sr-only">Back</div>
-              <ChevronLeftIcon className="w-4 h-4" />
+              <ChevronLeftIcon />
             </Button>
           )}
           <DropdownMenuLabel>
@@ -158,7 +157,7 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
           </DropdownMenuLabel>
         </div>
         <DropdownMenuSeparator />
-        <ScrollArea vpClassName="max-h-72 p-1">
+        <div className="max-h-[300px] overflow-y-auto">
           {state.kind === "selecting-field" &&
             Object.keys(filtersByFieldThenType).map((fieldPath) => (
               <button
@@ -218,15 +217,17 @@ function FilterAddPopoverContent({ onClose, listKey, filterableFields }) {
                 </div>
               );
             })()}
-        </ScrollArea>
+        </div>
         {state.kind == "filter-value" && (
           <>
             <DropdownMenuSeparator />
-            <div className="flex justify-between px-1">
-              <Button onClick={onClose} variant="secondary">
+            <div className="flex justify-between p-1">
+              <Button onClick={onClose} variant="outline" size="sm">
                 Cancel
               </Button>
-              <Button type="submit">Apply</Button>
+              <Button type="submit" size="sm">
+                Apply
+              </Button>
             </div>
           </>
         )}

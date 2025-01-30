@@ -75,6 +75,7 @@ const FETCH_FILTERED_MATCHES_QUERY = gql`
         syncEligible
         sourceQuantity
         targetQuantity
+        syncNeeded
       }
     }
   }
@@ -125,13 +126,17 @@ export const SyncInventoryDialog = () => {
 
   const syncableMatches = useMemo(() => {
     return filteredMatches.filter(
-      (match) => match.inventoryNeedsToBeSynced.syncEligible
+      (match) => match.inventoryNeedsToBeSynced.syncNeeded
     );
   }, [filteredMatches]);
 
   useEffect(() => {
     if (data?.getFilteredMatches) {
-      setSelectedMatches(data.getFilteredMatches.map((match) => match.id));
+      setSelectedMatches(
+        data.getFilteredMatches
+          .filter((match) => match.inventoryNeedsToBeSynced.syncNeeded)
+          .map((match) => match.id)
+      );
     }
   }, [data]);
 
@@ -196,7 +201,7 @@ export const SyncInventoryDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="py-1">
+        <Button variant="outline" className="py-1" disabled={syncableMatches.length === 0}>
           Sync Inventory
           <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
             {syncableMatches.length}
@@ -237,11 +242,11 @@ export const SyncInventoryDialog = () => {
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "self-start p-1 transition-transform group-open:rotate-90"
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
-                  <ChevronRight className="size-3" />
+                  <ChevronRight />
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-col gap-1">
@@ -291,11 +296,11 @@ export const SyncInventoryDialog = () => {
               <div className="flex gap-3 items-center">
                 <div
                   className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "self-start p-1 transition-transform group-open:rotate-90"
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
                   )}
                 >
-                  <ChevronRight className="size-3" />
+                  <ChevronRight />
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-col gap-1">
@@ -341,18 +346,19 @@ export const SyncInventoryDialog = () => {
           </details>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button variant="ghost" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={handleSyncInventory}
             disabled={selectedMatches.length === 0 || isSyncing}
           >
             {isSyncing ? "Syncing..." : "Sync Inventory"}
-            <Badge className="ml-2 border py-0.5 px-1.5">
+
+            <span className="-me-1 ms-1 inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground">
               {selectedMatches.length}
-            </Badge>
+            </span>
           </Button>
         </DialogFooter>
       </DialogContent>

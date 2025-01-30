@@ -127,7 +127,7 @@ export function PaginationDropdown({
   const defaultTrigger = (
     <button
       type="button"
-      className="text-nowrap flex items-center gap-1.5 pr-2 pl-2 uppercase text-xs shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+      className="h-5 text-xs sm:h-6 sm:text-sm text-nowrap flex items-center gap-1.5 pr-2 pl-2 uppercase shadow-sm border p-[.15rem] font-medium text-zinc-600 bg-white dark:bg-zinc-800 rounded-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
     >
       {selectedPageSize === "Custom" ? "Custom" : selectedPageSize} Per Page
     </button>

@@ -6,24 +6,26 @@ import {
   PopoverTrigger,
 } from "../../primitives/default/ui/popover";
 import { Button } from "../../primitives/default/ui/button";
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, XIcon, ChevronRightIcon } from "lucide-react";
 import { Separator } from "../../primitives/default/ui/separator";
 import { useList } from "@keystone/keystoneProvider";
 
 export function FilterList({ filters, list }) {
   return (
-    <div className="flex flex-wrap gap-2 w-full">
-      {filters.map((filter) => {
-        const field = list.fields[filter.field];
-        return (
-          <FilterPill
-            key={`${filter.field}_${filter.type}`}
-            field={field}
-            filter={filter}
-          />
-        );
-      })}
-    </div>
+    filters.length > 0 && (
+      <div className="flex flex-wrap gap-2 w-full">
+        {filters.map((filter) => {
+          const field = list.fields[filter.field];
+          return (
+            <FilterPill
+              key={`${filter.field}_${filter.type}`}
+              field={field}
+              filter={filter}
+            />
+          );
+        })}
+      </div>
+    )
   );
 }
 
@@ -54,29 +56,51 @@ function FilterPill({ filter, field }) {
       placement="bottom"
     >
       <PopoverTrigger asChild>
-        <div className="rounded-md inline-flex shadow-XS" role="group">
-          <button
-            type="button"
-            className="text-left px-3 py-[3px] text-xs font-medium text-zinc-500 bg-white border border-zinc-200 border-r-0 rounded-s-md hover:bg-zinc-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-200 dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
+        <div
+          className="inline-flex rounded-md text-muted-foreground shadow-xs"
+          role="group"
+        >
+          <div className="flex border rounded-s-md">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-none rounded-s-[calc(theme(borderRadius.md)-1px)] [&_svg]:size-3 w-6 h-6 px-2 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              <XIcon  />
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="xs"
+            className="py-0.5 shadow-none justify-start uppercase flex-wrap rounded-l-none border-l-0 [&_svg]:size-3.5 text-xs px-2"
           >
-            {field.label}{" "}
-            <Label
-              label={field.controller.filter.types[filter.type].label}
-              type={filter.type}
-              value={filter.value}
-            />
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            className="px-1 text-sm font-medium text-zinc-900 bg-white border border-zinc-200 rounded-e-md hover:bg-zinc-200 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:hover:text-white dark:hover:bg-zinc-600 dark:focus:ring-blue-500 dark:focus:text-white"
-          >
-            <XIcon size={14} className="stroke-muted-foreground" />
-          </button>
+            <span>{field.label}</span>
+            <ChevronRightIcon />
+            <span>{field.controller.filter.types[filter.type].label}</span>
+            <ChevronRightIcon />
+            <div className="flex flex-wrap gap-1">
+              {typeof filter.value === "string" &&
+              filter.value.includes(",") ? (
+                filter.value.split(",").map((value, index) => (
+                  <span
+                    key={index}
+                    className="text-[.6rem] font-semibold text-indigo-600 dark:text-indigo-400 bg-zinc-100 dark:bg-zinc-800 px-1 py-[0.05rem] rounded truncate max-w-[150px]"
+                  >
+                    {value.trim()}
+                  </span>
+                ))
+              ) : (
+                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                  {filter.value}
+                </span>
+              )}
+            </div>
+            <ChevronDownIcon />
+          </Button>
         </div>
       </PopoverTrigger>
       <PopoverContent className="p-0">
@@ -122,11 +146,13 @@ function EditDialog({ filter, field, onClose }) {
         <Filter type={filter.type} value={value} onChange={setValue} />
       </div>
       <Separator />
-      <div className="flex justify-between px-2 pb-2">
-        <Button variant="secondary" onClick={onClose}>
+      <div className="flex justify-between gap-2 px-2 pb-2">
+        <Button variant="outline" size="sm" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button size="sm" type="submit">
+          Save
+        </Button>
       </div>
     </form>
   );
