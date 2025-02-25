@@ -1,40 +1,30 @@
-import { createContext, Fragment, useContext } from "react";
-import { ReactEditor } from "slate-react";
-import { Transforms } from "slate";
 
-import { useKeystone } from "@keystone-6/core/admin-ui/context";
-import { RelationshipSelect } from "@keystone-6/core/fields/types/relationship/views/RelationshipSelect";
+import { createContext, Fragment, useContext } from "react"
+import { ReactEditor } from "slate-react"
+import { Transforms } from "slate"
+import { useSlateStatic as useStaticEditor } from "slate-react"
 
-import { ToolbarButton } from "./primitives";
-import { useStaticEditor } from "./utils";
-import { useToolbarState } from "./toolbar-state";
+import { useList } from "@keystone-6/core/admin-ui/context"
+import { RelationshipSelect } from "@keystone-6/core/fields/types/relationship/views/RelationshipSelect"
 
-export const DocumentFieldRelationshipsContext = createContext({});
+import { ToolbarButton } from "./Toolbar"
+import { useToolbarState } from "./toolbar-state"
+
+export const DocumentFieldRelationshipsContext = createContext({})
 
 export function useDocumentFieldRelationships() {
-  return useContext(DocumentFieldRelationshipsContext);
+  return useContext(DocumentFieldRelationshipsContext)
 }
 
 export const DocumentFieldRelationshipsProvider =
-  DocumentFieldRelationshipsContext.Provider;
-
-export function withRelationship(editor) {
-  const { isVoid, isInline } = editor;
-  editor.isVoid = (element) => {
-    return element.type === "relationship" || isVoid(element);
-  };
-  editor.isInline = (element) => {
-    return element.type === "relationship" || isInline(element);
-  };
-  return editor;
-}
+  DocumentFieldRelationshipsContext.Provider
 
 export function RelationshipButton({ onClose }) {
   const {
     editor,
-    relationships: { isDisabled },
-  } = useToolbarState();
-  const relationships = useContext(DocumentFieldRelationshipsContext);
+    relationships: { isDisabled }
+  } = useToolbarState()
+  const relationships = useContext(DocumentFieldRelationshipsContext)
   return (
     <Fragment>
       {Object.entries(relationships).map(([key, relationship]) => {
@@ -42,38 +32,43 @@ export function RelationshipButton({ onClose }) {
           <ToolbarButton
             key={key}
             isDisabled={isDisabled}
-            onMouseDown={(event) => {
-              event.preventDefault();
+            onMouseDown={event => {
+              event.preventDefault()
               Transforms.insertNodes(editor, {
                 type: "relationship",
                 relationship: key,
                 data: null,
-                children: [{ text: "" }],
-              });
-              onClose();
+                children: [{ text: "" }]
+              })
+              onClose()
             }}
           >
             {relationship.label}
           </ToolbarButton>
-        );
+        )
       })}
     </Fragment>
-  );
+  )
 }
 
 export function RelationshipElement({ attributes, children, element }) {
-  const keystone = useKeystone();
-  const editor = useStaticEditor();
-  const relationships = useContext(DocumentFieldRelationshipsContext);
-  const relationship = relationships[element.relationship];
-  const list = keystone.adminMeta.lists[relationship.listKey];
+  const editor = useStaticEditor()
+  const relationships = useContext(DocumentFieldRelationshipsContext)
+  const relationship = relationships[element.relationship]
+  const list = useList(relationship.listKey)
   const searchFields = Object.keys(list.fields).filter(
-    (key) => list.fields[key].search
-  );
+    key => list.fields[key].search
+  )
 
   return (
-    <span {...attributes}>
-      <span contentEditable={false}>
+    <span
+      {...attributes}
+      className="inline-flex items-center"
+    >
+      <span
+        contentEditable={false}
+        className="select-none w-[200px] inline-block px-1 flex-1"
+      >
         {relationship ? (
           <RelationshipSelect
             controlShouldRenderValue
@@ -90,22 +85,23 @@ export function RelationshipElement({ attributes, children, element }) {
                   : {
                       id: element.data.id,
                       label: element.data.label || element.data.id,
+                      data: element.data.data,
                     },
               onChange(value) {
-                const at = ReactEditor.findPath(editor, element);
+                const at = ReactEditor.findPath(editor, element)
                 if (value === null) {
-                  Transforms.removeNodes(editor, { at });
+                  Transforms.removeNodes(editor, { at })
                 } else {
-                  Transforms.setNodes(editor, { data: value }, { at });
+                  Transforms.setNodes(editor, { data: value }, { at })
                 }
-              },
+              }
             }}
           />
         ) : (
           "Invalid relationship"
         )}
       </span>
-      <span>{children}</span>
+      <span className="flex-0">{children}</span>
     </span>
-  );
+  )
 }

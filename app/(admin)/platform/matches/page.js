@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, gql, useApolloClient } from "@apollo/client";
 import { Input } from "@ui/input";
 import { Button } from "@ui/button";
@@ -17,6 +17,7 @@ import {
   Layers,
   Database,
   Copy,
+  PlusIcon,
 } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@ui/drawer";
 import { MultipleSelector } from "@keystone/themes/Tailwind/orion/primitives/default/ui/multi-select";
@@ -38,6 +39,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@keystone/themes/Tailwind/orion/primitives/default/ui/tooltip";
+import {
+  Square3Stack3DIcon,
+  CircleStackIcon,
+  Square2StackIcon,
+} from "@heroicons/react/24/outline";
+import { SortSelection } from "@keystone/themes/Tailwind/orion/components/SortSelection";
+import { useSort } from "@keystone/utils/useSort";
+import { useList } from "@keystone/keystoneProvider";
+import { RiBarChartFill } from "@remixicon/react";
 
 const SEARCH_SHOP_PRODUCTS = gql`
   query SearchShopProducts($shopId: ID!, $searchEntry: String) {
@@ -97,14 +107,35 @@ const SYNC_INVENTORY = gql`
   }
 `;
 
+// Add useDebounce hook at the top level
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const MatchesPage = () => {
+  const [searchInput, setSearchInput] = useState("");
   const [searchString, setSearchString] = useState("");
+  const debouncedSearchString = useDebounce(searchInput, 300); // 300ms delay
   const [selectedTab, setSelectedTab] = useState("shop");
-  const [selectedShopIds, setSelectedShopIds] = useState([]);
+  const [selectedShopId, setSelectedShopId] = useState(null);
   const [selectedChannelIds, setSelectedChannelIds] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [sortField, setSortField] = useState("title");
-  const [sortDirection, setSortDirection] = useState("asc");
+  
+  const list = useList("Match");
+  const orderableFields = new Set(["createdAt", "updatedAt"]);
+  const sort = useSort(list, orderableFields);
 
   const { data: shopsData } = useQuery(ALL_SHOPS_QUERY);
   const { data: channelsData } = useQuery(ALL_CHANNELS_QUERY);
@@ -112,10 +143,10 @@ const MatchesPage = () => {
   const [syncInventory] = useMutation(SYNC_INVENTORY);
   const client = useApolloClient();
 
-  // Use useEffect to set all shops and channels as selected when data is loaded
+  // Use useEffect to set first shop as selected when data is loaded
   useEffect(() => {
-    if (shopsData?.shops) {
-      setSelectedShopIds(shopsData.shops.map((shop) => shop.id));
+    if (shopsData?.shops?.length > 0) {
+      setSelectedShopId(shopsData.shops[0].id);
     }
   }, [shopsData]);
 
@@ -125,27 +156,13 @@ const MatchesPage = () => {
     }
   }, [channelsData]);
 
-  const handleSearch = (e) => {
-    if (e.key === "Enter") {
-      setSearchString(e.target.value);
-    }
-  };
-
-  const handleSort = (field) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
+  // Update the search string when debounced value changes
+  useEffect(() => {
+    setSearchString(debouncedSearchString);
+  }, [debouncedSearchString]);
 
   const sortProducts = (products) => {
-    return [...products].sort((a, b) => {
-      if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
-      if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+    return [...products];
   };
 
   const renderProductList = (products) => {
@@ -153,7 +170,7 @@ const MatchesPage = () => {
     return sortedProducts.map((product) => (
       <div
         key={`${product.productId}-${product.variantId}`}
-        className="first:mt-2 mt-0 border flex flex-wrap lg:flex-nowrap p-2 bg-background rounded-md"
+        className="border flex flex-wrap lg:flex-nowrap p-2 bg-muted/40 rounded-md"
       >
         <div className="w-16 h-16 flex-shrink-0">
           {product.image && (
@@ -178,134 +195,61 @@ const MatchesPage = () => {
     ));
   };
 
-  const ShopSummary = ({ shopId }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const shop = shopsData?.shops.find((s) => s.id === shopId);
-
+  const ShopProducts = ({ shopId }) => {
     const { data: shopProductsData, loading: shopProductsLoading } = useQuery(
       SEARCH_SHOP_PRODUCTS,
       {
-        variables: { shopId, searchEntry: searchString },
-        skip: !isOpen,
+        variables: { shopId, searchEntry: debouncedSearchString },
       }
     );
 
-    const handleToggle = () => {
-      setIsOpen(!isOpen);
-    };
+    if (shopProductsLoading) {
+      return <div className="p-4">Loading...</div>;
+    }
 
     return (
-      <details
-        open={isOpen}
-        className="p-4 border rounded-lg bg-muted/20 group"
-      >
-        <summary
-          onClick={(e) => {
-            e.preventDefault();
-            handleToggle();
-          }}
-          className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer"
-        >
-          <div className="flex gap-3 items-center">
-            <div
-              className={cn(
-                buttonVariants({ variant: "outline", size: "icon" }),
-                "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
-              )}
+      <div className="space-y-2">
+        {shopProductsData?.searchShopProducts?.length > 0 ? (
+          renderProductList(shopProductsData.searchShopProducts)
+        ) : (
+          <div>
+            <Badge
+              className="border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
+              color="red"
             >
-              <ChevronRight className="size-3" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <text className="relative text-lg/5 font-medium text-foreground/75">
-                {shop?.name}
-              </text>
-            </div>
-          </div>
-        </summary>
-        {isOpen && (
-          <div className="ml-8 max-h-[60vh] overflow-y-auto flex flex-col gap-2">
-            {shopProductsLoading ? (
-              <div>Loading...</div>
-            ) : shopProductsData?.searchShopProducts?.length > 0 ? (
-              renderProductList(shopProductsData.searchShopProducts)
-            ) : (
-              <div>
-                <Badge
-                  className="mt-2 border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
-                  color="red"
-                >
-                  No Products Found
-                </Badge>
-              </div>
-            )}
+              No Products Found
+            </Badge>
           </div>
         )}
-      </details>
+      </div>
     );
   };
 
-  const ChannelSummary = ({ channelId }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const channel = channelsData?.channels.find((c) => c.id === channelId);
-
+  const ChannelProducts = ({ channelId }) => {
     const { data: channelProductsData, loading: channelProductsLoading } =
       useQuery(SEARCH_CHANNEL_PRODUCTS, {
-        variables: { channelId, searchEntry: searchString },
-        skip: !isOpen,
+        variables: { channelId, searchEntry: debouncedSearchString },
       });
 
-    const handleToggle = () => {
-      setIsOpen(!isOpen);
-    };
+    if (channelProductsLoading) {
+      return <div className="p-4">Loading...</div>;
+    }
 
     return (
-      <details
-        open={isOpen}
-        className="p-4 border rounded-lg bg-muted/20 group"
-      >
-        <summary
-          onClick={(e) => {
-            e.preventDefault();
-            handleToggle();
-          }}
-          className="list-none outline-none [&::-webkit-details-marker]:hidden cursor-pointer"
-        >
-          <div className="flex gap-3 items-center">
-            <div
-              className={cn(
-                buttonVariants({ variant: "outline", size: "icon" }),
-                "[&_svg]:size-3 w-5 h-5 self-start p-1 transition-transform group-open:rotate-90"
-              )}
+      <div className="space-y-2">
+        {channelProductsData?.searchChannelProducts?.length > 0 ? (
+          renderProductList(channelProductsData.searchChannelProducts)
+        ) : (
+          <div>
+            <Badge
+              className="border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
+              color="red"
             >
-              <ChevronRight className="size-3" />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <text className="relative text-lg/5 font-medium text-foreground/75">
-                {channel?.name}
-              </text>
-            </div>
-          </div>
-        </summary>
-        {isOpen && (
-          <div className="ml-8 max-h-[60vh] overflow-y-auto flex flex-col gap-2">
-            {channelProductsLoading ? (
-              <div>Loading...</div>
-            ) : channelProductsData?.searchChannelProducts?.length > 0 ? (
-              renderProductList(channelProductsData.searchChannelProducts)
-            ) : (
-              <div>
-                <Badge
-                  className="mt-2 border text-[.7rem] py-0.5 uppercase tracking-wide font-medium"
-                  color="red"
-                >
-                  No Products Found
-                </Badge>
-              </div>
-            )}
+              No Products Found
+            </Badge>
           </div>
         )}
-      </details>
+      </div>
     );
   };
 
@@ -335,8 +279,75 @@ const MatchesPage = () => {
     }
   };
 
+  const tabs = [
+    {
+      value: "shop",
+      label: "Shop Products",
+      count: shopsData?.shops.length,
+      icon: Square3Stack3DIcon,
+    },
+    {
+      value: "channel",
+      label: "Channel Products",
+      count: channelsData?.channels.length,
+      icon: CircleStackIcon,
+    },
+    {
+      value: "matches",
+      label: "Matches",
+      count: 0,
+      icon: Square2StackIcon,
+    },
+  ];
+
+  const EmptyState = ({ type }) => {
+    const content = {
+      shop: {
+        title: "No shop products found",
+        description: "Connect a shop to view and manage your products",
+        action: null
+      },
+      channel: {
+        title: "No channel products found",
+        description: "Connect a sales channel to view and manage your products",
+        action: null
+      },
+      matches: {
+        title: "No matches created",
+        description: "Create matches to link products between shops and channels",
+        action: (
+          <Button 
+            onClick={() => document.querySelector('[aria-label="Create Match"]')?.click()}
+            className="mt-4"
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Match
+          </Button>
+        )
+      }
+    };
+
+    return (
+      <div className="flex h-72 items-center justify-center rounded-lg border bg-muted">
+        <div className="text-center">
+          <RiBarChartFill
+            className="mx-auto h-7 w-7 text-muted-foreground"
+            aria-hidden={true}
+          />
+          <p className="mt-2 font-medium text-foreground">
+            {content[type].title}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {content[type].description}
+          </p>
+          {content[type].action}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <>
+    <section className="h-screen overflow-hidden flex flex-col">
       <PageBreadcrumbs
         items={[
           {
@@ -356,206 +367,160 @@ const MatchesPage = () => {
           },
         ]}
       />
-      <main className="max-w-4xl mx-auto w-full p-4 md:p-6">
-        <div className="flex flex-col md:flex-row mb-4 gap-2 justify-between">
-          <div>
-            <h1 className="text-xl font-semibold md:text-2xl">Matches</h1>
+
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 justify-between p-4">
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-semibold">Matches</h1>
             <p className="text-muted-foreground">
               Manage matches across shops and channels
             </p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <SyncInventoryDialog />
             <MatchDetailsDialog />
+          
           </div>
         </div>
 
-        <Tabs
-          defaultValue="shop"
-          orientation="vertical"
-          className="flex w-full gap-2"
-        >
-          <TabsList className="flex-col my-auto">
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <TabsTrigger value="shop" className="py-3">
-                      <Layers size={16} strokeWidth={2} aria-hidden="true" />
-                    </TabsTrigger>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="px-2 py-1 text-xs">
-                  Shop Products
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <TabsTrigger value="channel" className="group py-3">
-                      <span className="relative">
-                        <Database
-                          size={16}
-                          strokeWidth={2}
-                          aria-hidden="true"
-                        />
-                        {/* <span className="absolute -top-2.5 left-full min-w-4 -translate-x-1.5 border-background px-0.5 text-[10px]/[.875rem] transition-opacity group-data-[state=inactive]:opacity-50">
-                          3
-                        </span> */}
-                      </span>
-                    </TabsTrigger>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="px-2 py-1 text-xs">
-                  Channel Products
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <TabsTrigger value="matches" className="py-3">
-                      <Copy size={16} strokeWidth={2} aria-hidden="true" />
-                    </TabsTrigger>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="px-2 py-1 text-xs">
-                  Matches
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </TabsList>
-          <div className="grow rounded-lg border border-border text-start p-4">
-            <TabsContent value="shop">
-              <div className="flex flex-col gap-3 mb-4">
-                <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground">
-                  <Layers size={16} strokeWidth={2} aria-hidden="true" />
-                  Shop Products
-                </h3>
-                <div className="relative flex-grow">
-                  <Input
-                    type="search"
-                    className="text-sm h-9"
-                    placeholder="Search products..."
-                    value={searchString}
-                    onChange={(e) => setSearchString(e.target.value)}
-                  />
-                </div>
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-auto flex flex-col">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="flex flex-col h-full">
+            <TabsList className="w-full bg-background h-auto gap-2 px-4 border-b justify-start py-0.5 flex-shrink-0 rounded-none">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="text-foreground/50 relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-0.5 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent data-[state=active]:text-foreground/75"
+                  >
+                    <Icon
+                      className="w-4 h-4 mr-2 opacity-60"
+                      size={16}
+                      aria-hidden="true"
+                    />
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
 
-                <MultipleSelector
-                  value={selectedShopIds.map((id) => ({
-                    value: id,
-                    label:
-                      shopsData?.shops.find((s) => s.id === id)?.name || id,
-                  }))}
-                  onChange={(newValue) => {
-                    setSelectedShopIds(newValue.map((item) => item.value));
-                  }}
-                  options={
-                    shopsData?.shops.map((shop) => ({
-                      label: shop.name,
-                      value: shop.id,
-                    })) || []
-                  }
-                  placeholder="Select shops"
-                  className="h-8 rounded-lg"
-                  emptyIndicator={
-                    <p className="text-center text-sm text-muted-foreground">
-                      No shops found.
-                    </p>
-                  }
-                  loadingIndicator={
-                    <p className="text-center text-sm text-muted-foreground">
-                      Loading shops...
-                    </p>
-                  }
-                />
-              </div>
-
-              <div className="space-y-4">
-                {selectedShopIds.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-4">
-                    Please select at least one shop to view products
+            <TabsContent value="shop" className="flex-1 overflow-auto h-full">
+              <div className="flex h-full">
+                <Tabs
+                  value={selectedShopId}
+                  onValueChange={setSelectedShopId}
+                  orientation="vertical"
+                  className="w-full h-full flex flex-col md:flex-row p-4 gap-4"
+                >
+                  <TabsList className="justify-start flex-shrink-0 md:w-48 flex flex-row md:flex-col gap-1 bg-transparent sticky top-0 overflow-x-auto md:overflow-x-visible">
+                    {shopsData?.shops.map((shop) => (
+                      <TabsTrigger
+                        key={shop.id}
+                        value={shop.id}
+                        className="w-auto md:w-full data-[state=active]:bg-muted justify-start data-[state=active]:shadow-none whitespace-nowrap"
+                      >
+                        {shop.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  <div className="flex-1 overflow-auto">
+                    {shopsData?.shops.map((shop) => (
+                      <TabsContent
+                        key={shop.id}
+                        value={shop.id}
+                        className="h-full"
+                      >
+                        <div className="flex flex-col h-full gap-4">
+                          <div className="sticky top-0 z-10 bg-background">
+                            <div className="relative flex-1 w-full">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <form onSubmit={(e) => e.preventDefault()}>
+                                <Input
+                                  type="search"
+                                  className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm shadow-sm"
+                                  value={searchInput}
+                                  onChange={(e) => setSearchInput(e.target.value)}
+                                  placeholder="Search shop products..."
+                                />
+                              </form>
+                            </div>
+                          </div>
+                          <div className="overflow-auto flex-1">
+                            <ShopProducts shopId={shop.id} />
+                          </div>
+                        </div>
+                      </TabsContent>
+                    ))}
                   </div>
-                ) : (
-                  selectedShopIds.map((shopId) => (
-                    <ShopSummary key={shopId} shopId={shopId} />
-                  ))
-                )}
+                </Tabs>
               </div>
             </TabsContent>
-            <TabsContent value="channel">
-              <div className="flex flex-col gap-3 mb-4">
-                <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground">
-                  <Database size={16} strokeWidth={2} aria-hidden="true" />
-                  Channel Products
-                </h3>
-                <div className="relative flex-grow">
-                  <Input
-                    type="search"
-                    className="text-sm h-9"
-                    placeholder="Search products..."
-                    value={searchString}
-                    onChange={(e) => setSearchString(e.target.value)}
-                  />
-                </div>
 
-                <MultipleSelector
-                  value={selectedChannelIds.map((id) => ({
-                    value: id,
-                    label:
-                      channelsData?.channels.find((c) => c.id === id)?.name ||
-                      id,
-                  }))}
-                  onChange={(newValue) => {
-                    setSelectedChannelIds(newValue.map((item) => item.value));
-                  }}
-                  options={
-                    channelsData?.channels.map((channel) => ({
-                      label: channel.name,
-                      value: channel.id,
-                    })) || []
-                  }
-                  placeholder="Select channels"
-                  className="h-8 rounded-lg"
-                  emptyIndicator={
-                    <p className="text-center text-sm text-muted-foreground">
-                      No channels found.
-                    </p>
-                  }
-                  loadingIndicator={
-                    <p className="text-center text-sm text-muted-foreground">
-                      Loading channels...
-                    </p>
-                  }
-                />
-              </div>
-              <div className="space-y-4">
-                {selectedChannelIds.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-4">
-                    Please select at least one channel to view products
+            <TabsContent value="channel" className="flex-1 overflow-auto h-full">
+              <div className="flex h-full">
+                <Tabs
+                  value={selectedChannelIds[0]}
+                  onValueChange={(value) => setSelectedChannelIds([value])}
+                  orientation="vertical"
+                  className="w-full h-full flex flex-col md:flex-row p-4 gap-4"
+                >
+                  <TabsList className="justify-start flex-shrink-0 md:w-48 flex flex-row md:flex-col gap-1 bg-transparent sticky top-0 overflow-x-auto md:overflow-x-visible">
+                    {channelsData?.channels.map((channel) => (
+                      <TabsTrigger
+                        key={channel.id}
+                        value={channel.id}
+                        className="w-auto md:w-full data-[state=active]:bg-muted justify-start data-[state=active]:shadow-none whitespace-nowrap"
+                      >
+                        {channel.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  <div className="flex-1 overflow-auto">
+                    {channelsData?.channels.map((channel) => (
+                      <TabsContent
+                        key={channel.id}
+                        value={channel.id}
+                        className="h-full"
+                      >
+                        <div className="flex flex-col h-full gap-4">
+                          <div className="sticky top-0 z-10 bg-background">
+                            <div className="relative flex-1 w-full">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <form onSubmit={(e) => e.preventDefault()}>
+                                <Input
+                                  type="search"
+                                  className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm shadow-sm"
+                                  value={searchInput}
+                                  onChange={(e) => setSearchInput(e.target.value)}
+                                  placeholder="Search channel products..."
+                                />
+                              </form>
+                            </div>
+                          </div>
+                          <div className="overflow-auto flex-1">
+                            <ChannelProducts channelId={channel.id} />
+                          </div>
+                        </div>
+                      </TabsContent>
+                    ))}
                   </div>
-                ) : (
-                  selectedChannelIds.map((channelId) => (
-                    <ChannelSummary key={channelId} channelId={channelId} />
-                  ))
-                )}
+                </Tabs>
               </div>
             </TabsContent>
-            <TabsContent value="matches">
-              <h3 className="flex items-center gap-2 text-sm uppercase tracking-wide font-semibold text-muted-foreground mb-4">
-                <Copy size={16} strokeWidth={2} aria-hidden="true" />
-                Matches
-              </h3>
-              <MatchList onMatchAction={handleMatchAction} />
+
+            <TabsContent value="matches" className="flex-1 overflow-auto h-full">
+              <EmptyState type="matches" />
+              <MatchList
+                onMatchAction={handleMatchAction}
+                showCreate={true}
+              />
             </TabsContent>
-          </div>
-        </Tabs>
-      </main>
-    </>
+          </Tabs>
+        </div>
+      </div>
+    </section>
   );
 };
 

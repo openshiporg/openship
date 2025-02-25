@@ -1,96 +1,41 @@
-import { applyRefs } from "apply-ref";
-import { useState, useMemo } from "react";
-import { Transforms } from "slate";
-import { ToolbarButton, ToolbarGroup } from "./primitives";
-import { useToolbarState } from "./toolbar-state";
+import { AlignLeft, AlignRight, AlignCenter, ChevronDown } from 'lucide-react'
 import {
-  ChevronDownIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  AlignCenterIcon,
-} from "lucide-react";
-import { Popover } from "../../primitives/default/ui/popover";
-import { Tooltip } from "../../primitives/default/ui/tooltip";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@ui/tooltip'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@ui/popover'
+import { Fragment, useMemo, useState } from 'react'
+import { Transforms } from 'slate'
 
-export const TextAlignMenu = ({ alignment }) => {
+import { ToolbarGroup } from './primitives'
+import { useToolbarState } from './toolbar-state'
+import { ToolbarButton, TooltipWithShortcut } from './Toolbar'
+
+export function TextAlignMenu({ alignment }) {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <div>
-      <Popover
-        open={showMenu}
-        onOpenChange={setShowMenu}
-        content={
-          <TextAlignDialog
-            alignment={alignment}
-            onClose={() => setShowMenu(false)}
-          />
-        }
-        trigger={
-          <Tooltip content="Text alignment">
-            <TextAlignButton
-              onToggle={() => setShowMenu((x) => !x)}
-              showMenu={showMenu}
-            />
-          </Tooltip>
-        }
-        placement="bottom-start"
-      />
-    </div>
-  );
-};
-
-function TextAlignDialog({ alignment, onClose }) {
-  const {
-    alignment: { selected },
-    editor,
-  } = useToolbarState();
-  const alignments = [
-    "start",
-    ...Object.keys(alignment).filter((key) => alignment[key]),
-  ];
-
-  return (
-    <ToolbarGroup>
-      {alignments.map((alignment) => (
-        <Tooltip content={`Align ${alignment}`}>
-          <ToolbarButton
-            isSelected={selected === alignment}
-            onMouseDown={(event) => {
-              event.preventDefault();
-              handleAlignmentChange(alignment, editor);
-              onClose();
-            }}
-          >
-            {alignmentIcons[alignment]}
-          </ToolbarButton>
-        </Tooltip>
-      ))}
-    </ToolbarGroup>
+    <Fragment>
+      <Popover open={showMenu} onOpenChange={setShowMenu}>
+        <PopoverTrigger>
+          <TextAlignButton showMenu={showMenu} />
+        </PopoverTrigger>
+        <TextAlignDialog 
+          alignment={alignment} 
+          onSelect={() => setShowMenu(false)}
+        />
+      </Popover>
+    </Fragment>
   );
 }
 
-const handleAlignmentChange = (alignment, editor) => {
-  if (alignment === "start") {
-    Transforms.unsetNodes(editor, "textAlign", {
-      match: (node) => node.type === "paragraph" || node.type === "heading",
-    });
-  } else {
-    Transforms.setNodes(
-      editor,
-      { textAlign: alignment },
-      { match: (node) => node.type === "paragraph" || node.type === "heading" }
-    );
-  }
-};
-
-const alignmentIcons = {
-  start: <AlignLeftIcon size="small" />,
-  center: <AlignCenterIcon size="small" />,
-  end: <AlignRightIcon size="small" />,
-};
-
-function TextAlignButton({ onToggle, showMenu }) {
+function TextAlignButton({ showMenu }) {
   const {
     alignment: { isDisabled, selected },
   } = useToolbarState();
@@ -100,15 +45,64 @@ function TextAlignButton({ onToggle, showMenu }) {
       <ToolbarButton
         isDisabled={isDisabled}
         isPressed={showMenu}
+        className="w-auto px-2 flex items-center gap-1"
         onMouseDown={(event) => {
           event.preventDefault();
-          onToggle();
         }}
       >
         {alignmentIcons[selected]}
-        <ChevronDownIcon size="small" />
+        <ChevronDown size={16} />
       </ToolbarButton>
     ),
-    [isDisabled, selected, onToggle, showMenu]
+    [isDisabled, selected, showMenu]
   );
+}
+
+function TextAlignDialog({ alignment, onSelect }) {
+  const {
+    alignment: { selected },
+    editor,
+  } = useToolbarState();
+
+  const alignments = ['start', ...(Object.keys(alignment)).filter(key => alignment[key])];
+
+  return (
+    <PopoverContent align="start" sideOffset={4} className="p-1 w-auto">
+      <ToolbarGroup>
+        {alignments.map(alignment => (
+          <Tooltip key={alignment}>
+            <TooltipTrigger>
+              <ToolbarButton
+                isSelected={selected === alignment}
+                onMouseDown={event => {
+                  event.preventDefault();
+                  if (alignment === 'start') {
+                    Transforms.unsetNodes(editor, 'textAlign', {
+                      match: node => node.type === 'paragraph' || node.type === 'heading',
+                    });
+                  } else {
+                    Transforms.setNodes(editor, { textAlign: alignment }, {
+                      match: node => node.type === 'paragraph' || node.type === 'heading',
+                    });
+                  }
+                  onSelect();
+                }}
+              >
+                {alignmentIcons[alignment]}
+              </ToolbarButton>
+            </TooltipTrigger>
+            <TooltipContent className="flex items-center gap-2 py-0 dark">
+              <span className="text-xs tracking-wide font-medium uppercase">{`Align ${alignment}`}</span>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </ToolbarGroup>
+    </PopoverContent>
+  );
+}
+
+const alignmentIcons = {
+  start: <AlignLeft size={16} />,
+  center: <AlignCenter size={16} />,
+  end: <AlignRight size={16} />,
 }

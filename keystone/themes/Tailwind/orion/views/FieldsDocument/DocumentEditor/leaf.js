@@ -1,33 +1,40 @@
-import { useState } from "react";
-import { InsertMenu } from "./insert-menu";
+import { useState } from 'react'
+import { InsertMenu } from './insert-menu'
 
-function Placeholder({ placeholder, children }) {
-  const [width, setWidth] = useState(0);
+function Placeholder ({
+  placeholder,
+  children
+}) {
+  const [width, setWidth] = useState(0)
   return (
-    <span className="relative inline-block w-1/2">
+    <span className="relative inline-block" style={{ width }}>
       <span
         contentEditable={false}
-        className="absolute pointer-events-none inline-block left-0 top-0 max-w-full whitespace-nowrap opacity-50 select-none no-underline text-left"
+        className="absolute pointer-events-none inline-block left-0 top-0 max-w-full whitespace-nowrap opacity-50 select-none font-normal font-normal no-underline text-left"
       >
         <span
-          ref={(node) => {
+          ref={node => {
             if (node) {
-              const offsetWidth = node.offsetWidth;
+              const offsetWidth = node.offsetWidth
               if (offsetWidth !== width) {
-                setWidth(offsetWidth);
+                setWidth(offsetWidth)
               }
             }
-          }}
-        >
+          }}>
           {placeholder}
         </span>
       </span>
       {children}
     </span>
-  );
+  )
 }
 
-const Leaf = ({ leaf, text, children, attributes }) => {
+const Leaf = ({
+  leaf,
+  text,
+  children,
+  attributes
+}) => {
   const {
     underline,
     strikethrough,
@@ -39,47 +46,49 @@ const Leaf = ({ leaf, text, children, attributes }) => {
     subscript,
     placeholder,
     insertMenu,
-  } = leaf;
+  } = leaf
 
   if (placeholder !== undefined) {
-    children = <Placeholder placeholder={placeholder}>{children}</Placeholder>;
+    children = <Placeholder placeholder={placeholder}>{children}</Placeholder>
   }
 
   if (insertMenu) {
-    children = <InsertMenu text={text}>{children}</InsertMenu>;
+    children = <InsertMenu text={text}>{children}</InsertMenu>
   }
 
   if (code) {
     children = (
-      <code className="bg-zinc-200 rounded-xs inline-block font-mono text-sm px-1">
+      <code
+        className="bg-muted rounded-sm font-mono text-sm px-1 inline-block"
+      >
         {children}
       </code>
-    );
+    )
   }
   if (bold) {
-    children = <strong>{children}</strong>;
+    children = <strong>{children}</strong>
   }
   if (strikethrough) {
-    children = <s>{children}</s>;
+    children = <s>{children}</s>
   }
   if (italic) {
-    children = <em>{children}</em>;
+    children = <em>{children}</em>
   }
   if (keyboard) {
-    children = <kbd>{children}</kbd>;
+    children = <kbd>{children}</kbd>
   }
   if (superscript) {
-    children = <sup>{children}</sup>;
+    children = <sup>{children}</sup>
   }
   if (subscript) {
-    children = <sub>{children}</sub>;
+    children = <sub>{children}</sub>
   }
   if (underline) {
-    children = <u>{children}</u>;
+    children = <u>{children}</u>
   }
-  return <span {...attributes}>{children}</span>;
-};
+  return <span {...attributes}>{children}</span>
+}
 
 export const renderLeaf = (props) => {
-  return <Leaf {...props} />;
-};
+  return <Leaf {...props} />
+}

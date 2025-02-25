@@ -122,21 +122,37 @@ export function useCreateItem(list) {
       });
       return outputData.item;
     },
-    async createWithData({ data }) {
+    async createWithData({ data, relatedListKey, relatedListId }) {
       let outputData;
       try {
+        console.log(`Creating item for list: ${list.key}`, {
+          data,
+          gqlNames: list.gqlNames,
+        });
+
         outputData = await createItem({
           variables: {
             data,
           },
           update(cache, { data }) {
             if (typeof data?.item?.id === "string") {
-              cache.evict({
-                id: "ROOT_QUERY",
-                fieldName: `${list.gqlNames.itemQueryName}(${JSON.stringify({
-                  where: { id: data.item.id },
-                })})`,
-              });
+              // If a related list is specified, only evict that query
+              if (relatedListKey && relatedListId) {
+                cache.evict({
+                  id: "ROOT_QUERY",
+                  fieldName: `${relatedListKey}(${JSON.stringify({
+                    where: { id: relatedListId },
+                  })})`,
+                });
+              } else {
+                // Otherwise evict the created item's query
+                cache.evict({
+                  id: "ROOT_QUERY",
+                  fieldName: `${list.gqlNames.itemQueryName}(${JSON.stringify({
+                    where: { id: data.item.id },
+                  })})`,
+                });
+              }
             }
           },
         }).then((x) => x.data);

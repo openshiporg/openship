@@ -64,7 +64,7 @@ export const DatePicker = ({
             onClick={() => setOpen(true)}
             className={cn(
               buttonVariants({ variant: "light" }),
-              "bg-muted/40 dark:bg-muted/40 text-sm h-10 font-normal border w-full shadow-sm justify-start dark:border-zinc-800 flex rounded-md border-input px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              "text-base bg-muted/40 dark:bg-muted/40 h-10 font-normal border w-full shadow-sm justify-start dark:border-zinc-800 flex rounded-md border-input px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
               !(formattedDate || dateFormatPlaceholder) &&
                 "text-muted-foreground"
             )}

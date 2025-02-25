@@ -23,7 +23,7 @@ const buttonVariants = cva(
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-lg px-3 text-xs",
         lg: "h-10 rounded-lg px-8",
-        icon: "h-9 w-9"
+        icon: "h-9 w-9 rounded-lg"
       }
     },
     defaultVariants: {
@@ -34,12 +34,13 @@ const buttonVariants = cva(
 )
 
 const Button = React.forwardRef(
-  ({ className, variant, size, isLoading, asChild = false, children, ...props }, ref) => {
+  ({ className, variant, size, isLoading, type = "button", asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        type={type}
         {...props}
       >
         {isLoading && <RiLoader2Fill className="animate-spin" />}

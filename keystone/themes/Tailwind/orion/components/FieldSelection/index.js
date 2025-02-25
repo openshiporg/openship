@@ -95,7 +95,7 @@ function FieldSelectionContent({ onClose, list, fieldModesByFieldPath }) {
     <DropdownMenuContent align="start" className="w-[200px]">
       <DropdownMenuLabel>Display columns</DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <ScrollArea className="h-[300px]">
+      <ScrollArea vpClassName="max-h-72">
         {fields.map((field) => (
           <DropdownMenuCheckboxItem
             key={field.value}

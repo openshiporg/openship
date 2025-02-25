@@ -113,19 +113,21 @@ export function AppSidebar({ sidebarLinks = [], ...props }) {
                   <DropdownMenuContent
                     side={isMobile ? "bottom" : "right"}
                     align={isMobile ? "end" : "start"}
-                    className="min-w-56 max-h-[calc(100vh-24rem)] overflow-y-auto"
+                    className="min-w-56"
                   >
-                    {moreNavItems.map((item) => (
-                      <DropdownMenuItem asChild key={item.href || item.url}>
-                        <AdminLink
-                          href={item.href || item.url}
-                          className="flex items-center gap-2"
-                        >
-                          {item.icon && <item.icon className="h-4 w-4" />}
-                          <span>{item.title}</span>
-                        </AdminLink>
-                      </DropdownMenuItem>
-                    ))}
+                    <div className="max-h-[calc(100vh-16rem)] overflow-y-auto py-1">
+                      {moreNavItems.map((item) => (
+                        <DropdownMenuItem asChild key={item.href || item.url}>
+                          <AdminLink
+                            href={item.href || item.url}
+                            className="flex items-center gap-2"
+                          >
+                            {item.icon && <item.icon className="h-4 w-4" />}
+                            <span>{item.title}</span>
+                          </AdminLink>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
                   </DropdownMenuContent>
                 </SidebarMenuItem>
               </DropdownMenu>
@@ -179,15 +181,17 @@ export function AppSidebar({ sidebarLinks = [], ...props }) {
                 <DropdownMenuContent
                   side={isMobile ? "bottom" : "right"}
                   align={isMobile ? "end" : "start"}
-                  className="min-w-56 max-h-[calc(100vh-24rem)] overflow-y-auto"
+                  className="min-w-56"
                 >
-                  {dashboardItem.items.map((link) => (
-                    <DropdownMenuItem asChild key={link.href}>
-                      <AdminLink href={link.href}>
-                        <span>{link.title}</span>
-                      </AdminLink>
-                    </DropdownMenuItem>
-                  ))}
+                  <div className="max-h-[calc(100vh-16rem)] overflow-y-auto py-1">
+                    {dashboardItem.items.map((link) => (
+                      <DropdownMenuItem asChild key={link.href}>
+                        <AdminLink href={link.href}>
+                          <span>{link.title}</span>
+                        </AdminLink>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
                 </DropdownMenuContent>
               </SidebarMenuItem>
             </DropdownMenu>

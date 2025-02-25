@@ -41,6 +41,7 @@ export const OrderDetailsComponent = ({
   loadingActions,
   removeEditItemButton,
   renderButtons,
+  statusColors,
 }) => {
   const list = useList("Order");
   const client = useApolloClient();
@@ -119,6 +120,25 @@ export const OrderDetailsComponent = ({
     // Add any additional logic needed after deletion
   };
 
+  // Get the status color from statusColors config
+  const getStatusBadge = () => {
+    if (!order.status || !statusColors) return null;
+    
+    const status = order.status.toLowerCase();
+    const statusConfig = statusColors[status];
+    
+    if (!statusConfig) return null;
+    
+    return (
+      <Badge 
+        color={statusConfig.color}
+        className="uppercase tracking-wide font-medium text-xs py-0.5 mr-1 rounded-full border"
+      >
+        {statusConfig.label}
+      </Badge>
+    );
+  };
+
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value={order.orderId} className="border-0">
@@ -168,6 +188,7 @@ export const OrderDetailsComponent = ({
                   {getLoadingText(currentAction)}
                 </Badge>
               )}
+              {getStatusBadge()}
               {!removeEditItemButton && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

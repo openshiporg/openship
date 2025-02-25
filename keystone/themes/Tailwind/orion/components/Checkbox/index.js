@@ -21,6 +21,7 @@ export const CheckboxControl = forwardRef(
       <CB
         size={size}
         onCheckedChange={(e) => onChange({ target: { checked: e } })}
+        className={className}
         {...props}
       />
     </Fragment>

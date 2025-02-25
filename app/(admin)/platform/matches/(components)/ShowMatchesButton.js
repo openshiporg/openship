@@ -103,7 +103,7 @@ export const ShowMatchesButton = ({ product, onMatchAction }) => {
       <SheetTrigger>
         <Button
           className="text-nowrap cursor-pointer text-xs border font-medium uppercase tracking-wide py-0.5 px-1.5"
-          variant="secondary"
+          variant="outline"
           size="xs"
           isLoading={countLoading}
           disabled={countData?.matchesCount === 0}
@@ -125,7 +125,7 @@ export const ShowMatchesButton = ({ product, onMatchAction }) => {
         </Badge> */}
       </SheetTrigger>
       <SheetContent>
-        <SheetHeader>
+        <SheetHeader className="p-4 gap-4">
           <SheetTitle>Item Matches</SheetTitle>
           <Card className="p-2 bg-muted/40">
             <div className="flex space-x-2">
@@ -146,7 +146,7 @@ export const ShowMatchesButton = ({ product, onMatchAction }) => {
             </div>
           </Card>
         </SheetHeader>
-        <div className="text-muted-foreground px-6 py-2 font-medium uppercase tracking-wider text-sm">
+        <div className="text-muted-foreground px-4 py-2 font-medium uppercase tracking-wider text-sm">
           {matchesData?.matches?.length} match
           {matchesData?.matches?.length > 1 ? "es" : ""} found
         </div>

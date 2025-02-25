@@ -1,3 +1,5 @@
+"use client";
+
 // replace KeystoneUI with KeystoneUI or your theme
 
 import { ListPage } from "@keystone/themes/Tailwind/orion/screens/ListPage";

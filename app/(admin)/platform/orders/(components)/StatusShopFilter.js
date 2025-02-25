@@ -1,5 +1,5 @@
 // components/StatusShopFilter.js
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Label } from "@ui/label";
 import {
@@ -16,6 +16,7 @@ import { MultipleSelector } from "@keystone/themes/Tailwind/orion/primitives/def
 import { useList } from "@keystone/keystoneProvider";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
 import { cn } from "@keystone/utils/cn";
+import { Badge } from "@keystone/themes/Tailwind/orion/primitives/default/ui/badge";
 
 const Square = ({ className, children }) => (
   <span
@@ -31,12 +32,18 @@ const Square = ({ className, children }) => (
 );
 
 const statusColors = {
-  PENDING: "bg-amber-400/20 text-amber-600 border-amber-300",
-  INPROCESS: "bg-blue-400/20 text-blue-600 border-blue-300",
-  AWAITING: "bg-purple-400/20 text-purple-600 border-purple-300",
-  BACKORDERED: "bg-orange-400/20 text-orange-600 border-orange-300",
-  CANCELLED: "bg-red-400/20 text-red-600 border-red-300",
-  COMPLETE: "bg-green-400/20 text-green-600 border-green-300",
+  // PENDING: "bg-amber-400/20 text-amber-600 border-amber-300",
+  // INPROCESS: "bg-blue-400/20 text-blue-600 border-blue-300",
+  // AWAITING: "bg-purple-400/20 text-purple-600 border-purple-300",
+  // BACKORDERED: "bg-orange-400/20 text-orange-600 border-orange-300",
+  // CANCELLED: "bg-red-400/20 text-red-600 border-red-300",
+  // COMPLETE: "bg-green-400/20 text-green-600 border-green-300",
+  PENDING: "amber",
+  INPROCESS: "blue",
+  AWAITING: "purple",
+  BACKORDERED: "orange",
+  CANCELLED: "red",
+  COMPLETE: "green",
 };
 
 export const StatusShopFilter = ({ statuses, orderCounts }) => {
@@ -48,21 +55,17 @@ export const StatusShopFilter = ({ statuses, orderCounts }) => {
     .get("!status_is_i")
     ?.replace(/^"|"$/g, "");
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (!params.get("!status_is_i")) {
-      params.set("!status_is_i", `"PENDING"`);
-      router.push(`${pathname}?${params.toString()}`, { shallow: true });
-    }
-  }, []);
-
   const handleStatusChange = (status) => {
     const params = new URLSearchParams(searchParams);
-    if (status === selectedStatus) {
+    
+    if (status === "ALL") {
+      // Remove the status filter for "All Orders"
       params.delete("!status_is_i");
     } else {
+      // Set the status filter for specific statuses
       params.set("!status_is_i", `"${status}"`);
     }
+    
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -128,23 +131,48 @@ export const StatusShopFilter = ({ statuses, orderCounts }) => {
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  // Calculate total orders count
+  const totalOrdersCount = orderCounts 
+    ? Object.keys(orderCounts)
+        .filter(key => key.endsWith('Count'))
+        .reduce((sum, key) => sum + orderCounts[key], 0)
+    : 0;
+
   return (
     <div className="flex items-center gap-2 py-2">
       <div className="w-[200px]">
-        <Select value={selectedStatus} onValueChange={handleStatusChange} className="h-8">
-          <SelectTrigger className="h-9.5 rounded-lg text-sm font-medium tracking-wide ps-2 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_[data-square]]:shrink-0">
+        <Select 
+          value={selectedStatus || "ALL"} 
+          onValueChange={handleStatusChange} 
+          className="h-8"
+        >
+          <SelectTrigger className="h-9.5 rounded-md text-sm font-medium tracking-wide ps-2 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_[data-square]]:shrink-0">
             <SelectValue placeholder="FILTER BY STATUS" />
           </SelectTrigger>
           <SelectContent className="[&_*[role=option]>span]:end-2 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:flex [&_*[role=option]>span]:items-center [&_*[role=option]>span]:gap-2 [&_*[role=option]]:pe-8 [&_*[role=option]]:ps-2">
             <SelectGroup>
               <SelectLabel className="text-muted-foreground font-normal text-xs ps-2">Filter by status</SelectLabel>
+              <SelectItem key="ALL" value="ALL" className="text-xs font-medium">
+                <Badge
+                  variant="outline"
+                  className="text-xs font-medium border py-0.5 px-2"
+                >
+                  {loading ? "-" : totalOrdersCount}
+                </Badge>
+                <span className="whitespace-normal break-words min-w-0 flex-1 uppercase tracking-wide ml-1">
+                  All Orders
+                </span>
+              </SelectItem>
               {statuses.map((status) => (
                 <SelectItem key={status} value={status} className="text-xs font-medium">
-                  <Square className={cn(statusColors[status], "border")}>
+                  <Badge
+                    color={statusColors[status]}
+                    className="text-xs font-medium border py-0.5 px-2"
+                  >
                     {orderCounts
                       ? orderCounts[`${status.toLowerCase()}Count`]
                       : 0}
-                  </Square>
+                  </Badge>
                   <span className="whitespace-normal break-words min-w-0 flex-1 uppercase tracking-wide ml-1">
                     {status.charAt(0) + status.slice(1).toLowerCase()}
                   </span>
@@ -155,34 +183,16 @@ export const StatusShopFilter = ({ statuses, orderCounts }) => {
         </Select>
       </div>
 
-      <div className="flex-1 flex gap-2">
-        {/* <div className="flex-1 hidden">
-          <RelationshipSelect
-            controlShouldRenderValue
-            list={foreignList}
-            labelField="name"
-            searchFields={["name"]}
-            isLoading={loading}
-            placeholder="Filter by shop"
-            state={state}
-          />
-        </div> */}
-
-        <div className="flex-1">
-          <MultipleSelector
-            value={selectedShops}
-            onChange={handleShopSelectChange}
-            options={shopOptions}
-            placeholder="Filter by shop"
-            className="h-8 rounded-lg"
-            emptyIndicator={
-              <p className="text-center text-sm text-muted-foreground">No shops found.</p>
-            }
-            loadingIndicator={
-              <p className="text-center text-sm text-muted-foreground">Loading shops...</p>
-            }
-          />
-        </div>
+      <div className="flex-1">
+        <RelationshipSelect
+          controlShouldRenderValue
+          list={foreignList}
+          labelField="name"
+          searchFields={["name"]}
+          isLoading={loading}
+          placeholder="Filter by shop"
+          state={state}
+        />
       </div>
     </div>
   );

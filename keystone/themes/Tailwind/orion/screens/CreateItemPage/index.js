@@ -8,6 +8,7 @@ import { GraphQLErrorNotice } from "../../components/GraphQLErrorNotice";
 import { Container } from "../../components/Container";
 import { AdminLink } from "../../components/AdminLink";
 import { Button } from "../../primitives/default/ui/button";
+import { Check } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,13 +30,30 @@ export const CreateItemPage = ({ params }) => {
   }
   const key = listsObject[listKey];
 
-  const list = useList(key); // Retrieve the list using the key
+  const list = useList(key);
   const { createViewFieldModes } = useKeystone();
   const createItem = useCreateItem(list);
-
   const router = useRouter();
-
   const adminPath = basePath;
+
+  const actions = (
+    <Button
+      className="relative pe-12"
+      size="sm"
+      isLoading={createItem.state === "loading"}
+      onClick={async () => {
+        const item = await createItem.create();
+        if (item) {
+          router.push(`${adminPath}/${list.path}/${item.id}`);
+        }
+      }}
+    >
+      Create {list.singular}
+      <span className="pointer-events-none absolute inset-y-0 end-0 flex w-9 items-center justify-center bg-primary-foreground/15">
+        <Check className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+      </span>
+    </Button>
+  );
 
   return (
     <>
@@ -57,25 +75,24 @@ export const CreateItemPage = ({ params }) => {
             label: "Create",
           },
         ]}
+        actions={actions}
       />
 
-      <main className="w-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-col items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">
-              Create {list.singular}
-            </h1>
-            <p className="text-muted-foreground">
-              {list.description ? (
-                <p>{list.description}</p>
-              ) : (
-                <span>
-                  Create and manage{" "}
-                  <span className="lowercase">{list.label}</span>
-                </span>
-              )}
-            </p>
-          </div>
+      <main className="w-full max-w-4xl p-4 md:p-6 flex flex-col gap-4">
+        <div className="flex-col items-center">
+          <h1 className="text-lg font-semibold md:text-2xl">
+            Create {list.singular}
+          </h1>
+          <p className="text-muted-foreground">
+            {list.description ? (
+              <p>{list.description}</p>
+            ) : (
+              <span>
+                Create and manage{" "}
+                <span className="lowercase">{list.label}</span>
+              </span>
+            )}
+          </p>
         </div>
         {createViewFieldModes.state === "error" && (
           <GraphQLErrorNotice
@@ -102,23 +119,6 @@ export const CreateItemPage = ({ params }) => {
             />
           )}
           <Fields {...createItem.props} />
-          <div className="-mb-4 md:-mb-6 shadow-sm bottom-0 border border-b-0 flex justify-between p-2 rounded-t-xl sticky z-20 mt-5 bg-background">
-            <div></div>
-            <div className="flex items-center gap-2">
-              <Button
-                isLoading={createItem.state === "loading"}
-                onClick={async () => {
-                  const item = await createItem.create();
-                  if (item) {
-                    router.push(`${adminPath}/${list.path}/${item.id}`);
-                  }
-                }}
-                className="rounded-t-[calc(theme(borderRadius.lg)-1px)]"
-              >
-                Create {list.singular}
-              </Button>
-            </div>
-          </div>
         </div>
       </main>
     </>

@@ -1,4 +1,4 @@
-import { cn } from "./utils/cn";
+import { cn } from "@keystone/utils/cn";
 import { Circle } from "lucide-react";
 import { Outfit } from "next/font/google";
 

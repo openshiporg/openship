@@ -70,7 +70,7 @@ function FilterPill({ filter, field }) {
                 onRemove();
               }}
             >
-              <XIcon  />
+              <XIcon />
             </Button>
           </div>
           <Button
@@ -78,11 +78,11 @@ function FilterPill({ filter, field }) {
             size="xs"
             className="py-0.5 shadow-none justify-start uppercase flex-wrap rounded-l-none border-l-0 [&_svg]:size-3.5 text-xs px-2"
           >
-            <span>{field.label}</span>
+            <span className="opacity-75">{field.label}</span>
             <ChevronRightIcon />
-            <span>{field.controller.filter.types[filter.type].label}</span>
-            <ChevronRightIcon />
-            <div className="flex flex-wrap gap-1">
+            {/* <span>{field.controller.filter.types[filter.type].label}</span>
+            <ChevronRightIcon /> */}
+            {/* <div className="flex flex-wrap gap-1">
               {typeof filter.value === "string" &&
               filter.value.includes(",") ? (
                 filter.value.split(",").map((value, index) => (
@@ -98,7 +98,15 @@ function FilterPill({ filter, field }) {
                   {filter.value}
                 </span>
               )}
-            </div>
+            </div> */}
+
+            <span className="font-semibold">
+              <Label
+                label={field.controller.filter.types[filter.type].label}
+                type={filter.type}
+                value={filter.value}
+              />
+            </span>
             <ChevronDownIcon />
           </Button>
         </div>

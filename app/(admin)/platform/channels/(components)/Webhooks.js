@@ -116,14 +116,14 @@ const WebhookItem = ({ webhook, refetch, channelId }) => {
         <span className="text-xs font-medium">{webhook.topic}</span>
         <BadgeButton
           color="red"
-          className="text-[.6rem] uppercase tracking-wide py-0 px-1 border"
+          className="text-[.6rem]/3 uppercase tracking-wide py-0 px-1 border"
           onClick={handleDelete}
           disabled={loading}
         >
           {loading ? "Deleting..." : "Delete"}
         </BadgeButton>
       </div>
-      <div className="flex flex-col gap-0.5 bg-background border mb-2 p-2 rounded-lg text-xs text-muted-foreground">
+      <div className="flex flex-col gap-0.5 bg-background border mb-2 p-2 rounded-lg text-xs text-muted-foreground break-words">
         <span className="opacity-90 font-medium">Callback URL:</span>
         {webhook.callbackUrl}
       </div>
@@ -224,7 +224,7 @@ export const Webhooks = ({ channelId }) => {
   const webhooks = data.getChannelWebhooks;
 
   return (
-    <div className="max-w-80">
+    <div className="max-w-full w-80">
       <div className="flex flex-col gap-2">
         {webhooks.map((webhook) => (
           <WebhookItem

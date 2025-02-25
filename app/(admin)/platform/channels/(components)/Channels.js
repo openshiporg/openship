@@ -26,6 +26,8 @@ import {
   Ticket,
   SquareStack,
 } from "lucide-react";
+import { RiBarChartFill } from "@remixicon/react";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 import {
   format,
@@ -114,46 +116,21 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
     },
   });
 
-  useEffect(() => {
-    refetch();
-  }, [selectedPlatform]);
-
   const [showAll, setShowAll] = useState(false);
 
   if (loading) {
     return (
-      <div className="grid gap-3">
-        {Array(3)
-          .fill(0)
-          .map((_, index) => (
-            <div
-              key={index}
-              className="py-4 overflow-hidden rounded-xl border flex flex-col gap-5 relative dark:bg-black dark:border-white/15"
-            >
-              <div className="px-4 flex items-start gap-4">
-                <Skeleton className="h-14 w-14 rounded-xl" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-3 w-3/4" />
-                </div>
-                <Skeleton className="h-8 w-8 rounded-md" />
-              </div>
-              <div className="px-4">
-                <div className="flex space-x-2">
-                  {["Orders", "Matches", "Links", "Webhooks"].map((tab, i) => (
-                    <Skeleton key={i} className="h-8 w-20" />
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className="grid gap-3 p-4">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-48 w-full" />
+        ))}
       </div>
     );
   }
 
-  if (error) return <p>Error loading channels: {error.message}</p>;
+  if (error) return <div>Error loading channels: {error.message}</div>;
 
-  const channelItems = data.items;
+  const channelItems = data?.items || [];
 
   return (
     <div>
@@ -161,13 +138,13 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
         <div className="z-10 bg-gradient-to-t from-white to-transparent dark:from-zinc-950 dark:to-transparent absolute bottom-0 left-0 right-0 h-36 pointer-events-none" />
       )}
       {channelItems.length ? (
-        <div className="relative grid gap-3">
+        <div className="relative grid">
           {channelItems
             .slice(0, showAll ? channelItems.length : 6)
             .map((channel) => (
-              <div key={channel.id} className="flex flex-col -space-y-4">
-                <div className="overflow-hidden rounded-xl pt-4 border flex flex-col gap-5 relative *:relative dark:bg-black dark:border-white/15 before:absolute before:inset-0 before:border-white before:from-zinc-100 dark:before:border-white/20 before:bg-gradient-to-bl dark:before:from-zinc-500/15 dark:before:to-transparent before:shadow dark:before:shadow-zinc-950">
-                  <div className="px-4 flex gap-1 justify-between">
+              <div key={channel.id} className="flex flex-col">
+                <div className="flex flex-col gap-5 relative *:relative dark:bg-black dark:border-white/15 before:absolute before:inset-0 before:border-white before:from-zinc-100 dark:before:border-white/20 before:bg-gradient-to-bl dark:before:from-zinc-500/15 dark:before:to-transparent">
+                  <div className="px-4 pt-4 flex gap-1 justify-between">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="self-start">
                         <Badge
@@ -216,9 +193,10 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                       </Button>
                     </div>
                   </div>
+
                   <Tabs>
                     <ScrollArea>
-                      <TabsList className="justify-start w-full h-auto gap-2 rounded-none bg-transparent px-3 py-1">
+                      <TabsList className="justify-start w-full h-auto gap-2 rounded-none bg-transparent px-3 py-1 border-b">
                         {tabsData.map((tab) => (
                           <TabsTrigger
                             key={tab.value}
@@ -246,7 +224,7 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                     </ScrollArea>
                     <TabsContent
                       value="webhooks"
-                      className="bg-background p-4 border-t"
+                      className="bg-background p-4 border-b"
                     >
                       <p className="text-sm text-gray-500 sm:text-gray-500">
                         <div className="text-sm text-zinc-500 dark:text-zinc-200">
@@ -259,27 +237,23 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
                     </TabsContent>
                     <TabsContent
                       value="orders"
-                      className="bg-background p-4 border-t"
+                      className="bg-background p-4 border-b"
                     >
-                      <div className="h-[300px] overflow-y-auto">
-                        <SearchOrders
-                          channelId={channel.id}
-                          searchEntry=""
-                          pageSize={10}
-                        />
-                      </div>
+                      <SearchOrders
+                        channelId={channel.id}
+                        searchEntry=""
+                        pageSize={10}
+                      />
                     </TabsContent>
                     <TabsContent
                       value="matches"
-                      className="bg-background p-4 border-t"
+                      className="bg-background p-4 border-b"
                     >
-                      <div className="h-[300px] overflow-y-auto">
                         <MatchList
                           channelId={channel.id}
                           onMatchAction={() => {}}
                           showCreate={false}
                         />
-                      </div>
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -290,17 +264,25 @@ export const Channels = ({ openDrawer, selectedPlatform }) => {
         <div className="w-full">
           <div className="flex flex-col items-center p-10 border-dashed border-2 rounded-lg">
             <div className="flex opacity-40">
-              <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-              <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-              <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
+              <RiBarChartFill
+                className="mx-auto h-7 w-7 text-muted-foreground"
+                aria-hidden={true}
+              />
             </div>
 
-            <span className="pt-4 font-semibold">
+            <span className="pt-4 font-medium text-foreground">
               No <span className="lowercase">Channels</span> found
             </span>
-            <span className="text-muted-foreground pb-4">
-              Get started by creating a new one.
+            <span className="text-sm text-muted-foreground pb-4">
+              Connect your sales channels to start selling across multiple platforms
             </span>
+            <Button 
+              onClick={() => document.querySelector('[aria-label="Create Channel"]')?.click()}
+              className="mt-2"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Connect Channel
+            </Button>
           </div>
         </div>
       )}

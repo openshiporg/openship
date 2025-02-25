@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@ui/button";
@@ -16,6 +16,7 @@ import {
 import { Input } from "@ui/input";
 import { cn } from "@keystone/utils/cn";
 import { buttonVariants } from "@ui/button";
+import { MultipleSelector } from "@keystone/themes/Tailwind/orion/primitives/default/ui/multi-select";
 import {
   Accordion,
   AccordionItem,
@@ -102,7 +103,16 @@ export function SearchOrders({
   const [activeSearch, setActiveSearch] = useState("");
   const [skip, setSkip] = useState(0);
   const [after, setAfter] = useState(null);
-  const [selectedShopId, setSelectedShopId] = useState(initialShopId || "ALL");
+  const [selectedShopIds, setSelectedShopIds] = useState(
+    initialShopId ? [initialShopId] : shops?.map(shop => shop.id) || []
+  );
+
+  // Initialize selectedShopIds with all shop IDs when shops data becomes available
+  useEffect(() => {
+    if (!initialShopId && shops?.length > 0 && selectedShopIds.length === 0) {
+      setSelectedShopIds(shops.map(shop => shop.id));
+    }
+  }, [shops, initialShopId, selectedShopIds.length]);
 
   const handleSearch = () => {
     setSkip(0);
@@ -120,16 +130,19 @@ export function SearchOrders({
     setAfter(null);
   };
 
-  const handleShopChange = (shopId) => {
-    setSelectedShopId(shopId);
+  const handleShopChange = (newValue) => {
+    setSelectedShopIds(newValue.map(item => item.value));
     setSkip(0);
     setAfter(null);
     setActiveSearch("");
     setSearchEntry("");
   };
 
+  // Determine if we should show all shops or specific shops
+  const showAllShops = selectedShopIds.length === 0;
+  
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full gap-3">
       <div className="flex-shrink-0 space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex gap-1">
@@ -165,39 +178,46 @@ export function SearchOrders({
                 }
               }}
             />
-            <button className="tracking-wide inline-flex items-center rounded-e-lg border border-input bg-background px-3 text-sm font-semibold text-muted-foreground outline-offset-2 transition-colors hover:bg-accent hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:cursor-not-allowed disabled:opacity-50">
+            <button 
+              className="tracking-wide inline-flex items-center rounded-e-lg border border-input bg-background px-3 text-sm font-semibold text-muted-foreground outline-offset-2 transition-colors hover:bg-accent hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={handleSearch}
+            >
               SEARCH
             </button>
           </div>
         </div>
         {shops && (
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              color={selectedShopId === "ALL" ? "sky" : "zinc"}
-              className={`cursor-pointer uppercase tracking-wide border px-3 py-1 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
-                selectedShopId === "ALL" ? "opacity-100" : "opacity-70"
-              }`}
-              onClick={() => handleShopChange("ALL")}
-            >
-              All Shops
-            </Badge>
-            {shops.map((shop) => (
-              <Badge
-                key={shop.id}
-                color={selectedShopId === shop.id ? "sky" : "zinc"}
-                className={`cursor-pointer uppercase tracking-wide border px-3 py-1 text-xs font-medium rounded-[calc(theme(borderRadius.lg)-1px)] ${
-                  selectedShopId === shop.id ? "opacity-100" : "opacity-70"
-                }`}
-                onClick={() => handleShopChange(shop.id)}
-              >
-                {shop.name}
-              </Badge>
-            ))}
+          <div className="mb-4">
+            <MultipleSelector
+              value={selectedShopIds.map((id) => ({
+                value: id,
+                label: shops.find((s) => s.id === id)?.name || id,
+              }))}
+              onChange={handleShopChange}
+              options={
+                shops.map((shop) => ({
+                  label: shop.name,
+                  value: shop.id,
+                })) || []
+              }
+              placeholder="Select shops"
+              className="h-8 rounded-lg"
+              emptyIndicator={
+                <p className="text-center text-sm text-muted-foreground">
+                  No shops found.
+                </p>
+              }
+              loadingIndicator={
+                <p className="text-center text-sm text-muted-foreground">
+                  Loading shops...
+                </p>
+              }
+            />
           </div>
         )}
       </div>
       <div className="flex-grow overflow-y-auto">
-        {selectedShopId === "ALL" ? (
+        {showAllShops ? (
           <AllShopsAccordion
             shops={shops}
             searchEntry={activeSearch}
@@ -209,16 +229,37 @@ export function SearchOrders({
             onOrderSelect={onOrderSelect}
           />
         ) : (
-          <OrdersContent
-            shopId={selectedShopId}
-            searchEntry={activeSearch}
-            skip={skip}
-            after={after}
-            pageSize={pageSize}
-            onNextPage={handleNextPage}
-            onPreviousPage={handlePreviousPage}
-            onOrderSelect={onOrderSelect}
-          />
+          selectedShopIds.length === 1 ? (
+            <OrdersContent
+              shopId={selectedShopIds[0]}
+              searchEntry={activeSearch}
+              skip={skip}
+              after={after}
+              pageSize={pageSize}
+              onNextPage={handleNextPage}
+              onPreviousPage={handlePreviousPage}
+              onOrderSelect={onOrderSelect}
+            />
+          ) : (
+            <div className="space-y-2">
+              {selectedShopIds.map((shopId) => {
+                const shop = shops.find(s => s.id === shopId);
+                return shop ? (
+                  <ShopCollapsible
+                    key={shop.id}
+                    shop={shop}
+                    searchEntry={activeSearch}
+                    skip={skip}
+                    after={after}
+                    pageSize={pageSize}
+                    onNextPage={handleNextPage}
+                    onPreviousPage={handlePreviousPage}
+                    onOrderSelect={onOrderSelect}
+                  />
+                ) : null;
+              })}
+            </div>
+          )
         )}
       </div>
     </div>
@@ -278,11 +319,11 @@ function ShopCollapsible({
         <div className="flex gap-3 items-center">
           <div
             className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "self-start p-1 transition-transform group-open:rotate-90"
+              buttonVariants({ variant: "outline" }),
+              "[&_svg]:size-3 h-5 w-5 self-start p-1 transition-transform group-open:rotate-90"
             )}
           >
-            <ChevronRight className="size-3" />
+            <ChevronRight />
           </div>
           <div className="flex flex-col gap-1">
             <text className="relative text-lg/5 font-medium">{shop.name}</text>

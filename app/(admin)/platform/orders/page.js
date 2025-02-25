@@ -87,6 +87,7 @@ import { OrdersTable } from "./(components)/OrdersTable";
 import { AdminLink } from "@keystone/themes/Tailwind/orion/components/AdminLink";
 import { PageBreadcrumbs } from "@keystone/themes/Tailwind/orion/components/PageBreadcrumbs";
 import { ScrollArea, ScrollBar } from "@ui/scroll-area";
+import { RiBarChartFill } from "@remixicon/react";
 
 const PLACE_ORDERS = gql`
   mutation PLACE_ORDERS($ids: [ID!]!) {
@@ -183,25 +184,13 @@ const ALL_SHOPS_QUERY = gql`
 `;
 
 const ORDERSCOUNT_QUERY = gql`
-  query ORDERSCOUNT_QUERY($shop: ShopWhereInput) {
-    pendingCount: ordersCount(
-      where: { status: { equals: "PENDING" }, shop: $shop }
-    )
-    inprocessCount: ordersCount(
-      where: { status: { equals: "INPROCESS" }, shop: $shop }
-    )
-    awaitingCount: ordersCount(
-      where: { status: { equals: "AWAITING" }, shop: $shop }
-    )
-    backorderedCount: ordersCount(
-      where: { status: { equals: "BACKORDERED" }, shop: $shop }
-    )
-    cancelledCount: ordersCount(
-      where: { status: { equals: "CANCELLED" }, shop: $shop }
-    )
-    completeCount: ordersCount(
-      where: { status: { equals: "COMPLETE" }, shop: $shop }
-    )
+  query GetOrdersCounts {
+    pendingCount: ordersCount(where: { status: { equals: "PENDING" } })
+    inprocessCount: ordersCount(where: { status: { equals: "INPROCESS" } })
+    awaitingCount: ordersCount(where: { status: { equals: "AWAITING" } })
+    backorderedCount: ordersCount(where: { status: { equals: "BACKORDERED" } })
+    cancelledCount: ordersCount(where: { status: { equals: "CANCELLED" } })
+    completeCount: ordersCount(where: { status: { equals: "COMPLETE" } })
   }
 `;
 
@@ -281,6 +270,92 @@ const DiamondPlus = () => (
   </svg>
 );
 
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    color: "amber",
+  },
+  inprocess: {
+    label: "In Process",
+    color: "blue",
+  },
+  awaiting: {
+    label: "Awaiting",
+    color: "purple",
+  },
+  backordered: {
+    label: "Backordered",
+    color: "orange",
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "red",
+  },
+  complete: {
+    label: "Complete",
+    color: "emerald",
+  },
+};
+
+function OrderStatusTabs() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: orderCounts, loading } = useQuery(ORDERSCOUNT_QUERY);
+
+  const currentStatus = searchParams.get("status") || "pending";
+
+  const handleStatusChange = (status) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("status", status.toUpperCase());
+    router.push(`?${params.toString()}`);
+  };
+
+  return (
+    <div className="relative">
+      <ScrollArea className="w-full" orientation="horizontal">
+        <div className="flex space-x-[6px] items-center pb-1">
+          {Object.entries(statusConfig).map(([status, config]) => {
+            const count = orderCounts?.[`${status}Count`] || 0;
+            return (
+              <div
+                key={status}
+                className={`px-3 py-2 cursor-pointer transition-colors duration-300 ${
+                  currentStatus === status
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                }`}
+                onClick={() => handleStatusChange(status)}
+              >
+                <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full">
+                  <Badge
+                    color={config.color}
+                    className="mr-2 rounded-full border-2 w-3 h-3 p-0"
+                  />
+                  {config.label}
+                  <span className="ml-2 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                    {loading ? "-" : count}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+    </div>
+  );
+}
+
+const OrdersTableSkeleton = () => {
+  return (
+    <div className="divide-y">
+      {[1, 2, 3].map((row) => (
+        <div key={row} className="w-full bg-muted animate-pulse h-24"></div>
+      ))}
+    </div>
+  );
+};
+
 export const OrderPage = () => {
   const client = useApolloClient();
   const listKey = "Order";
@@ -343,7 +418,7 @@ export const OrderPage = () => {
   );
   const searchLabels = searchFields.map((key) => list.fields[key].label);
   const searchParam = typeof query.search === "string" ? query.search : "";
-  const [searchString, updateSearchString] = useState(searchParam);
+  const [searchString, setSearchString] = useState(searchParam);
   const search = useFilter(searchParam, list, searchFields);
 
   const updateSearch = (value) => {
@@ -373,7 +448,7 @@ export const OrderPage = () => {
     }
   );
 
-  let { data, error, refetch } = useQuery(ORDERS_QUERY, {
+  let { data, error, loading, refetch } = useQuery(ORDERS_QUERY, {
     fetchPolicy: "cache-and-network",
     errorPolicy: "all",
     skip: !metaQuery.data,
@@ -546,8 +621,63 @@ export const OrderPage = () => {
     );
   }, [data]);
 
+  const EmptyState = () => {
+    // Check if any filters are active via filters.where or search string is non-empty
+    const hasFilters =
+      Object.keys(filters?.where || {}).length > 0 ||
+      searchString.trim() !== "";
+    return (
+      <div className="m-4 flex h-72 items-center justify-center rounded-lg border bg-muted">
+        <div className="text-center">
+          <RiBarChartFill
+            className="mx-auto h-7 w-7 text-muted-foreground"
+            aria-hidden="true"
+          />
+          {hasFilters ? (
+            <>
+              <p className="mt-2 font-medium text-foreground">
+                No orders match your current filters.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Try clearing your filters to see more orders.
+              </p>
+              <div className="flex gap-2 justify-center mt-4">
+                <Button variant="outline" onClick={() => resetToDefaults()}>
+                  Clear Filters
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 font-medium text-foreground">
+                No orders found
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Orders will appear here once they're created or imported from
+                your shops.
+              </p>
+              <div className="flex gap-2 justify-center mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleCreateOrder("scratch")}
+                >
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Create Order
+                </Button>
+                <Button onClick={() => setIsCreateOrderDialogOpen(true)}>
+                  <ArrowPathRoundedSquareIcon className="mr-2 h-4 w-4" />
+                  Import Order
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="h-screen overflow-hidden">
+    <section className="h-screen overflow-hidden flex flex-col">
       <PageBreadcrumbs
         items={[
           {
@@ -567,271 +697,177 @@ export const OrderPage = () => {
           },
         ]}
       />
-      {metaQuery.error ? (
-        "Error..."
-      ) : metaQuery.data ? (
-        <main className="w-full h-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            {/* Title Section */}
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-semibold">{list.label}</h1>
-              <p className="text-muted-foreground">
-                {list.description ||
-                  `Create and manage ${list.label.toLowerCase()}`}
-              </p>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              {/* Left Side Controls */}
-              <div className="relative flex-1 min-w-72">
-                <ListFilter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    updateSearch(searchString);
-                  }}
-                >
-                  <Input
-                    type="search"
-                    className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm"
-                    value={searchString}
-                    onChange={(e) => updateSearchString(e.target.value)}
-                    placeholder={`Search by ${
-                      searchLabels.length
-                        ? searchLabels.join(", ").toLowerCase()
-                        : "ID"
-                    }`}
-                  />
-                </form>
-              </div>
-              <FilterAdd listKey={listKey} filterableFields={filterableFields}>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
-                >
-                  <FilterIcon className="stroke-muted-foreground" />
-                  <span className="hidden lg:inline">Filter</span>
-                </Button>
-              </FilterAdd>
+      <div className="flex flex-col flex-1 min-h-0">
+        {/* Title Section */}
+        <div className="flex flex-col p-4">
+          <h1 className="text-2xl font-semibold">{list.label}</h1>
+          <p className="text-muted-foreground">
+            {list.description ||
+              `Create and manage ${list.label.toLowerCase()}`}
+          </p>
+        </div>
 
-              <Button
-                variant="outline"
-                onClick={handleProcessAll}
-                disabled={qualifyingOrders.length === 0}
-                className="lg:px-4 lg:py-2 rounded-lg"
-              >
-                Process Orders
-                <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
-                  {qualifyingOrders.length}
-                </span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="rounded-lg">
-                    <DiamondPlus />
-                    Create Order
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem
-                    onClick={() => handleCreateOrder("scratch")}
-                    className="text-muted-foreground flex gap-2 font-medium"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                    From Scratch
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setIsCreateOrderDialogOpen(true)}
-                    className="text-muted-foreground flex gap-2 font-medium"
-                  >
-                    <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                    From Existing
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            {filters.filters.filter((filter) => filter.field !== "status")
-              .length > 0 && (
-              <div className="flex gap-1.5 mt-1 border bg-muted/40 rounded-lg p-2 items-center">
-                <div className="flex items-center gap-1.5 border-r border-muted-foreground/30 pr-2 mr-1.5">
-                  <FilterIcon
-                    className="stroke-muted-foreground/50 size-4"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <FilterList
-                  filters={filters.filters.reduce((acc, filter) => {
-                    if (filter.field !== "status") {
-                      acc.push(filter);
-                    }
-                    return acc;
-                  }, [])}
-                  list={list}
-                />
-              </div>
-            )}
-
-            {/* Filters and Sort Row */}
-            <div className="flex flex-col gap-2">
-              <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
-
-              <div className="flex items-center gap-2">
-                <SortSelection list={list} orderableFields={orderableFields}>
-                  <Button
-                    variant="link"
-                    size="xs"
-                    className="uppercase py-1 px-0 text-xs text-muted-foreground [&_svg]:size-3"
-                  >
-                    Sorting by{" "}
-                    {sort ? (
-                      <>
-                        {list.fields[sort.field].label}
-                        {sort.direction === "ASC" ? (
-                          <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
-                            ASC
-                          </Badge>
-                        ) : (
-                          <Badge className="h-4 border py-0 px-1 text-[.5rem] leading-[.85rem] -mr-1">
-                            DESC
-                          </Badge>
-                        )}
-                      </>
-                    ) : (
-                      <>default</>
-                    )}
-                    <ChevronDown />
-                  </Button>
-                </SortSelection>
-              </div>
-            </div>
+        {/* Search and Actions */}
+        <div className="flex items-center gap-2 px-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <form onSubmit={(e) => e.preventDefault()}>
+              <Input
+                type="search"
+                className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm shadow-sm"
+                value={searchString}
+                onChange={(e) => setSearchString(e.target.value)}
+                placeholder="Search orders..."
+              />
+            </form>
           </div>
 
-          {/* Table Section */}
-          {data?.count ? (
-            <>
-              <div className="flex flex-col flex-1 min-h-0 mb-8">
-                <ScrollArea className="h-auto border rounded-lg">
-                  <OrdersTable
-                    data={data}
-                    error={error}
-                    listKey={listKey}
-                    list={list}
-                    handleOrderAction={handleOrderAction}
-                    openEditDrawer={openEditDrawer}
-                    channels={channels}
-                    loadingActions={loadingActions}
-                    query={query}
-                    filters={filters}
-                    searchParam={searchParam}
-                    updateSearchString={updateSearchString}
-                    push={push}
-                    showCreate={showCreate}
+          <div className="flex items-center gap-2 ml-auto">
+            <FilterAdd listKey={listKey} filterableFields={filterableFields}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+              >
+                <FilterIcon className="stroke-muted-foreground" />
+                <span className="hidden lg:inline">Filter</span>
+              </Button>
+            </FilterAdd>
+
+            <SortSelection list={list} orderableFields={orderableFields}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+              >
+                <ArrowUpDown className="stroke-muted-foreground" />
+                <span className="hidden lg:inline">
+                  {sort ? (
+                    <>
+                      {list.fields[sort.field].label}{" "}
+                      <Badge
+                        variant="blue"
+                        className="ml-1 text-[10px] px-1 py-0 font-medium"
+                      >
+                        {sort.direction}
+                      </Badge>
+                    </>
+                  ) : (
+                    "Sort"
+                  )}
+                </span>
+              </Button>
+            </SortSelection>
+
+            <Button
+              variant="outline"
+              onClick={() => setIsProcessOrdersDialogOpen(true)}
+              disabled={qualifyingOrders.length === 0}
+              className="lg:px-4 lg:py-2 rounded-lg"
+            >
+              Process Orders
+              <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
+                {qualifyingOrders.length}
+              </span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="rounded-lg">
+                  <DiamondPlus className="mr-2" />
+                  Create Order
+                  <ChevronDown
+                    className="-me-1 ml-2 opacity-60"
+                    size={16}
+                    aria-hidden="true"
                   />
-                </ScrollArea>
-              </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => handleCreateOrder("scratch")}
+                  className="text-muted-foreground flex gap-2 font-medium"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  From Scratch
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateOrderDialogOpen(true)}
+                  className="text-muted-foreground flex gap-2 font-medium"
+                >
+                  <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                  From Existing
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
-              <BaseToolbar>
-                {selectedItemsState.selectedItems.size > 0 ? (
-                  <div className="w-full flex flex-wrap gap-4 items-center justify-between">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      <strong>{selectedItemsState.selectedItems.size}</strong>{" "}
-                      selected
-                    </span>
-                    <DeleteManyButton
-                      list={list}
-                      selectedItems={selectedItemsState.selectedItems}
-                      refetch={refetch}
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-4">
-                      <PaginationStats
-                        list={list}
-                        total={data.count}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PaginationNavigation
-                        list={list}
-                        total={data.count}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                      />
-                      <PaginationDropdown
-                        list={list}
-                        total={data.count}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                      />
-                    </div>
-                  </>
-                )}
-              </BaseToolbar>
-            </>
+        {/* Status and Shop Filter */}
+        <div className="px-4 pb-0 border-b bg-background">
+          <StatusShopFilter statuses={statuses} orderCounts={orderCounts} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto">
+          {!loading && !data ? null : loading ? (
+            <OrdersTableSkeleton />
+          ) : data?.items?.length > 0 ? (
+            <ScrollArea className="h-full">
+              <OrdersTable
+                data={data}
+                error={error}
+                listKey={listKey}
+                list={list}
+                handleOrderAction={handleOrderAction}
+                openEditDrawer={openEditDrawer}
+                channels={channels}
+                loadingActions={loadingActions}
+                query={query}
+                statusColors={statusConfig}
+              />
+            </ScrollArea>
           ) : (
-            <div className="flex flex-col items-center p-10 border rounded-lg">
-              <div className="flex opacity-40">
-                <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-                <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-                <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
-              </div>
-              {query.search || filters.filters.length ? (
-                <>
-                  <span className="pt-4 font-semibold">
-                    No <span className="lowercase">{list.label}</span>{" "}
-                  </span>
-                  <span className="text-muted-foreground pb-4">
-                    Found{" "}
-                    {searchParam
-                      ? `matching your search`
-                      : `matching your filters`}{" "}
-                  </span>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      updateSearchString("");
-                      const path = window.location.pathname;
-                      push(path);
-                    }}
-                  >
-                    Clear filters &amp; search
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <span className="pt-4 font-semibold">
-                    No <span className="lowercase">{list.label}</span>
-                  </span>
-                  <span className="text-muted-foreground pb-4">
-                    Get started by creating a new one.{" "}
-                  </span>
-                  {showCreate && <CreateButtonLink list={list} />}
-                </>
-              )}
-            </div>
+            <EmptyState />
           )}
+        </div>
+      </div>
 
-          {/* Keep existing dialogs */}
-          <OrderDetailsDialog
-            isOpen={selectedOrder !== null}
-            onClose={() => setSelectedOrder(null)}
-            order={selectedOrder === "scratch" ? null : selectedOrder}
-            shopId={selectedOrder?.shop?.id}
-          />
-          <ProcessOrdersDialog
-            isOpen={isProcessOrdersDialogOpen}
-            onClose={() => setIsProcessOrdersDialogOpen(false)}
-            orders={qualifyingOrders}
-            onProcessOrders={processSelectedOrders}
-            processingOrders={processingOrders}
-          />
-        </main>
-      ) : null}
-    </div>
+      {/* Keep existing dialogs */}
+      <Dialog
+        open={isCreateOrderDialogOpen}
+        onOpenChange={setIsCreateOrderDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Search Existing Orders</DialogTitle>
+            <DialogDescription>
+              Search for an existing order to edit or view details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-grow overflow-y-auto">
+            <SearchOrders
+              shops={shopsData?.shops || []}
+              onOrderSelect={handleOrderSelect}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      <OrderDetailsDialog
+        isOpen={selectedOrder !== null}
+        onClose={() => setSelectedOrder(null)}
+        order={selectedOrder === "scratch" ? null : selectedOrder}
+        shopId={selectedOrder?.shop?.id}
+      />
+      <ProcessOrdersDialog
+        isOpen={isProcessOrdersDialogOpen}
+        onClose={() => setIsProcessOrdersDialogOpen(false)}
+        orders={qualifyingOrders}
+        onProcessOrders={processSelectedOrders}
+        processingOrders={processingOrders}
+      />
+    </section>
   );
 };
 

@@ -3,22 +3,13 @@ import dynamic from "next/dynamic";
 
 import { makeDataGetter } from "@keystone-6/core/admin-ui/utils";
 import { gql, useQuery } from "@keystone-6/core/admin-ui/apollo";
-import { useKeystone, useList } from "@keystone/keystoneProvider";
+import { useKeystone, useList, useRawKeystone } from "@keystone/keystoneProvider";
 import { PlusIcon, ChevronRight } from "lucide-react";
 import { Skeleton } from "../../primitives/default/ui/skeleton";
 import { AdminLink } from "../../components/AdminLink";
 import { cn } from "@keystone/utils/cn";
 import { PageBreadcrumbs } from "../../components/PageBreadcrumbs";
 
-// Dynamically import OnboardingCard with error handling
-// const OnboardingCard = dynamic(
-//   () => import("@keystone/platform/OnboardingCard").then(mod => mod.OnboardingCard)
-//     .catch(() => () => null), // Return empty component if module not found
-//   { 
-//     ssr: false,
-//     loading: () => null 
-//   }
-// );
 
 const cardColors = [
   {
@@ -136,6 +127,7 @@ const cardColors = [
 ];
 
 // Try to import customNavItems, fallback to empty array if not found
+// maybe move this into admin config folder as well
 let customNavItems = [];
 try {
   const navItems = require("@keystone/index").customNavItems;
@@ -183,7 +175,7 @@ const OmsCard = ({ title, icon: Icon, href, colorClass, gradient }) => (
   <AdminLink
     href={href}
     className={cn(
-      "group flex h-auto w-full items-center justify-between gap-4 rounded-lg border bg-muted/40 p-3 text-left transition-colors hover:bg-accent shadow-sm",
+      "group flex h-auto w-full items-center justify-between gap-4 rounded-lg border bg-muted/40 p-2 text-left transition-colors hover:bg-accent shadow-sm",
       "hover:border-accent-foreground/20 dark:hover:border-accent-foreground/20"
     )}
   >
@@ -216,23 +208,24 @@ export const HomePage = () => {
     adminMeta: { lists },
     visibleLists,
   } = useKeystone();
+  const { adminConfig } = useRawKeystone();
 
   const query = useMemo(
     () => gql`
-  query {
-    keystone {
-      adminMeta {
-        lists {
-          key
-          hideCreate
+    query {
+      keystone {
+        adminMeta {
+          lists {
+            key
+            hideCreate
+          }
         }
       }
-    }
-    ${Object.values(lists)
-      .filter((list) => !list.isSingleton)
-      .map((list) => `${list.key}: ${list.gqlNames.listQueryCountName}`)
-      .join("\n")}
-  }`,
+      ${Object.values(lists)
+        .filter((list) => !list.isSingleton)
+        .map((list) => `${list.key}: ${list.gqlNames.listQueryCountName}`)
+        .join("\n")}
+    }`,
     [lists]
   );
   let { data, error } = useQuery(query, { errorPolicy: "all" });
@@ -250,8 +243,13 @@ export const HomePage = () => {
             switcherType: "platform",
           },
         ]}
+        actions={
+          adminConfig.components?.OnboardingDialog && (
+            <adminConfig.components.OnboardingDialog data={data} />
+          )
+        }
       />
-      <main className="w-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
+      <main className="w-full max-w-4xl p-4 md:p-6 flex flex-col gap-4">
         <div className="flex-col items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Dashboard</h1>
           <p className="text-muted-foreground">
@@ -259,14 +257,12 @@ export const HomePage = () => {
           </p>
         </div>
 
-        {/* <OnboardingCard /> */}
-
         {/* Platform section */}
         <div className="mb-6">
           <h2 className="tracking-wide uppercase font-medium mb-2 text-muted-foreground">
             Platform
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
             {customNavItems.map((item, index) => {
               const colorData = cardColors[index % cardColors.length];
               return (

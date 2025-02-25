@@ -18,7 +18,7 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
 
   if (loading) {
     return (
-      <div>
+      <div className="p-4">
         <h2 className="text-xs font-normal mb-3 text-muted-foreground">
           Platforms
         </h2>
@@ -47,7 +47,7 @@ export const PlatformCard = ({ openDrawer, setSelectedPlatform }) => {
   };
 
   return (
-    <div>
+    <div className="p-4">
       <h2 className="text-xs font-normal mb-3 text-muted-foreground">
         Platforms
       </h2>

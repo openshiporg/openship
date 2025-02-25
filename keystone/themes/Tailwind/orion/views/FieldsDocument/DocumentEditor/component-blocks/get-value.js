@@ -1,99 +1,88 @@
-import { getKeysForArrayValue, setKeysForArrayValue } from "./preview-props"
-import { assertNever } from "./utils"
+import { getKeysForArrayValue, setKeysForArrayValue } from  './preview-props'
+import { assertNever } from  './utils'
 
 const previewPropsToValueConverter = {
-  child() {
+  child () {
     return null
   },
-  form(props) {
+  form (props) {
     return props.value
   },
-  array(props) {
+  array (props) {
     const values = props.elements.map(x => previewPropsToValue(x))
-    setKeysForArrayValue(
-      values,
-      props.elements.map(x => x.key)
-    )
+    setKeysForArrayValue(values, props.elements.map(x => x.key))
     return values
   },
-  conditional(props) {
+  conditional (props) {
     return {
       discriminant: props.discriminant,
-      value: previewPropsToValue(props.value)
-    }
+      value: previewPropsToValue(props.value),
+    };
   },
-  object(props) {
+  object (props) {
     return Object.fromEntries(
-      Object.entries(props.fields).map(([key, val]) => [
-        key,
-        previewPropsToValue(val)
-      ])
-    )
+      Object.entries(props.fields).map(([key, val]) => [key, previewPropsToValue(val)])
+    );
   },
-  relationship(props) {
+  relationship (props) {
     return props.value
-  }
+  },
 }
 
 export function previewPropsToValue(props) {
-  return previewPropsToValueConverter[props.schema.kind](props)
+  return previewPropsToValueConverter[props.schema.kind](props);
 }
 
 const valueToUpdaters = {
-  child() {
+  child () {
     return undefined
   },
-  form(value) {
+  form (value) {
     return value
   },
-  array(value, schema) {
+  array (value, schema) {
     const keys = getKeysForArrayValue(value)
     return value.map((x, i) => ({
       key: keys[i],
-      value: valueToUpdater(x, schema.element)
-    }))
+      value: valueToUpdater(x, schema.element),
+    }));
   },
-  conditional(value, schema) {
+  conditional (value, schema) {
     return {
       discriminant: value.discriminant,
-      value: valueToUpdater(
-        value.value,
-        schema.values[value.discriminant.toString()]
-      )
-    }
+      value: valueToUpdater(value.value, schema.values[value.discriminant.toString()]),
+    };
   },
-  object(value, schema) {
-    return Object.fromEntries(
-      Object.entries(schema.fields).map(([key, schema]) => [
-        key,
-        valueToUpdater(value[key], schema)
-      ])
-    )
+  object (value, schema) {
+    return Object.fromEntries(Object.entries(schema.fields).map(([key, schema]) => [
+      key,
+      valueToUpdater(value[key], schema),
+    ]));
   },
-  relationship(value) {
+  relationship (value) {
     return value
-  }
+  },
 }
 
 function valueToUpdater(value, schema) {
-  return valueToUpdaters[schema.kind](value, schema)
+  return valueToUpdaters[schema.kind](value, schema);
 }
 
 export function setValueToPreviewProps(value, props) {
-  if (isKind(props, "child")) {
+  if (isKind(props, 'child')) {
     // child fields can't be updated through preview props, so we don't do anything here
     return
   }
   if (
-    isKind(props, "form") ||
-    isKind(props, "relationship") ||
-    isKind(props, "object") ||
-    isKind(props, "array")
+    isKind(props, 'form') ||
+    isKind(props, 'relationship') ||
+    isKind(props, 'object') ||
+    isKind(props, 'array')
   ) {
     props.onChange(valueToUpdater(value, props.schema))
     return
   }
-  if (isKind(props, "conditional")) {
+  if (isKind(props, 'conditional')) {
     const updater = valueToUpdater(value, props.schema)
     props.onChange(updater.discriminant, updater.value)
     return

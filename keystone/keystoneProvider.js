@@ -1,3 +1,4 @@
+"use client"
 import React, { createContext, useContext, useMemo, useRef } from "react";
 import { keystoneDefinitions } from "./keystoneDefinitions";
 import { createUploadLink } from "apollo-upload-client";
@@ -9,8 +10,8 @@ import {
 } from "@keystone-6/core/admin-ui/apollo";
 import { useLazyMetadata } from "./utils/useLazyMetadata";
 import { fieldViews } from "./fieldViews";
-import { Logo, LogoIcon } from "./logo";
 import { LoadingIcon, ErrorBoundary } from "./screens";
+import { adminConfig } from "./adminConfig";
 
 const KeystoneContext = createContext(undefined);
 
@@ -82,9 +83,8 @@ export const KeystoneProvider = ({ children }) => {
     definitions: keystoneDefinitions,
   });
 
-  const adminConfigRef = useRef({
-    components: { Logo, LogoIcon },
-  });
+  const adminConfigRef = useRef(adminConfig);
+
 
   return (
     <Provider

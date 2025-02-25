@@ -201,7 +201,7 @@ export const SyncInventoryDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="py-1" disabled={syncableMatches.length === 0}>
+        <Button variant="outline" className="text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3" disabled={syncableMatches.length === 0}>
           Sync Inventory
           <span className="ml-2 bg-primary text-primary-foreground rounded-md w-4 h-4 flex items-center justify-center text-xs">
             {syncableMatches.length}

@@ -1,20 +1,20 @@
-import { useMemo, useState, useCallback, Fragment } from "react";
-import { useSelected } from "slate-react";
-import { NotEditable } from "./api";
-import { clientSideValidateProp } from "./utils";
-import { FormValueContentFromPreviewProps } from "./form-from-preview";
-import { Trash2Icon } from "lucide-react";
+
+import { Trash2 } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "../../primitives/default/ui/tooltip";
-import { Button } from "../../primitives/default/ui/button";
-import { ToolbarGroup, ToolbarButton, ToolbarSeparator } from "../primitives";
+  TooltipTrigger
+} from "@ui/tooltip"
+import { useMemo, useState, useCallback, Fragment } from "react"
+import { useSelected } from "slate-react"
+import { ToolbarGroup, ToolbarButton, ToolbarSeparator } from "../primitives"
+import { NotEditable } from "./api"
+import { clientSideValidateProp } from "./utils"
+import { FormValueContentFromPreviewProps } from "./form-from-preview"
 
 export function ChromefulComponentBlockElement(props) {
-  const selected = useSelected();
+  const selected = useSelected()
 
   const isValid = useMemo(
     () =>
@@ -23,21 +23,34 @@ export function ChromefulComponentBlockElement(props) {
         props.elementProps
       ),
     [props.componentBlock, props.elementProps]
-  );
+  )
 
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(false)
   const onCloseEditMode = useCallback(() => {
-    setEditMode(false);
-  }, []);
+    setEditMode(false)
+  }, [])
   const onShowEditMode = useCallback(() => {
-    setEditMode(true);
-  }, []);
+    setEditMode(true)
+  }, [])
 
   const ChromefulToolbar =
-    props.componentBlock.toolbar ?? DefaultToolbarWithChrome;
+    props.componentBlock.toolbar ?? DefaultToolbarWithChrome
   return (
-    <div {...props.attributes}>
-      <NotEditable>{props.componentBlock.label}</NotEditable>
+    <div
+      {...props.attributes}
+      className={`relative my-8 pl-8 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded before:z-[1] ${
+        selected 
+          ? 'before:bg-primary' 
+          : editMode 
+            ? 'before:bg-blue-500' 
+            : 'before:bg-border'
+      }`}
+    >
+      <NotEditable
+        className="block text-muted-foreground text-xs font-semibold uppercase leading-none mb-2"
+      >
+        {props.componentBlock.label}
+      </NotEditable>
       {editMode ? (
         <Fragment>
           <FormValue
@@ -45,7 +58,7 @@ export function ChromefulComponentBlockElement(props) {
             props={props.previewProps}
             onClose={onCloseEditMode}
           />
-          <div>{props.children}</div>
+          <div className="hidden">{props.children}</div>
         </Fragment>
       ) : (
         <Fragment>
@@ -59,67 +72,66 @@ export function ChromefulComponentBlockElement(props) {
         </Fragment>
       )}
     </div>
-  );
+  )
 }
 
 function DefaultToolbarWithChrome({ onShowEditMode, onRemove, isValid }) {
   return (
-    <ToolbarGroup as={NotEditable} marginTop="small">
+    <ToolbarGroup as={NotEditable} className="mt-2">
       <ToolbarButton
         onClick={() => {
-          onShowEditMode();
+          onShowEditMode()
         }}
       >
         Edit
       </ToolbarButton>
       <ToolbarSeparator />
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <ToolbarButton
-              variant="destructive"
-              onClick={() => {
-                onRemove();
-              }}
-            >
-              <Trash2Icon size="small" />
-            </ToolbarButton>
-          </TooltipTrigger>
-          <TooltipContent>Remove</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ToolbarButton
+            variant="destructive"
+            onClick={() => {
+              onRemove()
+            }}
+          >
+            <Trash2 size={16} />
+          </ToolbarButton>
+        </TooltipTrigger>
+        <TooltipContent>Remove</TooltipContent>
+      </Tooltip>
       {!isValid && (
         <Fragment>
           <ToolbarSeparator />
-          <span>Please edit the form, there are invalid fields.</span>
+          <span className="text-destructive flex items-center pl-2">
+            Please edit the form, there are invalid fields.
+          </span>
         </Fragment>
       )}
     </ToolbarGroup>
-  );
+  )
 }
 
 function FormValue({ onClose, props, isValid }) {
-  const [forceValidation, setForceValidation] = useState(false);
+  const [forceValidation, setForceValidation] = useState(false)
 
   return (
-    <div className="space-y-2" contentEditable={false}>
+    <div className="flex flex-col gap-8" contentEditable={false}>
       <FormValueContentFromPreviewProps
         {...props}
         forceValidation={forceValidation}
       />
-      <Button
-        size="small"
+      <button
+        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-fit"
         onClick={() => {
           if (isValid) {
-            onClose();
+            onClose()
           } else {
-            setForceValidation(true);
+            setForceValidation(true)
           }
         }}
       >
         Done
-      </Button>
+      </button>
     </div>
-  );
+  )
 }

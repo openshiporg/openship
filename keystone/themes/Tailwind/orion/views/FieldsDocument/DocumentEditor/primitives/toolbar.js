@@ -1,84 +1,96 @@
-import { createContext, forwardRef, useContext } from "react";
+import { createContext, useContext } from 'react'
+import { cn } from '@keystone/utils/cn'
 
 // Spacers and Separators
 // ------------------------------
 
 export const ToolbarSpacer = () => {
-  return <span className="inline-block w-4" />;
-};
+  return <span className="inline-block w-6" />
+}
 
 export const ToolbarSeparator = () => {
-  return <span className="inline-block self-stretch bg-zinc-300 mx-1 w-px" />;
-};
-
+  return (
+    <span
+      className="inline-block h-full w-px mx-2 self-stretch bg-border"
+    />
+  )
+}
 
 const directionToAlignment = {
-  row: "center",
-  column: "start",
-};
+  row: 'center',
+  column: 'start',
+}
 
-const ToolbarGroupContext = createContext({ direction: 'row' });
-const useToolbarGroupContext = () => useContext(ToolbarGroupContext);
+const ToolbarGroupContext = createContext({ direction: 'row' })
+const useToolbarGroupContext = () => useContext(ToolbarGroupContext)
 
-export const ToolbarGroup = forwardRef(({ children, direction = 'row', ...props }, ref) => {
+export const ToolbarGroup = ({ children, direction = 'row', className, ...props }) => {
   return (
     <ToolbarGroupContext.Provider value={{ direction }}>
       <div
-        ref={ref}
-        className={`flex ${direction === 'row' ? 'flex-row' : 'flex-col'} items-${directionToAlignment[direction]} gap-1 h-full`}
+        className={cn(
+          'flex gap-1',
+          direction === 'row' ? 'flex-row' : 'flex-col',
+          direction === 'row' ? 'items-center' : 'items-start',
+          'justify-start h-full overflow-x-auto',
+          className
+        )}
         {...props}
       >
         {children}
       </div>
     </ToolbarGroupContext.Provider>
-  );
-});
+  )
+}
 
-export const ToolbarButton = forwardRef(({
+export const ToolbarButton = ({
   as: Tag = 'button',
   isDisabled,
   isPressed,
   isSelected,
   variant = 'default',
+  className,
   ...props
-}, ref) => {
-  const extraProps = {};
-  const { direction: groupDirection } = useToolbarGroupContext();
+}) => {
+  const extraProps = {}
+  const { direction: groupDirection } = useToolbarGroupContext()
 
   if (Tag === 'button') {
-    extraProps.type = 'button';
+    extraProps.type = 'button'
   }
 
-  const variantClasses = {
-    default: 'text-zinc-800 hover:bg-zinc-200 active:bg-zinc-300',
-    action: 'text-blue-600 hover:bg-blue-50 active:bg-blue-100',
-    destructive: 'text-red-600 hover:bg-red-50 active:bg-red-100',
-  };
-  const style = variantClasses[variant];
+  const variants = {
+    default: 'hover:bg-accent active:bg-accent/80 text-foreground',
+    action: 'hover:bg-blue-100 active:bg-blue-200 text-blue-600',
+    destructive: 'hover:bg-red-100 active:bg-red-200 text-red-600',
+  }
 
   return (
     <Tag
       {...extraProps}
-      ref={ref}
       disabled={isDisabled}
       data-pressed={isPressed}
       data-selected={isSelected}
       data-display-mode={groupDirection}
-      className={`align-center bg-transparent border-0 rounded cursor-pointer flex font-medium h-8 whitespace-nowrap ${style} ${
-        groupDirection === 'row' ? 'px-2' : 'px-4 w-full'
-      } ${isDisabled ? 'text-zinc-400 pointer-events-none' : ''}
-      ${isPressed ? 'bg-zinc-300' : ''}
-      ${isSelected ? 'bg-zinc-500 text-white' : ''}`}
+      className={cn(
+        'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        variants[variant],
+        isSelected && 'bg-foreground text-background',
+        groupDirection === 'row' ? 'px-3' : 'px-4 w-full',
+        'h-9',
+        className
+      )}
       {...props}
     />
-  );
-});
-
+  )
+}
 
 export function KeyboardInTooltip({ children }) {
   return (
-    <kbd className="m-0.5 px-1 rounded whitespace-pre">
+    <kbd
+      className="mx-0.5 px-1 font-inherit bg-foreground text-background rounded-sm whitespace-pre"
+    >
       {children}
     </kbd>
-  );
+  )
 }

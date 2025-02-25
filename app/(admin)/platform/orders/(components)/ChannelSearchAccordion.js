@@ -83,7 +83,7 @@ export const ChannelSearchAccordion = ({ channels, onAddItem }) => {
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="border-t flex flex-col gap-2 p-3 bg-emerald-50/40 dark:bg-emerald-900/20"
+      className="border-t border-b flex flex-col gap-2 p-3 bg-emerald-50/40 dark:bg-emerald-900/20"
     >
       <CollapsibleTrigger asChild>
         <button

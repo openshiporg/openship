@@ -3,5 +3,5 @@ export {
   ToolbarButton,
   ToolbarGroup,
   ToolbarSeparator,
-  ToolbarSpacer
-} from "./DocumentEditor/primitives"
+  ToolbarSpacer,
+} from './DocumentEditor/primitives'

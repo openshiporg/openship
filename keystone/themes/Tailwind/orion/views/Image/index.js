@@ -1,33 +1,22 @@
+import { validateImage, ImageWrapper } from "./Field";
 import { FieldContainer } from "../../components/FieldContainer";
 import { FieldLabel } from "../../components/FieldLabel";
-import { validateImage, ImageWrapper } from "./Field";
-import { CellLink } from "../../components/CellLink";
 
 export { Field } from "./Field";
 
-export const Cell = ({ item, field, linkTo }) => {
+export const Cell = ({ item, field }) => {
   const data = item[field.path];
   if (!data) return null;
-  
-  const content = (
-    <div>
+  return (
+    <div className="flex items-center h-6 w-6 leading-none">
       <img
-        className="w-36 h-36 rounded-sm"
         alt={data.filename}
+        className="max-h-full max-w-full"
         src={data.url}
       />
     </div>
   );
-
-  return linkTo ? (
-    <CellLink {...linkTo}>{content}</CellLink>
-  ) : (
-    content
-  );
 };
-
-Cell.supportsLinkTo = true
-
 
 export const CardValue = ({ item, field }) => {
   const data = item[field.path];
@@ -36,7 +25,7 @@ export const CardValue = ({ item, field }) => {
       <FieldLabel>{field.label}</FieldLabel>
       {data && (
         <ImageWrapper>
-          <img alt={data.filename} src={data.url} />
+          <img className="w-full" alt={data.filename} src={data.url} />
         </ImageWrapper>
       )}
     </FieldContainer>

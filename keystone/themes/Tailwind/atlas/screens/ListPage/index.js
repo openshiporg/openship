@@ -294,7 +294,7 @@ export const ListPageTemplate = ({ listKey }) => {
                 )}
               </p>
             </div>
-            {data.count || query.search || filters.filters.length ? (
+            {data.count || query.search || filters?.filters?.length ? (
               <div>{showCreate && <CreateButtonLink list={list} />}</div>
             ) : null}
           </div>
@@ -476,7 +476,7 @@ export const ListPageTemplate = ({ listKey }) => {
                     <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
                     <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
                   </div>
-                  {query.search || filters.filters.length ? (
+                  {query.search || filters?.filters?.length ? (
                     <>
                       <span className="pt-4 font-semibold">
                         No <span className="lowercase"> {list.label} </span>{" "}

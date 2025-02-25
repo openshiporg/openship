@@ -71,71 +71,13 @@ import { Input } from "../../primitives/default/ui/input";
 import { Badge, BadgeButton } from "../../primitives/default/ui/badge";
 import { AdminLink } from "../../components/AdminLink";
 import { PageBreadcrumbs } from "../../components/PageBreadcrumbs";
-const invoices = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-    id: "1",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-    id: "2",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-    id: "3",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-    id: "4",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$550.00",
-    paymentMethod: "PayPal",
-    id: "5",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV006",
-    paymentStatus: "Pending",
-    totalAmount: "$200.00",
-    paymentMethod: "Bank Transfer",
-    id: "6",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-  {
-    invoice: "INV007",
-    paymentStatus: "Unpaid",
-    totalAmount: "$300.00",
-    paymentMethod: "Credit Card",
-    id: "7",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-  },
-];
+import {
+  CommandBar,
+  CommandBarBar,
+  CommandBarValue,
+  CommandBarSeperator,
+  CommandBarCommand,
+} from "../../primitives/default/ui/command-bar";
 
 const DiamondPlus = () => (
   <svg
@@ -155,6 +97,7 @@ const DiamondPlus = () => (
     <path d="M8 12h8" />
   </svg>
 );
+
 let listMetaGraphqlQuery = gql`
   query ($listKey: String!) {
     keystone {
@@ -196,7 +139,7 @@ const BaseToolbar = (props) => (
   </div>
 );
 
-export const ListPageTemplate = ({ listKey }) => {
+export function ListPageTemplate({ listKey }) {
   const list = useList(listKey);
 
   const { push } = useRouter();
@@ -279,6 +222,7 @@ export const ListPageTemplate = ({ listKey }) => {
     data: newData,
     error: newError,
     refetch,
+    loading,
   } = useQuery(
     useMemo(() => {
       let selectedGqlFields = [...selectedFields]
@@ -364,66 +308,79 @@ export const ListPageTemplate = ({ listKey }) => {
     ),
   };
   return (
-    <div className="h-screen overflow-hidden">
+    <section
+      aria-label={`${list.label} overview`}
+      className="h-screen overflow-hidden flex flex-col"
+    >
+      <PageBreadcrumbs
+        items={[
+          {
+            type: "link",
+            label: "Dashboard",
+            href: "/",
+          },
+          {
+            type: "page",
+            label: "Platform",
+            showModelSwitcher: true,
+            switcherType: "platform",
+          },
+          {
+            type: "page",
+            label: list.label,
+          },
+        ]}
+      />
+
       {metaQuery.error ? (
-        "Error..."
-      ) : data && metaQuery.data ? (
-        <>
-          <PageBreadcrumbs
-            items={[
-              {
-                type: "link",
-                label: "Dashboard",
-                href: "/",
-              },
-              {
-                type: "model",
-                label: list.label,
-                href: `/${list.path}`,
-                showModelSwitcher: true,
-              },
-            ]}
-          />
-          <main className="w-full h-full max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4">
-            <div className="flex flex-col gap-2.5">
-              {/* Simple Title */}
-              <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold">{list.label}</h1>
-                <p className="text-muted-foreground">
-                  {list.description ? (
-                    <p>{list.description}</p>
-                  ) : (
-                    <span>
-                      Create and manage{" "}
-                      <span className="lowercase">{list.label}</span>
-                    </span>
-                  )}
-                </p>
+        <div className="p-4">Error loading {list.label}...</div>
+      ) : !metaQuery.data ? null : (
+        <div className="flex flex-col flex-1 min-h-0">
+          {/* Search and Filters - Fixed Position */}
+          <div className="flex flex-col gap-2.5 p-4 md:p-6">
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
+                {list.label}
+              </h1>
+              <p className="text-muted-foreground">
+                {list.description ? (
+                  list.description
+                ) : (
+                  <span>
+                    Create and manage{" "}
+                    <span className="lowercase">{list.label}</span>
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {/* Controls Row */}
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {/* Search */}
+              <div className="relative flex-1 min-w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    updateSearch(searchString);
+                  }}
+                >
+                  <Input
+                    type="search"
+                    className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm"
+                    value={searchString}
+                    onChange={(e) => updateSearchString(e.target.value)}
+                    placeholder={`Search by ${
+                      searchLabels.length
+                        ? searchLabels.join(", ").toLowerCase()
+                        : "ID"
+                    }`}
+                  />
+                </form>
               </div>
-              {/* Controls Row */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
-                {/* Left Side Controls */}
-                <div className="relative flex-1 min-w-72">
-                  <ListFilter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      updateSearch(searchString);
-                    }}
-                  >
-                    <Input
-                      type="search"
-                      className="pl-9 w-full h-9 rounded-lg placeholder:text-muted-foreground/80 text-sm"
-                      value={searchString}
-                      onChange={(e) => updateSearchString(e.target.value)}
-                      placeholder={`Search by ${
-                        searchLabels.length
-                          ? searchLabels.join(", ").toLowerCase()
-                          : "ID"
-                      }`}
-                    />
-                  </form>
-                </div>
+
+              {/* Right Side Controls */}
+              <div className="flex items-center gap-2">
                 <FilterAdd
                   listKey={listKey}
                   filterableFields={filterableFields}
@@ -433,10 +390,35 @@ export const ListPageTemplate = ({ listKey }) => {
                     size="icon"
                     className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
                   >
-                    <FilterIcon className="stroke-muted-foreground" />
+                    <SlidersHorizontal className="stroke-muted-foreground" />
                     <span className="hidden lg:inline">Filter</span>
                   </Button>
                 </FilterAdd>
+
+                <SortSelection list={list} orderableFields={orderableFields}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+                  >
+                    <ArrowUpDown className="stroke-muted-foreground" />
+                    <span className="hidden lg:inline">
+                      {sort ? (
+                        <>
+                          {list.fields[sort.field].label}{" "}
+                          <Badge
+                            variant="blue"
+                            className="ml-1 text-[10px] px-1 py-0 font-medium"
+                          >
+                            {sort.direction}
+                          </Badge>
+                        </>
+                      ) : (
+                        "Sort"
+                      )}
+                    </span>
+                  </Button>
+                </SortSelection>
 
                 <FieldSelection
                   list={list}
@@ -451,9 +433,10 @@ export const ListPageTemplate = ({ listKey }) => {
                     <span className="hidden lg:inline">Display</span>
                   </Button>
                 </FieldSelection>
+
                 {showCreate && (
                   <AdminLink href={`/${list.path}/create`}>
-                    <Button
+                    {/* <Button
                       size="icon"
                       className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
                     >
@@ -461,119 +444,75 @@ export const ListPageTemplate = ({ listKey }) => {
                       <span className="hidden lg:inline">
                         Create {list.singular}
                       </span>
+                    </Button> */}
+                    <Button className="w-9 lg:w-auto relative lg:ps-12 rounded-lg">
+                      <span className="hidden lg:inline">
+                        Create {list.singular}
+                      </span>
+                      <span className="bg-primary-foreground/15 pointer-events-none absolute inset-y-0 start-0 flex w-9 items-center justify-center">
+                        <DiamondPlus
+                          className="opacity-60"
+                          size={16}
+                          aria-hidden="true"
+                        />
+                      </span>
                     </Button>
                   </AdminLink>
                 )}
               </div>
-
-              {/* Active Filters */}
-              {filters.filters.length > 0 && (
-                <div className="flex gap-1.5 mt-1 border bg-muted/40 rounded-lg p-2 items-center">
-                  <div className="flex items-center gap-1.5 border-r border-muted-foreground/30 pr-2 mr-1.5">
-                    <FilterIcon className="stroke-muted-foreground/50 size-4" strokeWidth={1.5} />
-                  </div>
-                  <FilterList filters={filters.filters} list={list} />
-                </div>
-              )}
-              <div>
-                <SortSelection list={list} orderableFields={orderableFields}>
-                  <Button
-                    variant="link"
-                    size="xs"
-                    className="uppercase py-1 px-0 text-xs text-muted-foreground [&_svg]:size-3"
-                  >
-                    Sorting by{" "}
-                    {sort ? (
-                      <>
-                        {list.fields[sort.field].label}
-                        {sortIcons[sort.direction]}
-                      </>
-                    ) : (
-                      <>default</>
-                    )}
-                    <ChevronDown />
-                  </Button>
-                </SortSelection>
-              </div>
             </div>
+          </div>
 
-            {/* Table Section */}
-            {data.count ? (
-              <>
-                <div className="flex flex-col flex-1 min-h-0 mb-8">
-                  <ListTable
-                    count={data.count}
-                    currentPage={currentPage}
-                    itemsGetter={dataGetter.get("items")}
-                    listKey={listKey}
-                    pageSize={pageSize}
-                    selectedFields={selectedFields}
-                    sort={sort}
-                    selectedItems={selectedItemsState.selectedItems}
-                    onSelectedItemsChange={(selectedItems) => {
-                      setSelectedItems({
-                        itemsFromServer: selectedItemsState.itemsFromServer,
-                        selectedItems,
-                      });
-                    }}
-                    orderableFields={orderableFields}
+          <main className="flex-1 min-h-0 overflow-auto">
+            {/* Active Filters */}
+            {filters.filters.length > 0 && (
+              <div className="flex gap-1.5 border-t bg-muted/40 py-2 px-6 items-center">
+                <div className="flex items-center gap-1.5 border-r border-muted-foreground/30 pr-2 mr-1.5">
+                  <FilterIcon
+                    className="stroke-muted-foreground/50 size-4"
+                    strokeWidth={1.5}
                   />
                 </div>
-                <BaseToolbar>
-                  {selectedItemsState.selectedItems.size > 0 ? (
-                    <div className="w-full flex flex-wrap gap-4 items-center justify-between">
-                      <span className="text-xs sm:text-sm text-muted-foreground">
-                        <strong>{selectedItemsState.selectedItems.size}</strong>{" "}
-                        of <strong>{data.items.length}</strong> {list.label}{" "}
-                        selected
-                      </span>
-                      {!(
-                        metaQuery.data?.keystone.adminMeta.list?.hideDelete ??
-                        true
-                      ) && (
-                        <DeleteManyButton
-                          list={list}
-                          selectedItems={selectedItemsState.selectedItems}
-                          refetch={refetch}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-4">
-                        <PaginationStats
-                          list={list}
-                          total={data.count}
-                          currentPage={currentPage}
-                          pageSize={pageSize}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <PaginationNavigation
-                          list={list}
-                          total={data.count}
-                          currentPage={currentPage}
-                          pageSize={pageSize}
-                        />
-                        <PaginationDropdown
-                          list={list}
-                          total={data.count}
-                          currentPage={currentPage}
-                          pageSize={pageSize}
-                        />
-                      </div>
-                    </>
-                  )}
-                </BaseToolbar>
-              </>
+                <FilterList filters={filters.filters} list={list} />
+              </div>
+            )}
+            {!loading && !data ? null : loading ? (
+              <div className="divide-y border-t">
+                <div className="w-full bg-muted animate-pulse h-9" />
+                {[1, 2, 3].map((row) => (
+                  <div
+                    key={row}
+                    className="w-full bg-muted animate-pulse h-12"
+                  />
+                ))}
+              </div>
+            ) : data?.items?.length > 0 ? (
+              <ListTable
+                count={data.count}
+                currentPage={currentPage}
+                itemsGetter={dataGetter.get("items")}
+                listKey={listKey}
+                pageSize={pageSize}
+                selectedFields={selectedFields}
+                sort={sort}
+                selectedItems={selectedItemsState.selectedItems}
+                onSelectedItemsChange={(selectedItems) => {
+                  setSelectedItems({
+                    itemsFromServer: selectedItemsState.itemsFromServer,
+                    selectedItems,
+                  });
+                }}
+                orderableFields={orderableFields}
+                refetch={refetch}
+              />
             ) : (
-              <div className="flex flex-col items-center p-10 border rounded-lg">
+              <div className="flex flex-col items-center p-10 mx-6">
                 <div className="flex opacity-40">
                   <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
                   <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
                   <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
                 </div>
-                {query.search || filters.filters.length ? (
+                {query.search || filters?.filters?.length ? (
                   <>
                     <span className="pt-4 font-semibold">
                       No <span className="lowercase">{list.label}</span>{" "}
@@ -601,16 +540,82 @@ export const ListPageTemplate = ({ listKey }) => {
                       No <span className="lowercase">{list.label}</span>
                     </span>
                     <span className="text-muted-foreground pb-4">
-                      Get started by creating a new one.{" "}
+                      Get started by creating a new one.
                     </span>
-                    {showCreate && <CreateButtonLink list={list} />}
+                    {/* {showCreate && <CreateButtonLink list={list} />} */}
                   </>
                 )}
               </div>
             )}
           </main>
-        </>
-      ) : null}
-    </div>
+          {selectedItemsState.selectedItems.size > 0 ? (
+            <CommandBar open={true} className="sticky bottom-0">
+              <CommandBarBar>
+                <CommandBarValue>
+                  {selectedItemsState.selectedItems.size} selected
+                </CommandBarValue>
+                <CommandBarSeperator />
+                <DeleteManyButton
+                  list={list}
+                  selectedItems={selectedItemsState.selectedItems}
+                  refetch={refetch}
+                >
+                  {({ setIsOpen, isLoading, selectedCount }) => (
+                    <CommandBarCommand
+                      label="Delete"
+                      action={() => setIsOpen(true)}
+                      isLoading={isLoading}
+                      shortcut={{ label: "d" }}
+                    />
+                  )}
+                </DeleteManyButton>
+                <CommandBarSeperator />
+                <CommandBarCommand
+                  label="Reset"
+                  action={() => {
+                    setSelectedItems({
+                      itemsFromServer: selectedItemsState.itemsFromServer,
+                      selectedItems: new Set(),
+                    });
+                  }}
+                  shortcut={{ shortcut: "Escape", label: "esc" }}
+                />
+              </CommandBarBar>
+            </CommandBar>
+          ) : null}
+
+          {/* Pagination with Command Bar */}
+          {data?.items?.length > 0 && (
+            <div className="sticky bottom-0 border-t py-2 px-4 mt-2">
+              <div className="flex items-center justify-between gap-4">
+                <PaginationStats
+                  list={list}
+                  total={data.count}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                />
+
+                {/* Command Bar */}
+
+                <div className="flex items-center gap-2">
+                  <PaginationNavigation
+                    list={list}
+                    total={data.count}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                  />
+                  <PaginationDropdown
+                    list={list}
+                    total={data.count}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
-};
+}

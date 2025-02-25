@@ -22,6 +22,7 @@ import {
 import { CheckboxControl } from "../Checkbox";
 import { ScrollArea, ScrollBar } from "../../primitives/default/ui/scroll-area";
 import Image from "next/image";
+import { cn } from "@keystone/utils/cn";
 
 export function ListTable({
   selectedFields,
@@ -34,6 +35,7 @@ export function ListTable({
   selectedItems,
   onSelectedItemsChange,
   orderableFields,
+  refetch,
 }) {
   const list = useList(listKey);
 
@@ -60,6 +62,8 @@ export function ListTable({
     return initialSelection;
   });
 
+  const hasSelectedItems = selectedItems.size > 0;
+
   const columns = useMemo(() => {
     const checkboxColumn = {
       id: "selection",
@@ -67,7 +71,7 @@ export function ListTable({
         <CheckboxControl
           size="small"
           checked={selectedItems.size === itemsGetter.data?.length}
-          className="cursor-default"
+          className="cursor-default flex items-center"
           onChange={() => {
             const newSelectedItems = new Set();
             if (selectedItems.size !== itemsGetter.data?.length) {
@@ -112,7 +116,7 @@ export function ListTable({
 
     return [
       checkboxColumn,
-      ...fieldsArray.map((fieldKey, i) => {
+      ...fieldsArray.map((fieldKey) => {
         const field = list.fields[fieldKey];
         const { Cell } = field.views;
         const isOrderable = orderableFieldsArray.includes(fieldKey);
@@ -130,12 +134,34 @@ export function ListTable({
                       : fieldKey,
                 },
               }}
-              className="flex items-center justify-start gap-1"
+              className={cn(
+                "inline-flex items-center gap-2 rounded-md",
+                isOrderable
+                  ? "hover:text-gray-900 dark:hover:text-gray-50"
+                  : "cursor-default"
+              )}
             >
-              {field.label}
-              {/* Render sort direction arrow if this field is currently sorted */}
-              {query.sortBy === fieldKey && <ChevronDown size={16} />}
-              {query.sortBy === `-${fieldKey}` && <ChevronUp size={16} />}
+              <span>{field.label}</span>
+              {isOrderable && (
+                <div className="-space-y-2">
+                  <ChevronUp
+                    className={cn(
+                      "size-3.5",
+                      sort?.field === fieldKey && sort.direction === "ASC"
+                        ? "text-blue-500"
+                        : "opacity-30"
+                    )}
+                  />
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5",
+                      sort?.field === fieldKey && sort.direction === "DESC"
+                        ? "text-blue-500"
+                        : "opacity-30"
+                    )}
+                  />
+                </div>
+              )}
             </AdminLink>
           ),
           cell: ({ row }) => {
@@ -143,7 +169,6 @@ export function ListTable({
             const itemId = item.id;
             const itemForField = {};
 
-            // Get the data for the fields from the item
             for (const graphqlField of getRootGraphQLFieldsFromFieldController(
               field.controller
             )) {
@@ -151,7 +176,6 @@ export function ListTable({
                 item[graphqlField] === null ||
                 item[graphqlField] === undefined
               ) {
-                // Return an error message if there is an issue with the data
                 return (
                   <div className="flex">
                     <div className="font-mono text-xs rounded-sm px-2 py-1 border-dashed border italic">
@@ -163,14 +187,12 @@ export function ListTable({
               itemForField[graphqlField] = item[graphqlField];
             }
 
-            // The following assumes that the item id is available on the row.original object
-            // Now, render the Cell as you would in your original code
             return (
               <Cell
                 field={field.controller}
                 item={itemForField}
                 linkTo={
-                  i === 0 && Cell.supportsLinkTo
+                  Cell.supportsLinkTo
                     ? {
                         href: `/${list.path}/${encodeURIComponent(itemId)}`,
                       }
@@ -183,7 +205,7 @@ export function ListTable({
         };
       }),
     ];
-  }, [selectedItems, selectedFields, list.fields, orderableFields]);
+  }, [selectedItems, selectedFields, list.fields, orderableFields, sort]);
 
   const table = useReactTable({
     data,
@@ -194,66 +216,90 @@ export function ListTable({
     },
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
-    manualPagination: true, // You handle pagination on your own
-    manualSorting: true, // You handle sorting on your own
+    manualPagination: true,
+    manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const works = [
-    {
-      artist: "Ornella Binni",
-      art: "https://images.unsplash.com/photo-1465869185982-5a1a7522cbcb?auto=format&fit=crop&w=300&q=80",
-    },
-    {
-      artist: "Tom Byrom",
-      art: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?auto=format&fit=crop&w=300&q=80",
-    },
-    {
-      artist: "Vladimir Malyavko",
-      art: "https://images.unsplash.com/photo-1494337480532-3725c85fd2ab?auto=format&fit=crop&w=300&q=80",
-    },
-  ];
   return (
-    <ScrollArea className="w-full whitespace-nowrap border rounded-lg">
-      <Table>
-        <TableHeader className="sticky top-0 bg-zinc-50 dark:bg-zinc-900 z-10">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  className="text-nowrap text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase"
-                  key={header.id}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+    <div className="relative">
+      <ScrollArea className="w-full whitespace-nowrap">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow
+                key={headerGroup.id}
+                className="border-y border-gray-200 dark:border-gray-800"
+              >
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      "whitespace-nowrap py-0",
+                      header.column.columnDef.id === "selection"
+                        ? "w-[64px] pl-6"
+                        : "px-5",
+                      header.column.columnDef.id !== "selection" &&
+                        header.column.columnDef.accessorKey === sort?.field
+                        ? "text-gray-900 dark:text-gray-50"
+                        : "text-gray-700 dark:text-gray-300",
+                      "text-sm font-medium"
+                    )}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row, index) => (
+              <TableRow
+                key={row.id}
+                className={cn(
+                  "group select-none hover:bg-muted",
+                  row.getIsSelected() && "bg-muted",
+                  index === table.getRowModel().rows.length - 1 && "border-b"
+                )}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const isFirstColumn =
+                    cell.column.columnDef.id === "selection";
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "relative whitespace-nowrap py-3",
+                        isFirstColumn ? "w-[64px] pl-6" : "px-5",
+                        row.getIsSelected() && "bg-gray-50 dark:bg-gray-900",
+                        !isFirstColumn &&
+                          "text-gray-600 dark:text-gray-400 text-sm"
                       )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell, index) => (
-                <TableCell
-                  className={`text-sm ${index === 1 && "font-medium"}`}
-                  key={cell.id}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+                    >
+                      {isFirstColumn && row.getIsSelected() && (
+                        <div className="absolute inset-y-0 left-0 w-0.5 bg-blue-500 dark:bg-blue-500" />
+                      )}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <ScrollBar orientation="horizontal" className="hidden"/>
+      </ScrollArea>
+    </div>
   );
 }
 

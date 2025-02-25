@@ -199,7 +199,7 @@ export function MatchDetailsDialog({ isOpen, onClose, match, shopId }) {
   return (
     <MatchDialog open={isOpen} onOpenChange={onClose}>
       <MatchDialogTrigger>
-        <Button>Create Match</Button>
+        <Button className="text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3 border">Create Match</Button>
       </MatchDialogTrigger>
       <MatchDialogContent className="flex flex-col h-[90vh]">
         <div className="p-6 border-b">

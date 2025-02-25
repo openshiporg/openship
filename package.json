@@ -54,6 +54,7 @@
     "@remixicon/react": "^4.2.0",
     "@squircle-js/react": "^1.2.0",
     "@tanstack/react-table": "^8.10.7",
+    "@tanstack/react-virtual": "^3.13.0",
     "@whitebox-co/walmart-marketplace-api": "^2.2.0",
     "ag-grid-community": "^31.3.2",
     "ag-grid-react": "^31.3.2",

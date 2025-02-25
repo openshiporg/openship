@@ -12,7 +12,7 @@ export function addMarkToChildren(mark, cb) {
   const wasPreviouslyActive = currentlyActiveMarks.has(mark)
   currentlyActiveMarks.add(mark)
   try {
-    return cb()
+    return cb();
   } finally {
     if (!wasPreviouslyActive) {
       currentlyActiveMarks.delete(mark)
@@ -23,11 +23,11 @@ export function addMarkToChildren(mark, cb) {
 export function setLinkForChildren(href, cb) {
   // we'll only use the outer link
   if (currentLink !== null) {
-    return cb()
+    return cb();
   }
   currentLink = href
   try {
-    return cb()
+    return cb();
   } finally {
     currentLink = null
   }
@@ -42,7 +42,7 @@ export function addMarksToChildren(marks, cb) {
     currentlyActiveMarks.add(mark)
   }
   try {
-    return cb()
+    return cb();
   } finally {
     for (const mark of marksToRemove) {
       currentlyActiveMarks.delete(mark)
@@ -54,7 +54,7 @@ export function forceDisableMarkForChildren(mark, cb) {
   const wasPreviouslyDisabled = currentlyDisabledMarks.has(mark)
   currentlyDisabledMarks.add(mark)
   try {
-    return cb()
+    return cb();
   } finally {
     if (!wasPreviouslyDisabled) {
       currentlyDisabledMarks.delete(mark)
@@ -71,10 +71,10 @@ export function getInlineNodes(text) {
   }
   if (currentLink !== null) {
     return [
-      { text: "" },
+      { text: '' },
       { type: "link", href: currentLink, children: [node] },
-      { text: "" }
-    ]
+      { text: '' },
+    ];
   }
   return [node]
 }

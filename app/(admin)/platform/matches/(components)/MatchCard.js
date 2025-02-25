@@ -129,7 +129,7 @@ const InventorySyncButton = ({
     return (
       <BadgeButton
         color="emerald"
-        className="flex gap-2 items-center border text-xs font-medium tracking-wide uppercase py-[.3rem]"
+        className="flex gap-2 items-center border text-xs font-medium tracking-wide uppercase py-[.2rem] rounded-lg"
       >
         <Check className="h-3 w-3" />
         <span>Inventory Synced</span>
@@ -342,7 +342,7 @@ const ProductDetailsCollapsible = ({
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="border [&_svg]:size-3 h-6 w-6"
+                      className="shadow-none border [&_svg]:size-3 h-6 w-6"
                       onClick={() =>
                         openEditDrawer(
                           item.id,

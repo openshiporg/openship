@@ -1,59 +1,47 @@
-import { jsonFieldTypePolyfilledForSQLite } from "@keystone-6/core/types"
-import { graphql } from "@keystone-6/core"
-import { getInitialPropsValue } from "./DocumentEditor/component-blocks/initial-values"
-import { getOutputGraphQLField } from "./structure-graphql-output"
-import {
-  getGraphQLInputType,
-  getValueForCreate,
-  getValueForUpdate
-} from "./structure-graphql-input"
-import { assertValidComponentSchema } from "./DocumentEditor/component-blocks/field-assertions"
-import {
-  addRelationshipDataToComponentProps,
-  fetchRelationshipData
-} from "./relationship-data"
+import { jsonFieldTypePolyfilledForSQLite } from  '@keystone-6/core/types'
+import { graphql } from  '@keystone-6/core'
+import { getInitialPropsValue } from  './DocumentEditor/component-blocks/initial-values'
+import { getOutputGraphQLField } from  './structure-graphql-output'
+import { getGraphQLInputType, getValueForCreate, getValueForUpdate } from  './structure-graphql-input'
+import { assertValidComponentSchema } from  './DocumentEditor/component-blocks/field-assertions'
+import { addRelationshipDataToComponentProps, fetchRelationshipData } from  './relationship-data'
 
-export const structure = ({ schema, ...config }) => meta => {
-  if (config.isIndexed === "unique") {
-    throw Error(
-      "isIndexed: 'unique' is not a supported option for field type structure"
-    )
-  }
-  const lists = new Set(Object.keys(meta.lists))
-  try {
-    assertValidComponentSchema(schema, lists)
-  } catch (err) {
-    throw new Error(`${meta.listKey}.${meta.fieldKey}: ${err.message}`)
-  }
-
-  const defaultValue = getInitialPropsValue(schema)
-
-  const unreferencedConcreteInterfaceImplementations = []
-
-  const name =
-    meta.listKey + meta.fieldKey[0].toUpperCase() + meta.fieldKey.slice(1)
-  return jsonFieldTypePolyfilledForSQLite(
-    meta.provider,
+export const structure =
+  (
     {
+      schema,
+      ...config
+    }
+  ) => meta => {
+    if ((config).isIndexed === 'unique') {
+      throw Error("isIndexed: 'unique' is not a supported option for field type structure")
+    }
+    const lists = new Set(Object.keys(meta.lists))
+    try {
+      assertValidComponentSchema(schema, lists)
+    } catch (err) {
+      throw new Error(`${meta.listKey}.${meta.fieldKey}: ${(err).message}`)
+    }
+
+    const defaultValue = getInitialPropsValue(schema)
+
+    const unreferencedConcreteInterfaceImplementations = []
+
+    const name = meta.listKey + meta.fieldKey[0].toUpperCase() + meta.fieldKey.slice(1)
+    return jsonFieldTypePolyfilledForSQLite(meta.provider, {
       ...config,
       hooks: {
         ...config.hooks,
-        async resolveInput(args) {
+        async resolveInput (args) {
           let val = args.resolvedData[meta.fieldKey]
-          if (args.operation === "update") {
+          if (args.operation === 'update') {
             let prevVal = args.item[meta.fieldKey]
-            if (meta.provider === "sqlite") {
+            if (meta.provider === 'sqlite') {
               prevVal = JSON.parse(prevVal)
               val = args.inputData[meta.fieldKey]
             }
-            val = await getValueForUpdate(
-              schema,
-              val,
-              prevVal,
-              args.context,
-              []
-            )
-            if (meta.provider === "sqlite") {
+            val = await getValueForUpdate(schema, val, prevVal, args.context, [])
+            if (meta.provider === 'sqlite') {
               val = JSON.stringify(val)
             }
           }
@@ -61,25 +49,25 @@ export const structure = ({ schema, ...config }) => meta => {
           return config.hooks?.resolveInput
             ? config.hooks.resolveInput({
                 ...args,
-                resolvedData: { ...args.resolvedData, [meta.fieldKey]: val }
+                resolvedData: { ...args.resolvedData, [meta.fieldKey]: val },
               })
-            : val
-        }
+            : val;
+        },
       },
       input: {
         create: {
           arg: graphql.arg({
-            type: getGraphQLInputType(name, schema, "create", new Map(), meta)
+            type: getGraphQLInputType(name, schema, 'create', new Map(), meta),
           }),
-          async resolve(val, context) {
-            return await getValueForCreate(schema, val, context, [])
-          }
+          async resolve (val, context) {
+            return await getValueForCreate(schema, val, context, []);
+          },
         },
         update: {
           arg: graphql.arg({
-            type: getGraphQLInputType(name, schema, "update", new Map(), meta)
-          })
-        }
+            type: getGraphQLInputType(name, schema, 'update', new Map(), meta),
+          }),
+        },
       },
       output: graphql.field({
         type: graphql.object()({
@@ -97,45 +85,33 @@ export const structure = ({ schema, ...config }) => meta => {
               args: {
                 hydrateRelationships: graphql.arg({
                   type: graphql.nonNull(graphql.Boolean),
-                  defaultValue: false
-                })
+                  defaultValue: false,
+                }),
               },
-              resolve({ value }, args, context) {
+              resolve ({ value }, args, context) {
                 if (args.hydrateRelationships) {
-                  return addRelationshipDataToComponentProps(
-                    schema,
-                    value,
-                    (schema, value) =>
-                      fetchRelationshipData(
-                        context,
-                        schema.listKey,
-                        schema.many,
-                        schema.selection || "",
-                        value
-                      )
-                  )
+                  return addRelationshipDataToComponentProps(schema, value, (schema, value) =>
+                    fetchRelationshipData(context, schema.listKey, schema.many, schema.selection || '', value));
                 }
                 return value
-              }
-            })
-          }
+              },
+            }),
+          },
         }),
-        resolve(source) {
+        resolve (source) {
           return source
-        }
+        },
       }),
-      __ksTelemetryFieldTypeName: "@keystone-6/structure",
-      views: "@keystone-6/fields-document/structure-views",
+      __ksTelemetryFieldTypeName: '@keystone-6/structure',
+      views: '@keystone-6/fields-document/structure-views',
       getAdminMeta: () => ({}),
-      unreferencedConcreteInterfaceImplementations
-    },
-    {
+      unreferencedConcreteInterfaceImplementations,
+    }, {
       default: {
-        kind: "literal",
-        value: JSON.stringify(defaultValue)
+        kind: 'literal',
+        value: JSON.stringify(defaultValue),
       },
       map: config.db?.map,
-      mode: "required"
-    }
-  )
-}
+      mode: 'required',
+    });
+  }

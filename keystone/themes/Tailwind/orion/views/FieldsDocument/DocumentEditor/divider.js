@@ -1,65 +1,39 @@
-import React, { Fragment, useMemo } from "react";
-import { Editor } from "slate";
-
-import { KeyboardInTooltip, ToolbarButton } from "./primitives";
-import { useToolbarState } from "./toolbar-state";
-import { insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading } from "./utils";
-import { MinusIcon } from "lucide-react";
+import React, { Fragment, useMemo } from "react"
+import { Minus } from "lucide-react"
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
-} from "../../primitives/default/ui/tooltip";
+  TooltipProvider,
+  TooltipTrigger
+} from "@ui/tooltip"
+import { useToolbarState } from "./toolbar-state"
+import { insertDivider } from "./divider-shared"
+import { ToolbarButton, TooltipWithShortcut } from "./Toolbar"
 
-const minusIcon = <MinusIcon size="small" />;
-
-export function insertDivider(editor) {
-  insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-    type: "divider",
-    children: [{ text: "" }],
-  });
-  Editor.insertNode(editor, { type: "paragraph", children: [{ text: "" }] });
-}
-
-const DividerButton = ({ attrs }) => {
+function DividerButton() {
   const {
     editor,
-    dividers: { isDisabled },
-  } = useToolbarState();
-  return useMemo(
-    () => (
-      <ToolbarButton
-        isDisabled={isDisabled}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          insertDivider(editor);
-        }}
-        {...attrs}
-      >
-        {minusIcon}
-      </ToolbarButton>
-    ),
-    [editor, isDisabled, attrs]
-  );
-};
+    dividers: { isDisabled }
+  } = useToolbarState()
+  
+  return (
+    <ToolbarButton
+      isDisabled={isDisabled}
+      onMouseDown={event => {
+        event.preventDefault()
+        insertDivider(editor)
+      }}
+    >
+      <Minus size={16} />
+    </ToolbarButton>
+  )
+}
 
 export const dividerButton = (
   <Tooltip>
-    <TooltipTrigger asChild>
-      <MinusIcon />
+    <TooltipTrigger>
+      <DividerButton />
     </TooltipTrigger>
-    <TooltipContent>
-      <Fragment>
-        Divider<KeyboardInTooltip>---</KeyboardInTooltip>
-      </Fragment>
-    </TooltipContent>
+    <TooltipWithShortcut shortcut="---">Divider</TooltipWithShortcut>
   </Tooltip>
-);
-
-export function withDivider(editor) {
-  const { isVoid } = editor;
-  editor.isVoid = (node) => {
-    return node.type === "divider" || isVoid(node);
-  };
-  return editor;
-}
+)

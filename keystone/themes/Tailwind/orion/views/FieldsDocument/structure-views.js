@@ -1,37 +1,31 @@
-import { useEffect, useMemo, useRef } from "react";
-import { getInitialPropsValue } from "./DocumentEditor/component-blocks/initial-values";
+import { useEffect, useMemo, useRef } from "react"
+import { getInitialPropsValue } from "./DocumentEditor/component-blocks/initial-values"
 import {
   assertNever,
-  clientSideValidateProp,
-} from "./DocumentEditor/component-blocks/utils";
-import { FormValueContentFromPreviewProps } from "./DocumentEditor/component-blocks/form-from-preview";
-import { createGetPreviewProps } from "./DocumentEditor/component-blocks/preview-props";
-import { FieldLabel } from "../../components/FieldLabel";
-import { FieldContainer } from "../../components/FieldContainer";
+  clientSideValidateProp
+} from "./DocumentEditor/component-blocks/utils"
+import { FormValueContentFromPreviewProps } from "./DocumentEditor/component-blocks/form-from-preview"
+import { createGetPreviewProps } from "./DocumentEditor/component-blocks/preview-props"
+import { FieldContainer } from '../../components/FieldContainer'
+import { FieldLabel } from '../../components/FieldLabel'
 
-export const Field = ({
-  field,
-  value,
-  onChange,
-  autoFocus,
-  forceValidation,
-}) => {
-  const valueRef = useRef(value);
+export function Field({ field, value, onChange, autoFocus, forceValidation }) {
+  const valueRef = useRef(value)
   useEffect(() => {
-    valueRef.current = value;
-  });
+    valueRef.current = value
+  })
   const createPreviewProps = useMemo(() => {
     return createGetPreviewProps(
       field.schema,
-      (getNewVal) => {
+      getNewVal => {
         onChange?.({
           kind: valueRef.current.kind,
-          value: getNewVal(valueRef.current.value),
-        });
+          value: getNewVal(valueRef.current.value)
+        })
       },
       () => undefined
-    );
-  }, [field.schema, onChange]);
+    )
+  }, [field.schema, onChange])
   return (
     <FieldContainer>
       <FieldLabel>{field.label}</FieldLabel>
@@ -41,24 +35,24 @@ export const Field = ({
         {...createPreviewProps(value.value)}
       />
     </FieldContainer>
-  );
-};
+  )
+}
 
-export const Cell = ({}) => {
-  return null;
-};
+export const Cell = () => {
+  return null
+}
 
-export const CardValue = ({}) => {
-  return null;
-};
+export const CardValue = () => {
+  return null
+}
 
-export const allowedExportsOnCustomViews = ["schema"];
+export const allowedExportsOnCustomViews = ["schema"]
 
-export const controller = (config) => {
+export function controller(config) {
   if (!config.customViews.schema) {
     throw new Error(
       `No schema in custom view. Did you forgot to set \`views\` to a file that exports a \`schema\` on ${config.listKey}.${config.path}`
-    );
+    )
   }
   return {
     path: config.path,
@@ -68,27 +62,27 @@ export const controller = (config) => {
     schema: config.customViews.schema,
     defaultValue: {
       kind: "create",
-      value: getInitialPropsValue(config.customViews.schema),
+      value: getInitialPropsValue(config.customViews.schema)
     },
-    validate: (value) =>
+    validate: value =>
       clientSideValidateProp(config.customViews.schema, value.value),
-    deserialize: (data) => {
+    deserialize: data => {
       return {
         kind: "update",
-        value: data[`${config.path}`]?.json ?? null,
-      };
+        value: data[`${config.path}`]?.json ?? null
+      }
     },
-    serialize: (value) => {
+    serialize: value => {
       return {
         [config.path]: serializeValue(
           config.customViews.schema,
           value.value,
           value.kind
-        ),
-      };
-    },
-  };
-};
+        )
+      }
+    }
+  }
+}
 
 function serializeValue(schema, value, kind) {
   if (schema.kind === "conditional") {
@@ -97,39 +91,37 @@ function serializeValue(schema, value, kind) {
         schema.values[value.discriminant],
         value.value,
         kind
-      ),
-    };
+      )
+    }
   }
   if (schema.kind === "array") {
-    return value.map((a) => serializeValue(schema.element, a, kind));
+    return value.map(a => serializeValue(schema.element, a, kind))
   }
   if (schema.kind === "form") {
-    return value;
+    return value
   }
   if (schema.kind === "object") {
     return Object.fromEntries(
       Object.entries(schema.fields).map(([key, val]) => {
-        return [key, serializeValue(val, value[key], kind)];
+        return [key, serializeValue(val, value[key], kind)]
       })
-    );
+    )
   }
   if (schema.kind === "relationship") {
     if (Array.isArray(value)) {
       return {
-        [kind === "create" ? "connect" : "set"]: value.map((x) => ({
-          id: x.id,
-        })),
-      };
+        [kind === "create" ? "connect" : "set"]: value.map(x => ({ id: x.id }))
+      }
     }
     if (value === null) {
       if (kind === "create") {
-        return undefined;
+        return undefined
       }
-      return { disconnect: true };
+      return { disconnect: true }
     }
     return {
-      connect: { id: value.id },
-    };
+      connect: { id: value.id }
+    }
   }
-  assertNever(schema);
+  assertNever(schema)
 }
