@@ -506,43 +506,38 @@ export function ListPageTemplate({ listKey }) {
                 refetch={refetch}
               />
             ) : (
-              <div className="flex flex-col items-center p-10 mx-6">
-                <div className="flex opacity-40">
-                  <Triangle className="w-8 h-8 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950" />
-                  <Circle className="w-8 h-8 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-950" />
-                  <Square className="w-8 h-8 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950" />
+              <div className="text-center flex flex-col items-center justify-center border-t bg-muted/40 p-10 h-full">
+                <div className="relative h-11 w-11 mx-auto mb-2">
+                  <Triangle className="absolute left-1 top-1 w-4 h-4 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950 rotate-[90deg]" />
+                  <Square className="absolute right-[.2rem] top-1 w-4 h-4 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950 rotate-[30deg]" />
+                  <Circle className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-900" />
                 </div>
+                <p className="mt-2 text-sm font-medium">
+                  No <span className="lowercase">{list.label}</span>
+                </p>
                 {query.search || filters?.filters?.length ? (
                   <>
-                    <span className="pt-4 font-semibold">
-                      No <span className="lowercase">{list.label}</span>{" "}
-                    </span>
-                    <span className="text-muted-foreground pb-4">
-                      Found{" "}
-                      {searchParam
-                        ? `matching your search`
-                        : `matching your filters`}{" "}
-                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      Found matching your {searchParam ? "search" : "filters"}
+                    </p>
                     <Button
                       variant="outline"
+                      size="sm"
+                      className="h-7 mt-2"
                       onClick={() => {
                         updateSearchString("");
                         const path = window.location.pathname;
                         push(path);
                       }}
                     >
-                      Clear filters &amp; search
+                      Clear filters & search
                     </Button>
                   </>
                 ) : (
                   <>
-                    <span className="pt-4 font-semibold">
-                      No <span className="lowercase">{list.label}</span>
-                    </span>
-                    <span className="text-muted-foreground pb-4">
+                    <p className="text-sm text-muted-foreground">
                       Get started by creating a new one.
-                    </span>
-                    {/* {showCreate && <CreateButtonLink list={list} />} */}
+                    </p>
                   </>
                 )}
               </div>

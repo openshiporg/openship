@@ -53,35 +53,31 @@ export const useDeleteItem = (listKey) => {
   const toasts = useToasts();
   const client = useApolloClient();
 
-  const [deleteItem, { loading: deleteLoading, error: deleteError }] =
-    useMutation(
-      gql`mutation ($id: ID!) {
+  const [deleteItem, { loading: deleteLoading, error: deleteError }] = useMutation(
+    gql`mutation ($id: ID!) {
       ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
         id
       }
     }`
-    );
-
-  const handleDelete = useCallback(
-    async (itemId, itemLabel) => {
-      try {
-        await deleteItem({ variables: { id: itemId } });
-        await client.refetchQueries({ include: "active" });
-        toasts.addToast({
-          title: itemLabel,
-          message: `Deleted ${list.singular} item successfully`,
-          tone: "positive",
-        });
-      } catch (err) {
-        toasts.addToast({
-          title: `Failed to delete ${list.singular} item: ${itemLabel}`,
-          message: err.message,
-          tone: "negative",
-        });
-      }
-    },
-    [deleteItem, client, list, toasts]
   );
+
+  const handleDelete = useCallback(async (itemId, itemLabel) => {
+    try {
+      await deleteItem({ variables: { id: itemId } });
+      await client.refetchQueries({ include: "active" });
+      toasts.addToast({
+        title: itemLabel,
+        message: `Deleted ${list.singular} item successfully`,
+        tone: "positive",
+      });
+    } catch (err) {
+      toasts.addToast({
+        title: `Failed to delete ${list.singular} item: ${itemLabel}`,
+        message: err.message,
+        tone: "negative",
+      });
+    }
+  }, [deleteItem, client, list, toasts]);
 
   return { handleDelete, deleteLoading, deleteError };
 };
@@ -101,27 +97,24 @@ export const useUpdateItem = (listKey) => {
     `
   );
 
-  const handleUpdate = useCallback(
-    async (itemId, data) => {
-      try {
-        await update({ variables: { data, id: itemId } });
-        await client.refetchQueries({ include: "active" });
-        toasts.addToast({
-          title: `Updated ${list.singular}`,
-          message: `Updated ${list.singular} item successfully`,
-          tone: "positive",
-        });
-      } catch (error) {
-        console.error(`Error updating item:`, error);
-        toasts.addToast({
-          title: `Failed to update ${list.singular}`,
-          message: error.message,
-          tone: "negative",
-        });
-      }
-    },
-    [update, client, list, toasts]
-  );
+  const handleUpdate = useCallback(async (itemId, data) => {
+    try {
+      await update({ variables: { data, id: itemId } });
+      await client.refetchQueries({ include: "active" });
+      toasts.addToast({
+        title: `Updated ${list.singular}`,
+        message: `Updated ${list.singular} item successfully`,
+        tone: "positive",
+      });
+    } catch (error) {
+      console.error(`Error updating item:`, error);
+      toasts.addToast({
+        title: `Failed to update ${list.singular}`,
+        message: error.message,
+        tone: "negative",
+      });
+    }
+  }, [update, client, list, toasts]);
 
   return { handleUpdate, updateLoading, updateError };
 };
@@ -150,9 +143,7 @@ function CopyButton({ text }) {
             aria-label={copied ? "Copied" : "Copy to clipboard"}
             disabled={copied}
           >
-            <span className="truncate max-w-[80px] text-sm font-medium">
-              ID: {text}
-            </span>
+            <span className="truncate max-w-[80px] text-sm font-medium">ID: {text}</span>
             <div className="relative h-4 w-4">
               <div
                 className={cn(
@@ -160,12 +151,7 @@ function CopyButton({ text }) {
                   copied ? "scale-100 opacity-100" : "scale-0 opacity-0"
                 )}
               >
-                <Check
-                  className="stroke-emerald-500"
-                  size={16}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
+                <Check className="stroke-emerald-500" size={16} strokeWidth={2} aria-hidden="true" />
               </div>
               <div
                 className={cn(
@@ -178,9 +164,7 @@ function CopyButton({ text }) {
             </div>
           </Button>
         </TooltipTrigger>
-        <TooltipContent className="px-2 py-1 text-xs">
-          Click to copy
-        </TooltipContent>
+        <TooltipContent className="px-2 py-1 text-xs">Click to copy</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
@@ -193,28 +177,21 @@ export function DeleteButton({ itemLabel, itemId, list, onClose, children }) {
   return (
     <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
       <DialogTrigger asChild>
-        <TooltipProvider delayDuration={0}>
+        {/* <TooltipProvider delayDuration={0}>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger asChild> */}
               <Button
                 variant="outline"
                 size="icon"
                 className="h-7 w-7 rounded-none shadow-none first:rounded-s-lg focus-visible:z-10"
                 onClick={() => setIsConfirmModalOpen(true)}
               >
-                <Trash2
-                  className="stroke-red-500"
-                  size={16}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
+                <Trash2 className="stroke-red-500" size={16} strokeWidth={2} aria-hidden="true" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
-              Delete item
-            </TooltipContent>
+            {/* </TooltipTrigger>
+            <TooltipContent className="px-2 py-1 text-xs">Delete item</TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -266,9 +243,7 @@ function ResetChangesButton({ onReset, disabled }) {
                 <span className="text-sm">Reset</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
-              Reset changes
-            </TooltipContent>
+            <TooltipContent className="px-2 py-1 text-xs">Reset changes</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>

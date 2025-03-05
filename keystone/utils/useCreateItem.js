@@ -19,12 +19,14 @@ export function useCreateItem(list) {
 
   const [value, setValue] = useState(() => {
     const value = {};
-    Object.keys(list.fields).forEach((fieldPath) => {
-      value[fieldPath] = {
-        kind: "value",
-        value: list.fields[fieldPath].controller.defaultValue,
-      };
-    });
+    if (list && list.fields) {
+      Object.keys(list.fields).forEach((fieldPath) => {
+        value[fieldPath] = {
+          kind: "value",
+          value: list.fields[fieldPath].controller.defaultValue,
+        };
+      });
+    }
     return value;
   });
 
@@ -34,11 +36,13 @@ export function useCreateItem(list) {
     Object.keys(value).forEach((fieldPath) => {
       const val = value[fieldPath].value;
 
-      const validateFn = list.fields[fieldPath].controller.validate;
-      if (validateFn) {
-        const result = validateFn(val);
-        if (result === false) {
-          invalidFields.add(fieldPath);
+      if (list.fields && list.fields[fieldPath] && list.fields[fieldPath].controller) {
+        const validateFn = list.fields[fieldPath].controller.validate;
+        if (validateFn) {
+          const result = validateFn(val);
+          if (result === false) {
+            invalidFields.add(fieldPath);
+          }
         }
       }
     });
@@ -48,15 +52,17 @@ export function useCreateItem(list) {
   const [forceValidation, setForceValidation] = useState(false);
 
   const data = {};
-  Object.keys(list.fields).forEach((fieldPath) => {
-    const { controller } = list.fields[fieldPath];
-    const serialized = controller.serialize(value[fieldPath].value);
-    if (
-      !isDeepEqual(serialized, controller.serialize(controller.defaultValue))
-    ) {
-      Object.assign(data, serialized);
-    }
-  });
+  if (list && list.fields) {
+    Object.keys(list.fields).forEach((fieldPath) => {
+      const { controller } = list.fields[fieldPath];
+      const serialized = controller.serialize(value[fieldPath].value);
+      if (
+        !isDeepEqual(serialized, controller.serialize(controller.defaultValue))
+      ) {
+        Object.assign(data, serialized);
+      }
+    });
+  }
 
   const shouldPreventNavigation =
     !returnedData?.item && Object.keys(data).length !== 0;
