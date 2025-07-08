@@ -21,6 +21,10 @@ const REQUIRED_SCOPES = [
   "read_merchant_managed_fulfillment_orders",
 ];
 
+export function scopes(){
+  return REQUIRED_SCOPES
+}
+
 // Function to search products
 export async function searchProducts({ domain, accessToken, searchEntry }) {
   const shopifyClient = new GraphQLClient(
