@@ -12,37 +12,67 @@ generator client {
 }
 
 model User {
-  id                      String            @id @default(cuid())
-  name                    String            @default("")
-  email                   String            @unique @default("")
-  password                String
-  shops                   Shop[]            @relation("Shop_user")
-  shopPlatforms           ShopPlatform[]    @relation("ShopPlatform_user")
-  channels                Channel[]         @relation("Channel_user")
-  channelPlatforms        ChannelPlatform[] @relation("ChannelPlatform_user")
-  orders                  Order[]           @relation("Order_user")
-  lineItems               LineItem[]        @relation("LineItem_user")
-  cartItems               CartItem[]        @relation("CartItem_user")
-  shopItems               ShopItem[]        @relation("ShopItem_user")
-  channelItems            ChannelItem[]     @relation("ChannelItem_user")
-  apiKeys                 apiKey[]          @relation("apiKey_user")
-  matches                 Match[]           @relation("Match_user")
-  links                   Link[]            @relation("Link_user")
-  trackingDetails         TrackingDetail[]  @relation("TrackingDetail_user")
-  role                    Role?             @relation("User_role", fields: [roleId], references: [id])
-  roleId                  String?           @map("role")
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @default(now())
-  passwordResetToken      String?
-  passwordResetIssuedAt   DateTime?
-  passwordResetRedeemedAt DateTime?
+  id               String            @id @default(cuid())
+  name             String            @default("")
+  email            String            @unique @default("")
+  password         String
+  role             Role?             @relation("User_role", fields: [roleId], references: [id])
+  roleId           String?           @map("role")
+  shops            Shop[]            @relation("Shop_user")
+  channels         Channel[]         @relation("Channel_user")
+  orders           Order[]           @relation("Order_user")
+  lineItems        LineItem[]        @relation("LineItem_user")
+  cartItems        CartItem[]        @relation("CartItem_user")
+  shopItems        ShopItem[]        @relation("ShopItem_user")
+  channelItems     ChannelItem[]     @relation("ChannelItem_user")
+  matches          Match[]           @relation("Match_user")
+  links            Link[]            @relation("Link_user")
+  trackingDetails  TrackingDetail[]  @relation("TrackingDetail_user")
+  shopPlatforms    ShopPlatform[]    @relation("ShopPlatform_user")
+  channelPlatforms ChannelPlatform[] @relation("ChannelPlatform_user")
+  apiKeys          ApiKey[]          @relation("ApiKey_user")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now())
 
   @@index([roleId])
 }
 
-model apiKey {
+model Role {
+  id                     String  @id @default(cuid())
+  name                   String  @default("")
+  canSeeOtherUsers       Boolean @default(false)
+  canEditOtherUsers      Boolean @default(false)
+  canManageUsers         Boolean @default(false)
+  canManageRoles         Boolean @default(false)
+  canAccessDashboard     Boolean @default(false)
+  canSeeOtherShops       Boolean @default(false)
+  canManageShops         Boolean @default(false)
+  canCreateShops         Boolean @default(false)
+  canSeeOtherChannels    Boolean @default(false)
+  canManageChannels      Boolean @default(false)
+  canCreateChannels      Boolean @default(false)
+  canSeeOtherOrders      Boolean @default(false)
+  canManageOrders        Boolean @default(false)
+  canProcessOrders       Boolean @default(false)
+  canSeeOtherMatches     Boolean @default(false)
+  canManageMatches       Boolean @default(false)
+  canCreateMatches       Boolean @default(false)
+  canSeeOtherLinks       Boolean @default(false)
+  canManageLinks         Boolean @default(false)
+  canCreateLinks         Boolean @default(false)
+  canManagePlatforms     Boolean @default(false)
+  canViewPlatformMetrics Boolean @default(false)
+  canManageApiKeys       Boolean @default(false)
+  canCreateApiKeys       Boolean @default(false)
+  canAccessAnalytics     Boolean @default(false)
+  canExportData          Boolean @default(false)
+  canManageWebhooks      Boolean @default(false)
+  assignedTo             User[]  @relation("User_role")
+}
+
+model ApiKey {
   id        String   @id @default(cuid())
-  user      User?    @relation("apiKey_user", fields: [userId], references: [id])
+  user      User?    @relation("ApiKey_user", fields: [userId], references: [id])
   userId    String?  @map("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
@@ -50,28 +80,102 @@ model apiKey {
   @@index([userId])
 }
 
-model Role {
-  id                  String  @id @default(cuid())
-  name                String  @default("")
-  canSeeOtherUsers    Boolean @default(false)
-  canManageUsers      Boolean @default(false)
-  canManageRoles      Boolean @default(false)
-  canSeeOtherOrders   Boolean @default(false)
-  canManageOrders     Boolean @default(false)
-  canSeeOtherShops    Boolean @default(false)
-  canManageShops      Boolean @default(false)
-  canSeeOtherChannels Boolean @default(false)
-  canManageChannels   Boolean @default(false)
-  canSeeOtherMatches  Boolean @default(false)
-  canManageMatches    Boolean @default(false)
-  canSeeOtherLinks    Boolean @default(false)
-  canManageLinks      Boolean @default(false)
-  assignedTo          User[]  @relation("User_role")
+model ShopPlatform {
+  id                             String   @id @default(cuid())
+  name                           String   @default("")
+  appKey                         String   @default("")
+  appSecret                      String   @default("")
+  searchProductsFunction         String   @default("")
+  getProductFunction             String   @default("")
+  searchOrdersFunction           String   @default("")
+  updateProductFunction          String   @default("")
+  createWebhookFunction          String   @default("")
+  oAuthFunction                  String   @default("")
+  oAuthCallbackFunction          String   @default("")
+  createOrderWebhookHandler      String   @default("")
+  cancelOrderWebhookHandler      String   @default("")
+  addTrackingFunction            String   @default("")
+  orderLinkFunction              String   @default("")
+  addCartToPlatformOrderFunction String   @default("")
+  getWebhooksFunction            String   @default("")
+  deleteWebhookFunction          String   @default("")
+  shops                          Shop[]   @relation("Shop_platform")
+  user                           User?    @relation("ShopPlatform_user", fields: [userId], references: [id])
+  userId                         String?  @map("user")
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ChannelPlatform {
+  id                           String    @id @default(cuid())
+  name                         String    @default("")
+  appKey                       String    @default("")
+  appSecret                    String    @default("")
+  searchProductsFunction       String    @default("")
+  getProductFunction           String    @default("")
+  createPurchaseFunction       String    @default("")
+  createWebhookFunction        String    @default("")
+  oAuthFunction                String    @default("")
+  oAuthCallbackFunction        String    @default("")
+  createTrackingWebhookHandler String    @default("")
+  cancelPurchaseWebhookHandler String    @default("")
+  getWebhooksFunction          String    @default("")
+  deleteWebhookFunction        String    @default("")
+  channels                     Channel[] @relation("Channel_platform")
+  user                         User?     @relation("ChannelPlatform_user", fields: [userId], references: [id])
+  userId                       String?   @map("user")
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Shop {
+  id          String        @id @default(cuid())
+  name        String        @default("")
+  domain      String        @default("")
+  accessToken String        @default("")
+  linkMode    String?       @default("sequential")
+  metadata    Json?         @default("{}")
+  platform    ShopPlatform? @relation("Shop_platform", fields: [platformId], references: [id])
+  platformId  String?       @map("platform")
+  user        User?         @relation("Shop_user", fields: [userId], references: [id])
+  userId      String?       @map("user")
+  links       Link[]        @relation("Link_shop")
+  orders      Order[]       @relation("Order_shop")
+  shopItems   ShopItem[]    @relation("ShopItem_shop")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+
+  @@index([platformId])
+  @@index([userId])
+}
+
+model Channel {
+  id           String           @id @default(cuid())
+  name         String           @default("")
+  domain       String           @default("")
+  accessToken  String           @default("")
+  metadata     Json?            @default("{}")
+  platform     ChannelPlatform? @relation("Channel_platform", fields: [platformId], references: [id])
+  platformId   String?          @map("platform")
+  user         User?            @relation("Channel_user", fields: [userId], references: [id])
+  userId       String?          @map("user")
+  links        Link[]           @relation("Link_channel")
+  channelItems ChannelItem[]    @relation("ChannelItem_channel")
+  cartItems    CartItem[]       @relation("CartItem_channel")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now())
+
+  @@index([platformId])
+  @@index([userId])
 }
 
 model Order {
   id             String     @id @default(cuid())
-  orderId        String     @default("")
+  orderId        String     @unique @default("")
   orderName      String     @default("")
   email          String     @default("")
   firstName      String     @default("")
@@ -81,45 +185,29 @@ model Order {
   city           String     @default("")
   state          String     @default("")
   zip            String     @default("")
-  currency       String     @default("")
-  totalPrice     String     @default("")
-  subTotalPrice  String     @default("")
-  totalDiscount  String     @default("")
-  totalTax       String     @default("")
-  phoneNumber    String     @default("")
-  note           String     @default("")
-  shippingMethod Json?
   country        String     @default("")
-  orderError     String     @default("")
-  status         String     @default("")
-  locationId     Float?
-  user           User?      @relation("Order_user", fields: [userId], references: [id])
-  userId         String?    @map("user")
+  phone          String     @default("")
+  currency       String     @default("")
+  totalPrice     Float?
+  subTotalPrice  Float?
+  totalDiscounts Float?
+  totalTax       Float?
+  linkOrder      Boolean    @default(true)
+  matchOrder     Boolean    @default(true)
+  processOrder   Boolean    @default(true)
+  status         String     @default("PENDING")
+  error          String     @default("")
+  orderMetadata  Json?
   shop           Shop?      @relation("Order_shop", fields: [shopId], references: [id])
   shopId         String?    @map("shop")
   lineItems      LineItem[] @relation("LineItem_order")
   cartItems      CartItem[] @relation("CartItem_order")
-  linkOrder      Boolean    @default(false)
-  matchOrder     Boolean    @default(false)
-  processOrder   Boolean    @default(false)
+  user           User?      @relation("Order_user", fields: [userId], references: [id])
+  userId         String?    @map("user")
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @default(now())
 
-  @@index([userId])
   @@index([shopId])
-}
-
-model TrackingDetail {
-  id              String     @id @default(cuid())
-  trackingCompany String     @default("")
-  trackingNumber  String     @default("")
-  purchaseId      String     @default("")
-  cartItems       CartItem[] @relation("CartItem_trackingDetails")
-  user            User?      @relation("TrackingDetail_user", fields: [userId], references: [id])
-  userId          String?    @map("user")
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @default(now())
-
   @@index([userId])
 }
 
@@ -127,7 +215,7 @@ model LineItem {
   id         String   @id @default(cuid())
   name       String   @default("")
   image      String   @default("")
-  price      String   @default("")
+  price      Float?
   quantity   Int?
   productId  String   @default("")
   variantId  String   @default("")
@@ -152,68 +240,43 @@ model CartItem {
   quantity        Int?
   productId       String           @default("")
   variantId       String           @default("")
-  lineItemId      String           @default("")
   sku             String           @default("")
+  lineItemId      String           @default("")
   url             String           @default("")
   error           String           @default("")
   purchaseId      String           @default("")
-  status          String           @default("")
+  status          String           @default("PENDING")
   order           Order?           @relation("CartItem_order", fields: [orderId], references: [id])
   orderId         String?          @map("order")
+  channel         Channel?         @relation("CartItem_channel", fields: [channelId], references: [id])
+  channelId       String?          @map("channel")
   trackingDetails TrackingDetail[] @relation("CartItem_trackingDetails")
   user            User?            @relation("CartItem_user", fields: [userId], references: [id])
   userId          String?          @map("user")
-  channel         Channel?         @relation("CartItem_channel", fields: [channelId], references: [id])
-  channelId       String?          @map("channel")
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @default(now())
 
   @@index([orderId])
-  @@index([userId])
   @@index([channelId])
-}
-
-model Channel {
-  id           String           @id @default(cuid())
-  name         String           @default("")
-  domain       String           @default("")
-  accessToken  String           @default("")
-  links        Link[]           @relation("Link_channel")
-  platform     ChannelPlatform? @relation("Channel_platform", fields: [platformId], references: [id])
-  platformId   String?          @map("platform")
-  channelItems ChannelItem[]    @relation("ChannelItem_channel")
-  cartItems    CartItem[]       @relation("CartItem_channel")
-  metadata     Json?
-  user         User?            @relation("Channel_user", fields: [userId], references: [id])
-  userId       String?          @map("user")
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @default(now())
-
-  @@index([platformId])
   @@index([userId])
 }
 
-model ChannelPlatform {
-  id                           String    @id @default(cuid())
-  name                         String    @default("")
-  appKey                       String    @default("")
-  appSecret                    String    @default("")
-  createPurchaseFunction       String    @default("")
-  searchProductsFunction       String    @default("")
-  getProductFunction           String    @default("")
-  getWebhooksFunction          String    @default("")
-  deleteWebhookFunction        String    @default("")
-  createWebhookFunction        String    @default("")
-  cancelPurchaseWebhookHandler String    @default("")
-  createTrackingWebhookHandler String    @default("")
-  oAuthFunction                String    @default("")
-  oAuthCallbackFunction        String    @default("")
-  channels                     Channel[] @relation("Channel_platform")
-  user                         User?     @relation("ChannelPlatform_user", fields: [userId], references: [id])
-  userId                       String?   @map("user")
-  createdAt                    DateTime  @default(now())
-  updatedAt                    DateTime  @default(now())
+model ShopItem {
+  id         String   @id @default(cuid())
+  quantity   Int?
+  productId  String   @default("")
+  variantId  String   @default("")
+  lineItemId String   @default("")
+  matches    Match[]  @relation("Match_input")
+  shop       Shop?    @relation("ShopItem_shop", fields: [shopId], references: [id])
+  shopId     String?  @map("shop")
+  user       User?    @relation("ShopItem_user", fields: [userId], references: [id])
+  userId     String?  @map("user")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
 
+  @@unique([quantity, productId, variantId, shopId, userId])
+  @@index([shopId])
   @@index([userId])
 }
 
@@ -237,74 +300,6 @@ model ChannelItem {
   @@index([userId])
 }
 
-model Shop {
-  id          String            @id @default(cuid())
-  name        String            @default("")
-  domain      String            @default("")
-  accessToken String            @default("")
-  linkMode    ShopLinkModeType? @default(sequential)
-  links       Link[]            @relation("Link_shop")
-  platform    ShopPlatform?     @relation("Shop_platform", fields: [platformId], references: [id])
-  platformId  String?           @map("platform")
-  orders      Order[]           @relation("Order_shop")
-  shopItems   ShopItem[]        @relation("ShopItem_shop")
-  metadata    Json?
-  user        User?             @relation("Shop_user", fields: [userId], references: [id])
-  userId      String?           @map("user")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @default(now())
-
-  @@index([platformId])
-  @@index([userId])
-}
-
-model ShopPlatform {
-  id                             String   @id @default(cuid())
-  name                           String   @default("")
-  appKey                         String   @default("")
-  appSecret                      String   @default("")
-  orderLinkFunction              String   @default("")
-  updateProductFunction          String   @default("")
-  getWebhooksFunction            String   @default("")
-  deleteWebhookFunction          String   @default("")
-  createWebhookFunction          String   @default("")
-  searchProductsFunction         String   @default("")
-  getProductFunction             String   @default("")
-  searchOrdersFunction           String   @default("")
-  addTrackingFunction            String   @default("")
-  addCartToPlatformOrderFunction String   @default("")
-  cancelOrderWebhookHandler      String   @default("")
-  createOrderWebhookHandler      String   @default("")
-  oAuthFunction                  String   @default("")
-  oAuthCallbackFunction          String   @default("")
-  shops                          Shop[]   @relation("Shop_platform")
-  user                           User?    @relation("ShopPlatform_user", fields: [userId], references: [id])
-  userId                         String?  @map("user")
-  createdAt                      DateTime @default(now())
-  updatedAt                      DateTime @default(now())
-
-  @@index([userId])
-}
-
-model ShopItem {
-  id         String   @id @default(cuid())
-  quantity   Int?
-  productId  String   @default("")
-  variantId  String   @default("")
-  lineItemId String   @default("")
-  matches    Match[]  @relation("Match_input")
-  shop       Shop?    @relation("ShopItem_shop", fields: [shopId], references: [id])
-  shopId     String?  @map("shop")
-  user       User?    @relation("ShopItem_user", fields: [userId], references: [id])
-  userId     String?  @map("user")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-
-  @@unique([quantity, productId, variantId, shopId, userId])
-  @@index([shopId])
-  @@index([userId])
-}
-
 model Match {
   id        String        @id @default(cuid())
   input     ShopItem[]    @relation("Match_input")
@@ -319,13 +314,13 @@ model Match {
 
 model Link {
   id          String   @id @default(cuid())
+  rank        Int?     @default(1)
+  filters     Json?    @default("[]")
+  customWhere Json?    @default("{}")
   shop        Shop?    @relation("Link_shop", fields: [shopId], references: [id])
   shopId      String?  @map("shop")
   channel     Channel? @relation("Link_channel", fields: [channelId], references: [id])
   channelId   String?  @map("channel")
-  rank        Int?
-  filters     Json?
-  customWhere Json?
   user        User?    @relation("Link_user", fields: [userId], references: [id])
   userId      String?  @map("user")
   createdAt   DateTime @default(now())
@@ -336,7 +331,16 @@ model Link {
   @@index([userId])
 }
 
-enum ShopLinkModeType {
-  sequential
-  simultaneous
+model TrackingDetail {
+  id              String     @id @default(cuid())
+  trackingCompany String     @default("")
+  trackingNumber  String     @default("")
+  purchaseId      String     @default("")
+  cartItems       CartItem[] @relation("CartItem_trackingDetails")
+  user            User?      @relation("TrackingDetail_user", fields: [userId], references: [id])
+  userId          String?    @map("user")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @default(now())
+
+  @@index([userId])
 }

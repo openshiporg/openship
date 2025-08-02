@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rg:*)",
+      "Bash(/Users/junaid/.nvm/versions/node/v20.9.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg -o \"from [''\"\"]([^''\"\"]+)[''\"\"]|require\\([''\"\"]([^''\"\"]+)[''\"\"]\\)\" -r '$1$2' -g '*.ts' -g '*.tsx' -g '*.js' -g '*.jsx')",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run generate-views-index:*)",
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "mcp__github__search_repositories",
+      "mcp__github__get_file_contents",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git branch:*)",
+      "mcp__github__search_code",
+      "Bash(curl:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(cp:*)",
+      "Bash(touch:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(sed:*)",
+      "Bash(npx tsx:*)",
+      "WebFetch(domain:www.anthropic.com)",
+      "Bash(npm run test:run:*)",
+      "Bash(chmod:*)",
+      "Bash(npm run test:webhooks:*)",
+      "WebFetch(domain:shopify.dev)",
+      "Bash(mv:*)",
+      "WebFetch(domain:originui.com)",
+      "Bash(true)",
+      "Bash(git stash:*)",
+      "Bash(git clone:*)"
+    ],
+    "deny": [],
+    "additionalDirectories": [
+      "/Users/junaid/openship"
+    ]
+  }
+}
