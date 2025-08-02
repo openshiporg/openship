@@ -1,4 +1,4 @@
-// Channel types for OpenShip
+// Channel types for Openship
 export interface Channel {
   id: string;
   name: string;

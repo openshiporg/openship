@@ -1,8 +1,8 @@
-# OpenShip 4 Integration System
+# Openship 4 Integration System
 
 ## Overview
 
-OpenShip 4 uses a sophisticated adapter-based integration system that allows connecting to various shops (order sources) and channels (fulfillment providers) through standardized function interfaces. This system enables order orchestration across multiple platforms while maintaining consistent APIs and workflows.
+Openship 4 uses a sophisticated adapter-based integration system that allows connecting to various shops (order sources) and channels (fulfillment providers) through standardized function interfaces. This system enables order orchestration across multiple platforms while maintaining consistent APIs and workflows.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Each ShopPlatform must implement these standardized functions:
 
 ### Shopify Shop Integration
 
-OpenShip 4 includes a complete Shopify shop integration:
+Openship 4 includes a complete Shopify shop integration:
 
 #### Function Implementations
 ```typescript
@@ -80,7 +80,7 @@ export async function searchProductsFunction({ platform, searchEntry, after }) {
 // Order search with comprehensive data
 export async function searchOrdersFunction({ platform, searchEntry, after }) {
   // GraphQL query for orders with line items and shipping
-  // Returns formatted order data for OpenShip processing
+  // Returns formatted order data for Openship processing
 }
 
 // Product inventory and price updates
@@ -92,7 +92,7 @@ export async function updateProductFunction({ platform, productId, variantId, in
 // Webhook management
 export async function createWebhookFunction({ platform, endpoint, events }) {
   // Creates Shopify webhook subscriptions
-  // Maps OpenShip events to Shopify topics
+  // Maps Openship events to Shopify topics
 }
 ```
 
@@ -101,14 +101,14 @@ export async function createWebhookFunction({ platform, endpoint, events }) {
 // New order webhook handler
 export async function createOrderWebhookHandler({ platform, event, headers }) {
   // Verifies webhook authenticity
-  // Formats order data for OpenShip Order creation
+  // Formats order data for Openship Order creation
   // Returns Keystone-ready order object
 }
 
 // Order cancellation webhook handler
 export async function cancelOrderWebhookHandler({ platform, event, headers }) {
   // Processes order cancellation events
-  // Updates order status in OpenShip
+  // Updates order status in Openship
 }
 ```
 
@@ -152,7 +152,7 @@ Each ChannelPlatform must implement these standardized functions:
 
 ### Shopify Channel Integration
 
-OpenShip 4 includes a Shopify channel integration for fulfillment:
+Openship 4 includes a Shopify channel integration for fulfillment:
 
 #### Function Implementations
 ```typescript
@@ -267,14 +267,14 @@ export async function createTrackingWebhookHandler({ platform, event, headers })
 ### Webhook Flow
 
 1. **Registration**: Platforms register webhooks with external services
-2. **Reception**: OpenShip receives webhook events at API endpoints
+2. **Reception**: Openship receives webhook events at API endpoints
 3. **Verification**: Webhook signatures verified using platform-specific methods
 4. **Processing**: Events processed through platform webhook handlers
-5. **Integration**: Results integrated into OpenShip data models
+5. **Integration**: Results integrated into Openship data models
 
 ### Webhook Endpoints
 
-OpenShip provides standardized webhook endpoints:
+Openship provides standardized webhook endpoints:
 
 - `/api/handlers/shop/create-order/{shopId}` - New order from shop
 - `/api/handlers/shop/cancel-order/{shopId}` - Order cancellation from shop
@@ -283,7 +283,7 @@ OpenShip provides standardized webhook endpoints:
 
 ### Event Mapping
 
-OpenShip events map to platform-specific webhook topics:
+Openship events map to platform-specific webhook topics:
 
 #### Shop Events
 - `ORDER_CREATED` → Shopify: `ORDERS_CREATE`
@@ -354,7 +354,7 @@ Create ShopPlatform or ChannelPlatform record with function mappings.
 - Include comprehensive logging
 
 #### Data Transformation
-- Normalize external data to OpenShip formats
+- Normalize external data to Openship formats
 - Handle missing or optional fields appropriately
 - Maintain data integrity across transformations
 - Preserve original data in metadata when possible
@@ -415,7 +415,7 @@ Test complete workflows from order creation to fulfillment:
 describe('Order Orchestration', () => {
   it('should process order from shop to channel', async () => {
     // 1. Create order in shop
-    // 2. Verify order imported to OpenShip
+    // 2. Verify order imported to Openship
     // 3. Match products to channel
     // 4. Create purchase in channel
     // 5. Verify fulfillment tracking
@@ -460,4 +460,4 @@ describe('Order Orchestration', () => {
 - Webhook processing delays
 - Rate limit threshold alerts
 
-This integration system provides a flexible, scalable foundation for connecting OpenShip to any external platform while maintaining consistency and reliability across all integrations.
+This integration system provides a flexible, scalable foundation for connecting Openship to any external platform while maintaining consistency and reliability across all integrations.

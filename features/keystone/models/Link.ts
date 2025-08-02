@@ -39,7 +39,7 @@ export const Link = list({
         return resolvedData;
       },
     },
-    // TODO: Add auto-ranking logic from OpenShip
+    // TODO: Add auto-ranking logic from Openship
     // afterOperation: async ({ operation, item, context }) => {
     //   // Auto-assign rank based on existing links
     // },

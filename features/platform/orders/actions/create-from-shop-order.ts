@@ -72,7 +72,7 @@ export async function createOrderFromShopOrder(shopOrderData: ShopOrderData) {
     console.log("=== Creating order from shop order ===");
     console.log("Input shopOrderData:", JSON.stringify(shopOrderData, null, 2));
     
-    // Build the order data exactly like the old OpenShip code
+    // Build the order data exactly like the old Openship code
     const orderData: any = {
       orderId: shopOrderData.orderId,
       orderName: shopOrderData.orderName,
@@ -100,7 +100,7 @@ export async function createOrderFromShopOrder(shopOrderData: ShopOrderData) {
       }
     };
 
-    // Add line items using nested create (EXACT copy from old OpenShip)
+    // Add line items using nested create (EXACT copy from old Openship)
     if (shopOrderData.lineItems && shopOrderData.lineItems.length > 0) {
       orderData.lineItems = {
         create: shopOrderData.lineItems.map((item) => ({
@@ -119,7 +119,7 @@ export async function createOrderFromShopOrder(shopOrderData: ShopOrderData) {
       console.log("No line items provided for order creation");
     }
 
-    // Add cart items using nested create (EXACT copy from old OpenShip)
+    // Add cart items using nested create (EXACT copy from old Openship)
     if (shopOrderData.cartItems && shopOrderData.cartItems.length > 0) {
       orderData.cartItems = {
         create: shopOrderData.cartItems.map((item) => ({
@@ -138,7 +138,7 @@ export async function createOrderFromShopOrder(shopOrderData: ShopOrderData) {
     // Log the final order data being sent to the mutation
     console.log("Final orderData being sent to mutation:", JSON.stringify(orderData, null, 2));
 
-    // Create the order with all nested items in one mutation (like old OpenShip)
+    // Create the order with all nested items in one mutation (like old Openship)
     const createOrderMutation = `
       mutation CreateOrder($data: OrderCreateInput!) {
         createOrder(data: $data) {

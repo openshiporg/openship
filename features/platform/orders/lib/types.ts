@@ -1,4 +1,4 @@
-// Basic OpenShip order types
+// Basic Openship order types
 export interface Order {
   id: string;
   orderId: string;

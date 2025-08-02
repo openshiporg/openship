@@ -251,7 +251,7 @@ const platformSpecificInstructions = `
 
 OPENSHIP ORDER ROUTING PLATFORM EXPERTISE:
 
-You're working with OpenShip, an order routing platform that connects sales channels (shops) to fulfillment partners (channels). When users request order routing operations, follow these platform-specific patterns:
+You're working with Openship, an order routing platform that connects sales channels (shops) to fulfillment partners (channels). When users request order routing operations, follow these platform-specific patterns:
 
 CORE CONCEPTS UNDERSTANDING:
 - **Shops**: Where you sell (Shopify, WooCommerce, Amazon, eBay, custom platforms)
@@ -333,7 +333,7 @@ When creating platforms with custom HTTP endpoints, they must implement:
 - POST /webhook/tracking-created: Handle fulfillment notifications
 
 WEBHOOK MANAGEMENT:
-- Shops send webhooks when orders created/cancelled → triggers OpenShip processing
+- Shops send webhooks when orders created/cancelled → triggers Openship processing
 - Channels send webhooks when purchases fulfilled/cancelled → updates order tracking
 - Use createShopWebhook/createChannelWebhook mutations to set up webhooks
 
@@ -369,7 +369,7 @@ MUTATION EXAMPLES:
 - "Link stores" → createLink between shop and channel
 - "Process pending orders" → placeOrders mutation
 
-This ensures all order routing operations follow OpenShip's established patterns for connecting sales channels to fulfillment partners.`;
+This ensures all order routing operations follow Openship's established patterns for connecting sales channels to fulfillment partners.`;
 
     const streamTextConfig: any = {
       model: openrouter(model),

@@ -1,4 +1,4 @@
-// Shop types for OpenShip
+// Shop types for Openship
 export interface Shop {
   id: string;
   name: string;

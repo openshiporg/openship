@@ -8,7 +8,7 @@ import { writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-// EXACT COPY from OpenShip utils converted to TypeScript
+// EXACT COPY from Openship utils converted to TypeScript
 function humanize(str: string): string {
   return str.replace(/[A-Z]/g, (match, index) => (index === 0 ? '' : ' ') + match.toLowerCase()).replace(/^./, (s) => s.toUpperCase());
 }

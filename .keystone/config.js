@@ -4372,7 +4372,7 @@ var Match = (0, import_core14.list)({
         return resolvedData;
       }
     }
-    // TODO: Add complex match validation hooks from OpenShip
+    // TODO: Add complex match validation hooks from Openship
     // beforeOperation: async ({ operation, resolvedData, context }) => {
     //   // Ensure items exist before creating matches
     // },
@@ -4495,7 +4495,7 @@ var Link = (0, import_core16.list)({
         return resolvedData;
       }
     }
-    // TODO: Add auto-ranking logic from OpenShip
+    // TODO: Add auto-ranking logic from Openship
     // afterOperation: async ({ operation, item, context }) => {
     //   // Auto-assign rank based on existing links
     // },

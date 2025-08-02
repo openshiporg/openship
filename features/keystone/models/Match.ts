@@ -33,7 +33,7 @@ export const Match = list({
         return resolvedData;
       },
     },
-    // TODO: Add complex match validation hooks from OpenShip
+    // TODO: Add complex match validation hooks from Openship
     // beforeOperation: async ({ operation, resolvedData, context }) => {
     //   // Ensure items exist before creating matches
     // },

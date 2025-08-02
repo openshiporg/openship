@@ -1,8 +1,8 @@
-# OpenShip 4 Platform Architecture
+# Openship 4 Platform Architecture
 
 ## Overview
 
-OpenShip 4 is a Next.js 15 + KeystoneJS 6 order orchestration platform that connects shops (order sources) with channels (fulfillment providers) through an intelligent matching and routing system. The platform uses a two-tier architecture where platforms define integration capabilities and shops/channels are instances of those platforms.
+Openship 4 is a Next.js 15 + KeystoneJS 6 order orchestration platform that connects shops (order sources) with channels (fulfillment providers) through an intelligent matching and routing system. The platform uses a two-tier architecture where platforms define integration capabilities and shops/channels are instances of those platforms.
 
 ## Core Concepts
 

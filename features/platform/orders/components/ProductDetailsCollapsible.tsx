@@ -388,7 +388,7 @@ export const ProductDetailsCollapsible = ({
                     </div>
                   </div>
 
-                  {/* Action buttons - Updated to match original OpenShip structure */}
+                  {/* Action buttons - Updated to match original Openship structure */}
                   <div className="flex flex-wrap sm:flex-col justify-between sm:items-end gap-2">
                     {/* Error badges and edit button */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -491,7 +491,7 @@ export const ProductDetailsCollapsible = ({
                       </DropdownMenu>
                     </div>
                     
-                    {/* Purchase ID button - separate div at bottom like original OpenShip */}
+                    {/* Purchase ID button - separate div at bottom like original Openship */}
                     {isCartItem && item.purchaseId && (
                       <div>
                         <Button

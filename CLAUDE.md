@@ -1,12 +1,12 @@
-# OpenShip 4 - AI Assistant Guide
+# Openship 4 - AI Assistant Guide
 
 ## Overview
 
-OpenShip 4 is a Next.js 15 + KeystoneJS 6 order orchestration platform that connects shops (order sources) with channels (fulfillment providers) through intelligent matching and routing. This is the main codebase for the OpenShip 4 application.
+Openship 4 is a Next.js 15 + KeystoneJS 6 order orchestration platform that connects shops (order sources) with channels (fulfillment providers) through intelligent matching and routing. This is the main codebase for the Openship 4 application.
 
 ## Platform Understanding
 
-For comprehensive technical details about the OpenShip 4 platform architecture, schema, and features, refer to:
+For comprehensive technical details about the Openship 4 platform architecture, schema, and features, refer to:
 **`features/platform/PLATFORM.md`**
 
 This platform documentation explains:
@@ -19,7 +19,7 @@ This platform documentation explains:
 
 ## Project Architecture
 
-OpenShip 4 is a complete rewrite providing order orchestration between shops and fulfillment channels.
+Openship 4 is a complete rewrite providing order orchestration between shops and fulfillment channels.
 
 ## Core Concepts
 
@@ -136,7 +136,7 @@ features/
 
 ### AI Assistant Instructions
 
-When working on OpenShip 4:
+When working on Openship 4:
 
 1. **Read Platform Documentation**: Always reference the `features/platform/PLATFORM.md` file for technical details
 2. **Verify Implementation**: Check actual code rather than making assumptions about features
@@ -158,7 +158,7 @@ All data is user-scoped - users only see their own shops, channels, orders, and 
 
 ## Important Notes
 
-- OpenShip 4 is a complete platform rewrite with modern architecture
+- Openship 4 is a complete platform rewrite with modern architecture
 - Uses sophisticated adapter patterns for flexible integrations
 - Provides comprehensive order orchestration capabilities
 - Includes real-time automation and webhook processing

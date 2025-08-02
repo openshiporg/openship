@@ -1,8 +1,8 @@
-# OpenShip 4 Testing Framework
+# Openship 4 Testing Framework
 
 ## Overview
 
-This testing framework provides comprehensive coverage for OpenShip 4's platform features without requiring external services like Shopify or WooCommerce. It uses mock adapters to simulate real platform interactions while testing the complete order processing workflow.
+This testing framework provides comprehensive coverage for Openship 4's platform features without requiring external services like Shopify or WooCommerce. It uses mock adapters to simulate real platform interactions while testing the complete order processing workflow.
 
 ## Quick Start
 

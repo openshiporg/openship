@@ -3,14 +3,14 @@
 /**
  * Example Test Runner
  * 
- * This demonstrates how to run the comprehensive testing suite for OpenShip 4
+ * This demonstrates how to run the comprehensive testing suite for Openship 4
  * platform features. This script can be used for CI/CD or manual testing.
  */
 
 import { execSync } from 'child_process'
 import { existsSync } from 'fs'
 
-console.log('🚀 OpenShip 4 Platform Testing Suite')
+console.log('🚀 Openship 4 Platform Testing Suite')
 console.log('=====================================\n')
 
 // Check prerequisites

@@ -1,8 +1,8 @@
-# 🪝 Webhook Testing Framework for OpenShip 4
+# 🪝 Webhook Testing Framework for Openship 4
 
 ## Overview
 
-This comprehensive webhook testing framework ensures your OpenShip 4 webhook endpoints are secure, reliable, and properly handle all Shopify webhook scenarios without requiring live Shopify setup.
+This comprehensive webhook testing framework ensures your Openship 4 webhook endpoints are secure, reliable, and properly handle all Shopify webhook scenarios without requiring live Shopify setup.
 
 ## 🚨 **CRITICAL SECURITY ISSUE DISCOVERED**
 
