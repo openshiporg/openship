@@ -39,10 +39,21 @@ export const Link = list({
         return resolvedData;
       },
     },
-    // TODO: Add auto-ranking logic from Openship
-    // afterOperation: async ({ operation, item, context }) => {
-    //   // Auto-assign rank based on existing links
-    // },
+    beforeOperation: async ({ operation, resolvedData, context }) => {
+      if (operation === "create") {
+        const shopId = resolvedData.shop.connect.id;
+
+        const existingLinks = await context.query.Link.findMany({
+          where: { shop: { id: { equals: shopId } } },
+        });
+
+        // Calculate the next rank value
+        const nextRank =
+          existingLinks.length > 0 ? existingLinks.length + 1 : 1;
+
+        resolvedData.rank = nextRank;
+      }
+    },
   },
   ui: {
     listView: {
