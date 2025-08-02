@@ -65,7 +65,7 @@ openship/
 
 2. **Configure environment variables:**
    ```bash
-   cp env.example .env
+   cp .env.example .env
    ```
    
    Update `.env` with your configuration:
@@ -153,7 +153,7 @@ openship/
 
 ## Documentation
 
-For comprehensive technical documentation, see the documentation which covers:
+For comprehensive technical documentation, see [docs.openship.org/openship/ecommerce](https://docs.openship.org/openship/ecommerce) which covers:
 - Complete integration guides
 - API reference and operations
 - Custom shop and channel development
@@ -199,7 +199,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Documentation**: Check our comprehensive documentation
+- **Documentation**: Check our comprehensive documentation at [docs.openship.org/openship/ecommerce](https://docs.openship.org/openship/ecommerce)
 - **Issues**: Report bugs and feature requests on GitHub Issues
 - **Community**: Join our community discussions
 - **Enterprise**: Contact us for enterprise support and custom integrations
