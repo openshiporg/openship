@@ -12,27 +12,30 @@ generator client {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  name             String            @default("")
-  email            String            @unique @default("")
-  password         String
-  role             Role?             @relation("User_role", fields: [roleId], references: [id])
-  roleId           String?           @map("role")
-  shops            Shop[]            @relation("Shop_user")
-  channels         Channel[]         @relation("Channel_user")
-  orders           Order[]           @relation("Order_user")
-  lineItems        LineItem[]        @relation("LineItem_user")
-  cartItems        CartItem[]        @relation("CartItem_user")
-  shopItems        ShopItem[]        @relation("ShopItem_user")
-  channelItems     ChannelItem[]     @relation("ChannelItem_user")
-  matches          Match[]           @relation("Match_user")
-  links            Link[]            @relation("Link_user")
-  trackingDetails  TrackingDetail[]  @relation("TrackingDetail_user")
-  shopPlatforms    ShopPlatform[]    @relation("ShopPlatform_user")
-  channelPlatforms ChannelPlatform[] @relation("ChannelPlatform_user")
-  apiKeys          ApiKey[]          @relation("ApiKey_user")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @default(now())
+  id                      String            @id @default(cuid())
+  name                    String            @default("")
+  email                   String            @unique @default("")
+  password                String
+  role                    Role?             @relation("User_role", fields: [roleId], references: [id])
+  roleId                  String?           @map("role")
+  shops                   Shop[]            @relation("Shop_user")
+  channels                Channel[]         @relation("Channel_user")
+  orders                  Order[]           @relation("Order_user")
+  lineItems               LineItem[]        @relation("LineItem_user")
+  cartItems               CartItem[]        @relation("CartItem_user")
+  shopItems               ShopItem[]        @relation("ShopItem_user")
+  channelItems            ChannelItem[]     @relation("ChannelItem_user")
+  matches                 Match[]           @relation("Match_user")
+  links                   Link[]            @relation("Link_user")
+  trackingDetails         TrackingDetail[]  @relation("TrackingDetail_user")
+  shopPlatforms           ShopPlatform[]    @relation("ShopPlatform_user")
+  channelPlatforms        ChannelPlatform[] @relation("ChannelPlatform_user")
+  apiKeys                 ApiKey[]          @relation("ApiKey_user")
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @default(now())
+  passwordResetToken      String?
+  passwordResetIssuedAt   DateTime?
+  passwordResetRedeemedAt DateTime?
 
   @@index([roleId])
 }

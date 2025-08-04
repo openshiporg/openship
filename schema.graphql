@@ -35,6 +35,9 @@ type User {
   apiKeysCount(where: ApiKeyWhereInput! = {}): Int
   createdAt: DateTime
   updatedAt: DateTime
+  passwordResetToken: PasswordState
+  passwordResetIssuedAt: DateTime
+  passwordResetRedeemedAt: DateTime
 }
 
 type PasswordState {
@@ -69,6 +72,9 @@ input UserWhereInput {
   apiKeys: ApiKeyManyRelationFilter
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
+  passwordResetToken: PasswordFilter
+  passwordResetIssuedAt: DateTimeNullableFilter
+  passwordResetRedeemedAt: DateTimeNullableFilter
 }
 
 input IDFilter {
@@ -205,11 +211,28 @@ input DateTimeFilter {
   not: DateTimeFilter
 }
 
+input PasswordFilter {
+  isSet: Boolean!
+}
+
+input DateTimeNullableFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: DateTimeNullableFilter
+}
+
 input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
+  passwordResetIssuedAt: OrderDirection
+  passwordResetRedeemedAt: OrderDirection
 }
 
 enum OrderDirection {
@@ -237,6 +260,9 @@ input UserUpdateInput {
   apiKeys: ApiKeyRelateToManyForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
+  passwordResetToken: String
+  passwordResetIssuedAt: DateTime
+  passwordResetRedeemedAt: DateTime
 }
 
 input RoleRelateToOneForUpdateInput {
@@ -361,6 +387,9 @@ input UserCreateInput {
   apiKeys: ApiKeyRelateToManyForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
+  passwordResetToken: String
+  passwordResetIssuedAt: DateTime
+  passwordResetRedeemedAt: DateTime
 }
 
 input RoleRelateToOneForCreateInput {
@@ -2044,6 +2073,8 @@ type Mutation {
   endSession: Boolean!
   authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
+  sendUserPasswordResetLink(email: String!): Boolean!
+  redeemUserPasswordResetToken(email: String!, token: String!, password: String!): RedeemUserPasswordResetTokenResult
   addToCart(channelId: ID, image: String, name: String, price: String, productId: String, variantId: String, quantity: String, orderId: ID): Order
   placeOrders(ids: [ID!]!): [Order]
   addMatchToCart(orderId: ID!): Order
@@ -2075,6 +2106,17 @@ input CreateInitialUserInput {
   name: String
   email: String
   password: String
+}
+
+type RedeemUserPasswordResetTokenResult {
+  code: PasswordResetRedemptionErrorCode!
+  message: String!
+}
+
+enum PasswordResetRedemptionErrorCode {
+  FAILURE
+  TOKEN_EXPIRED
+  TOKEN_REDEEMED
 }
 
 type Query {
@@ -2125,6 +2167,7 @@ type Query {
   trackingDetailsCount(where: TrackingDetailWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
+  validateUserPasswordResetToken(email: String!, token: String!): ValidateUserPasswordResetTokenResult
   getMatch(input: [ShopItemWhereInput!]): [ChannelItemPlus!]
   getMatchCount(input: [ShopItemWhereInput!]): Int
   redirectToInit: Boolean
@@ -2139,6 +2182,11 @@ type Query {
 }
 
 union AuthenticatedItem = User
+
+type ValidateUserPasswordResetTokenResult {
+  code: PasswordResetRedemptionErrorCode!
+  message: String!
+}
 
 type KeystoneMeta {
   adminMeta: KeystoneAdminMeta!

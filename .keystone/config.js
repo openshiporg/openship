@@ -4361,21 +4361,140 @@ var Match = (0, import_core14.list)({
     }
   },
   hooks: {
-    resolveInput: {
-      create: ({ operation, resolvedData, context }) => {
-        if (!resolvedData.user && context.session?.itemId) {
-          return {
-            ...resolvedData,
-            user: { connect: { id: context.session.itemId } }
-          };
+    resolveInput: async ({ item, resolvedData, operation, context }) => {
+      const { input, output } = resolvedData;
+      const ensureShopItems = async (items) => {
+        const processedItems = [];
+        if (items.create) {
+          for (const item2 of items.create) {
+            let [existingItem] = await context.query.ShopItem.findMany({
+              where: {
+                productId: { equals: item2.productId },
+                variantId: { equals: item2.variantId },
+                quantity: { equals: item2.quantity },
+                shop: { id: { equals: item2.shop.connect.id } },
+                user: {
+                  id: {
+                    equals: item2.user?.connect?.id || context.session?.itemId
+                  }
+                }
+              },
+              query: "id"
+            });
+            if (!existingItem) {
+              existingItem = await context.query.ShopItem.createOne({
+                data: item2,
+                query: "id"
+              });
+            }
+            processedItems.push({ id: existingItem.id });
+          }
         }
-        return resolvedData;
+        return processedItems;
+      };
+      const ensureChannelItems = async (items) => {
+        const processedItems = [];
+        if (items.create) {
+          for (const item2 of items.create) {
+            let [existingItem] = await context.query.ChannelItem.findOne({
+              where: {
+                productId: { equals: item2.productId },
+                variantId: { equals: item2.variantId },
+                quantity: { equals: item2.quantity },
+                channel: { id: { equals: item2.channel.connect.id } },
+                user: {
+                  id: {
+                    equals: item2.user?.connect?.id || context.session?.itemId
+                  }
+                }
+              },
+              query: "id"
+            });
+            if (!existingItem) {
+              existingItem = await context.query.ChannelItem.createOne({
+                data: item2,
+                query: "id"
+              });
+            }
+            processedItems.push({ id: existingItem.id });
+          }
+        }
+        return processedItems;
+      };
+      if (input && input.create) {
+        const processedInput = await ensureShopItems(input);
+        resolvedData.input.connect = [
+          ...resolvedData.input.connect || [],
+          ...processedInput
+        ];
+        delete resolvedData.input.create;
       }
+      if (output && output.create) {
+        const processedOutput = await ensureChannelItems(output);
+        resolvedData.output.connect = [
+          ...resolvedData.output.connect || [],
+          ...processedOutput
+        ];
+        delete resolvedData.output.create;
+      }
+      const checkForDuplicate = async (inputIds) => {
+        const existingMatches = await context.query.Match.findMany({
+          where: {
+            input: {
+              some: { id: { in: inputIds } }
+            }
+          },
+          query: "id input { id }"
+        });
+        return existingMatches.some((match) => {
+          const matchInputIds = match.input.map((item2) => item2.id);
+          return matchInputIds.length === inputIds.length && matchInputIds.every((id) => inputIds.includes(id));
+        });
+      };
+      if (operation === "create") {
+        if (resolvedData.input.connect && resolvedData.input.connect.length > 0) {
+          const inputIds = resolvedData.input.connect.map((item2) => item2.id);
+          const isDuplicate = await checkForDuplicate(inputIds);
+          if (isDuplicate) {
+            throw new Error(
+              "A match with the same input combination already exists."
+            );
+          }
+        }
+      }
+      if (operation === "update") {
+        if (resolvedData.input) {
+          const matchToUpdate = await context.query.Match.findOne({
+            where: { id: item.id },
+            query: `id input { id productId variantId quantity shop { id } }`
+          });
+          const newInputs = resolvedData.input.connect ? await Promise.all(
+            resolvedData.input.connect.map(async (connectItem) => {
+              return await context.query.ShopItem.findOne({
+                where: { id: connectItem.id },
+                query: `id productId variantId quantity shop { id }`
+              });
+            })
+          ) : [];
+          const disconnectedIds = resolvedData.input.disconnect ? resolvedData.input.disconnect.map((item2) => item2.id) : [];
+          const remainingCurrentInputs = matchToUpdate.input.filter(
+            (input2) => !disconnectedIds.includes(input2.id)
+          );
+          const combinedInputs = [...remainingCurrentInputs, ...newInputs];
+          const inputIds = combinedInputs.map((item2) => item2.id);
+          const isDuplicate = await checkForDuplicate(inputIds);
+          if (isDuplicate) {
+            throw new Error(
+              "A match with the same input combination already exists."
+            );
+          }
+        }
+      }
+      if (!resolvedData.user && context.session?.itemId) {
+        resolvedData.user = { connect: { id: context.session.itemId } };
+      }
+      return resolvedData;
     }
-    // TODO: Add complex match validation hooks from Openship
-    // beforeOperation: async ({ operation, resolvedData, context }) => {
-    //   // Ensure items exist before creating matches
-    // },
   },
   ui: {
     listView: {
@@ -4494,11 +4613,17 @@ var Link = (0, import_core16.list)({
         }
         return resolvedData;
       }
+    },
+    beforeOperation: async ({ operation, resolvedData, context }) => {
+      if (operation === "create") {
+        const shopId = resolvedData.shop.connect.id;
+        const existingLinks = await context.query.Link.findMany({
+          where: { shop: { id: { equals: shopId } } }
+        });
+        const nextRank = existingLinks.length > 0 ? existingLinks.length + 1 : 1;
+        resolvedData.rank = nextRank;
+      }
     }
-    // TODO: Add auto-ranking logic from Openship
-    // afterOperation: async ({ operation, item, context }) => {
-    //   // Auto-assign rank based on existing links
-    // },
   },
   ui: {
     listView: {
@@ -5760,6 +5885,72 @@ var extendGraphqlSchema = (baseSchema) => (0, import_schema.mergeSchemas)({
   }
 });
 
+// features/keystone/lib/mail.ts
+var import_nodemailer = require("nodemailer");
+function getBaseUrlForEmails() {
+  if (process.env.SMTP_STORE_LINK) {
+    return process.env.SMTP_STORE_LINK;
+  }
+  console.warn("SMTP_STORE_LINK not set. Please add SMTP_STORE_LINK to your environment variables for email links to work properly.");
+  return "";
+}
+var transport = (0, import_nodemailer.createTransport)({
+  // @ts-ignore
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD
+  }
+});
+function passwordResetEmail({ url }) {
+  const backgroundColor = "#f9f9f9";
+  const textColor = "#444444";
+  const mainBackgroundColor = "#ffffff";
+  const buttonBackgroundColor = "#346df1";
+  const buttonBorderColor = "#346df1";
+  const buttonTextColor = "#ffffff";
+  return `
+    <body style="background: ${backgroundColor};">
+      <table width="100%" border="0" cellspacing="20" cellpadding="0" style="background: ${mainBackgroundColor}; max-width: 600px; margin: auto; border-radius: 10px;">
+        <tr>
+          <td align="center" style="padding: 10px 0px 0px 0px; font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+            Please click below to reset your password
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 20px 0;">
+            <table border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="border-radius: 5px;" bgcolor="${buttonBackgroundColor}"><a href="${url}" target="_blank" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${buttonBorderColor}; display: inline-block; font-weight: bold;">Reset Password</a></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 0px 0px 10px 0px; font-size: 16px; line-height: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+            If you did not request this email you can safely ignore it.
+          </td>
+        </tr>
+      </table>
+    </body>
+  `;
+}
+async function sendPasswordResetEmail(resetToken, to, baseUrl) {
+  const frontendUrl = baseUrl || getBaseUrlForEmails();
+  const info = await transport.sendMail({
+    to,
+    from: process.env.SMTP_FROM,
+    subject: "Your password reset token!",
+    html: passwordResetEmail({
+      url: `${frontendUrl}/dashboard/reset?token=${resetToken}`
+    })
+  });
+  if (process.env.MAIL_USER?.includes("ethereal.email")) {
+    console.log(`\u{1F4E7} Message Sent!  Preview it at ${(0, import_nodemailer.getTestMessageUrl)(info)}`);
+  }
+}
+
 // features/keystone/index.ts
 var databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 var sessionConfig = {
@@ -5806,6 +5997,11 @@ var { withAuth } = (0, import_auth.createAuth)({
           canManageWebhooks: true
         }
       }
+    }
+  },
+  passwordResetLink: {
+    async sendToken(args) {
+      await sendPasswordResetEmail(args.token, args.identity);
     }
   },
   sessionData: `id name email role { id name ${permissionsList.join(" ")} }`
