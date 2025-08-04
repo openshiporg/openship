@@ -146,7 +146,7 @@ export function ResetForm({ mode, token }: ResetFormProps) {
         </Badge>
       )}
       {state.success && (
-        <Badge variant="default" className="hover:bg-emerald-500/20 bg-emerald-500/20 flex text-base items-start gap-2 border border-emerald-500/50 p-4 rounded-sm mt-4">
+        <Badge color="emerald" className="flex text-base items-start gap-2 p-4 rounded-sm mt-4">
           <div className="flex flex-col gap-1">
             <h2 className="uppercase tracking-wider font-semibold text-sm">Success</h2>
             <span className="break-all text-sm opacity-75 font-normal">{state.success}</span>
