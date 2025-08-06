@@ -137,7 +137,7 @@ export const MatchList = ({
           </div>
           {showCreate && !searchString && (
             <Button
-              onClick={() => document.querySelector('[aria-label="Create Match"]')?.click()}
+              onClick={() => (document.querySelector('[aria-label="Create Match"]') as HTMLElement)?.click()}
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Match

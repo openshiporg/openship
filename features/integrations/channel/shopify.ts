@@ -115,16 +115,17 @@ export async function searchProductsFunction({
     }
   `;
 
-  const { productVariants } = await shopifyClient.request(gqlQuery, {
+  const result = await shopifyClient.request(gqlQuery, {
     query: searchEntry,
     after,
-  });
+  }) as any;
+  const { productVariants } = result;
 
   if (productVariants.edges.length < 1) {
     throw new Error("No products found from Shopify channel");
   }
 
-  const products = productVariants.edges.map(({ node, cursor }) => ({
+  const products = productVariants.edges.map(({ node, cursor }: any) => ({
     image:
       node.image?.originalSrc || node.product.images.edges[0]?.node.originalSrc,
     title: `${node.product.title} - ${node.title}`,
@@ -196,9 +197,10 @@ export async function getProductFunction({
   const fullVariantId = `gid://shopify/ProductVariant/${variantId}`;
   console.log("CHANNEL querying with variantId:", fullVariantId);
   
-  const { productVariant } = await shopifyClient.request(gqlQuery, {
+  const variantResult = await shopifyClient.request(gqlQuery, {
     variantId: fullVariantId,
-  });
+  }) as any;
+  const { productVariant } = variantResult;
 
   console.log("CHANNEL productVariant result:", productVariant);
 
@@ -314,10 +316,10 @@ export async function createPurchaseFunction({
     };
   }
 
-  const result = await shopifyClient.request(mutation, { input });
+  const result = await shopifyClient.request(mutation, { input }) as any;
 
   if (result.draftOrderCreate.userErrors.length > 0) {
-    throw new Error(`Failed to create purchase: ${result.draftOrderCreate.userErrors.map(e => e.message).join(', ')}`);
+    throw new Error(`Failed to create purchase: ${result.draftOrderCreate.userErrors.map((e: any) => e.message).join(', ')}`);
   }
 
   const draftOrder = result.draftOrderCreate.draftOrder;
@@ -356,10 +358,10 @@ export async function createPurchaseFunction({
 
   const completeResult = await shopifyClient.request(completeMutation, {
     id: draftOrder.id,
-  });
+  }) as any;
 
   if (completeResult.draftOrderComplete.userErrors.length > 0) {
-    throw new Error(`Failed to complete purchase: ${completeResult.draftOrderComplete.userErrors.map(e => e.message).join(', ')}`);
+    throw new Error(`Failed to complete purchase: ${completeResult.draftOrderComplete.userErrors.map((e: any) => e.message).join(', ')}`);
   }
 
   const order = completeResult.draftOrderComplete.draftOrder.order;
@@ -369,7 +371,7 @@ export async function createPurchaseFunction({
     orderNumber: order.name,
     totalPrice: order.totalPrice,
     invoiceUrl: draftOrder.invoiceUrl,
-    lineItems: order.lineItems.edges.map(({ node }) => ({
+    lineItems: order.lineItems.edges.map(({ node }: any) => ({
       id: node.id.split("/").pop(),
       title: node.title,
       quantity: node.quantity,
@@ -388,7 +390,7 @@ export async function createWebhookFunction({
   endpoint: string;
   events: string[];
 }) {
-  const mapTopic = {
+  const mapTopic: Record<string, string> = {
     ORDER_CREATED: "ORDERS_CREATE",
     ORDER_CANCELLED: "ORDERS_CANCELLED",
     ORDER_CHARGEBACKED: "DISPUTES_CREATE",
@@ -434,7 +436,7 @@ export async function createWebhookFunction({
         callbackUrl: endpoint,
         format: "JSON",
       },
-    });
+    }) as any;
 
     webhooks.push(result.webhookSubscriptionCreate.webhookSubscription);
   }
@@ -472,9 +474,9 @@ export async function deleteWebhookFunction({
 
   const result = await shopifyClient.request(mutation, {
     id: `gid://shopify/WebhookSubscription/${webhookId}`,
-  });
+  }) as any;
 
-  return result.webhookSubscriptionDelete;
+  return (result as any).webhookSubscriptionDelete;
 }
 
 export async function getWebhooksFunction({
@@ -519,12 +521,13 @@ export async function getWebhooksFunction({
     }
   `;
 
-  const { webhookSubscriptions } = await shopifyClient.request(query);
+  const webhooksResult = await shopifyClient.request(query) as any;
+  const { webhookSubscriptions } = webhooksResult;
 
-  const webhooks = webhookSubscriptions.edges.map(({ node }) => ({
+  const webhooks = webhookSubscriptions.edges.map(({ node }: any) => ({
     id: node.id.split("/").pop(),
     callbackUrl: node.endpoint.callbackUrl,
-    topic: mapTopic[node.topic] || node.topic,
+    topic: (mapTopic as any)[node.topic] || node.topic,
     format: node.format,
     createdAt: node.createdAt,
   }));
@@ -605,7 +608,7 @@ export async function createTrackingWebhookHandler({
     trackingNumber: event.tracking_number,
     trackingUrl: event.tracking_url,
     purchaseId: event.order_id?.toString(), // Use order ID as purchaseId
-    lineItems: event.line_items.map((item) => ({
+    lineItems: event.line_items.map((item: any) => ({
       id: item.id,
       title: item.title,
       quantity: item.quantity,

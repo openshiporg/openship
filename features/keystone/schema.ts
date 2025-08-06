@@ -1,6 +1,3 @@
-import type { Session } from './access'
-import type { Lists } from '.keystone/types'
-
 import { 
   User, 
   Role, 
@@ -19,7 +16,7 @@ import {
   TrackingDetail
 } from './models'
 
-export const lists: Lists<Session> = {
+export const lists = {
   // Core Models
   User,
   Role,
@@ -44,4 +41,4 @@ export const lists: Lists<Session> = {
   // Linking & Tracking Models
   Link,
   TrackingDetail,
-} satisfies Lists<Session>
+}

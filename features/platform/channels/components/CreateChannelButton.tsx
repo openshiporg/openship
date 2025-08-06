@@ -17,18 +17,6 @@ export function CreateChannelButton({ platforms }: CreateChannelButtonProps) {
   };
 
   return (
-    <CreateChannel
-      platforms={platforms}
-      onChannelCreated={handleChannelCreated}
-      trigger={
-        <Button
-          variant="default"
-          className="w-9 lg:w-auto relative lg:ps-12 rounded-lg"
-        >
-          <Tv className="h-4 w-4" />
-          <span className="hidden lg:inline">Create Channel</span>
-        </Button>
-      }
-    />
+    <CreateChannel />
   );
 }

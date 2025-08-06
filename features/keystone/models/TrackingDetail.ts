@@ -38,7 +38,7 @@ export const TrackingDetail = list({
         
         // Get tracking detail with related data
         const foundTracking = await sudoContext.query.TrackingDetail.findOne({
-          where: { id: item.id },
+          where: { id: String(item.id) },
           query: `
             id
             trackingNumber

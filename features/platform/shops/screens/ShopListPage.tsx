@@ -71,7 +71,7 @@ export async function ShopListPage({ searchParams }: PageProps) {
   const sortBy = resolvedSearchParams.sortBy as string | undefined;
   const sort = sortBy ? {
     field: sortBy.startsWith("-") ? sortBy.slice(1) : sortBy,
-    direction: sortBy.startsWith("-") ? "DESC" : "ASC"
+    direction: (sortBy.startsWith("-") ? "DESC" : "ASC") as "ASC" | "DESC"
   } : null;
 
   try {
@@ -171,7 +171,7 @@ export async function ShopListPage({ searchParams }: PageProps) {
           </div>
 
           <ShopsPageClient
-            platforms={platforms.map(p => ({
+            platforms={platforms.map((p: any) => ({
               id: p.id,
               name: p.name,
               shopsCount: p.shops?.length || 0
@@ -185,7 +185,7 @@ export async function ShopListPage({ searchParams }: PageProps) {
                 {shops.map((shop: Shop) => (
                   <ShopDetailsComponent 
                     key={shop.id} 
-                    shop={shop} 
+                    shop={shop as any} 
                     shops={shops}
                     channels={channels}
                   />

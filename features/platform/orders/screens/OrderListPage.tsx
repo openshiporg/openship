@@ -93,7 +93,7 @@ export async function OrderListPage({ searchParams }: PageProps) {
   let statusCounts = {"PENDING":0,"all":0,"INPROCESS":0,"AWAITING":0,"BACKORDERED":0,"CANCELLED":0,"COMPLETE":0}
 
   if (statusCountsResponse.success) {
-    statusCounts = statusCountsResponse.data
+    statusCounts = { ...statusCounts, ...statusCountsResponse.data }
   }
 
   return (

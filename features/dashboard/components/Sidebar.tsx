@@ -143,7 +143,7 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={isLinkActive(item.href)}>
                   <Link href={item.href} onClick={() => setOpenMobile(false)}>
-                    <item.icon className="h-4 w-4" />
+                    {item.icon && React.createElement(item.icon, { className: "h-4 w-4" })}
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

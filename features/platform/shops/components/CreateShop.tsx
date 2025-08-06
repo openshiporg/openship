@@ -20,7 +20,13 @@ import {
 import { Fields } from "@/features/dashboard/components/Fields";
 import { getFilteredProps } from "./CreatePlatform";
 
-export function CreateShop() {
+interface CreateShopProps {
+  platforms?: any[];
+  onShopCreated?: () => void;
+  trigger?: React.ReactElement;
+}
+
+export function CreateShop({ platforms, onShopCreated, trigger }: CreateShopProps = {}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
 
@@ -43,6 +49,8 @@ export function CreateShop() {
       setIsDialogOpen(false);
       // Use Next.js router to refresh the page properly
       router.refresh();
+      // Call the callback if provided
+      onShopCreated?.();
     }
   };
 
@@ -66,15 +74,17 @@ export function CreateShop() {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button
-          className={cn(
-            buttonVariants({ size: "icon" }),
-            "lg:px-4 lg:py-2 lg:w-auto rounded-lg"
-          )}
-        >
-          <CirclePlus />
-          <span className="hidden lg:inline">Create Shop</span>
-        </Button>
+        {trigger || (
+          <Button
+            className={cn(
+              buttonVariants({ size: "icon" }),
+              "lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+            )}
+          >
+            <CirclePlus />
+            <span className="hidden lg:inline">Create Shop</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

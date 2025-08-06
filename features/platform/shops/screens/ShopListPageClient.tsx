@@ -200,7 +200,6 @@ export function ShopListPageClient({
               <ShopDetailsComponent 
                 key={shop.id} 
                 shop={shop} 
-                list={list}
                 shops={shops}
                 channels={channels}
               />

@@ -30,9 +30,9 @@ export async function GET(
       }
     `;
 
-    const userResponse = await keystoneContext.withRequest(request, { headers: authHeaders }).graphql.run({
+    const userResponse = await keystoneContext.sudo().withSession({ data: authHeaders }).graphql.run({
       query: userQuery,
-    });
+    }) as any;
 
     const authenticatedUser = userResponse.authenticatedItem;
 
@@ -88,13 +88,13 @@ export async function GET(
   } catch (error) {
     console.error('OAuth callback error:', error);
     return NextResponse.json(
-      { error: 'OAuth callback failed', details: error.message },
+      { error: 'OAuth callback failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
 }
 
-async function upsertChannel({ channelDomain, accessToken, platformId, userId }) {
+async function upsertChannel({ channelDomain, accessToken, platformId, userId }: { channelDomain: string; accessToken: string; platformId: string; userId: string }) {
   // Check if channel already exists
   const existingChannels = await keystoneContext.sudo().query.Channel.findMany({
     where: { domain: { equals: channelDomain } },

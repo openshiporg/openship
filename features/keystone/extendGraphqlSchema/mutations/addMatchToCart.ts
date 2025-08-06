@@ -95,7 +95,7 @@ export async function getMatches({ orderId, context }: { orderId: string; contex
       user: {
         id: { equals: order.user.id },
       },
-      AND: order.lineItems.map(({ productId, variantId, quantity }) => ({
+      AND: order.lineItems.map(({ productId, variantId, quantity }: any) => ({
         input: {
           some: {
             productId: { equals: productId },
@@ -151,7 +151,7 @@ export async function getMatches({ orderId, context }: { orderId: string; contex
   } else {
     if (order.lineItems.length > 1) {
       const output = await Promise.all(
-        order.lineItems.map(async ({ quantity, variantId, productId }) => {
+        order.lineItems.map(async ({ quantity, variantId, productId }: any) => {
           const singleAllMatches = await context.query.Match.findMany({
             where: {
               user: {

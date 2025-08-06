@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Circle, Square, Triangle } from "lucide-react";
 import { ShopCard } from "../components/ShopCard";
-import { PlatformFilterBar } from '@/features/dashboard/components/PlatformFilterBar';
-import type { SortOption } from '@/features/dashboard/components/PlatformFilterBar';
-import { PaginationWrapper } from "@/features/dashboard/components/PaginationWrapper";
+import { PlatformFilterBar } from '@/features/platform/components/PlatformFilterBar';
+// import type { SortOption } from '@/features/platform/components/PlatformFilterBar';
+import { Pagination } from "@/features/dashboard/components/Pagination";
 import { ShopsPageClient } from "../components/ShopsPageClient";
 import { CreateShopButton } from "../components/CreateShopButton";
 
@@ -87,8 +87,8 @@ export async function ShopsListPage({ searchParams }: PageProps) {
   const sortBy = resolvedSearchParams.sortBy as string | undefined;
   const sort = sortBy ? {
     field: sortBy.startsWith("-") ? sortBy.slice(1) : sortBy,
-    direction: sortBy.startsWith("-") ? "DESC" : "ASC"
-  } as SortOption : null;
+    direction: (sortBy.startsWith("-") ? "DESC" : "ASC") as "DESC" | "ASC"
+  } : null;
 
   try {
     // Get list metadata
@@ -179,12 +179,11 @@ export async function ShopsListPage({ searchParams }: PageProps) {
               },
               fields: list.fields
             }}
-            currentSort={sort}
-            createButtonElement={<CreateShopButton platforms={platforms} />}
+            customCreateButton={<CreateShopButton platforms={platforms} />}
           />
 
           <ShopsPageClient 
-            platforms={platforms.map(p => ({ 
+            platforms={platforms.map((p: any) => ({ 
               id: p.id, 
               name: p.name, 
               shopsCount: p.shops?.length || 0 
@@ -225,27 +224,13 @@ export async function ShopsListPage({ searchParams }: PageProps) {
             )}
           </div>
 
-          <PaginationWrapper
+          <Pagination
             currentPage={page}
             total={count}
             pageSize={pageSize}
             list={{
               singular: "shop",
-              plural: "shops",
-              path: "shops",
-              gqlNames: {
-                deleteMutationName: list.gqlNames?.deleteMutationName || '',
-                listQueryName: list.gqlNames?.listQueryName || '',
-                itemQueryName: list.gqlNames?.itemQueryName || '',
-                listQueryCountName: list.gqlNames?.listQueryCountName || '',
-                listOrderName: list.gqlNames?.listOrderName || '',
-                updateMutationName: list.gqlNames?.updateMutationName || '',
-                createMutationName: list.gqlNames?.createMutationName || '',
-                whereInputName: list.gqlNames?.whereInputName || '',
-                whereUniqueInputName: list.gqlNames?.whereUniqueInputName || '',
-                updateInputName: list.gqlNames?.updateInputName || '',
-                createInputName: list.gqlNames?.createInputName || ''
-              }
+              plural: "shops"
             }}
           />
         </div>

@@ -25,16 +25,12 @@ export const ShopPlatform = list({
       description:
         "Adding these fields will enable this platform to be installed as an app by users",
       fields: {
-        appKey: text({
-          isRequired: true,
-        }),
-        appSecret: text({
-          isRequired: true,
-        }),
+        appKey: text({ validation: { isRequired: true } }),
+        appSecret: text({ validation: { isRequired: true } }),
         callbackUrl: virtual({
           field: graphql.field({
             type: graphql.String,
-            resolve: async (item) => {
+            resolve: async (item: any) => {
               const baseUrl = await getBaseUrl();
               return `${baseUrl}/api/oauth/shop/${item.id}/callback`;
             },
@@ -51,49 +47,49 @@ export const ShopPlatform = list({
       description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
         searchProductsFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         getProductFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         searchOrdersFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         updateProductFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         createWebhookFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         oAuthFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         oAuthCallbackFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         createOrderWebhookHandler: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         cancelOrderWebhookHandler: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         addTrackingFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         orderLinkFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
           ui: {
             description: "Function to generate the order link for this platform",
           },
         }),
         addCartToPlatformOrderFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         getWebhooksFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
         deleteWebhookFunction: text({
-          isRequired: true,
+          validation: { isRequired: true },
         }),
       },
     }),

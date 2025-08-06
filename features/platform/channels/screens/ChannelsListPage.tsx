@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Circle, Square, Triangle } from "lucide-react";
 import { ChannelCard } from "../components/ChannelCard";
-import { PlatformFilterBar } from '@/features/dashboard/components/PlatformFilterBar';
-import type { SortOption } from '@/features/dashboard/components/PlatformFilterBar';
-import { PaginationWrapper } from "@/features/dashboard/components/PaginationWrapper";
+// import { PlatformFilterBar } from '@/features/dashboard/components/PlatformFilterBar';
+// import type { SortOption } from '@/features/dashboard/components/PlatformFilterBar';
+import { Pagination } from "@/features/dashboard/components/Pagination";
 import { ChannelsPageClient } from "../components/ChannelsPageClient";
 import { CreateChannelButton } from "../components/CreateChannelButton";
 
@@ -79,7 +79,7 @@ export async function ChannelsListPage({ searchParams }: PageProps) {
   const sort = sortBy ? {
     field: sortBy.startsWith("-") ? sortBy.slice(1) : sortBy,
     direction: sortBy.startsWith("-") ? "DESC" : "ASC"
-  } as SortOption : null;
+  } : null;
 
   try {
     // Get list metadata
@@ -104,7 +104,7 @@ export async function ChannelsListPage({ searchParams }: PageProps) {
       selectedPlatform,
       page,
       pageSize,
-      sort
+      sort as { field: string; direction: "DESC" | "ASC" } | null
     );
 
     let channels: Channel[] = [];
@@ -153,12 +153,12 @@ export async function ChannelsListPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          <PlatformFilterBar
+          {/* <PlatformFilterBar
             list={{
               key: list.key,
               path: list.path,
               label: list.label,
-              singular: list.singular,
+              singular: list.singular,  
               plural: list.plural,
               description: list.description || undefined,
               labelField: list.labelField as string,
@@ -172,10 +172,10 @@ export async function ChannelsListPage({ searchParams }: PageProps) {
             }}
             currentSort={sort}
             createButtonElement={<CreateChannelButton platforms={platforms} />}
-          />
+          /> */}
 
           <ChannelsPageClient 
-            platforms={platforms.map(p => ({ 
+            platforms={platforms.map((p: any) => ({ 
               id: p.id, 
               name: p.name, 
               channelsCount: p.channels?.length || 0 
@@ -216,27 +216,13 @@ export async function ChannelsListPage({ searchParams }: PageProps) {
             )}
           </div>
 
-          <PaginationWrapper
+          <Pagination
             currentPage={page}
             total={count}
             pageSize={pageSize}
             list={{
               singular: "channel",
-              plural: "channels",
-              path: "channels",
-              gqlNames: {
-                deleteMutationName: list.gqlNames?.deleteMutationName || '',
-                listQueryName: list.gqlNames?.listQueryName || '',
-                itemQueryName: list.gqlNames?.itemQueryName || '',
-                listQueryCountName: list.gqlNames?.listQueryCountName || '',
-                listOrderName: list.gqlNames?.listOrderName || '',
-                updateMutationName: list.gqlNames?.updateMutationName || '',
-                createMutationName: list.gqlNames?.createMutationName || '',
-                whereInputName: list.gqlNames?.whereInputName || '',
-                whereUniqueInputName: list.gqlNames?.whereUniqueInputName || '',
-                updateInputName: list.gqlNames?.updateInputName || '',
-                createInputName: list.gqlNames?.createInputName || ''
-              }
+              plural: "channels"
             }}
           />
         </div>

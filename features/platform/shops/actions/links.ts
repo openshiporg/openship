@@ -26,7 +26,7 @@ export async function getChannels(): Promise<ApiResponse> {
       return { success: false, error: response.error };
     }
     
-    const channels = response.channels || response.data?.channels || [];
+    const channels = response.success ? (response.data?.channels || []) : [];
     console.log('EXTRACTED CHANNELS:', JSON.stringify(channels, null, 2));
     
     return { success: true, data: { channels } };
@@ -58,7 +58,7 @@ export async function getShopLinks(shopId: string): Promise<ApiResponse> {
       return { success: false, error: response.error };
     }
     
-    return { success: true, data: { links: response.links || [] } };
+    return { success: true, data: { links: response.success ? (response.data?.links || []) : [] } };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

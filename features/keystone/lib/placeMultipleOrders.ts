@@ -109,7 +109,7 @@ export async function placeMultipleOrders({ ids, query }: { ids: string[]; query
       cartItems,
       platform,
       metadata,
-    } of cartChannels.filter((channel) => channel.cartItems.length > 0)) {
+    } of cartChannels.filter((channel: any) => channel.cartItems.length > 0)) {
       const body = {
         domain,
         accessToken,

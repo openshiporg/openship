@@ -1,4 +1,4 @@
-export async function executeChannelAdapterFunction({ platform, functionName, args }) {
+export async function executeChannelAdapterFunction({ platform, functionName, args }: { platform: any; functionName: string; args: any }) {
   const functionPath = platform[functionName];
 
   if (functionPath.startsWith("http")) {
@@ -29,13 +29,13 @@ export async function executeChannelAdapterFunction({ platform, functionName, ar
     return await fn({ platform, ...args });
   } catch (error) {
     throw new Error(
-      `Error executing ${functionName} for platform ${functionPath}: ${error.message}`
+      `Error executing ${functionName} for platform ${functionPath}: ${(error as Error).message}`
     );
   }
 }
 
 // Helper functions for common channel operations
-export async function searchChannelProducts({ platform, searchEntry, after }) {
+export async function searchChannelProducts({ platform, searchEntry, after }: { platform: any; searchEntry: string; after?: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "searchProductsFunction",
@@ -43,7 +43,7 @@ export async function searchChannelProducts({ platform, searchEntry, after }) {
   });
 }
 
-export async function getChannelProduct({ platform, productId }) {
+export async function getChannelProduct({ platform, productId }: { platform: any; productId: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "getProductFunction",
@@ -51,7 +51,7 @@ export async function getChannelProduct({ platform, productId }) {
   });
 }
 
-export async function createChannelPurchase({ platform, cartItems, shipping, notes }) {
+export async function createChannelPurchase({ platform, cartItems, shipping, notes }: { platform: any; cartItems: any; shipping: any; notes?: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "createPurchaseFunction",
@@ -59,7 +59,7 @@ export async function createChannelPurchase({ platform, cartItems, shipping, not
   });
 }
 
-export async function createChannelWebhook({ platform, endpoint, events }) {
+export async function createChannelWebhook({ platform, endpoint, events }: { platform: any; endpoint: string; events: string[] }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "createWebhookFunction",
@@ -67,7 +67,7 @@ export async function createChannelWebhook({ platform, endpoint, events }) {
   });
 }
 
-export async function deleteChannelWebhook({ platform, webhookId }) {
+export async function deleteChannelWebhook({ platform, webhookId }: { platform: any; webhookId: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "deleteWebhookFunction",
@@ -75,7 +75,7 @@ export async function deleteChannelWebhook({ platform, webhookId }) {
   });
 }
 
-export async function getChannelWebhooks({ platform }) {
+export async function getChannelWebhooks({ platform }: { platform: any }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "getWebhooksFunction",
@@ -83,7 +83,7 @@ export async function getChannelWebhooks({ platform }) {
   });
 }
 
-export async function handleChannelOAuth({ platform, callbackUrl }) {
+export async function handleChannelOAuth({ platform, callbackUrl }: { platform: any; callbackUrl: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "oAuthFunction",
@@ -91,7 +91,7 @@ export async function handleChannelOAuth({ platform, callbackUrl }) {
   });
 }
 
-export async function handleChannelOAuthCallback({ platform, code, shop, state, appKey, appSecret, redirectUri }) {
+export async function handleChannelOAuthCallback({ platform, code, shop, state, appKey, appSecret, redirectUri }: { platform: any; code?: string; shop?: string; state?: string; appKey?: string; appSecret?: string; redirectUri?: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "oAuthCallbackFunction",
@@ -99,7 +99,7 @@ export async function handleChannelOAuthCallback({ platform, code, shop, state, 
   });
 }
 
-export async function handleChannelTrackingWebhook({ platform, event, headers }) {
+export async function handleChannelTrackingWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "createTrackingWebhookHandler",
@@ -107,7 +107,7 @@ export async function handleChannelTrackingWebhook({ platform, event, headers })
   });
 }
 
-export async function handleChannelCancelWebhook({ platform, event, headers }) {
+export async function handleChannelCancelWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "cancelPurchaseWebhookHandler",

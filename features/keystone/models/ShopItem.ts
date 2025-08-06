@@ -34,19 +34,19 @@ export const ShopItem = list({
         type: graphql.object()({
           name: "ShopProduct",
           fields: {
-            image: graphql.field({ type: graphql.String }),
-            title: graphql.field({ type: graphql.String }),
-            productId: graphql.field({ type: graphql.ID }),
-            variantId: graphql.field({ type: graphql.ID }),
-            price: graphql.field({ type: graphql.String }),
-            availableForSale: graphql.field({ type: graphql.Boolean }),
-            productLink: graphql.field({ type: graphql.String }),
-            inventory: graphql.field({ type: graphql.Int }),
-            inventoryTracked: graphql.field({ type: graphql.Boolean }),
-            error: graphql.field({ type: graphql.String }),
+            image: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.image }),
+            title: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.title }),
+            productId: graphql.field({ type: graphql.ID, resolve: (parent: any) => parent.productId }),
+            variantId: graphql.field({ type: graphql.ID, resolve: (parent: any) => parent.variantId }),
+            price: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.price }),
+            availableForSale: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.availableForSale }),
+            productLink: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.productLink }),
+            inventory: graphql.field({ type: graphql.Int, resolve: (parent: any) => parent.inventory }),
+            inventoryTracked: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.inventoryTracked }),
+            error: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.error }),
           },
         }),
-        resolve: async (item, args, context) => {
+        resolve: async (item: any, args: any, context: any): Promise<any> => {
           const shopItem = await context.query.ShopItem.findOne({
             where: { id: item.id },
             query: "shop { id }",

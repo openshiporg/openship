@@ -133,7 +133,7 @@ const RecommendedWebhookItem = ({ webhook, onRefresh, channelId }: {
       console.log("🔥 [CHANNEL WEBHOOK UI] Response received:", response);
 
       if (response.success) {
-        console.log("🔥 [CHANNEL WEBHOOK UI] Success! Webhook created with ID:", response.webhookId);
+        console.log("🔥 [CHANNEL WEBHOOK UI] Success! Webhook created with ID:", (response as any).webhookId);
         toast({
           title: "Webhook enabled successfully",
         });
@@ -249,7 +249,7 @@ export const Webhooks = ({ channelId, channel }: { channelId: string; channel?: 
 
       {/* Disabled/Recommended webhooks */}
       <div className="space-y-3">
-        {recommendedWebhooks.map((webhook) => {
+        {recommendedWebhooks.map((webhook: any) => {
           const fullRecommendedUrl = (typeof window !== 'undefined' ? window.location.origin : '') + webhook.callbackUrl;
           const existingWebhook = webhooks.find(
             (w: any) =>

@@ -24,7 +24,7 @@ export const Match = list({
     resolveInput: async ({ item, resolvedData, operation, context }) => {
       const { input, output } = resolvedData;
 
-      const ensureShopItems = async (items) => {
+      const ensureShopItems = async (items: any) => {
         const processedItems = [];
         if (items.create) {
           for (const item of items.create) {
@@ -56,11 +56,11 @@ export const Match = list({
         return processedItems;
       };
 
-      const ensureChannelItems = async (items) => {
+      const ensureChannelItems = async (items: any) => {
         const processedItems = [];
         if (items.create) {
           for (const item of items.create) {
-            let [existingItem] = await context.query.ChannelItem.findOne({
+            let existingItem = await context.query.ChannelItem.findOne({
               where: {
                 productId: { equals: item.productId },
                 variantId: { equals: item.variantId },
@@ -107,7 +107,7 @@ export const Match = list({
       }
 
       // Check for duplicate matches
-      const checkForDuplicate = async (inputIds) => {
+      const checkForDuplicate = async (inputIds: any) => {
         const existingMatches = await context.query.Match.findMany({
           where: {
             input: {
@@ -118,10 +118,10 @@ export const Match = list({
         });
 
         return existingMatches.some((match) => {
-          const matchInputIds = match.input.map((item) => item.id);
+          const matchInputIds = match.input.map((item: any) => item.id);
           return (
             matchInputIds.length === inputIds.length &&
-            matchInputIds.every((id) => inputIds.includes(id))
+            matchInputIds.every((id: any) => inputIds.includes(id))
           );
         });
       };
@@ -131,7 +131,7 @@ export const Match = list({
           resolvedData.input.connect &&
           resolvedData.input.connect.length > 0
         ) {
-          const inputIds = resolvedData.input.connect.map((item) => item.id);
+          const inputIds = resolvedData.input.connect.map((item: any) => item.id);
           const isDuplicate = await checkForDuplicate(inputIds);
 
           if (isDuplicate) {
@@ -146,13 +146,13 @@ export const Match = list({
         if (resolvedData.input) {
           // Fetch the current state of the match being updated
           const matchToUpdate = await context.query.Match.findOne({
-            where: { id: item.id },
+            where: { id: String(item.id) },
             query: `id input { id productId variantId quantity shop { id } }`,
           });
 
           const newInputs = resolvedData.input.connect
             ? await Promise.all(
-                resolvedData.input.connect.map(async (connectItem) => {
+                resolvedData.input.connect.map(async (connectItem: any) => {
                   return await context.query.ShopItem.findOne({
                     where: { id: connectItem.id },
                     query: `id productId variantId quantity shop { id }`,
@@ -162,11 +162,11 @@ export const Match = list({
             : [];
 
           const disconnectedIds = resolvedData.input.disconnect
-            ? resolvedData.input.disconnect.map((item) => item.id)
+            ? resolvedData.input.disconnect.map((item: any) => item.id)
             : [];
 
           const remainingCurrentInputs = matchToUpdate.input.filter(
-            (input) => !disconnectedIds.includes(input.id)
+            (input: any) => !disconnectedIds.includes(input.id)
           );
 
           const combinedInputs = [...remainingCurrentInputs, ...newInputs];
@@ -214,15 +214,15 @@ export const Match = list({
         type: graphql.object()({
           name: "MatchInventoryData",
           fields: {
-            syncEligible: graphql.field({ type: graphql.Boolean }),
-            sourceQuantity: graphql.field({ type: graphql.Int }),
-            targetQuantity: graphql.field({ type: graphql.Int }),
-            syncNeeded: graphql.field({ type: graphql.Boolean }),
+            syncEligible: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.syncEligible }),
+            sourceQuantity: graphql.field({ type: graphql.Int, resolve: (parent: any) => parent.sourceQuantity }),
+            targetQuantity: graphql.field({ type: graphql.Int, resolve: (parent: any) => parent.targetQuantity }),
+            syncNeeded: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.syncNeeded }),
           },
         }),
         async resolve(item, args, context) {
           const match = await context.query.Match.findOne({
-            where: { id: item.id },
+            where: { id: String(item.id) },
             query: `
               input { quantity externalDetails { inventory } }
               output { quantity externalDetails { inventory } }
@@ -233,6 +233,7 @@ export const Match = list({
             syncEligible: false,
             sourceQuantity: null,
             targetQuantity: null,
+            syncNeeded: false,
           };
 
           if (match?.input?.length === 1 && match?.output?.length === 1) {

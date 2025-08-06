@@ -132,7 +132,7 @@ const RecommendedWebhookItem = ({ webhook, onRefresh, shopId }: {
       console.log("🔥 [WEBHOOK UI] Response received:", response);
 
       if (response.success) {
-        console.log("🔥 [WEBHOOK UI] Success! Webhook created with ID:", response.webhookId);
+        console.log("🔥 [WEBHOOK UI] Success! Webhook created with ID:", response.data?.webhookId);
         toast({
           title: "Webhook enabled successfully",
         });
@@ -247,7 +247,7 @@ export const Webhooks = ({ shopId, shop }: { shopId: string; shop?: any }) => {
 
       {/* Disabled/Recommended webhooks */}
       <div className="space-y-3">
-        {recommendedWebhooks.map((webhook) => {
+        {recommendedWebhooks.map((webhook: any) => {
           const fullRecommendedUrl = (typeof window !== 'undefined' ? window.location.origin : '') + webhook.callbackUrl;
           const existingWebhook = webhooks.find(
             (w: any) =>

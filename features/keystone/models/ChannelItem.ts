@@ -10,26 +10,26 @@ import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 import { getChannelProduct } from "../extendGraphqlSchema/queries";
 
-function mergeData(existingData, newData) {
+function mergeData(existingData: any, newData: any) {
   const updatedData = {};
 
   // Loop through all keys in existingData to create a base for updatedData
   Object.keys(existingData).forEach((key) => {
     // Default to existing data
-    updatedData[key] = existingData[key];
+    (updatedData as any)[key] = existingData[key];
 
     // Check if new data is provided for the key
     if (newData[key] !== undefined) {
       if (typeof newData[key] === "object" && newData[key] !== null) {
         // Handle connect and disconnect for relationships
         if (newData[key].connect) {
-          updatedData[key] = newData[key].connect.id; // Use connected ID
+          (updatedData as any)[key] = newData[key].connect.id; // Use connected ID
         } else if (newData[key].disconnect) {
-          updatedData[key] = null; // Disconnect the relationship
+          (updatedData as any)[key] = null; // Disconnect the relationship
         }
       } else {
         // Directly assign new data if it's not an object or null
-        updatedData[key] = newData[key];
+        (updatedData as any)[key] = newData[key];
       }
     }
   });
@@ -60,7 +60,7 @@ export const ChannelItem = list({
     priceChanged: virtual({
       field: graphql.field({
         type: graphql.String,
-        async resolve(item, args, context) {
+        async resolve(item: any, args: any, context: any) {
           const channelItem = await context.query.ChannelItem.findOne({
             where: { id: item.id },
             query: 'price externalDetails { price }',
@@ -83,19 +83,19 @@ export const ChannelItem = list({
         type: graphql.object()({
           name: "ChannelProduct",
           fields: {
-            image: graphql.field({ type: graphql.String }),
-            title: graphql.field({ type: graphql.String }),
-            productId: graphql.field({ type: graphql.ID }),
-            variantId: graphql.field({ type: graphql.ID }),
-            price: graphql.field({ type: graphql.String }),
-            availableForSale: graphql.field({ type: graphql.Boolean }),
-            productLink: graphql.field({ type: graphql.String }),
-            inventory: graphql.field({ type: graphql.Int }),
-            inventoryTracked: graphql.field({ type: graphql.Boolean }),
-            error: graphql.field({ type: graphql.String }),
+            image: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.image }),
+            title: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.title }),
+            productId: graphql.field({ type: graphql.ID, resolve: (parent: any) => parent.productId }),
+            variantId: graphql.field({ type: graphql.ID, resolve: (parent: any) => parent.variantId }),
+            price: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.price }),
+            availableForSale: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.availableForSale }),
+            productLink: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.productLink }),
+            inventory: graphql.field({ type: graphql.Int, resolve: (parent: any) => parent.inventory }),
+            inventoryTracked: graphql.field({ type: graphql.Boolean, resolve: (parent: any) => parent.inventoryTracked }),
+            error: graphql.field({ type: graphql.String, resolve: (parent: any) => parent.error }),
           },
         }),
-        resolve: async (item, args, context) => {
+        resolve: async (item: any, args: any, context: any): Promise<any> => {
           const channelItem = await context.query.ChannelItem.findOne({
             where: { id: item.id },
             query: "channel { id }",
@@ -106,7 +106,7 @@ export const ChannelItem = list({
             return { error: "Channel not associated or missing." };
           }
 
-          const channelId = channelItem.channel.id;
+          const channelId = String(channelItem.channel.id);
 
           try {
             const product = await getChannelProduct(

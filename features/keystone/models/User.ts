@@ -36,8 +36,8 @@ export const User = list({
     },
   },
   ui: {
-    hideCreate: (args) => !permissions.canManageUsers(args),
-    hideDelete: (args) => !permissions.canManageUsers(args),
+    hideCreate: (args: any) => !permissions.canManageUsers({ session: args.session, context: args.context, listKey: 'User', operation: 'create' }),
+    hideDelete: (args: any) => !permissions.canManageUsers({ session: args.session, context: args.context, listKey: 'User', operation: 'delete' }),
     listView: {
       initialColumns: ["name", "email", "role", "shops", "channels"],
     },
@@ -83,8 +83,8 @@ export const User = list({
       },
       ui: {
         itemView: {
-          fieldMode: (args) =>
-            permissions.canManageUsers(args) ? "edit" : "read",
+          fieldMode: (args: any) =>
+            permissions.canManageUsers({ session: args.session, context: args.context, listKey: 'User', operation: 'update' }) ? "edit" : "read",
         },
       },
     }),

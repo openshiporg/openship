@@ -15,6 +15,26 @@ import { ShopPlatform } from "./ShopPlatform";
 import { ChannelPlatform } from "./ChannelPlatform";
 // Add other imports here if needed
 
+// Export individual models for direct import
+export {
+  User,
+  Role,
+  ApiKey,
+  ShopPlatform,
+  ChannelPlatform,
+  Shop,
+  Channel,
+  Order,
+  LineItem,
+  CartItem,
+  ShopItem,
+  ChannelItem,
+  Match,
+  Link,
+  TrackingDetail
+};
+
+// Also export as models object for compatibility
 export const models = {
   User,
   Role,

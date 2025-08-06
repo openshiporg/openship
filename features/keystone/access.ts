@@ -138,6 +138,9 @@ export const permissions = {
   canCreateChannels: ({ session }: OperationAccessArgs): boolean => 
     Boolean(session?.data.role?.canCreateChannels),
   
+  canUpdateChannels: ({ session }: OperationAccessArgs): boolean => 
+    Boolean(session?.data.role?.canManageChannels),
+  
   // Order Management
   canSeeOtherOrders: ({ session }: OperationAccessArgs): boolean => 
     Boolean(session?.data.role?.canSeeOtherOrders),
@@ -259,6 +262,16 @@ export const rules = {
     return { user: { id: { equals: session.itemId } } }
   },
   
+  canUpdateChannels: ({ session }: FilterAccessArgs) => {
+    if (!session) return false
+    
+    // Admin can update all channels
+    if (session.data.role?.canManageChannels) return true
+    
+    // Users can only update their own channels
+    return { user: { id: { equals: session.itemId } } }
+  },
+  
   // Order Rules
   canReadOrders: ({ session }: FilterAccessArgs) => {
     if (!session) return false
@@ -288,6 +301,16 @@ export const rules = {
     if (session.data.role?.canSeeOtherMatches) return true
     
     // Users can only see their own matches
+    return { user: { id: { equals: session.itemId } } }
+  },
+  
+  canUpdateMatches: ({ session }: FilterAccessArgs) => {
+    if (!session) return false
+    
+    // Admin can manage all matches
+    if (session.data.role?.canManageMatches) return true
+    
+    // Users can only manage their own matches
     return { user: { id: { equals: session.itemId } } }
   },
   

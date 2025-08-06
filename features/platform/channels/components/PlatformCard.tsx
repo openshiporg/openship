@@ -91,19 +91,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, openDrawe
             Actions
           </h2>
           <div className="flex flex-wrap gap-2">
-            <CreateChannel
-              platforms={platforms}
-              onChannelCreated={handleChannelCreated}
-              trigger={
-                <Button
-                  variant="default"
-                  className="h-8 px-3 flex items-center gap-2"
-                >
-                  <Tv className="h-4 w-4" />
-                  <span>Create Channel</span>
-                </Button>
-              }
-            />
+            <CreateChannel />
           </div>
         </div>
       )}

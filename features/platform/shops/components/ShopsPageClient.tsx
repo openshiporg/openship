@@ -21,12 +21,7 @@ interface ShopsPageClientProps {
 export function ShopsPageClient({ platforms, totalCount }: ShopsPageClientProps) {
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [editingPlatformId, setEditingPlatformId] = useState<string | null>(null);
-  const [showCreatePlatform, setShowCreatePlatform] = useState(false);
   const router = useRouter();
-
-  const handleAddPlatform = () => {
-    setShowCreatePlatform(true);
-  };
 
   const handleEditPlatform = (platformId: string) => {
     setEditingPlatformId(platformId);
@@ -36,8 +31,6 @@ export function ShopsPageClient({ platforms, totalCount }: ShopsPageClientProps)
 
   const renderAddButton = () => (
     <CreatePlatform
-      open={showCreatePlatform}
-      onOpenChange={setShowCreatePlatform}
       trigger={
         <div className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -56,7 +49,7 @@ export function ShopsPageClient({ platforms, totalCount }: ShopsPageClientProps)
           count: p.shopsCount || 0 
         }))}
         totalCount={totalCount}
-        onAddPlatform={handleAddPlatform}
+        onAddPlatform={() => {}}
         onEditPlatform={handleEditPlatform}
         renderAddButton={renderAddButton}
       />

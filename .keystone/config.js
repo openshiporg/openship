@@ -88,10 +88,11 @@ async function searchProductsFunction({
       }
     }
   `;
-  const { productVariants } = await shopifyClient.request(gqlQuery, {
+  const result = await shopifyClient.request(gqlQuery, {
     query: searchEntry,
     after
   });
+  const { productVariants } = result;
   if (productVariants.edges.length < 1) {
     throw new Error("No products found from Shopify channel");
   }
@@ -155,9 +156,10 @@ async function getProductFunction({
   `;
   const fullVariantId = `gid://shopify/ProductVariant/${variantId}`;
   console.log("CHANNEL querying with variantId:", fullVariantId);
-  const { productVariant } = await shopifyClient.request(gqlQuery, {
+  const variantResult = await shopifyClient.request(gqlQuery, {
     variantId: fullVariantId
   });
+  const { productVariant } = variantResult;
   console.log("CHANNEL productVariant result:", productVariant);
   if (!productVariant) {
     throw new Error("Product not found from Shopify channel");
@@ -429,7 +431,8 @@ async function getWebhooksFunction({
       }
     }
   `;
-  const { webhookSubscriptions } = await shopifyClient.request(query);
+  const webhooksResult = await shopifyClient.request(query);
+  const { webhookSubscriptions } = webhooksResult;
   const webhooks = webhookSubscriptions.edges.map(({ node }) => ({
     id: node.id.split("/").pop(),
     callbackUrl: node.endpoint.callbackUrl,
@@ -1271,7 +1274,7 @@ async function createOrderWebhookHandler({
         });
         image = result.productVariant?.image?.originalSrc || result.productVariant?.product?.images?.edges?.[0]?.node?.originalSrc || null;
       } catch (error) {
-        console.warn(`Failed to fetch image for variant ${item.variant_id}:`, error.message);
+        console.warn(`Failed to fetch image for variant ${item.variant_id}:`, error instanceof Error ? error.message : "Unknown error");
       }
       return {
         name: item.title,
@@ -1637,6 +1640,7 @@ var permissions = {
   canSeeOtherChannels: ({ session }) => Boolean(session?.data.role?.canSeeOtherChannels),
   canManageChannels: ({ session }) => Boolean(session?.data.role?.canManageChannels),
   canCreateChannels: ({ session }) => Boolean(session?.data.role?.canCreateChannels),
+  canUpdateChannels: ({ session }) => Boolean(session?.data.role?.canManageChannels),
   // Order Management
   canSeeOtherOrders: ({ session }) => Boolean(session?.data.role?.canSeeOtherOrders),
   canManageOrders: ({ session }) => Boolean(session?.data.role?.canManageOrders),
@@ -1695,6 +1699,11 @@ var rules = {
     if (session.data.role?.canManageChannels) return true;
     return { user: { id: { equals: session.itemId } } };
   },
+  canUpdateChannels: ({ session }) => {
+    if (!session) return false;
+    if (session.data.role?.canManageChannels) return true;
+    return { user: { id: { equals: session.itemId } } };
+  },
   // Order Rules
   canReadOrders: ({ session }) => {
     if (!session) return false;
@@ -1710,6 +1719,11 @@ var rules = {
   canReadMatches: ({ session }) => {
     if (!session) return false;
     if (session.data.role?.canSeeOtherMatches) return true;
+    return { user: { id: { equals: session.itemId } } };
+  },
+  canUpdateMatches: ({ session }) => {
+    if (!session) return false;
+    if (session.data.role?.canManageMatches) return true;
     return { user: { id: { equals: session.itemId } } };
   },
   canManageMatches: ({ session }) => {
@@ -1821,8 +1835,8 @@ var User = (0, import_core.list)({
     }
   },
   ui: {
-    hideCreate: (args) => !permissions.canManageUsers(args),
-    hideDelete: (args) => !permissions.canManageUsers(args),
+    hideCreate: (args) => !permissions.canManageUsers({ session: args.session, context: args.context, listKey: "User", operation: "create" }),
+    hideDelete: (args) => !permissions.canManageUsers({ session: args.session, context: args.context, listKey: "User", operation: "delete" }),
     listView: {
       initialColumns: ["name", "email", "role", "shops", "channels"]
     },
@@ -1863,7 +1877,7 @@ var User = (0, import_core.list)({
       },
       ui: {
         itemView: {
-          fieldMode: (args) => permissions.canManageUsers(args) ? "edit" : "read"
+          fieldMode: (args) => permissions.canManageUsers({ session: args.session, context: args.context, listKey: "User", operation: "update" }) ? "edit" : "read"
         }
       }
     }),
@@ -2092,13 +2106,13 @@ var Role = (0, import_core3.list)({
     }
   },
   ui: {
-    hideCreate: (args) => !permissions.canManageRoles(args),
-    hideDelete: (args) => !permissions.canManageRoles(args),
+    hideCreate: (args) => !permissions.canManageRoles({ session: args.session, context: args.context, listKey: "Role", operation: "create" }),
+    hideDelete: (args) => !permissions.canManageRoles({ session: args.session, context: args.context, listKey: "Role", operation: "delete" }),
     listView: {
       initialColumns: ["name", "assignedTo"]
     },
     itemView: {
-      defaultFieldMode: (args) => permissions.canManageRoles(args) ? "edit" : "read"
+      defaultFieldMode: (args) => permissions.canManageRoles({ session: args.session, context: args.context, listKey: "Role", operation: "update" }) ? "edit" : "read"
     }
   },
   fields: {
@@ -2254,7 +2268,7 @@ async function executeShopAdapterFunction2({ platform, functionName, args }) {
     return result;
   } catch (error) {
     throw new Error(
-      `Error executing ${functionName} for platform ${functionPath}: ${error.message}`
+      `Error executing ${functionName} for platform ${functionPath}: ${error?.message || "Unknown error"}`
     );
   }
 }
@@ -3072,7 +3086,7 @@ var TrackingDetail = (0, import_core5.list)({
       if (operation === "create") {
         const sudoContext = context.sudo();
         const foundTracking = await sudoContext.query.TrackingDetail.findOne({
-          where: { id: item.id },
+          where: { id: String(item.id) },
           query: `
             id
             trackingNumber
@@ -3410,7 +3424,7 @@ var Channel = (0, import_core8.list)({
               }
             ];
             const channelWithPlatform = await context.query.Channel.findOne({
-              where: { id: item.id },
+              where: { id: String(item.id) },
               query: "platform { getWebhooksFunction }"
             });
             if (!channelWithPlatform?.platform?.getWebhooksFunction) {
@@ -3440,7 +3454,7 @@ var Channel = (0, import_core8.list)({
             console.error("Error in webhooks virtual field:", error);
             return {
               success: false,
-              error: error.message,
+              error: error instanceof Error ? error.message : "Unknown error",
               recommendedWebhooks: [
                 {
                   callbackUrl: `/api/handlers/channel/cancel-purchase/${item.id}`,
@@ -3704,8 +3718,6 @@ async function searchShopOrders3(root, { shopId, searchEntry, take = 25, skip = 
         ...shop.platform,
         ...platformConfig
       },
-      searchEntry,
-      after,
       ...filterOptions
     });
     return {
@@ -3733,7 +3745,7 @@ async function searchShopOrders3(root, { shopId, searchEntry, take = 25, skip = 
     };
   } catch (error) {
     console.error(`Error searching orders for shop ${shop.id}:`, error);
-    throw new Error(`Failed to search orders from ${shop.platform.name}: ${error.message}`);
+    throw new Error(`Failed to search orders from ${shop.platform.name}: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 var searchShopOrders_default = searchShopOrders3;
@@ -3781,7 +3793,7 @@ async function searchShopProductsQuery(root, { shopId, searchEntry, after }, con
     return result.products;
   } catch (error) {
     console.error("Error searching shop products:", error);
-    throw new Error(`Failed to search products: ${error.message}`);
+    throw new Error(`Failed to search products: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 var searchShopProducts_default = searchShopProductsQuery;
@@ -3977,7 +3989,7 @@ async function getShopProductQuery(root, { shopId, productId, variantId }, conte
     };
   } catch (error) {
     console.error("Error getting shop product:", error);
-    throw new Error(`Failed to get product from ${shop.platform.name}: ${error.message}`);
+    throw new Error(`Failed to get product from ${shop.platform.name}: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 var getShopProduct_default = getShopProductQuery;
@@ -4027,16 +4039,16 @@ var ChannelItem = (0, import_core10.list)({
         type: import_core10.graphql.object()({
           name: "ChannelProduct",
           fields: {
-            image: import_core10.graphql.field({ type: import_core10.graphql.String }),
-            title: import_core10.graphql.field({ type: import_core10.graphql.String }),
-            productId: import_core10.graphql.field({ type: import_core10.graphql.ID }),
-            variantId: import_core10.graphql.field({ type: import_core10.graphql.ID }),
-            price: import_core10.graphql.field({ type: import_core10.graphql.String }),
-            availableForSale: import_core10.graphql.field({ type: import_core10.graphql.Boolean }),
-            productLink: import_core10.graphql.field({ type: import_core10.graphql.String }),
-            inventory: import_core10.graphql.field({ type: import_core10.graphql.Int }),
-            inventoryTracked: import_core10.graphql.field({ type: import_core10.graphql.Boolean }),
-            error: import_core10.graphql.field({ type: import_core10.graphql.String })
+            image: import_core10.graphql.field({ type: import_core10.graphql.String, resolve: (parent) => parent.image }),
+            title: import_core10.graphql.field({ type: import_core10.graphql.String, resolve: (parent) => parent.title }),
+            productId: import_core10.graphql.field({ type: import_core10.graphql.ID, resolve: (parent) => parent.productId }),
+            variantId: import_core10.graphql.field({ type: import_core10.graphql.ID, resolve: (parent) => parent.variantId }),
+            price: import_core10.graphql.field({ type: import_core10.graphql.String, resolve: (parent) => parent.price }),
+            availableForSale: import_core10.graphql.field({ type: import_core10.graphql.Boolean, resolve: (parent) => parent.availableForSale }),
+            productLink: import_core10.graphql.field({ type: import_core10.graphql.String, resolve: (parent) => parent.productLink }),
+            inventory: import_core10.graphql.field({ type: import_core10.graphql.Int, resolve: (parent) => parent.inventory }),
+            inventoryTracked: import_core10.graphql.field({ type: import_core10.graphql.Boolean, resolve: (parent) => parent.inventoryTracked }),
+            error: import_core10.graphql.field({ type: import_core10.graphql.String, resolve: (parent) => parent.error })
           }
         }),
         resolve: async (item, args, context) => {
@@ -4048,7 +4060,7 @@ var ChannelItem = (0, import_core10.list)({
             console.error("Channel not associated or missing.");
             return { error: "Channel not associated or missing." };
           }
-          const channelId = channelItem.channel.id;
+          const channelId = String(channelItem.channel.id);
           try {
             const product = await getChannelProduct_default(
               null,
@@ -4219,7 +4231,7 @@ var Shop = (0, import_core11.list)({
             console.error("Error in webhooks virtual field:", error);
             return {
               success: false,
-              error: error.message,
+              error: error?.message || "Unknown error",
               recommendedWebhooks: [
                 {
                   callbackUrl: `/api/handlers/shop/create-order/${item.id}`,
@@ -4273,16 +4285,16 @@ var ShopItem = (0, import_core13.list)({
         type: import_core13.graphql.object()({
           name: "ShopProduct",
           fields: {
-            image: import_core13.graphql.field({ type: import_core13.graphql.String }),
-            title: import_core13.graphql.field({ type: import_core13.graphql.String }),
-            productId: import_core13.graphql.field({ type: import_core13.graphql.ID }),
-            variantId: import_core13.graphql.field({ type: import_core13.graphql.ID }),
-            price: import_core13.graphql.field({ type: import_core13.graphql.String }),
-            availableForSale: import_core13.graphql.field({ type: import_core13.graphql.Boolean }),
-            productLink: import_core13.graphql.field({ type: import_core13.graphql.String }),
-            inventory: import_core13.graphql.field({ type: import_core13.graphql.Int }),
-            inventoryTracked: import_core13.graphql.field({ type: import_core13.graphql.Boolean }),
-            error: import_core13.graphql.field({ type: import_core13.graphql.String })
+            image: import_core13.graphql.field({ type: import_core13.graphql.String, resolve: (parent) => parent.image }),
+            title: import_core13.graphql.field({ type: import_core13.graphql.String, resolve: (parent) => parent.title }),
+            productId: import_core13.graphql.field({ type: import_core13.graphql.ID, resolve: (parent) => parent.productId }),
+            variantId: import_core13.graphql.field({ type: import_core13.graphql.ID, resolve: (parent) => parent.variantId }),
+            price: import_core13.graphql.field({ type: import_core13.graphql.String, resolve: (parent) => parent.price }),
+            availableForSale: import_core13.graphql.field({ type: import_core13.graphql.Boolean, resolve: (parent) => parent.availableForSale }),
+            productLink: import_core13.graphql.field({ type: import_core13.graphql.String, resolve: (parent) => parent.productLink }),
+            inventory: import_core13.graphql.field({ type: import_core13.graphql.Int, resolve: (parent) => parent.inventory }),
+            inventoryTracked: import_core13.graphql.field({ type: import_core13.graphql.Boolean, resolve: (parent) => parent.inventoryTracked }),
+            error: import_core13.graphql.field({ type: import_core13.graphql.String, resolve: (parent) => parent.error })
           }
         }),
         resolve: async (item, args, context) => {
@@ -4396,7 +4408,7 @@ var Match = (0, import_core14.list)({
         const processedItems = [];
         if (items.create) {
           for (const item2 of items.create) {
-            let [existingItem] = await context.query.ChannelItem.findOne({
+            let existingItem = await context.query.ChannelItem.findOne({
               where: {
                 productId: { equals: item2.productId },
                 variantId: { equals: item2.variantId },
@@ -4465,7 +4477,7 @@ var Match = (0, import_core14.list)({
       if (operation === "update") {
         if (resolvedData.input) {
           const matchToUpdate = await context.query.Match.findOne({
-            where: { id: item.id },
+            where: { id: String(item.id) },
             query: `id input { id productId variantId quantity shop { id } }`
           });
           const newInputs = resolvedData.input.connect ? await Promise.all(
@@ -4520,15 +4532,15 @@ var Match = (0, import_core14.list)({
         type: import_core15.graphql.object()({
           name: "MatchInventoryData",
           fields: {
-            syncEligible: import_core15.graphql.field({ type: import_core15.graphql.Boolean }),
-            sourceQuantity: import_core15.graphql.field({ type: import_core15.graphql.Int }),
-            targetQuantity: import_core15.graphql.field({ type: import_core15.graphql.Int }),
-            syncNeeded: import_core15.graphql.field({ type: import_core15.graphql.Boolean })
+            syncEligible: import_core15.graphql.field({ type: import_core15.graphql.Boolean, resolve: (parent) => parent.syncEligible }),
+            sourceQuantity: import_core15.graphql.field({ type: import_core15.graphql.Int, resolve: (parent) => parent.sourceQuantity }),
+            targetQuantity: import_core15.graphql.field({ type: import_core15.graphql.Int, resolve: (parent) => parent.targetQuantity }),
+            syncNeeded: import_core15.graphql.field({ type: import_core15.graphql.Boolean, resolve: (parent) => parent.syncNeeded })
           }
         }),
         async resolve(item, args, context) {
           const match = await context.query.Match.findOne({
-            where: { id: item.id },
+            where: { id: String(item.id) },
             query: `
               input { quantity externalDetails { inventory } }
               output { quantity externalDetails { inventory } }
@@ -4537,7 +4549,8 @@ var Match = (0, import_core14.list)({
           const result = {
             syncEligible: false,
             sourceQuantity: null,
-            targetQuantity: null
+            targetQuantity: null,
+            syncNeeded: false
           };
           if (match?.input?.length === 1 && match?.output?.length === 1) {
             const input = match.input[0];
@@ -4731,12 +4744,8 @@ var ShopPlatform = (0, import_core18.list)({
       label: "App Credentials",
       description: "Adding these fields will enable this platform to be installed as an app by users",
       fields: {
-        appKey: (0, import_fields17.text)({
-          isRequired: true
-        }),
-        appSecret: (0, import_fields17.text)({
-          isRequired: true
-        }),
+        appKey: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        appSecret: (0, import_fields17.text)({ validation: { isRequired: true } }),
         callbackUrl: (0, import_fields17.virtual)({
           field: import_core18.graphql.field({
             type: import_core18.graphql.String,
@@ -4756,49 +4765,49 @@ var ShopPlatform = (0, import_core18.list)({
       description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
         searchProductsFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         getProductFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         searchOrdersFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         updateProductFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         createWebhookFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         oAuthFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         oAuthCallbackFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         createOrderWebhookHandler: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         cancelOrderWebhookHandler: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         addTrackingFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         orderLinkFunction: (0, import_fields17.text)({
-          isRequired: true,
+          validation: { isRequired: true },
           ui: {
             description: "Function to generate the order link for this platform"
           }
         }),
         addCartToPlatformOrderFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         getWebhooksFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         }),
         deleteWebhookFunction: (0, import_fields17.text)({
-          isRequired: true
+          validation: { isRequired: true }
         })
       }
     }),
@@ -4841,8 +4850,8 @@ var ChannelPlatform = (0, import_core19.list)({
       label: "App Credentials",
       description: "Adding these fields will enable this platform to be installed as an app by users.",
       fields: {
-        appKey: (0, import_fields18.text)({ isRequired: true }),
-        appSecret: (0, import_fields18.text)({ isRequired: true }),
+        appKey: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        appSecret: (0, import_fields18.text)({ validation: { isRequired: true } }),
         callbackUrl: (0, import_fields18.virtual)({
           field: import_core19.graphql.field({
             type: import_core19.graphql.String,
@@ -4861,16 +4870,16 @@ var ChannelPlatform = (0, import_core19.list)({
       label: "Adapter Functions",
       description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
-        searchProductsFunction: (0, import_fields18.text)({ isRequired: true }),
-        getProductFunction: (0, import_fields18.text)({ isRequired: true }),
-        createPurchaseFunction: (0, import_fields18.text)({ isRequired: true }),
-        createWebhookFunction: (0, import_fields18.text)({ isRequired: true }),
-        oAuthFunction: (0, import_fields18.text)({ isRequired: true }),
-        oAuthCallbackFunction: (0, import_fields18.text)({ isRequired: true }),
-        createTrackingWebhookHandler: (0, import_fields18.text)({ isRequired: true }),
-        cancelPurchaseWebhookHandler: (0, import_fields18.text)({ isRequired: true }),
-        getWebhooksFunction: (0, import_fields18.text)({ isRequired: true }),
-        deleteWebhookFunction: (0, import_fields18.text)({ isRequired: true })
+        searchProductsFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        getProductFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        createPurchaseFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        createWebhookFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        oAuthFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        oAuthCallbackFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        createTrackingWebhookHandler: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        cancelPurchaseWebhookHandler: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        getWebhooksFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        deleteWebhookFunction: (0, import_fields18.text)({ validation: { isRequired: true } })
       }
     }),
     channels: (0, import_fields18.relationship)({ ref: "Channel.platform", many: true }),

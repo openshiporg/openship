@@ -19,11 +19,13 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.3",
     "@graphql-tools/schema": "^10.0.23",
     "@keystone-6/auth": "^8.1.0",
     "@keystone-6/core": "^6.5.1",
     "@keystone-6/document-renderer": "^1.1.2",
     "@keystone-6/fields-document": "^9.1.1",
+    "@modelcontextprotocol/sdk": "^1.17.1",
     "@prisma/client": "6.5.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -57,6 +59,7 @@
     "@tanstack/react-table": "^8.21.2",
     "@types/nodemailer": "^6.4.17",
     "@types/sortablejs": "^1.15.8",
+    "ai": "^5.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

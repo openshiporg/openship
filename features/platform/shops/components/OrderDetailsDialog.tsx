@@ -50,6 +50,7 @@ interface SelectedLineItem {
   price?: string;
   title?: string;
   image?: string;
+  sku?: string;
 }
 
 interface SelectedCartItem {
@@ -63,6 +64,7 @@ interface SelectedCartItem {
   };
   title?: string;
   image?: string;
+  sku?: string;
 }
 
 const ORDER_SECTIONS = [
@@ -251,17 +253,17 @@ export function OrderDetailsDialog({
     try {
       // Convert selected items back to the format expected by createOrderFromShopOrder
       const lineItems = selectedLineItems.map(item => ({
-        name: item.title,
+        name: item.title || `Product ${item.productId}`,
         productId: item.productId,
         variantId: item.variantId,
-        price: item.price,
+        price: item.price || "0",
         quantity: item.quantity,
         image: item.image,
         sku: item.sku || "", // Include SKU for parity with webhook
       }));
 
       const cartItems = selectedCartItems.map(item => ({
-        name: item.title,
+        name: item.title || `Product ${item.productId}`,
         productId: item.productId,
         variantId: item.variantId,
         price: item.price,

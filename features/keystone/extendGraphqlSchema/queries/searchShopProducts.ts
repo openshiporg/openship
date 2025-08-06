@@ -57,7 +57,7 @@ async function searchShopProductsQuery(
     return result.products;
   } catch (error) {
     console.error("Error searching shop products:", error);
-    throw new Error(`Failed to search products: ${error.message}`);
+    throw new Error(`Failed to search products: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

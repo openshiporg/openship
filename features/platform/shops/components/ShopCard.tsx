@@ -7,7 +7,7 @@ import { MoreVertical, Settings, Store, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EditItemDrawer } from "@/features/platform/components/EditItemDrawer";
-import { ShopManagementDrawer } from "./ShopManagementDrawer";
+// import { ShopManagementDrawer } from "./ShopManagementDrawer"; // File does not exist
 import type { Shop } from "../lib/types";
 import {
   differenceInHours,
@@ -126,11 +126,11 @@ export const ShopCard = ({
         onClose={() => setIsEditDrawerOpen(false)}
       />
 
-      <ShopManagementDrawer
+      {/* <ShopManagementDrawer
         open={isManagementDrawerOpen}
         onOpenChange={setIsManagementDrawerOpen}
         shop={shop}
-      />
+      /> */}
     </>
   );
 };

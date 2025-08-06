@@ -325,7 +325,7 @@ function OrdersContent({
             onSelect={() =>
               onOrderSelect && onOrderSelect({ ...order, shop: { id: shopId } })
             }
-            onCreateOrder={() => {
+            onCreateOrder={async () => {
               // Instead of creating directly, call onOrderSelect to open dialog
               if (onOrderSelect) {
                 onOrderSelect({ ...order, shop: { id: shopId } });

@@ -136,7 +136,7 @@ export async function getFilteredMatches(
     const data = await getMatches(where, pageSize, skip, orderBy);
     return { success: true, data };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -243,7 +243,7 @@ export async function syncInventory(matchIds: string[]) {
     return { success: true };
     
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -331,7 +331,7 @@ export async function getShopMatches(shopId: string, page: number = 1, pageSize:
     const data = await getMatches(where, pageSize, skip, orderBy);
     return { success: true, data };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -358,7 +358,7 @@ export async function getChannelMatches(channelId: string, page: number = 1, pag
     const data = await getMatches(where, pageSize, skip, orderBy);
     return { success: true, data };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -385,6 +385,34 @@ export async function searchShopProducts(shopId: string, searchEntry: string) {
   }
 
   return response.data?.searchShopProducts;
+}
+
+/**
+ * Search channel products
+ */
+export async function searchChannelProducts(channelId: string, searchEntry: string) {
+  const query = `
+    query SearchChannelProducts($channelId: ID!, $searchEntry: String!) {
+      searchChannelProducts(channelId: $channelId, searchEntry: $searchEntry) {
+        image
+        title
+        productId
+        variantId
+        price
+        availableForSale
+        inventory
+        inventoryTracked
+      }
+    }
+  `;
+
+  const response = await keystoneClient(query, { channelId, searchEntry });
+
+  if (response.error) {
+    throw new Error(response.error);
+  }
+
+  return response.data?.searchChannelProducts;
 }
 
 /**

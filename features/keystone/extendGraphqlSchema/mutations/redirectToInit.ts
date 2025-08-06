@@ -1,4 +1,4 @@
-async function redirectToInit(root, { ids }, context) {
+async function redirectToInit(root: any, { ids }: any, context: any) {
   // 1. Query the current user see if they are signed in
   const userCount = await context.sudo().query.User.count({});
 

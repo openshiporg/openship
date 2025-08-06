@@ -193,7 +193,7 @@ export function ChannelListPageClient({
           {/* Data grid - full width */}
           <div className="grid grid-cols-1 divide-y">
             {data?.items?.map((channel: any) => (
-              <ChannelDetailsComponent key={channel.id} channel={channel} list={list} />
+              <ChannelDetailsComponent key={channel.id} channel={channel} />
             ))}
           </div>
           

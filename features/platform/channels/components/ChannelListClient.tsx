@@ -35,7 +35,7 @@ export function ChannelListClient({ channels }: ChannelListClientProps) {
   return (
     <div className="relative grid gap-3 p-4">
       {channels.map((channel: Channel) => (
-        <ChannelDetailsComponent key={channel.id} channel={channel} />
+        <ChannelDetailsComponent key={channel.id} channel={channel as any} />
       ))}
     </div>
   );

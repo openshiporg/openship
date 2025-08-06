@@ -77,7 +77,7 @@ export const Channel = list({
     webhooks: virtual({
       field: graphql.field({
         type: graphql.JSON,
-        async resolve(item, args, context) {
+        async resolve(item: any, args: any, context: any): Promise<any> {
           try {
             const recommendedWebhooks = [
               {
@@ -94,7 +94,7 @@ export const Channel = list({
 
             // Get platform data with relationships resolved
             const channelWithPlatform = await context.query.Channel.findOne({
-              where: { id: item.id },
+              where: { id: String(item.id) },
               query: 'platform { getWebhooksFunction }'
             });
 
@@ -103,10 +103,10 @@ export const Channel = list({
                 success: false,
                 error: "Get webhooks function not configured",
                 recommendedWebhooks
-              };
+              } as any;
             }
 
-            const platformConfig = {
+            const platformConfig: any = {
               domain: item.domain,
               accessToken: item.accessToken,
               getWebhooksFunction: channelWithPlatform.platform.getWebhooksFunction,
@@ -123,12 +123,12 @@ export const Channel = list({
               success: true,
               data: { webhooks: webhooksResult.webhooks || [] },
               recommendedWebhooks
-            };
+            } as any;
           } catch (error) {
             console.error('Error in webhooks virtual field:', error);
             return {
               success: false,
-              error: error.message,
+              error: error instanceof Error ? error.message : 'Unknown error',
               recommendedWebhooks: [
                 {
                   callbackUrl: `/api/handlers/channel/cancel-purchase/${item.id}`,
@@ -141,7 +141,7 @@ export const Channel = list({
                   description: "When a purchase order is fulfilled by this channel, enabling this will notify Openship to add the tracking to the order and shop.",
                 },
               ]
-            };
+            } as any;
           }
         },
       }),

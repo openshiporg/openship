@@ -412,12 +412,16 @@ This ensures all order routing operations follow Openship's established patterns
     const response = streamText(streamTextConfig);
     
     // Create a custom stream that includes our data change notification
-    const stream = response.toDataStream();
-    const reader = stream.getReader();
+    const stream = response.toTextStreamResponse();
+    const reader = stream.body?.getReader();
     
     return new Response(
       new ReadableStream({
         async start(controller) {
+          if (!reader) {
+            controller.close();
+            return;
+          }
           try {
             while (true) {
               const { done, value } = await reader.read();

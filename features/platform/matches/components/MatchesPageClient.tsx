@@ -106,10 +106,10 @@ export const MatchesPageClient: React.FC<MatchesPageClientProps> = ({
   statusCounts.shop = shops.length;
   statusCounts.channel = channels.length;
 
-  const currentTab = searchParams.get("!type_matches") || "matches";
+  const currentTab = searchParams?.get("!type_matches") || "matches";
 
   const handleTabChange = (status: string) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams || undefined);
     if (status === "all") {
       params.delete("!type_matches");
     } else {
@@ -259,11 +259,9 @@ export const MatchesPageClient: React.FC<MatchesPageClientProps> = ({
       {/* Status Tabs */}
       <StatusTabs 
         statusCounts={statusCounts}
-        currentStatus={currentTab}
-        onStatusChange={handleTabChange}
-        selectedCount={selectedMatches.size}
         onSelectAll={handleSelectAll}
-        showSelectAll={currentTab === "matches"}
+        selectedItems={selectedMatches}
+        totalItems={statusCounts.matches}
       />
 
       {/* Search for products */}

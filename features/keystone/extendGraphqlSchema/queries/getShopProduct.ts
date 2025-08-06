@@ -82,7 +82,7 @@ async function getShopProductQuery(
     };
   } catch (error) {
     console.error("Error getting shop product:", error);
-    throw new Error(`Failed to get product from ${shop.platform.name}: ${error.message}`);
+    throw new Error(`Failed to get product from ${shop.platform.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

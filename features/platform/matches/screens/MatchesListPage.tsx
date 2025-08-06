@@ -31,7 +31,7 @@ export default async function MatchesListPage({ searchParams }: PageProps) {
   const sortBy = resolvedSearchParams.sortBy as string | undefined;
   const sort = sortBy ? {
     field: sortBy.startsWith("-") ? sortBy.slice(1) : sortBy,
-    direction: sortBy.startsWith("-") ? "DESC" : "ASC"
+    direction: (sortBy.startsWith("-") ? "DESC" : "ASC") as "ASC" | "DESC"
   } : null;
 
   try {

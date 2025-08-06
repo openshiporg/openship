@@ -1,4 +1,4 @@
-export async function executeShopAdapterFunction({ platform, functionName, args }) {
+export async function executeShopAdapterFunction({ platform, functionName, args }: any) {
   const functionPath = platform[functionName];
 
   if (functionPath.startsWith("http")) {
@@ -32,13 +32,13 @@ export async function executeShopAdapterFunction({ platform, functionName, args 
     return result;
   } catch (error) {
     throw new Error(
-      `Error executing ${functionName} for platform ${functionPath}: ${error.message}`
+      `Error executing ${functionName} for platform ${functionPath}: ${(error as any)?.message || 'Unknown error'}`
     );
   }
 }
 
 // Helper functions for common shop operations
-export async function searchShopProducts({ platform, searchEntry, after }) {
+export async function searchShopProducts({ platform, searchEntry, after }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "searchProductsFunction",
@@ -46,7 +46,7 @@ export async function searchShopProducts({ platform, searchEntry, after }) {
   });
 }
 
-export async function getShopProduct({ platform, productId, variantId }) {
+export async function getShopProduct({ platform, productId, variantId }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "getProductFunction",
@@ -54,7 +54,7 @@ export async function getShopProduct({ platform, productId, variantId }) {
   });
 }
 
-export async function searchShopOrders({ platform, searchEntry, after }) {
+export async function searchShopOrders({ platform, searchEntry, after }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "searchOrdersFunction",
@@ -62,7 +62,7 @@ export async function searchShopOrders({ platform, searchEntry, after }) {
   });
 }
 
-export async function updateShopProduct({ platform, productId, variantId, inventory, price }) {
+export async function updateShopProduct({ platform, productId, variantId, inventory, price }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "updateProductFunction",
@@ -70,7 +70,7 @@ export async function updateShopProduct({ platform, productId, variantId, invent
   });
 }
 
-export async function addCartToPlatformOrder({ platform, cartItems, orderId }) {
+export async function addCartToPlatformOrder({ platform, cartItems, orderId }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "addCartToPlatformOrderFunction",
@@ -78,7 +78,7 @@ export async function addCartToPlatformOrder({ platform, cartItems, orderId }) {
   });
 }
 
-export async function createShopWebhook({ platform, endpoint, events }) {
+export async function createShopWebhook({ platform, endpoint, events }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "createWebhookFunction",
@@ -86,7 +86,7 @@ export async function createShopWebhook({ platform, endpoint, events }) {
   });
 }
 
-export async function deleteShopWebhook({ platform, webhookId }) {
+export async function deleteShopWebhook({ platform, webhookId }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "deleteWebhookFunction",
@@ -94,7 +94,7 @@ export async function deleteShopWebhook({ platform, webhookId }) {
   });
 }
 
-export async function getShopWebhooks({ platform }) {
+export async function getShopWebhooks({ platform }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "getWebhooksFunction",
@@ -102,7 +102,7 @@ export async function getShopWebhooks({ platform }) {
   });
 }
 
-export async function handleShopOAuth({ platform, callbackUrl }) {
+export async function handleShopOAuth({ platform, callbackUrl }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "oAuthFunction",
@@ -110,7 +110,7 @@ export async function handleShopOAuth({ platform, callbackUrl }) {
   });
 }
 
-export async function handleShopOAuthCallback({ platform, code, shop, state }) {
+export async function handleShopOAuthCallback({ platform, code, shop, state }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "oAuthCallbackFunction",
@@ -118,7 +118,7 @@ export async function handleShopOAuthCallback({ platform, code, shop, state }) {
   });
 }
 
-export async function handleShopOrderWebhook({ platform, event, headers }) {
+export async function handleShopOrderWebhook({ platform, event, headers }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "createOrderWebhookHandler",
@@ -126,7 +126,7 @@ export async function handleShopOrderWebhook({ platform, event, headers }) {
   });
 }
 
-export async function handleShopCancelWebhook({ platform, event, headers }) {
+export async function handleShopCancelWebhook({ platform, event, headers }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "cancelOrderWebhookHandler",

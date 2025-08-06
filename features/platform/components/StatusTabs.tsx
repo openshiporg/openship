@@ -137,7 +137,7 @@ export function StatusTabs({ statusCounts, statusConfig, entityName, onSelectAll
               >
                 <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
                   {status.label}
-                  <Badge color={config.color} className="px-1.5 py-0 text-[10px] leading-[14px] rounded-sm shadow-xs inline-flex items-center h-[18px]">
+                  <Badge color={config.color as any} className="px-1.5 py-0 text-[10px] leading-[14px] rounded-sm shadow-xs inline-flex items-center h-[18px]">
                     {status.count}
                   </Badge>
                 </div>

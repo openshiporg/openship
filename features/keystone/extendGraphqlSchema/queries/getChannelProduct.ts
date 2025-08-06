@@ -34,7 +34,7 @@ async function getChannelProduct(
   try {
     const result = await executeGetChannelProduct({
       platform: platformConfig,
-      productId: productId,
+      productId: productId!,
       variantId: variantId,
     });
 

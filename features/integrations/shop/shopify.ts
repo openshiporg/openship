@@ -111,13 +111,13 @@ export async function searchProductsFunction({
   const { productVariants } = await shopifyClient.request(gqlQuery, {
     query: searchEntry,
     after,
-  });
+  }) as any;
 
   if (productVariants.edges.length < 1) {
     throw new Error("No products found from Shopify");
   }
 
-  const products = productVariants.edges.map(({ node, cursor }) => ({
+  const products = productVariants.edges.map(({ node, cursor }: any) => ({
     image:
       node.image?.originalSrc || node.product.images.edges[0]?.node.originalSrc,
     title: `${node.product.title} - ${node.title}`,
@@ -191,7 +191,7 @@ export async function getProductFunction({
   
   const { productVariant } = await shopifyClient.request(gqlQuery, {
     variantId: fullVariantId,
-  });
+  }) as any;
 
   console.log("SHOP productVariant result:", productVariant);
 
@@ -303,9 +303,9 @@ export async function searchOrdersFunction({
   const { orders } = await shopifyClient.request(gqlQuery, {
     query: searchEntry,
     after,
-  });
+  }) as any;
 
-  const formattedOrders = orders.edges.map(({ node, cursor }) => ({
+  const formattedOrders = orders.edges.map(({ node, cursor }: any) => ({
     orderId: node.id.split("/").pop(),
     orderName: node.name,
     link: `https://${platform.domain}/admin/orders/${node.id.split("/").pop()}`,
@@ -323,7 +323,7 @@ export async function searchOrdersFunction({
     financialStatus: node.displayFinancialStatus,
     totalPrice: node.totalPriceSet.presentmentMoney.amount,
     currency: node.totalPriceSet.presentmentMoney.currencyCode,
-    lineItems: node.lineItems.edges.map(({ node: lineItem }) => ({
+    lineItems: node.lineItems.edges.map(({ node: lineItem }: any) => ({
       lineItemId: lineItem.id.split("/").pop(),
       name: lineItem.title,
       quantity: lineItem.quantity,
@@ -418,11 +418,11 @@ export async function updateProductFunction({
 
       console.log('VARIANT DATA RECEIVED:', JSON.stringify(variantData, null, 2));
 
-      if (!variantData.productVariant?.inventoryItem?.id) {
+      if (!(variantData as any).productVariant?.inventoryItem?.id) {
         console.log('FAILING BECAUSE NO inventoryItem.id');
         console.log('variantData structure:', variantData);
-        console.log('productVariant:', variantData.productVariant);
-        console.log('inventoryItem:', variantData.productVariant?.inventoryItem);
+        console.log('productVariant:', (variantData as any).productVariant);
+        console.log('inventoryItem:', (variantData as any).productVariant?.inventoryItem);
         throw new Error("Unable to find inventory item for variant");
       }
 
@@ -441,7 +441,7 @@ export async function updateProductFunction({
       `;
 
       const locationsData = await shopifyClient.request(getLocationsQuery);
-      const location = locationsData.locations.edges[0]?.node;
+      const location = (locationsData as any).locations.edges[0]?.node;
 
       if (!location) {
         throw new Error("No locations found for shop");
@@ -471,7 +471,7 @@ export async function updateProductFunction({
             name: "available",
             changes: [
               {
-                inventoryItemId: variantData.productVariant.inventoryItem.id,
+                inventoryItemId: (variantData as any).productVariant.inventoryItem.id,
                 locationId: location.id, 
                 delta: inventoryDelta
               }
@@ -527,7 +527,7 @@ export async function createWebhookFunction({
   const webhooks = [];
 
   for (const event of events) {
-    const shopifyTopic = mapTopic[event] || event;
+    const shopifyTopic = (mapTopic as Record<string, string>)[event] || event;
     
     const mutation = gql`
       mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
@@ -556,7 +556,7 @@ export async function createWebhookFunction({
           callbackUrl: endpoint,
           format: "JSON",
         },
-      });
+      }) as any;
 
 
       if (result.webhookSubscriptionCreate.userErrors.length > 0) {
@@ -608,7 +608,7 @@ export async function deleteWebhookFunction({
     id: `gid://shopify/WebhookSubscription/${webhookId}`,
   });
 
-  return result.webhookSubscriptionDelete;
+  return (result as any).webhookSubscriptionDelete;
 }
 
 export async function getWebhooksFunction({
@@ -653,13 +653,13 @@ export async function getWebhooksFunction({
     }
   `;
 
-  const { webhookSubscriptions } = await shopifyClient.request(query);
+  const { webhookSubscriptions } = await shopifyClient.request(query) as any;
 
   const baseUrl = await getBaseUrl();
-  const webhooks = webhookSubscriptions.edges.map(({ node }) => ({
+  const webhooks = webhookSubscriptions.edges.map(({ node }: any) => ({
     id: node.id.split("/").pop(),
     callbackUrl: node.endpoint.callbackUrl.replace(baseUrl, ""),
-    topic: mapTopic[node.topic] || node.topic,
+    topic: (mapTopic as any)[node.topic] || node.topic,
     format: node.format,
     createdAt: node.createdAt,
   }));
@@ -733,7 +733,7 @@ export async function createOrderWebhookHandler({
 
   // Process the order data and format for Keystone Order creation
   const lineItemsOutput = await Promise.all(
-    event.line_items.map(async (item) => {
+    event.line_items.map(async (item: any) => {
       // Get product variant image from Shopify
       let image = null;
       try {
@@ -769,11 +769,11 @@ export async function createOrderWebhookHandler({
           id: `gid://shopify/ProductVariant/${item.variant_id}`,
         });
 
-        image = result.productVariant?.image?.originalSrc || 
-                result.productVariant?.product?.images?.edges?.[0]?.node?.originalSrc || 
+        image = (result as any).productVariant?.image?.originalSrc || 
+                (result as any).productVariant?.product?.images?.edges?.[0]?.node?.originalSrc || 
                 null;
       } catch (error) {
-        console.warn(`Failed to fetch image for variant ${item.variant_id}:`, error.message);
+        console.warn(`Failed to fetch image for variant ${item.variant_id}:`, error instanceof Error ? error.message : 'Unknown error');
       }
 
       return {
@@ -896,7 +896,7 @@ export async function addTrackingFunction({
 
   const data = await client.request(FETCH_FULFILLMENT_ORDER, {
     id: `gid://shopify/Order/${order.orderId}`,
-  });
+  }) as any;
 
   const fulfillmentOrder = data.order?.fulfillmentOrders?.edges?.[0]?.node;
   
@@ -914,7 +914,7 @@ export async function addTrackingFunction({
           trackingInfoInput: {
             numbers: [
               trackingNumber,
-              ...fulfillment.trackingInfo.map(({ number }) => number),
+              ...fulfillment.trackingInfo.map(({ number }: any) => number),
             ],
           },
         }

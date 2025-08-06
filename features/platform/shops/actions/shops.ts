@@ -285,7 +285,7 @@ export async function getFilteredShopsWithPlatform(
       ];
     } else {
       // If no platform filter, include platform name in search
-      searchConditions.push({ platform: { name: { contains: search, mode: 'insensitive' } } });
+      (searchConditions as any[]).push({ platform: { name: { contains: search, mode: 'insensitive' } } });
       where.OR = searchConditions;
     }
   }

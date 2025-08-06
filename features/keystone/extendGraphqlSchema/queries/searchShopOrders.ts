@@ -88,8 +88,6 @@ async function searchShopOrders(
         ...shop.platform,
         ...platformConfig,
       },
-      searchEntry,
-      after,
       ...filterOptions,
     });
 
@@ -111,7 +109,7 @@ async function searchShopOrders(
       searchMetadata: {
         searchEntry,
         filtersApplied: Object.keys(filterOptions.filters).filter(
-          key => filterOptions.filters[key] !== undefined
+          key => (filterOptions.filters as Record<string, any>)[key] !== undefined
         ),
         fetchedAt: new Date().toISOString(),
         resultCount: result.orders?.length || 0,
@@ -119,7 +117,7 @@ async function searchShopOrders(
     };
   } catch (error) {
     console.error(`Error searching orders for shop ${shop.id}:`, error);
-    throw new Error(`Failed to search orders from ${shop.platform.name}: ${error.message}`);
+    throw new Error(`Failed to search orders from ${shop.platform.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

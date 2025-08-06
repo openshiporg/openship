@@ -25,7 +25,7 @@ export async function getShops(): Promise<ApiResponse> {
       return { success: false, error: response.error };
     }
     
-    const shops = response.shops || response.data?.shops || [];
+    const shops = (response as any).shops || (response as any).data?.shops || [];
     
     return { success: true, data: { shops } };
   } catch (error: any) {
@@ -57,7 +57,7 @@ export async function getChannelLinks(channelId: string): Promise<ApiResponse> {
       return { success: false, error: response.error };
     }
     
-    return { success: true, data: { links: response.links || [] } };
+    return { success: true, data: { links: (response as any).links || [] } };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

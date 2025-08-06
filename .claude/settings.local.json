@@ -38,11 +38,14 @@
       "WebFetch(domain:originui.com)",
       "Bash(true)",
       "Bash(git stash:*)",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "additionalDirectories": [
-      "/Users/junaid/openship"
+      "/Users/junaid/openship",
+      "/Users/junaid/openfront"
     ]
   }
 }

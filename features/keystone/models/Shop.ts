@@ -91,7 +91,7 @@ export const Shop = list({
     webhooks: virtual({
       field: graphql.field({
         type: graphql.JSON,
-        async resolve(item, args, context) {
+        async resolve(item: any, args: any, context: any): Promise<any> {
           try {
             const recommendedWebhooks = [
               {
@@ -122,7 +122,7 @@ export const Shop = list({
                 success: false,
                 error: "Get webhooks function not configured",
                 recommendedWebhooks
-              };
+              } as any;
             }
 
             const platformConfig = {
@@ -142,12 +142,12 @@ export const Shop = list({
               success: true,
               data: { webhooks: webhooksResult.webhooks || [] },
               recommendedWebhooks
-            };
+            } as any;
           } catch (error) {
             console.error('Error in webhooks virtual field:', error);
             return {
               success: false,
-              error: error.message,
+              error: (error as any)?.message || 'Unknown error',
               recommendedWebhooks: [
                 {
                   callbackUrl: `/api/handlers/shop/create-order/${item.id}`,
@@ -165,7 +165,7 @@ export const Shop = list({
                   description: "When an order is chargebacked on this shop, Openship will mark the order status cancelled",
                 },
               ]
-            };
+            } as any;
           }
         },
       }),

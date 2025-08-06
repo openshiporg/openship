@@ -7,7 +7,7 @@ import { MoreVertical, Settings, Tv, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EditItemDrawer } from "@/features/platform/components/EditItemDrawer";
-import { ChannelManagementDrawer } from "./ChannelManagementDrawer";
+// import { ChannelManagementDrawer } from "./ChannelManagementDrawer";
 import { ChannelSettingsDrawer } from "./ChannelSettingsDrawer";
 import type { Channel } from "../lib/types";
 import {
@@ -135,11 +135,11 @@ export const ChannelCard = ({
         onClose={() => setIsEditDrawerOpen(false)}
       />
 
-      <ChannelManagementDrawer
+      {/* <ChannelManagementDrawer
         open={isManagementDrawerOpen}
         onOpenChange={setIsManagementDrawerOpen}
         channel={channel}
-      />
+      /> */}
 
       <ChannelSettingsDrawer
         channel={channel}

@@ -20,6 +20,8 @@ interface Match {
   name?: string;
   createdAt: string;
   updatedAt?: string;
+  input: any[];
+  output: any[];
   [key: string]: any;
 }
 

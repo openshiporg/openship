@@ -20,7 +20,7 @@ interface Product {
   title: string;
   productId: string;
   variantId: string;
-  price?: string;
+  price: string;
   availableForSale?: boolean;
   inventory?: number;
   inventoryTracked?: boolean;

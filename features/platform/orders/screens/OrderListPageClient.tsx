@@ -76,7 +76,7 @@ export function OrderListPageClient({
 }: OrderListPageClientProps) {
   const router = useRouter()
   const { basePath } = useDashboard()
-  const [selectedItems, setSelectedItems] = useState(new Set())
+  const [selectedItems, setSelectedItems] = useState(new Set<string>())
   const [isProcessOrdersDialogOpen, setIsProcessOrdersDialogOpen] = useState(false)
   const [processingOrders, setProcessingOrders] = useState<string[]>([])
   const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false)

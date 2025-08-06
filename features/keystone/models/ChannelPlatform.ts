@@ -25,12 +25,12 @@ export const ChannelPlatform = list({
       description:
         "Adding these fields will enable this platform to be installed as an app by users.",
       fields: {
-        appKey: text({ isRequired: true }),
-        appSecret: text({ isRequired: true }),
+        appKey: text({ validation: { isRequired: true } }),
+        appSecret: text({ validation: { isRequired: true } }),
         callbackUrl: virtual({
           field: graphql.field({
             type: graphql.String,
-            resolve: async (item) => {
+            resolve: async (item: any) => {
               const baseUrl = await getBaseUrl();
               return `${baseUrl}/api/oauth/channel/${item.id}/callback`;
             },
@@ -47,16 +47,16 @@ export const ChannelPlatform = list({
       description:
         "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
-        searchProductsFunction: text({ isRequired: true }),
-        getProductFunction: text({ isRequired: true }),
-        createPurchaseFunction: text({ isRequired: true }),
-        createWebhookFunction: text({ isRequired: true }),
-        oAuthFunction: text({ isRequired: true }),
-        oAuthCallbackFunction: text({ isRequired: true }),
-        createTrackingWebhookHandler: text({ isRequired: true }),
-        cancelPurchaseWebhookHandler: text({ isRequired: true }),
-        getWebhooksFunction: text({ isRequired: true }),
-        deleteWebhookFunction: text({ isRequired: true }),
+        searchProductsFunction: text({ validation: { isRequired: true } }),
+        getProductFunction: text({ validation: { isRequired: true } }),
+        createPurchaseFunction: text({ validation: { isRequired: true } }),
+        createWebhookFunction: text({ validation: { isRequired: true } }),
+        oAuthFunction: text({ validation: { isRequired: true } }),
+        oAuthCallbackFunction: text({ validation: { isRequired: true } }),
+        createTrackingWebhookHandler: text({ validation: { isRequired: true } }),
+        cancelPurchaseWebhookHandler: text({ validation: { isRequired: true } }),
+        getWebhooksFunction: text({ validation: { isRequired: true } }),
+        deleteWebhookFunction: text({ validation: { isRequired: true } }),
       },
     }),
     channels: relationship({ ref: "Channel.platform", many: true }),

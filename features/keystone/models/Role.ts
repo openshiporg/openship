@@ -23,14 +23,14 @@ export const Role = list({
     },
   },
   ui: {
-    hideCreate: (args) => !permissions.canManageRoles(args),
-    hideDelete: (args) => !permissions.canManageRoles(args),
+    hideCreate: (args: any) => !permissions.canManageRoles({ session: args.session, context: args.context, listKey: 'Role', operation: 'create' }),
+    hideDelete: (args: any) => !permissions.canManageRoles({ session: args.session, context: args.context, listKey: 'Role', operation: 'delete' }),
     listView: {
       initialColumns: ["name", "assignedTo"],
     },
     itemView: {
-      defaultFieldMode: (args) =>
-        permissions.canManageRoles(args) ? "edit" : "read",
+      defaultFieldMode: (args: any) =>
+        permissions.canManageRoles({ session: args.session, context: args.context, listKey: 'Role', operation: 'update' }) ? "edit" : "read",
     },
   },
   fields: {

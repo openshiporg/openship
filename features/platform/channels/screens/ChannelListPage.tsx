@@ -92,7 +92,7 @@ export async function ChannelListPage({ searchParams }: PageProps) {
       selectedPlatform,
       page,
       pageSize,
-      sort
+      sort as { field: string; direction: "DESC" | "ASC" } | null
     );
 
     let channels: Channel[] = [];
@@ -163,7 +163,7 @@ export async function ChannelListPage({ searchParams }: PageProps) {
           </div>
 
           <ChannelsPageClient
-            platforms={platforms.map(p => ({
+            platforms={platforms.map((p: any) => ({
               id: p.id,
               name: p.name,
               channelsCount: p.channels?.length || 0
