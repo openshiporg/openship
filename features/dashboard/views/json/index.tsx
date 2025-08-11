@@ -73,9 +73,6 @@ export function Cell({ item, field, value }: CellProps) {
     <div className="flex items-center gap-2">
       {fieldValue ? (
         <>
-          <Badge variant="secondary" className="text-xs">
-            JSON
-          </Badge>
           <span className="text-sm font-mono text-muted-foreground truncate max-w-32">
             {JSON.stringify(fieldValue)}
           </span>

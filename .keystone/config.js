@@ -25,18 +25,19 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// features/integrations/channel/shopify.ts
-var shopify_exports = {};
-__export(shopify_exports, {
-  cancelPurchaseWebhookHandler: () => cancelPurchaseWebhookHandler,
+// features/integrations/channel/openfront.ts
+var openfront_exports = {};
+__export(openfront_exports, {
+  addTrackingFunction: () => addTrackingFunction,
   createPurchaseFunction: () => createPurchaseFunction,
-  createTrackingWebhookHandler: () => createTrackingWebhookHandler,
   createWebhookFunction: () => createWebhookFunction,
   deleteWebhookFunction: () => deleteWebhookFunction,
+  fulfillmentUpdateWebhookHandler: () => fulfillmentUpdateWebhookHandler,
   getProductFunction: () => getProductFunction,
   getWebhooksFunction: () => getWebhooksFunction,
   oAuthCallbackFunction: () => oAuthCallbackFunction,
   oAuthFunction: () => oAuthFunction,
+  scopes: () => scopes,
   searchProductsFunction: () => searchProductsFunction
 });
 async function searchProductsFunction({
@@ -44,7 +45,498 @@ async function searchProductsFunction({
   searchEntry,
   after
 }) {
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const openFrontClient = createOpenFrontClient(platform);
+  const gqlQuery = import_graphql_request.gql`
+    query SearchChannelProducts($where: ProductWhereInput, $take: Int, $skip: Int) {
+      products(where: $where, take: $take, skip: $skip, orderBy: { createdAt: desc }) {
+        id
+        title
+        handle
+        productImages {
+          image {
+            url
+          }
+        }
+        productVariants {
+          id
+          title
+          sku
+          inventoryQuantity
+          prices {
+            id
+            amount
+            currency {
+              code
+            }
+          }
+        }
+        status
+      }
+      productsCount(where: $where)
+    }
+  `;
+  const where = {
+    status: { equals: "published" },
+    productVariants: {
+      some: {
+        inventoryQuantity: { gt: 0 }
+        // Only products with inventory
+      }
+    }
+  };
+  if (searchEntry && searchEntry.trim()) {
+    where.OR = [
+      { title: { contains: searchEntry, mode: "insensitive" } },
+      { handle: { contains: searchEntry, mode: "insensitive" } },
+      { productVariants: { some: { sku: { contains: searchEntry, mode: "insensitive" } } } }
+    ];
+  }
+  const take = 15;
+  const skip = after ? parseInt(Buffer.from(after, "base64").toString()) : 0;
+  const { products, productsCount } = await openFrontClient.request(gqlQuery, {
+    where,
+    take,
+    skip
+  });
+  if (!products || products.length === 0) {
+    throw new Error("No fulfillment products found from OpenFront");
+  }
+  const transformedProducts = products.flatMap(
+    (product) => product.productVariants.filter((variant) => variant.inventoryQuantity > 0).map((variant) => {
+      const firstPrice = variant.prices[0];
+      const firstImage = product.productImages[0];
+      return {
+        image: firstImage?.image?.url || null,
+        title: `${product.title} - ${variant.title}`,
+        productId: product.id,
+        variantId: variant.id,
+        price: firstPrice ? (firstPrice.amount / 100).toFixed(2) : "0.00",
+        // Convert from cents
+        availableForSale: true,
+        // Already filtered above
+        inventory: variant.inventoryQuantity,
+        inventoryTracked: true,
+        productLink: `https://${platform.domain}/products/${product.handle}`,
+        cursor: Buffer.from((skip + products.indexOf(product) + 1).toString()).toString("base64")
+      };
+    })
+  );
+  const hasNextPage = skip + take < productsCount;
+  const endCursor = hasNextPage ? Buffer.from((skip + take).toString()).toString("base64") : null;
+  return {
+    products: transformedProducts,
+    pageInfo: {
+      hasNextPage,
+      endCursor
+    }
+  };
+}
+async function getProductFunction({
+  platform,
+  productId,
+  variantId
+}) {
+  console.log("OpenFront Channel getProductFunction called with:", { platform: platform.domain, productId, variantId });
+  const openFrontClient = createOpenFrontClient(platform);
+  const gqlQuery = import_graphql_request.gql`
+    query GetChannelProduct($productId: ID!, $variantId: ID) {
+      product(where: { id: $productId }) {
+        id
+        title
+        handle
+        productImages {
+          image {
+            url
+          }
+        }
+        productVariants(where: $variantId ? { id: { equals: $variantId } } : {}) {
+          id
+          title
+          sku
+          inventoryQuantity
+          prices {
+            id
+            amount
+            currency {
+              code
+            }
+          }
+        }
+        status
+      }
+    }
+  `;
+  const { product } = await openFrontClient.request(gqlQuery, {
+    productId,
+    variantId
+  });
+  if (!product || product.status !== "published") {
+    throw new Error("Product not available for fulfillment from OpenFront");
+  }
+  const variant = variantId ? product.productVariants.find((v) => v.id === variantId) : product.productVariants[0];
+  if (!variant || variant.inventoryQuantity <= 0) {
+    throw new Error("Product variant not available for fulfillment from OpenFront");
+  }
+  const firstPrice = variant.prices[0];
+  const firstImage = product.productImages[0];
+  const transformedProduct = {
+    image: firstImage?.image?.url || null,
+    title: `${product.title} - ${variant.title}`,
+    productId: product.id,
+    variantId: variant.id,
+    price: firstPrice ? (firstPrice.amount / 100).toFixed(2) : "0.00",
+    availableForSale: true,
+    inventory: variant.inventoryQuantity,
+    inventoryTracked: true,
+    productLink: `https://${platform.domain}/products/${product.handle}`
+  };
+  return { product: transformedProduct };
+}
+async function createPurchaseFunction({
+  platform,
+  cartItems,
+  shipping,
+  notes
+}) {
+  console.log(`\u{1F6D2} OpenFront Channel: Creating purchase with ${cartItems.length} items`);
+  console.log(`\u{1F69A} OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
+  const openFrontClient = createOpenFrontClient(platform);
+  const purchaseId = `PO-OF-${Date.now()}`;
+  const orderNumber = `#${purchaseId}`;
+  const totalPrice = cartItems.reduce((sum, item) => {
+    return sum + parseFloat(item.price) * item.quantity;
+  }, 0);
+  const createOrderMutation = import_graphql_request.gql`
+    mutation CreateFulfillmentOrder($data: OrderCreateInput!) {
+      createOrder(data: $data) {
+        id
+        orderNumber
+        total
+        status
+        orderLineItems {
+          id
+          title
+          quantity
+          unitPrice
+          productVariant {
+            id
+            title
+            sku
+            product {
+              id
+              title
+            }
+          }
+        }
+      }
+    }
+  `;
+  try {
+    const orderData = {
+      orderNumber,
+      customerEmail: shipping?.email || "fulfillment@openship.org",
+      firstName: shipping?.firstName || "Fulfillment",
+      lastName: shipping?.lastName || "Order",
+      address1: shipping?.streetAddress1 || "",
+      address2: shipping?.streetAddress2 || "",
+      city: shipping?.city || "",
+      state: shipping?.state || "",
+      postalCode: shipping?.zip || "",
+      countryCode: shipping?.country || "US",
+      phone: shipping?.phone || "",
+      total: Math.round(totalPrice * 100),
+      // Convert to cents
+      subtotal: Math.round(totalPrice * 100),
+      status: "pending_fulfillment",
+      orderLineItems: {
+        create: cartItems.map((item) => ({
+          title: item.name || `Product ${item.variantId}`,
+          quantity: item.quantity,
+          unitPrice: Math.round(parseFloat(item.price) * 100),
+          // Convert to cents
+          productVariant: { connect: { id: item.variantId } }
+        }))
+      }
+    };
+    const result = await openFrontClient.request(createOrderMutation, {
+      data: orderData
+    });
+    const order = result.createOrder;
+    console.log(`\u{1F4E7} OpenFront Channel: Fulfillment Order Created: ${orderNumber}`);
+    console.log(`\u{1F4B0} OpenFront Channel: Total: $${totalPrice.toFixed(2)}`);
+    const processedLineItems = order.orderLineItems.map((item) => ({
+      id: item.id,
+      title: item.title,
+      quantity: item.quantity,
+      variantId: item.productVariant.id,
+      productId: item.productVariant.product.id
+    }));
+    return {
+      purchaseId: order.id,
+      orderNumber: order.orderNumber,
+      totalPrice: (order.total / 100).toFixed(2),
+      invoiceUrl: `https://${platform.domain}/admin/orders/${order.id}`,
+      lineItems: processedLineItems,
+      status: "processing"
+    };
+  } catch (error) {
+    console.error("OpenFront Channel: Purchase creation failed:", error);
+    return {
+      purchaseId,
+      orderNumber,
+      totalPrice: totalPrice.toFixed(2),
+      invoiceUrl: null,
+      lineItems: cartItems.map((item) => ({
+        id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title: item.name || `Product ${item.variantId}`,
+        quantity: item.quantity,
+        variantId: item.variantId,
+        productId: item.productId
+      })),
+      status: "error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
+async function createWebhookFunction({
+  platform,
+  endpoint,
+  events
+}) {
+  const openFrontClient = createOpenFrontClient(platform);
+  const createWebhookMutation = import_graphql_request.gql`
+    mutation CreateChannelWebhookEndpoint($data: WebhookEndpointCreateInput!) {
+      createWebhookEndpoint(data: $data) {
+        id
+        url
+        events
+        isActive
+        secret
+      }
+    }
+  `;
+  const eventMap = {
+    PURCHASE_CREATED: "order.created",
+    PURCHASE_SHIPPED: "fulfillment.shipped",
+    INVENTORY_UPDATED: "inventory.updated"
+  };
+  const openFrontEvents = events.map((event) => eventMap[event] || event);
+  const result = await openFrontClient.request(createWebhookMutation, {
+    data: {
+      url: endpoint,
+      events: openFrontEvents,
+      isActive: true
+    }
+  });
+  const webhook = result.createWebhookEndpoint;
+  return {
+    webhooks: [webhook],
+    webhookId: webhook.id
+  };
+}
+async function deleteWebhookFunction({
+  platform,
+  webhookId
+}) {
+  const openFrontClient = createOpenFrontClient(platform);
+  const deleteWebhookMutation = import_graphql_request.gql`
+    mutation DeleteChannelWebhookEndpoint($where: WebhookEndpointWhereUniqueInput!) {
+      deleteWebhookEndpoint(where: $where) {
+        id
+      }
+    }
+  `;
+  const result = await openFrontClient.request(deleteWebhookMutation, {
+    where: { id: webhookId }
+  });
+  return result;
+}
+async function getWebhooksFunction({
+  platform
+}) {
+  const openFrontClient = createOpenFrontClient(platform);
+  const query = import_graphql_request.gql`
+    query GetChannelWebhookEndpoints {
+      webhookEndpoints(where: { isActive: { equals: true } }) {
+        id
+        url
+        events
+        isActive
+        createdAt
+      }
+    }
+  `;
+  const { webhookEndpoints } = await openFrontClient.request(query);
+  const eventMap = {
+    "order.created": "PURCHASE_CREATED",
+    "fulfillment.shipped": "PURCHASE_SHIPPED",
+    "inventory.updated": "INVENTORY_UPDATED"
+  };
+  const webhooks = webhookEndpoints.map((webhook) => ({
+    id: webhook.id,
+    callbackUrl: webhook.url,
+    topic: webhook.events.map((event) => eventMap[event] || event),
+    format: "JSON",
+    createdAt: webhook.createdAt
+  }));
+  return { webhooks };
+}
+async function addTrackingFunction({
+  platform,
+  purchaseId,
+  trackingCompany,
+  trackingNumber
+}) {
+  const openFrontClient = createOpenFrontClient(platform);
+  const updateTrackingMutation = import_graphql_request.gql`
+    mutation UpdateOrderTracking($where: OrderWhereUniqueInput!, $data: OrderUpdateInput!) {
+      updateOrder(where: $where, data: $data) {
+        id
+        orderNumber
+        status
+      }
+    }
+  `;
+  const createFulfillmentMutation = import_graphql_request.gql`
+    mutation CreateOrderFulfillment($data: FulfillmentCreateInput!) {
+      createFulfillment(data: $data) {
+        id
+        trackingNumber
+        trackingCompany
+        status
+      }
+    }
+  `;
+  try {
+    const fulfillmentResult = await openFrontClient.request(createFulfillmentMutation, {
+      data: {
+        order: { connect: { id: purchaseId } },
+        trackingNumber,
+        trackingCompany,
+        status: "shipped"
+      }
+    });
+    await openFrontClient.request(updateTrackingMutation, {
+      where: { id: purchaseId },
+      data: { status: "shipped" }
+    });
+    console.log(`\u{1F4E6} OpenFront Channel: Tracking added for order ${purchaseId}: ${trackingCompany} ${trackingNumber}`);
+    return fulfillmentResult;
+  } catch (error) {
+    console.error("OpenFront Channel: Failed to add tracking:", error);
+    throw error;
+  }
+}
+async function fulfillmentUpdateWebhookHandler({
+  platform,
+  event,
+  headers
+}) {
+  const signature = headers["x-openfront-webhook-signature"];
+  if (!signature) {
+    throw new Error("Missing webhook signature");
+  }
+  const fulfillmentData = event.data;
+  return {
+    purchaseId: fulfillmentData.order?.id,
+    trackingNumber: fulfillmentData.trackingNumber,
+    trackingCompany: fulfillmentData.trackingCompany,
+    status: fulfillmentData.status,
+    type: "fulfillment_update"
+  };
+}
+async function oAuthFunction({
+  platform,
+  callbackUrl
+}) {
+  if (!platform.appKey) {
+    throw new Error("OpenFront OAuth requires appKey in platform configuration");
+  }
+  const scopes5 = "read_products,write_products,read_orders,write_orders,read_fulfillments,write_fulfillments,read_webhooks,write_webhooks";
+  const state = Math.random().toString(36).substring(7);
+  const openFrontAuthUrl = `${platform.domain}/api/oauth/authorize?client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
+  return { authUrl: openFrontAuthUrl };
+}
+async function oAuthCallbackFunction({
+  platform,
+  code,
+  shop,
+  state,
+  appKey,
+  appSecret,
+  redirectUri
+}) {
+  const domain = platform.domain || shop;
+  const tokenUrl = `${domain}/api/oauth/token`;
+  const clientId = appKey || platform.appKey;
+  const clientSecret = appSecret || platform.appSecret;
+  if (!clientId || !clientSecret) {
+    throw new Error("OpenFront OAuth requires appKey and appSecret in platform configuration or as parameters");
+  }
+  const formData = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+    redirect_uri: redirectUri || ""
+  });
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("OpenFront OAuth error:", errorText);
+    throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
+  }
+  const { access_token } = await response.json();
+  return access_token;
+}
+function scopes() {
+  return REQUIRED_SCOPES;
+}
+var import_graphql_request, createOpenFrontClient, REQUIRED_SCOPES;
+var init_openfront = __esm({
+  "features/integrations/channel/openfront.ts"() {
+    "use strict";
+    import_graphql_request = require("graphql-request");
+    createOpenFrontClient = (platform) => {
+      return new import_graphql_request.GraphQLClient(
+        `https://${platform.domain}/api/graphql`,
+        {
+          headers: {
+            "Authorization": `Bearer ${platform.accessToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    };
+    REQUIRED_SCOPES = "read_products,write_products,read_orders,write_orders,read_fulfillments,write_fulfillments,read_webhooks,write_webhooks";
+  }
+});
+
+// features/integrations/channel/shopify.ts
+var shopify_exports = {};
+__export(shopify_exports, {
+  cancelPurchaseWebhookHandler: () => cancelPurchaseWebhookHandler,
+  createPurchaseFunction: () => createPurchaseFunction2,
+  createTrackingWebhookHandler: () => createTrackingWebhookHandler,
+  createWebhookFunction: () => createWebhookFunction2,
+  deleteWebhookFunction: () => deleteWebhookFunction2,
+  getProductFunction: () => getProductFunction2,
+  getWebhooksFunction: () => getWebhooksFunction2,
+  oAuthCallbackFunction: () => oAuthCallbackFunction2,
+  oAuthFunction: () => oAuthFunction2,
+  scopes: () => scopes2,
+  searchProductsFunction: () => searchProductsFunction2
+});
+async function searchProductsFunction2({
+  platform,
+  searchEntry,
+  after
+}) {
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -52,7 +544,7 @@ async function searchProductsFunction({
       }
     }
   );
-  const gqlQuery = import_graphql_request.gql`
+  const gqlQuery = import_graphql_request2.gql`
     query SearchProducts($query: String, $after: String) {
       productVariants(first: 15, query: $query, after: $after) {
         edges {
@@ -113,13 +605,13 @@ async function searchProductsFunction({
     pageInfo: productVariants.pageInfo
   };
 }
-async function getProductFunction({
+async function getProductFunction2({
   platform,
   productId,
   variantId
 }) {
   console.log("CHANNEL getProductFunction called with:", { platform: platform.domain, productId, variantId });
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -127,7 +619,7 @@ async function getProductFunction({
       }
     }
   );
-  const gqlQuery = import_graphql_request.gql`
+  const gqlQuery = import_graphql_request2.gql`
     query GetProduct($variantId: ID!) {
       productVariant(id: $variantId) {
         id
@@ -177,13 +669,13 @@ async function getProductFunction({
   };
   return { product };
 }
-async function createPurchaseFunction({
+async function createPurchaseFunction2({
   platform,
   cartItems,
   shipping,
   notes
 }) {
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -191,7 +683,7 @@ async function createPurchaseFunction({
       }
     }
   );
-  const mutation = import_graphql_request.gql`
+  const mutation = import_graphql_request2.gql`
     mutation CreateDraftOrder($input: DraftOrderInput!) {
       draftOrderCreate(input: $input) {
         draftOrder {
@@ -263,7 +755,7 @@ async function createPurchaseFunction({
     throw new Error(`Failed to create purchase: ${result.draftOrderCreate.userErrors.map((e) => e.message).join(", ")}`);
   }
   const draftOrder = result.draftOrderCreate.draftOrder;
-  const completeMutation = import_graphql_request.gql`
+  const completeMutation = import_graphql_request2.gql`
     mutation CompleteDraftOrder($id: ID!) {
       draftOrderComplete(id: $id) {
         draftOrder {
@@ -314,7 +806,7 @@ async function createPurchaseFunction({
     status: "pending"
   };
 }
-async function createWebhookFunction({
+async function createWebhookFunction2({
   platform,
   endpoint,
   events
@@ -325,7 +817,7 @@ async function createWebhookFunction({
     ORDER_CHARGEBACKED: "DISPUTES_CREATE",
     TRACKING_CREATED: "FULFILLMENTS_CREATE"
   };
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -336,7 +828,7 @@ async function createWebhookFunction({
   const webhooks = [];
   for (const event of events) {
     const shopifyTopic = mapTopic[event] || event;
-    const mutation = import_graphql_request.gql`
+    const mutation = import_graphql_request2.gql`
       mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
         webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
           webhookSubscription {
@@ -366,11 +858,11 @@ async function createWebhookFunction({
   }
   return { webhooks };
 }
-async function deleteWebhookFunction({
+async function deleteWebhookFunction2({
   platform,
   webhookId
 }) {
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -378,7 +870,7 @@ async function deleteWebhookFunction({
       }
     }
   );
-  const mutation = import_graphql_request.gql`
+  const mutation = import_graphql_request2.gql`
     mutation DeleteWebhook($id: ID!) {
       webhookSubscriptionDelete(id: $id) {
         deletedWebhookSubscriptionId
@@ -394,7 +886,7 @@ async function deleteWebhookFunction({
   });
   return result.webhookSubscriptionDelete;
 }
-async function getWebhooksFunction({
+async function getWebhooksFunction2({
   platform
 }) {
   const mapTopic = {
@@ -403,7 +895,7 @@ async function getWebhooksFunction({
     DISPUTES_CREATE: "ORDER_CHARGEBACKED",
     FULFILLMENTS_CREATE: "TRACKING_CREATED"
   };
-  const shopifyClient = new import_graphql_request.GraphQLClient(
+  const shopifyClient = new import_graphql_request2.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -411,7 +903,7 @@ async function getWebhooksFunction({
       }
     }
   );
-  const query = import_graphql_request.gql`
+  const query = import_graphql_request2.gql`
     query GetWebhooks {
       webhookSubscriptions(first: 50) {
         edges {
@@ -442,27 +934,36 @@ async function getWebhooksFunction({
   }));
   return { webhooks };
 }
-async function oAuthFunction({
+async function oAuthFunction2({
   platform,
   callbackUrl
 }) {
-  const scopes = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
-  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${process.env.SHOPIFY_APP_KEY}&scope=${scopes}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  if (!clientId) {
+    throw new Error("Shopify OAuth requires appKey in platform config or SHOPIFY_APP_KEY environment variable");
+  }
+  const scopes5 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
+  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
   return { authUrl: shopifyAuthUrl };
 }
-async function oAuthCallbackFunction({
+async function oAuthCallbackFunction2({
   platform,
   code,
   shop,
   state
 }) {
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  const clientSecret = platform.appSecret || process.env.SHOPIFY_APP_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("Shopify OAuth requires appKey and appSecret in platform config or environment variables");
+  }
   const tokenUrl = `https://${shop}/admin/oauth/access_token`;
   const response = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      client_id: process.env.SHOPIFY_APP_KEY,
-      client_secret: process.env.SHOPIFY_APP_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       code
     })
   });
@@ -478,9 +979,9 @@ async function oAuthCallbackFunction({
 async function createTrackingWebhookHandler({
   platform,
   event,
-  headers: headers2
+  headers
 }) {
-  const hmac = headers2["x-shopify-hmac-sha256"];
+  const hmac = headers["x-shopify-hmac-sha256"];
   if (!hmac) {
     throw new Error("Missing webhook HMAC");
   }
@@ -508,9 +1009,9 @@ async function createTrackingWebhookHandler({
 async function cancelPurchaseWebhookHandler({
   platform,
   event,
-  headers: headers2
+  headers
 }) {
-  const hmac = headers2["x-shopify-hmac-sha256"];
+  const hmac = headers["x-shopify-hmac-sha256"];
   if (!hmac) {
     throw new Error("Missing webhook HMAC");
   }
@@ -523,11 +1024,15 @@ async function cancelPurchaseWebhookHandler({
   };
   return { order, type: "purchase_cancelled" };
 }
-var import_graphql_request;
+function scopes2() {
+  return REQUIRED_SCOPES2;
+}
+var import_graphql_request2, REQUIRED_SCOPES2;
 var init_shopify = __esm({
   "features/integrations/channel/shopify.ts"() {
     "use strict";
-    import_graphql_request = require("graphql-request");
+    import_graphql_request2 = require("graphql-request");
+    REQUIRED_SCOPES2 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
   }
 });
 
@@ -537,6 +1042,7 @@ var init_ = __esm({
   'import("../**/*.ts") in features/integrations/channel/lib/executor.ts'() {
     globImport_ts = __glob({
       "../lib/executor.ts": () => Promise.resolve().then(() => (init_executor(), executor_exports)),
+      "../openfront.ts": () => Promise.resolve().then(() => (init_openfront(), openfront_exports)),
       "../shopify.ts": () => Promise.resolve().then(() => (init_shopify(), shopify_exports))
     });
   }
@@ -641,18 +1147,18 @@ async function handleChannelOAuthCallback({ platform, code, shop, state, appKey,
     args: { code, shop, state, appKey, appSecret, redirectUri }
   });
 }
-async function handleChannelTrackingWebhook({ platform, event, headers: headers2 }) {
+async function handleChannelTrackingWebhook({ platform, event, headers }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "createTrackingWebhookHandler",
-    args: { event, headers: headers2 }
+    args: { event, headers }
   });
 }
-async function handleChannelCancelWebhook({ platform, event, headers: headers2 }) {
+async function handleChannelCancelWebhook({ platform, event, headers }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "cancelPurchaseWebhookHandler",
-    args: { event, headers: headers2 }
+    args: { event, headers }
   });
 }
 var init_executor = __esm({
@@ -662,28 +1168,712 @@ var init_executor = __esm({
   }
 });
 
-// features/integrations/shop/shopify.ts
-var shopify_exports2 = {};
-__export(shopify_exports2, {
-  addTrackingFunction: () => addTrackingFunction,
+// features/integrations/shop/openfront.ts
+var openfront_exports2 = {};
+__export(openfront_exports2, {
+  addTrackingFunction: () => addTrackingFunction2,
   cancelOrderWebhookHandler: () => cancelOrderWebhookHandler,
   createOrderWebhookHandler: () => createOrderWebhookHandler,
-  createWebhookFunction: () => createWebhookFunction2,
-  deleteWebhookFunction: () => deleteWebhookFunction2,
-  getProductFunction: () => getProductFunction2,
-  getWebhooksFunction: () => getWebhooksFunction2,
-  oAuthCallbackFunction: () => oAuthCallbackFunction2,
-  oAuthFunction: () => oAuthFunction2,
+  createWebhookFunction: () => createWebhookFunction3,
+  deleteWebhookFunction: () => deleteWebhookFunction3,
+  getProductFunction: () => getProductFunction3,
+  getWebhooksFunction: () => getWebhooksFunction3,
+  oAuthCallbackFunction: () => oAuthCallbackFunction3,
+  oAuthFunction: () => oAuthFunction3,
+  scopes: () => scopes3,
   searchOrdersFunction: () => searchOrdersFunction,
-  searchProductsFunction: () => searchProductsFunction2,
+  searchProductsFunction: () => searchProductsFunction3,
   updateProductFunction: () => updateProductFunction
 });
-async function searchProductsFunction2({
+async function searchProductsFunction3({
   platform,
   searchEntry,
   after
 }) {
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const gqlQuery = import_graphql_request3.gql`
+    query SearchProducts($where: ProductWhereInput, $take: Int, $skip: Int) {
+      products(where: $where, take: $take, skip: $skip, orderBy: { createdAt: desc }) {
+        id
+        title
+        handle
+        description {
+          document
+        }
+        productImages {
+          image {
+            url
+          }
+        }
+        productVariants {
+          id
+          title
+          sku
+          inventoryQuantity
+          prices {
+            id
+            amount
+            currency {
+              code
+            }
+            region {
+              countries {
+                iso2
+              }
+            }
+          }
+        }
+        productCollections {
+          id
+          title
+        }
+        metadata
+        status
+        createdAt
+      }
+      productsCount(where: $where)
+    }
+  `;
+  const where = {
+    status: { equals: "published" }
+  };
+  if (searchEntry && searchEntry.trim()) {
+    where.OR = [
+      { title: { contains: searchEntry, mode: "insensitive" } },
+      { handle: { contains: searchEntry, mode: "insensitive" } },
+      { productVariants: { some: { sku: { contains: searchEntry, mode: "insensitive" } } } }
+    ];
+  }
+  const take = 15;
+  const skip = after ? parseInt(Buffer.from(after, "base64").toString()) : 0;
+  const { products, productsCount } = await openFrontClient.request(gqlQuery, {
+    where,
+    take,
+    skip
+  });
+  if (!products || products.length === 0) {
+    throw new Error("No products found from OpenFront");
+  }
+  const transformedProducts = products.flatMap(
+    (product) => product.productVariants.map((variant) => {
+      const firstPrice = variant.prices[0];
+      const firstImage = product.productImages[0];
+      return {
+        image: firstImage?.image?.url || null,
+        title: `${product.title} - ${variant.title}`,
+        productId: product.id,
+        variantId: variant.id,
+        price: firstPrice ? (firstPrice.amount / 100).toFixed(2) : "0.00",
+        // Convert from cents
+        availableForSale: product.status === "published" && variant.inventoryQuantity > 0,
+        inventory: variant.inventoryQuantity || 0,
+        inventoryTracked: true,
+        productLink: `https://${platform.domain}/products/${product.handle}`,
+        cursor: Buffer.from((skip + products.indexOf(product) + 1).toString()).toString("base64")
+      };
+    })
+  );
+  const hasNextPage = skip + take < productsCount;
+  const endCursor = hasNextPage ? Buffer.from((skip + take).toString()).toString("base64") : null;
+  return {
+    products: transformedProducts,
+    pageInfo: {
+      hasNextPage,
+      endCursor
+    }
+  };
+}
+async function getProductFunction3({
+  platform,
+  productId,
+  variantId
+}) {
+  console.log("OpenFront getProductFunction called with:", { platform: platform.domain, productId, variantId });
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const gqlQuery = variantId ? import_graphql_request3.gql`
+    query GetProduct($productId: ID!, $variantId: ID!) {
+      product(where: { id: $productId }) {
+        id
+        title
+        handle
+        description {
+          document
+        }
+        productImages {
+          image {
+            url
+          }
+        }
+        productVariants(where: { id: { equals: $variantId } }) {
+          id
+          title
+          sku
+          inventoryQuantity
+          prices {
+            id
+            amount
+            currency {
+              code
+            }
+          }
+        }
+        status
+      }
+    }
+  ` : import_graphql_request3.gql`
+    query GetProduct($productId: ID!) {
+      product(where: { id: $productId }) {
+        id
+        title
+        handle
+        description {
+          document
+        }
+        productImages {
+          image {
+            url
+          }
+        }
+        productVariants {
+          id
+          title
+          sku
+          inventoryQuantity
+          prices {
+            id
+            amount
+            currency {
+              code
+            }
+          }
+        }
+        status
+      }
+    }
+  `;
+  const variables = { productId };
+  if (variantId) {
+    variables.variantId = variantId;
+  }
+  const { product } = await openFrontClient.request(gqlQuery, variables);
+  if (!product) {
+    throw new Error("Product not found from OpenFront");
+  }
+  const variant = variantId ? product.productVariants.find((v) => v.id === variantId) : product.productVariants[0];
+  if (!variant) {
+    throw new Error("Product variant not found from OpenFront");
+  }
+  const firstPrice = variant.prices[0];
+  const firstImage = product.productImages[0];
+  const transformedProduct = {
+    image: firstImage?.image?.url || null,
+    title: `${product.title} - ${variant.title}`,
+    productId: product.id,
+    variantId: variant.id,
+    price: firstPrice ? (firstPrice.amount / 100).toFixed(2) : "0.00",
+    availableForSale: product.status === "published" && variant.inventoryQuantity > 0,
+    inventory: variant.inventoryQuantity || 0,
+    inventoryTracked: true,
+    productLink: `https://${platform.domain}/products/${product.handle}`
+  };
+  return { product: transformedProduct };
+}
+async function searchOrdersFunction({
+  platform,
+  searchEntry,
+  after
+}) {
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const gqlQuery = import_graphql_request3.gql`
+    query SearchOrders($where: OrderWhereInput, $take: Int, $skip: Int) {
+      orders(where: $where, take: $take, skip: $skip, orderBy: { createdAt: desc }) {
+        id
+        displayId
+        email
+        status
+        total
+        rawTotal
+        currency {
+          code
+        }
+        shippingAddress {
+          firstName
+          lastName
+          address1
+          address2
+          city
+          province
+          postalCode
+          phone
+          country {
+            iso2
+          }
+        }
+        lineItems {
+          id
+          title
+          quantity
+          sku
+          variantTitle
+          thumbnail
+          formattedUnitPrice
+          formattedTotal
+          moneyAmount {
+            amount
+            originalAmount
+          }
+          productVariant {
+            id
+            title
+            sku
+            product {
+              id
+              title
+              handle
+              thumbnail
+            }
+          }
+          productData
+          variantData
+        }
+        createdAt
+        updatedAt
+      }
+      ordersCount(where: $where)
+    }
+  `;
+  const where = {};
+  if (searchEntry && searchEntry.trim()) {
+    where.OR = [
+      { displayId: { contains: searchEntry, mode: "insensitive" } },
+      { email: { contains: searchEntry, mode: "insensitive" } },
+      { shippingAddress: {
+        is: {
+          OR: [
+            { firstName: { contains: searchEntry, mode: "insensitive" } },
+            { lastName: { contains: searchEntry, mode: "insensitive" } }
+          ]
+        }
+      } }
+    ];
+  }
+  const take = 15;
+  const skip = after ? parseInt(Buffer.from(after, "base64").toString()) : 0;
+  const { orders, ordersCount } = await openFrontClient.request(gqlQuery, {
+    where,
+    take,
+    skip
+  });
+  const transformedOrders = orders.map((order) => {
+    const shippingAddress = order.shippingAddress || {};
+    return {
+      orderId: order.id,
+      orderName: `#${order.displayId}`,
+      link: `${platform.domain}/admin/orders/${order.id}`,
+      date: new Date(order.createdAt).toLocaleDateString(),
+      firstName: shippingAddress.firstName || "",
+      lastName: shippingAddress.lastName || "",
+      streetAddress1: shippingAddress.address1 || "",
+      streetAddress2: shippingAddress.address2 || "",
+      city: shippingAddress.city || "",
+      state: shippingAddress.province || "",
+      zip: shippingAddress.postalCode || "",
+      country: shippingAddress.country?.iso2 || "",
+      email: order.email || "",
+      fulfillmentStatus: order.status,
+      financialStatus: order.status,
+      totalPrice: order.rawTotal ? (order.rawTotal / 100).toFixed(2) : "0.00",
+      currency: order.currency?.code || "USD",
+      lineItems: (order.lineItems || []).map((lineItem) => ({
+        lineItemId: lineItem.id,
+        name: lineItem.title,
+        quantity: lineItem.quantity,
+        image: lineItem.thumbnail || lineItem.productVariant?.product?.thumbnail || "",
+        price: lineItem.moneyAmount ? (lineItem.moneyAmount.amount / 100).toFixed(2) : "0.00",
+        variantId: lineItem.productVariant?.id || "",
+        productId: lineItem.productVariant?.product?.id || "",
+        sku: lineItem.sku || lineItem.productVariant?.sku || ""
+      })),
+      cartItems: [],
+      fulfillments: [],
+      note: "",
+      cursor: Buffer.from((skip + orders.indexOf(order) + 1).toString()).toString("base64")
+    };
+  });
+  const hasNextPage = skip + take < ordersCount;
+  const endCursor = hasNextPage ? Buffer.from((skip + take).toString()).toString("base64") : null;
+  return {
+    orders: transformedOrders,
+    pageInfo: {
+      hasNextPage,
+      endCursor
+    }
+  };
+}
+async function updateProductFunction({
+  platform,
+  productId,
+  variantId,
+  inventory,
+  price
+}) {
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const mutations = [];
+  if (inventory !== void 0) {
+    const updateInventoryMutation = import_graphql_request3.gql`
+      mutation UpdateProductVariantInventory($where: ProductVariantWhereUniqueInput!, $data: ProductVariantUpdateInput!) {
+        updateProductVariant(where: $where, data: $data) {
+          id
+          inventoryQuantity
+        }
+      }
+    `;
+    mutations.push(
+      openFrontClient.request(updateInventoryMutation, {
+        where: { id: variantId },
+        data: { inventoryQuantity: inventory }
+      })
+    );
+  }
+  if (price !== void 0) {
+    console.log(`Price update requested for variant ${variantId}: ${price}`);
+  }
+  const results = await Promise.all(mutations);
+  return { success: true, results };
+}
+async function createWebhookFunction3({
+  platform,
+  endpoint,
+  events
+}) {
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const createWebhookMutation = import_graphql_request3.gql`
+    mutation CreateWebhookEndpoint($data: WebhookEndpointCreateInput!) {
+      createWebhookEndpoint(data: $data) {
+        id
+        url
+        events
+        isActive
+        secret
+      }
+    }
+  `;
+  const eventMap = {
+    ORDER_CREATED: "order.created",
+    ORDER_CANCELLED: "order.cancelled",
+    TRACKING_CREATED: "fulfillment.created"
+  };
+  const openFrontEvents = events.map((event) => eventMap[event] || event);
+  const result = await openFrontClient.request(createWebhookMutation, {
+    data: {
+      url: endpoint,
+      events: openFrontEvents,
+      isActive: true
+    }
+  });
+  const webhook = result.createWebhookEndpoint;
+  return {
+    webhooks: [webhook],
+    webhookId: webhook.id
+  };
+}
+async function deleteWebhookFunction3({
+  platform,
+  webhookId
+}) {
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const deleteWebhookMutation = import_graphql_request3.gql`
+    mutation DeleteWebhookEndpoint($where: WebhookEndpointWhereUniqueInput!) {
+      deleteWebhookEndpoint(where: $where) {
+        id
+      }
+    }
+  `;
+  const result = await openFrontClient.request(deleteWebhookMutation, {
+    where: { id: webhookId }
+  });
+  return result;
+}
+async function getWebhooksFunction3({
+  platform
+}) {
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const query = import_graphql_request3.gql`
+    query GetWebhookEndpoints {
+      webhookEndpoints(where: { isActive: { equals: true } }) {
+        id
+        url
+        events
+        isActive
+        createdAt
+      }
+    }
+  `;
+  const { webhookEndpoints } = await openFrontClient.request(query);
+  const baseUrl = await (0, import_getBaseUrl.getBaseUrl)();
+  const eventMap = {
+    "order.created": "ORDER_CREATED",
+    "order.cancelled": "ORDER_CANCELLED",
+    "fulfillment.created": "TRACKING_CREATED"
+  };
+  const webhooks = webhookEndpoints.map((webhook) => ({
+    id: webhook.id,
+    callbackUrl: webhook.url.replace(baseUrl, ""),
+    topic: webhook.events.map((event) => eventMap[event] || event),
+    format: "JSON",
+    createdAt: webhook.createdAt
+  }));
+  return { webhooks };
+}
+async function oAuthFunction3({
+  platform,
+  callbackUrl
+}) {
+  console.log("\u{1F534} oAuthFunction START");
+  console.log("\u{1F534} Platform domain:", platform.domain);
+  console.log("\u{1F534} Platform appKey:", platform.appKey);
+  console.log("\u{1F534} Callback URL:", callbackUrl);
+  if (!platform.appKey) {
+    throw new Error("OpenFront OAuth requires appKey in platform configuration");
+  }
+  const scopes5 = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
+  const state = Math.random().toString(36).substring(7);
+  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/order-management-system?install=true&client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
+  console.log("\u{1F534} Generated authUrl:", openFrontAuthUrl);
+  console.log("\u{1F534} Returning object:", { authUrl: openFrontAuthUrl });
+  return { authUrl: openFrontAuthUrl };
+}
+async function oAuthCallbackFunction3({
+  platform,
+  code,
+  shop,
+  state,
+  appKey,
+  appSecret,
+  redirectUri
+}) {
+  const domain = platform.domain || shop;
+  const tokenUrl = `${domain}/api/oauth/token`;
+  const clientId = appKey || platform.appKey;
+  const clientSecret = appSecret || platform.appSecret;
+  console.log("\u{1F535} OPENSHIP TOKEN EXCHANGE:");
+  console.log("\u{1F535} Domain:", domain);
+  console.log("\u{1F535} TokenUrl:", tokenUrl);
+  console.log("\u{1F535} ClientId:", clientId);
+  console.log("\u{1F535} ClientSecret:", clientSecret);
+  console.log("\u{1F535} Code:", code);
+  console.log("\u{1F535} RedirectUri:", redirectUri);
+  if (!clientId || !clientSecret) {
+    throw new Error("OpenFront OAuth requires appKey and appSecret in platform configuration or as parameters");
+  }
+  const formData = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+    redirect_uri: redirectUri || ""
+  });
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("OpenFront OAuth error:", errorText);
+    throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
+  }
+  const { access_token } = await response.json();
+  return access_token;
+}
+async function createOrderWebhookHandler({
+  platform,
+  event,
+  headers
+}) {
+  const signature = headers["x-openfront-webhook-signature"];
+  if (!signature) {
+    throw new Error("Missing webhook signature");
+  }
+  const lineItemsOutput = event.data?.orderLineItems?.map((item) => ({
+    name: item.title,
+    image: item.productVariant?.product?.productImages?.[0]?.image?.url || null,
+    price: item.unitPrice / 100,
+    // Convert from cents
+    quantity: item.quantity,
+    productId: item.productVariant?.product?.id,
+    variantId: item.productVariant?.id,
+    sku: item.productVariant?.sku || "",
+    lineItemId: item.id
+  })) || [];
+  const orderData = event.data;
+  return {
+    orderId: orderData.id,
+    orderName: orderData.orderNumber,
+    email: orderData.customerEmail,
+    firstName: orderData.firstName,
+    lastName: orderData.lastName,
+    streetAddress1: orderData.address1,
+    streetAddress2: orderData.address2,
+    city: orderData.city,
+    state: orderData.state,
+    zip: orderData.postalCode,
+    country: orderData.countryCode,
+    phone: orderData.phone,
+    currency: orderData.currency?.code || "USD",
+    totalPrice: orderData.total / 100,
+    // Convert from cents
+    subTotalPrice: (orderData.subtotal || orderData.total) / 100,
+    totalDiscounts: (orderData.totalDiscounts || 0) / 100,
+    totalTax: (orderData.totalTax || 0) / 100,
+    status: "INPROCESS",
+    linkOrder: true,
+    matchOrder: true,
+    processOrder: true,
+    lineItems: { create: lineItemsOutput }
+  };
+}
+async function cancelOrderWebhookHandler({
+  platform,
+  event,
+  headers
+}) {
+  const signature = headers["x-openfront-webhook-signature"];
+  if (!signature) {
+    throw new Error("Missing webhook signature");
+  }
+  const orderData = event.data;
+  const order = {
+    id: orderData.id,
+    name: orderData.orderNumber,
+    cancelReason: orderData.cancellationReason || "merchant_cancelled",
+    cancelledAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  return { order, type: "order_cancelled" };
+}
+function scopes3() {
+  return REQUIRED_SCOPES3;
+}
+async function addTrackingFunction2({
+  order,
+  trackingCompany,
+  trackingNumber
+}) {
+  const openFrontClient = await createOpenFrontClient2({
+    domain: order.shop.domain,
+    accessToken: order.shop.accessToken
+  });
+  const createFulfillmentMutation = import_graphql_request3.gql`
+    mutation CreateFulfillment($data: FulfillmentCreateInput!) {
+      createFulfillment(data: $data) {
+        id
+        trackingNumber
+        trackingCompany
+      }
+    }
+  `;
+  const fulfillmentData = {
+    order: { connect: { id: order.orderId } },
+    trackingNumber,
+    trackingCompany,
+    status: "shipped"
+  };
+  const result = await openFrontClient.request(createFulfillmentMutation, {
+    data: fulfillmentData
+  });
+  return result;
+}
+var import_graphql_request3, import_getBaseUrl, getFreshAccessToken, createOpenFrontClient2, REQUIRED_SCOPES3;
+var init_openfront2 = __esm({
+  "features/integrations/shop/openfront.ts"() {
+    "use strict";
+    import_graphql_request3 = require("graphql-request");
+    import_getBaseUrl = require("@/features/dashboard/lib/getBaseUrl");
+    getFreshAccessToken = async (platform) => {
+      const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
+      try {
+        const checkResponse = await fetch(tokenCheckUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: platform.appKey,
+            client_secret: platform.appSecret
+          })
+        });
+        if (checkResponse.ok) {
+          const { access_token: access_token2, is_valid } = await checkResponse.json();
+          if (is_valid) {
+            return access_token2;
+          }
+        }
+      } catch (error) {
+        console.log("Token check failed, will refresh:", error);
+      }
+      const tokenUrl = `${platform.domain}/api/oauth/token`;
+      console.log("\u{1F534} Attempting to refresh token:");
+      console.log("\u{1F534} Token URL:", tokenUrl);
+      console.log("\u{1F534} Client ID:", platform.appKey);
+      console.log("\u{1F534} Client Secret length:", platform.appSecret?.length);
+      console.log("\u{1F534} Client Secret bytes:", [...platform.appSecret || ""].map((c) => c.charCodeAt(0)));
+      console.log("\u{1F534} Refresh Token (first 10 chars):", platform.accessToken?.substring(0, 10));
+      const formData = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: platform.accessToken
+        // This is actually the refresh token stored in accessToken field
+      });
+      const response = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("\u{1F534} Token refresh failed:", errorText);
+        console.error("\u{1F534} Response status:", response.status);
+        throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+      }
+      const { access_token } = await response.json();
+      return access_token;
+    };
+    createOpenFrontClient2 = async (platform) => {
+      const freshAccessToken = await getFreshAccessToken(platform);
+      return new import_graphql_request3.GraphQLClient(
+        `${platform.domain}/api/graphql`,
+        {
+          headers: {
+            "Authorization": `Bearer ${freshAccessToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    };
+    REQUIRED_SCOPES3 = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
+  }
+});
+
+// features/integrations/shop/shopify.ts
+var shopify_exports2 = {};
+__export(shopify_exports2, {
+  addTrackingFunction: () => addTrackingFunction3,
+  cancelOrderWebhookHandler: () => cancelOrderWebhookHandler2,
+  createOrderWebhookHandler: () => createOrderWebhookHandler2,
+  createWebhookFunction: () => createWebhookFunction4,
+  deleteWebhookFunction: () => deleteWebhookFunction4,
+  getProductFunction: () => getProductFunction4,
+  getWebhooksFunction: () => getWebhooksFunction4,
+  oAuthCallbackFunction: () => oAuthCallbackFunction4,
+  oAuthFunction: () => oAuthFunction4,
+  scopes: () => scopes4,
+  searchOrdersFunction: () => searchOrdersFunction2,
+  searchProductsFunction: () => searchProductsFunction4,
+  updateProductFunction: () => updateProductFunction2
+});
+async function searchProductsFunction4({
+  platform,
+  searchEntry,
+  after
+}) {
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -691,7 +1881,7 @@ async function searchProductsFunction2({
       }
     }
   );
-  const gqlQuery = import_graphql_request2.gql`
+  const gqlQuery = import_graphql_request4.gql`
     query SearchProducts($query: String, $after: String) {
       productVariants(first: 15, query: $query, after: $after) {
         edges {
@@ -751,13 +1941,13 @@ async function searchProductsFunction2({
     pageInfo: productVariants.pageInfo
   };
 }
-async function getProductFunction2({
+async function getProductFunction4({
   platform,
   productId,
   variantId
 }) {
   console.log("SHOP getProductFunction called with:", { platform: platform.domain, productId, variantId });
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -765,7 +1955,7 @@ async function getProductFunction2({
       }
     }
   );
-  const gqlQuery = import_graphql_request2.gql`
+  const gqlQuery = import_graphql_request4.gql`
     query GetProduct($variantId: ID!) {
       productVariant(id: $variantId) {
         id
@@ -814,12 +2004,12 @@ async function getProductFunction2({
   };
   return { product };
 }
-async function searchOrdersFunction({
+async function searchOrdersFunction2({
   platform,
   searchEntry,
   after
 }) {
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -827,7 +2017,7 @@ async function searchOrdersFunction({
       }
     }
   );
-  const gqlQuery = import_graphql_request2.gql`
+  const gqlQuery = import_graphql_request4.gql`
     query SearchOrders($query: String, $after: String) {
       orders(first: 15, query: $query, after: $after) {
         edges {
@@ -934,14 +2124,14 @@ async function searchOrdersFunction({
     pageInfo: orders.pageInfo
   };
 }
-async function updateProductFunction({
+async function updateProductFunction2({
   platform,
   productId,
   variantId,
   inventory,
   price
 }) {
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -951,7 +2141,7 @@ async function updateProductFunction({
   );
   const mutations = [];
   if (price !== void 0) {
-    const updatePriceMutation = import_graphql_request2.gql`
+    const updatePriceMutation = import_graphql_request4.gql`
       mutation UpdateProductVariantPrice($input: ProductVariantInput!) {
         productVariantUpdate(input: $input) {
           productVariant {
@@ -976,7 +2166,7 @@ async function updateProductFunction({
   }
   if (inventory !== void 0) {
     try {
-      const getVariantWithInventoryQuery = import_graphql_request2.gql`
+      const getVariantWithInventoryQuery = import_graphql_request4.gql`
         query GetVariantWithInventory($id: ID!) {
           productVariant(id: $id) {
             inventoryQuantity
@@ -999,7 +2189,7 @@ async function updateProductFunction({
         console.log("inventoryItem:", variantData.productVariant?.inventoryItem);
         throw new Error("Unable to find inventory item for variant");
       }
-      const getLocationsQuery = import_graphql_request2.gql`
+      const getLocationsQuery = import_graphql_request4.gql`
         query GetLocations {
           locations(first: 1) {
             edges {
@@ -1017,7 +2207,7 @@ async function updateProductFunction({
         throw new Error("No locations found for shop");
       }
       const inventoryDelta = inventory;
-      const updateInventoryMutation = import_graphql_request2.gql`
+      const updateInventoryMutation = import_graphql_request4.gql`
         mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
           inventoryAdjustQuantities(input: $input) {
             inventoryAdjustmentGroup {
@@ -1053,7 +2243,7 @@ async function updateProductFunction({
   const results = await Promise.all(mutations);
   return { success: true, results };
 }
-async function createWebhookFunction2({
+async function createWebhookFunction4({
   platform,
   endpoint,
   events
@@ -1070,7 +2260,7 @@ async function createWebhookFunction2({
   if (!platform.accessToken) {
     throw new Error("Missing accessToken in platform configuration");
   }
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -1081,7 +2271,7 @@ async function createWebhookFunction2({
   const webhooks = [];
   for (const event of events) {
     const shopifyTopic = mapTopic[event] || event;
-    const mutation = import_graphql_request2.gql`
+    const mutation = import_graphql_request4.gql`
       mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
         webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
           webhookSubscription {
@@ -1121,11 +2311,11 @@ async function createWebhookFunction2({
   const webhookId = webhooks[0]?.id?.split("/").pop();
   return { webhooks, webhookId };
 }
-async function deleteWebhookFunction2({
+async function deleteWebhookFunction4({
   platform,
   webhookId
 }) {
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -1133,7 +2323,7 @@ async function deleteWebhookFunction2({
       }
     }
   );
-  const mutation = import_graphql_request2.gql`
+  const mutation = import_graphql_request4.gql`
     mutation DeleteWebhook($id: ID!) {
       webhookSubscriptionDelete(id: $id) {
         deletedWebhookSubscriptionId
@@ -1149,7 +2339,7 @@ async function deleteWebhookFunction2({
   });
   return result.webhookSubscriptionDelete;
 }
-async function getWebhooksFunction2({
+async function getWebhooksFunction4({
   platform
 }) {
   const mapTopic = {
@@ -1158,7 +2348,7 @@ async function getWebhooksFunction2({
     DISPUTES_CREATE: "ORDER_CHARGEBACKED",
     FULFILLMENTS_CREATE: "TRACKING_CREATED"
   };
-  const shopifyClient = new import_graphql_request2.GraphQLClient(
+  const shopifyClient = new import_graphql_request4.GraphQLClient(
     `https://${platform.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -1166,7 +2356,7 @@ async function getWebhooksFunction2({
       }
     }
   );
-  const query = import_graphql_request2.gql`
+  const query = import_graphql_request4.gql`
     query GetWebhooks {
       webhookSubscriptions(first: 50) {
         edges {
@@ -1187,7 +2377,7 @@ async function getWebhooksFunction2({
     }
   `;
   const { webhookSubscriptions } = await shopifyClient.request(query);
-  const baseUrl = await (0, import_getBaseUrl.getBaseUrl)();
+  const baseUrl = await (0, import_getBaseUrl2.getBaseUrl)();
   const webhooks = webhookSubscriptions.edges.map(({ node }) => ({
     id: node.id.split("/").pop(),
     callbackUrl: node.endpoint.callbackUrl.replace(baseUrl, ""),
@@ -1197,27 +2387,36 @@ async function getWebhooksFunction2({
   }));
   return { webhooks };
 }
-async function oAuthFunction2({
+async function oAuthFunction4({
   platform,
   callbackUrl
 }) {
-  const scopes = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
-  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${process.env.SHOPIFY_APP_KEY}&scope=${scopes}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  if (!clientId) {
+    throw new Error("Shopify OAuth requires appKey in platform config or SHOPIFY_APP_KEY environment variable");
+  }
+  const scopes5 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
+  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
   return { authUrl: shopifyAuthUrl };
 }
-async function oAuthCallbackFunction2({
+async function oAuthCallbackFunction4({
   platform,
   code,
   shop,
   state
 }) {
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  const clientSecret = platform.appSecret || process.env.SHOPIFY_APP_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("Shopify OAuth requires appKey and appSecret in platform config or environment variables");
+  }
   const tokenUrl = `https://${shop}/admin/oauth/access_token`;
   const response = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      client_id: process.env.SHOPIFY_APP_KEY,
-      client_secret: process.env.SHOPIFY_APP_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       code
     })
   });
@@ -1230,12 +2429,12 @@ async function oAuthCallbackFunction2({
     domain: shop
   };
 }
-async function createOrderWebhookHandler({
+async function createOrderWebhookHandler2({
   platform,
   event,
-  headers: headers2
+  headers
 }) {
-  const hmac = headers2["x-shopify-hmac-sha256"];
+  const hmac = headers["x-shopify-hmac-sha256"];
   if (!hmac) {
     throw new Error("Missing webhook HMAC");
   }
@@ -1243,7 +2442,7 @@ async function createOrderWebhookHandler({
     event.line_items.map(async (item) => {
       let image = null;
       try {
-        const shopifyClient = new import_graphql_request2.GraphQLClient(
+        const shopifyClient = new import_graphql_request4.GraphQLClient(
           `https://${platform.domain}/admin/api/graphql.json`,
           {
             headers: {
@@ -1251,7 +2450,7 @@ async function createOrderWebhookHandler({
             }
           }
         );
-        const variantQuery = import_graphql_request2.gql`
+        const variantQuery = import_graphql_request4.gql`
           query productVariant($id: ID!) {
             productVariant(id: $id) {
               image {
@@ -1313,12 +2512,12 @@ async function createOrderWebhookHandler({
     lineItems: { create: lineItemsOutput }
   };
 }
-async function addTrackingFunction({
+async function addTrackingFunction3({
   order,
   trackingCompany,
   trackingNumber
 }) {
-  const FETCH_FULFILLMENT_ORDER = import_graphql_request2.gql`
+  const FETCH_FULFILLMENT_ORDER = import_graphql_request4.gql`
     query ($id: ID!) {
       order(id: $id) {
         fulfillmentOrders(first: 1) {
@@ -1342,7 +2541,7 @@ async function addTrackingFunction({
       }
     }
   `;
-  const UPDATE_FULFILLMENT_TRACKING_INFO = import_graphql_request2.gql`
+  const UPDATE_FULFILLMENT_TRACKING_INFO = import_graphql_request4.gql`
     mutation fulfillmentTrackingInfoUpdateV2(
       $fulfillmentId: ID!
       $trackingInfoInput: FulfillmentTrackingInput!
@@ -1361,7 +2560,7 @@ async function addTrackingFunction({
       }
     }
   `;
-  const CREATE_FULFILLMENT = import_graphql_request2.gql`
+  const CREATE_FULFILLMENT = import_graphql_request4.gql`
     mutation fulfillmentCreateV2($fulfillment: FulfillmentV2Input!) {
       fulfillmentCreateV2(fulfillment: $fulfillment) {
         fulfillment {
@@ -1374,7 +2573,7 @@ async function addTrackingFunction({
       }
     }
   `;
-  const client = new import_graphql_request2.GraphQLClient(
+  const client = new import_graphql_request4.GraphQLClient(
     `https://${order.shop.domain}/admin/api/graphql.json`,
     {
       headers: {
@@ -1423,12 +2622,12 @@ async function addTrackingFunction({
   });
   return createResponseBody;
 }
-async function cancelOrderWebhookHandler({
+async function cancelOrderWebhookHandler2({
   platform,
   event,
-  headers: headers2
+  headers
 }) {
-  const hmac = headers2["x-shopify-hmac-sha256"];
+  const hmac = headers["x-shopify-hmac-sha256"];
   if (!hmac) {
     throw new Error("Missing webhook HMAC");
   }
@@ -1440,12 +2639,16 @@ async function cancelOrderWebhookHandler({
   };
   return { order, type: "order_cancelled" };
 }
-var import_graphql_request2, import_getBaseUrl;
+function scopes4() {
+  return REQUIRED_SCOPES4;
+}
+var import_graphql_request4, import_getBaseUrl2, REQUIRED_SCOPES4;
 var init_shopify2 = __esm({
   "features/integrations/shop/shopify.ts"() {
     "use strict";
-    import_graphql_request2 = require("graphql-request");
-    import_getBaseUrl = require("@/features/dashboard/lib/getBaseUrl");
+    import_graphql_request4 = require("graphql-request");
+    import_getBaseUrl2 = require("@/features/dashboard/lib/getBaseUrl");
+    REQUIRED_SCOPES4 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
   }
 });
 
@@ -1455,6 +2658,7 @@ var init_2 = __esm({
   'import("../**/*.ts") in features/integrations/shop/lib/executor.ts'() {
     globImport_ts2 = __glob({
       "../lib/executor.ts": () => Promise.resolve().then(() => (init_executor2(), executor_exports2)),
+      "../openfront.ts": () => Promise.resolve().then(() => (init_openfront2(), openfront_exports2)),
       "../shopify.ts": () => Promise.resolve().then(() => (init_shopify2(), shopify_exports2))
     });
   }
@@ -1576,18 +2780,18 @@ async function handleShopOAuthCallback({ platform, code, shop, state, appKey, ap
     args: { code, shop, state, appKey, appSecret, redirectUri }
   });
 }
-async function handleShopOrderWebhook({ platform, event, headers: headers2 }) {
+async function handleShopOrderWebhook({ platform, event, headers }) {
   return executeShopAdapterFunction({
     platform,
     functionName: "createOrderWebhookHandler",
-    args: { event, headers: headers2 }
+    args: { event, headers }
   });
 }
-async function handleShopCancelWebhook({ platform, event, headers: headers2 }) {
+async function handleShopCancelWebhook({ platform, event, headers }) {
   return executeShopAdapterFunction({
     platform,
     functionName: "cancelOrderWebhookHandler",
-    args: { event, headers: headers2 }
+    args: { event, headers }
   });
 }
 async function addShopTracking({ platform, order, trackingCompany, trackingNumber }) {
@@ -2136,6 +3340,7 @@ var import_fields7 = require("@keystone-6/core/fields");
 // import("../../integrations/channel/**/*.ts") in features/keystone/utils/channelProviderAdapter.ts
 var globImport_integrations_channel_ts = __glob({
   "../../integrations/channel/lib/executor.ts": () => Promise.resolve().then(() => (init_executor(), executor_exports)),
+  "../../integrations/channel/openfront.ts": () => Promise.resolve().then(() => (init_openfront(), openfront_exports)),
   "../../integrations/channel/shopify.ts": () => Promise.resolve().then(() => (init_shopify(), shopify_exports))
 });
 
@@ -2238,6 +3443,7 @@ async function getChannelWebhooks2({ platform }) {
 // import("../../integrations/shop/**/*.ts") in features/keystone/utils/shopProviderAdapter.ts
 var globImport_integrations_shop_ts = __glob({
   "../../integrations/shop/lib/executor.ts": () => Promise.resolve().then(() => (init_executor2(), executor_exports2)),
+  "../../integrations/shop/openfront.ts": () => Promise.resolve().then(() => (init_openfront2(), openfront_exports2)),
   "../../integrations/shop/shopify.ts": () => Promise.resolve().then(() => (init_shopify2(), shopify_exports2))
 });
 
@@ -3566,7 +4772,7 @@ async function getMatch(root, { input }, context) {
         channelId,
         ...rest
       } of existingMatch.output) {
-        const { searchProductsFunction: searchProductsFunction3 } = channel.platform;
+        const { searchProductsFunction: searchProductsFunction5 } = channel.platform;
         const searchResult = await searchChannelProducts2({
           platform: channel.platform,
           searchEntry: productId,
@@ -3629,6 +4835,8 @@ async function getShopWebhooks3(root, { shopId }, context) {
       where: { id: shopId },
       query: "id domain accessToken platform { id getWebhooksFunction }"
     });
+    console.log("\u{1F534} getShopWebhooks - shopId:", shopId);
+    console.log("\u{1F534} getShopWebhooks - shop result:", shop);
     if (!shop) {
       throw new Error("Shop not found");
     }
@@ -3681,9 +4889,13 @@ async function searchShopOrders3(root, { shopId, searchEntry, take = 25, skip = 
         id 
         name
         searchOrdersFunction 
+        appKey
+        appSecret
       }
     `
   });
+  console.log("\u{1F534} searchShopOrders - shopId:", shopId);
+  console.log("\u{1F534} searchShopOrders - shop result:", shop);
   if (!shop) {
     throw new Error("Shop not found");
   }
@@ -3764,6 +4976,8 @@ async function searchShopProductsQuery(root, { shopId, searchEntry, after }, con
         id
         name
         searchProductsFunction
+        appKey
+        appSecret
       }
     `
   });
@@ -4702,28 +5916,6 @@ var Link = (0, import_core16.list)({
 // features/keystone/models/ShopPlatform.ts
 var import_core18 = require("@keystone-6/core");
 var import_fields17 = require("@keystone-6/core/fields");
-
-// features/dashboard/lib/getBaseUrl.ts
-var import_headers = require("next/headers");
-async function getBaseUrl2() {
-  if (typeof window !== "undefined") {
-    return window.location.origin;
-  }
-  if (typeof process !== "undefined") {
-    try {
-      const headersList = await (0, import_headers.headers)();
-      const host = headersList.get("x-forwarded-host") || headersList.get("host");
-      const protocol = headersList.get("x-forwarded-proto") || "https";
-      if (host) {
-        return `${protocol}://${host}`;
-      }
-    } catch (e) {
-    }
-  }
-  return "";
-}
-
-// features/keystone/models/ShopPlatform.ts
 var ShopPlatform = (0, import_core18.list)({
   access: {
     operation: {
@@ -4749,8 +5941,19 @@ var ShopPlatform = (0, import_core18.list)({
         callbackUrl: (0, import_fields17.virtual)({
           field: import_core18.graphql.field({
             type: import_core18.graphql.String,
-            resolve: async (item) => {
-              const baseUrl = await getBaseUrl2();
+            resolve: async (item, args, context) => {
+              let baseUrl = "";
+              if (context?.req?.headers) {
+                const headers = context.req.headers;
+                const host = headers["x-forwarded-host"] || headers["host"];
+                const protocol = headers["x-forwarded-proto"] || "https";
+                if (host) {
+                  baseUrl = `${protocol}://${host}`;
+                }
+              }
+              if (!baseUrl) {
+                baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+              }
               return `${baseUrl}/api/oauth/shop/${item.id}/callback`;
             }
           }),
@@ -4764,51 +5967,35 @@ var ShopPlatform = (0, import_core18.list)({
       label: "Adapter Functions",
       description: "These functions link to built-in adapters, but can also be external endpoints",
       fields: {
-        searchProductsFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        getProductFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        searchOrdersFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        updateProductFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        createWebhookFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
+        searchProductsFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        getProductFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        searchOrdersFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        updateProductFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        createWebhookFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
         oAuthFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
+          validation: { isRequired: true },
+          ui: {
+            description: "Function to initiate OAuth flow for this platform"
+          }
         }),
         oAuthCallbackFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
+          validation: { isRequired: true },
+          ui: {
+            description: "Function to handle OAuth callback for this platform"
+          }
         }),
-        createOrderWebhookHandler: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        cancelOrderWebhookHandler: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        addTrackingFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
+        createOrderWebhookHandler: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        cancelOrderWebhookHandler: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        addTrackingFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
         orderLinkFunction: (0, import_fields17.text)({
           validation: { isRequired: true },
           ui: {
             description: "Function to generate the order link for this platform"
           }
         }),
-        addCartToPlatformOrderFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        getWebhooksFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        }),
-        deleteWebhookFunction: (0, import_fields17.text)({
-          validation: { isRequired: true }
-        })
+        addCartToPlatformOrderFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        getWebhooksFunction: (0, import_fields17.text)({ validation: { isRequired: true } }),
+        deleteWebhookFunction: (0, import_fields17.text)({ validation: { isRequired: true } })
       }
     }),
     shops: (0, import_fields17.relationship)({ ref: "Shop.platform", many: true }),
@@ -4855,8 +6042,19 @@ var ChannelPlatform = (0, import_core19.list)({
         callbackUrl: (0, import_fields18.virtual)({
           field: import_core19.graphql.field({
             type: import_core19.graphql.String,
-            resolve: async (item) => {
-              const baseUrl = await getBaseUrl2();
+            resolve: async (item, args, context) => {
+              let baseUrl = "";
+              if (context?.req?.headers) {
+                const headers = context.req.headers;
+                const host = headers["x-forwarded-host"] || headers["host"];
+                const protocol = headers["x-forwarded-proto"] || "https";
+                if (host) {
+                  baseUrl = `${protocol}://${host}`;
+                }
+              }
+              if (!baseUrl) {
+                baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+              }
               return `${baseUrl}/api/oauth/channel/${item.id}/callback`;
             }
           }),
@@ -4874,8 +6072,18 @@ var ChannelPlatform = (0, import_core19.list)({
         getProductFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
         createPurchaseFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
         createWebhookFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
-        oAuthFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
-        oAuthCallbackFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),
+        oAuthFunction: (0, import_fields18.text)({
+          validation: { isRequired: true },
+          ui: {
+            description: "Function to initiate OAuth flow for this platform"
+          }
+        }),
+        oAuthCallbackFunction: (0, import_fields18.text)({
+          validation: { isRequired: true },
+          ui: {
+            description: "Function to handle OAuth callback for this platform"
+          }
+        }),
         createTrackingWebhookHandler: (0, import_fields18.text)({ validation: { isRequired: true } }),
         cancelPurchaseWebhookHandler: (0, import_fields18.text)({ validation: { isRequired: true } }),
         getWebhooksFunction: (0, import_fields18.text)({ validation: { isRequired: true } }),

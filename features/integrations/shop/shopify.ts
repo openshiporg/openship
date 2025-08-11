@@ -4,6 +4,8 @@ import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 interface ShopifyPlatform {
   domain: string;
   accessToken: string;
+  appKey?: string;
+  appSecret?: string;
 }
 
 interface SearchProductsArgs {
@@ -674,9 +676,15 @@ export async function oAuthFunction({
   platform: ShopifyPlatform;
   callbackUrl: string;
 }) {
-  // This would typically redirect to Shopify's OAuth URL
+  // Use platform's appKey if available, otherwise fall back to env variable for backward compatibility
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  
+  if (!clientId) {
+    throw new Error("Shopify OAuth requires appKey in platform config or SHOPIFY_APP_KEY environment variable");
+  }
+  
   const scopes = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
-  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${process.env.SHOPIFY_APP_KEY}&scope=${scopes}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
+  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
   
   return { authUrl: shopifyAuthUrl };
 }
@@ -692,14 +700,22 @@ export async function oAuthCallbackFunction({
   shop: string;
   state: string;
 }) {
+  // Use platform credentials if available, otherwise fall back to env variables for backward compatibility
+  const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
+  const clientSecret = platform.appSecret || process.env.SHOPIFY_APP_SECRET;
+  
+  if (!clientId || !clientSecret) {
+    throw new Error("Shopify OAuth requires appKey and appSecret in platform config or environment variables");
+  }
+  
   const tokenUrl = `https://${shop}/admin/oauth/access_token`;
   
   const response = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      client_id: process.env.SHOPIFY_APP_KEY,
-      client_secret: process.env.SHOPIFY_APP_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       code,
     }),
   });
@@ -963,4 +979,11 @@ export async function cancelOrderWebhookHandler({
   };
 
   return { order, type: "order_cancelled" };
+}
+
+// Required OAuth scopes for Shopify shop integration
+const REQUIRED_SCOPES = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
+
+export function scopes() {
+  return REQUIRED_SCOPES;
 }

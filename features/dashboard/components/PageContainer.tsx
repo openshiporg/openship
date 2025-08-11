@@ -60,9 +60,6 @@ export function PageContainer({ children, title, header, breadcrumbs }: PageCont
           )}
         </div>
         
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className='text-muted-foreground border border-transparent ring-1 ring-foreground/10' side="right" icon="chat"/>
-        </div>
       </header>
 
       {/* Page header section */}

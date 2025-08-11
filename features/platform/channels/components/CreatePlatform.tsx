@@ -32,13 +32,8 @@ import { getFilteredProps } from "../../shops/components/CreatePlatform";
 // TODO: Import from actual channel adapters when available
 const channelAdapters = {
   shopify: "shopify",
+  openfront: "openfront",
   demo: "demo",
-  amazon: "soon",
-  ebay: "soon",
-  etsy: "soon",
-  facebook: "soon",
-  google: "soon",
-  walmart: "soon",
 };
 
 export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
@@ -117,6 +112,8 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
       } else {
         // Use template slug for other platforms (shopify, etc.)
         const templateValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: value } };
+        const emptyValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: "" } };
+        
         functionValues = {
           createPurchaseFunction: templateValue,
           getWebhooksFunction: templateValue,
@@ -126,8 +123,9 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
           getProductFunction: templateValue,
           cancelPurchaseWebhookHandler: templateValue,
           createTrackingWebhookHandler: templateValue,
-          oAuthFunction: templateValue,
-          oAuthCallbackFunction: templateValue,
+          // Leave OAuth functions empty for Shopify since users likely don't have app keys yet
+          oAuthFunction: value === 'shopify' ? emptyValue : templateValue,
+          oAuthCallbackFunction: value === 'shopify' ? emptyValue : templateValue,
         };
       }
       

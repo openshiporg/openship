@@ -11,6 +11,7 @@ import {
   RefreshCcwIcon,
   ArrowUp,
   Info,
+  X,
 } from "lucide-react";
 
 // UI Components
@@ -33,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSidebarWithSide } from "@/components/ui/sidebar";
 
 // Types
 interface Message {
@@ -322,7 +324,7 @@ function ChatMessage({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`text-sm flex items-center gap-2 ${isUser ? "justify-end" : ""}`}>
+    <div className={`text-base flex items-center gap-2 ${isUser ? "justify-end" : ""}`}>
       {/* {isUser ? (
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-500 to-indigo-600 shadow-sm order-1 flex-shrink-0" />
       ) : (
@@ -337,7 +339,7 @@ function ChatMessage({
       <div
         className={cn(
           "max-w-[calc(100%-2rem)] break-words overflow-hidden",
-          isUser ? "bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-md" : "space-y-1"
+          isUser ? "bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-md" : "space-y-1"
         )}
       >
         {children}
@@ -398,7 +400,7 @@ function SidebarOnboarding({ onComplete }: { onComplete: () => void }) {
           value={confirmationText}
           onChange={(e) => setConfirmationText(e.target.value)}
           placeholder="I understand the risks"
-          className="text-sm mt-1"
+          className="mt-1"
         />
       </div>
 
@@ -417,6 +419,7 @@ function SidebarOnboarding({ onComplete }: { onComplete: () => void }) {
 // Main Sidebar Chat Component
 export function AiChatSidebar() {
   const router = useRouter();
+  const { toggleSidebar } = useSidebarWithSide('right');
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -789,20 +792,20 @@ export function AiChatSidebar() {
       {/* Header */}
       <div className="flex items-center justify-between p-5">
         <h3 className="font-medium text-muted-foreground">AI Assistant</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="h-8 w-8"
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Messages */}
       <ChatContainerRoot className="flex-1 pt-3 px-3 relative">
         <ChatContainerContent className="space-y-3">
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50 border flex items-center justify-center mx-auto mb-2">
-              <RefreshCcwIcon className="w-4 h-4" />
-            </div>
-            <p className="text-muted-foreground">Start a conversation</p>
-          </div>
-        ) : (
-          messages.map((message) => (
+        {messages.map((message) => (
             <ChatMessage key={message.id} isUser={message.isUser}>
               {message.isUser ? (
                 <p className="whitespace-pre-wrap break-words">
@@ -863,7 +866,7 @@ export function AiChatSidebar() {
               )}
             </ChatMessage>
           ))
-        )}
+        }
         
         <ChatContainerScrollAnchor />
         </ChatContainerContent>
@@ -883,8 +886,8 @@ export function AiChatSidebar() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask AI Assistant"
-            className="w-full text-sm bg-transparent border-0 resize-none focus:outline-none placeholder:text-muted-foreground min-h-[40px] break-words"
+            placeholder="Ask me anything..."
+            className="w-full text-base bg-transparent border-0 resize-none focus:outline-none placeholder:text-muted-foreground min-h-[40px] break-words"
             disabled={sending || loading}
             rows={1}
           />

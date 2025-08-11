@@ -232,11 +232,11 @@ export function Field({
 
 export function Cell({ item, field, value }: CellProps) {
   const fieldValue = value ?? item[field.path]
-  const option = field.options?.find((x: Option) => x.value === fieldValue)
+  const option = field.fieldMeta.options?.find((x: Option) => x.value === fieldValue)
   return (
     <div>
       {option ? (
-        <Badge variant="secondary">{option.label}</Badge>
+        <div>{option.label}</div>
       ) : (
         <span className="text-muted-foreground">—</span>
       )}

@@ -252,9 +252,11 @@ export const Webhooks = ({ channelId, channel }: { channelId: string; channel?: 
         {recommendedWebhooks.map((webhook: any) => {
           const fullRecommendedUrl = (typeof window !== 'undefined' ? window.location.origin : '') + webhook.callbackUrl;
           const existingWebhook = webhooks.find(
-            (w: any) =>
-              w.topic === webhook.topic &&
-              w.callbackUrl === fullRecommendedUrl
+            (w: any) => {
+              const existingTopic = Array.isArray(w.topic) ? w.topic[0] : w.topic;
+              return existingTopic === webhook.topic &&
+                w.callbackUrl === fullRecommendedUrl;
+            }
           );
           return !existingWebhook ? (
             <RecommendedWebhookItem

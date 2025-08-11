@@ -5,11 +5,9 @@ import { Store } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CreateShop } from "./CreateShop";
 
-interface CreateShopButtonProps {
-  platforms: any[];
-}
+interface CreateShopButtonProps {}
 
-export function CreateShopButton({ platforms }: CreateShopButtonProps) {
+export function CreateShopButton({}: CreateShopButtonProps) {
   const router = useRouter();
   
   const handleShopCreated = () => {
@@ -18,7 +16,6 @@ export function CreateShopButton({ platforms }: CreateShopButtonProps) {
 
   return (
     <CreateShop
-      platforms={platforms}
       onShopCreated={handleShopCreated}
       trigger={
         <Button

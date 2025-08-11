@@ -16,6 +16,9 @@ async function getShopWebhooks(
       query: "id domain accessToken platform { id getWebhooksFunction }",
     });
 
+    console.log("🔴 getShopWebhooks - shopId:", shopId);
+    console.log("🔴 getShopWebhooks - shop result:", shop);
+    
     if (!shop) {
       throw new Error("Shop not found");
     }

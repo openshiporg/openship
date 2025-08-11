@@ -59,11 +59,14 @@ export function CreatePageClient({ listKey, list }: CreatePageClientProps) {
   const handleSave = useCallback(async () => {
     if (!createItem) return
     
+    // Check for invalid fields before attempting to create - same pattern as ItemPage
+    if (createItem.props.invalidFields.size !== 0) {
+      return
+    }
+    
     const item = await createItem.create()
     if (item?.id) {
       router.push(`${basePath}/${list.path}/${item.id}`)
-    } else {
-      console.error('No item.id in response:', item)
     }
   }, [createItem, router, basePath, list])
 

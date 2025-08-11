@@ -9,6 +9,7 @@ import { ShopDetailsComponent } from "../components/ShopDetailsComponent";
 import { PlatformFilterBar } from '@/features/platform/components/PlatformFilterBar';
 import { ShopsPageClient } from "../components/ShopsPageClient";
 import { CreateShop } from "../components/CreateShop";
+import { CreateShopFromURL } from "../components/CreateShopFromURL";
 
 // Define Shop type
 interface Shop {
@@ -217,6 +218,14 @@ export async function ShopListPage({ searchParams }: PageProps) {
             )}
           </div>
         </div>
+
+        {/* Auto-opening create shop dialog for OAuth redirects */}
+        <CreateShopFromURL searchParams={{
+          showCreateShop: typeof resolvedSearchParams.showCreateShop === "string" ? resolvedSearchParams.showCreateShop : undefined,
+          platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,
+          accessToken: typeof resolvedSearchParams.accessToken === "string" ? resolvedSearchParams.accessToken : undefined,
+          domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
+        }} />
       </section>
     );
   } catch (error) {

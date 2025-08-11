@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { keystoneContext } from '@/features/keystone/context';
 import { handleShopOAuthCallback } from '@/features/integrations/shop/lib/executor';
-import { getAuthHeaders } from '@/features/dashboard/actions/auth';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 
 export async function GET(
@@ -15,33 +14,6 @@ export async function GET(
     // Get all query parameters
     const queryParams = Object.fromEntries(searchParams.entries());
     const { shop, code, state } = queryParams;
-
-    // Get authenticated user from session
-    const authHeaders = await getAuthHeaders();
-    const userQuery = `
-      query AuthenticatedUser {
-        authenticatedItem {
-          ... on User {
-            id
-            email
-            name
-          }
-        }
-      }
-    `;
-
-    const userResponse = await keystoneContext.sudo().withSession({ data: authHeaders }).graphql.run({
-      query: userQuery,
-    }) as any;
-
-    const authenticatedUser = userResponse.authenticatedItem;
-
-    if (!authenticatedUser) {
-      const baseUrl = await getBaseUrl();
-      return NextResponse.redirect(
-        `${baseUrl}/signin?from=${encodeURIComponent(request.url)}`
-      );
-    }
 
     if (!platform) {
       return NextResponse.json({ error: 'Platform not specified' }, { status: 422 });
@@ -59,12 +31,29 @@ export async function GET(
         oAuthCallbackFunction
       `,
     });
+    
+    console.log('🟢 OPENSHIP CALLBACK - Platform data:');
+    console.log('🟢 Platform ID:', platform);
+    console.log('🟢 Platform callbackUrl:', shopPlatform?.callbackUrl);
+    console.log('🟢 Full Platform object:', JSON.stringify(shopPlatform, null, 2));
 
     if (!shopPlatform) {
       return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
     }
 
-    // Handle OAuth callback using the executor
+    // We need the shop domain from OpenFront
+    if (!shop) {
+      return NextResponse.json({ error: 'Shop domain not provided' }, { status: 422 });
+    }
+
+    // Build the callback URL from the current request (same as virtual field logic)
+    const baseUrl = await getBaseUrl();
+    const correctCallbackUrl = `${baseUrl}/api/oauth/shop/${platform}/callback`;
+
+    console.log('🟢 CORRECTED callbackUrl:', correctCallbackUrl);
+    console.log('🟢 BaseUrl from getBaseUrl():', baseUrl);
+
+    // Handle OAuth callback using the executor - just exchange the code for access token
     const accessToken = await handleShopOAuthCallback({
       platform: shopPlatform,
       code,
@@ -72,54 +61,22 @@ export async function GET(
       state,
       appKey: shopPlatform.appKey,
       appSecret: shopPlatform.appSecret,
-      redirectUri: shopPlatform.callbackUrl,
+      redirectUri: correctCallbackUrl, // Use the corrected URL instead of virtual field
     });
 
-    // Upsert shop
-    await upsertShop({
-      shopDomain: shop,
-      accessToken,
-      platformId: shopPlatform.id,
-      userId: authenticatedUser.id,
-    });
+    // Redirect to shops page with query params to show create shop dialog
+    const redirectUrl = new URL(`${baseUrl}/dashboard/platform/shops`);
+    redirectUrl.searchParams.set('showCreateShop', 'true');
+    redirectUrl.searchParams.set('platform', platform);
+    redirectUrl.searchParams.set('accessToken', accessToken);
+    redirectUrl.searchParams.set('domain', shop);
 
-    const baseUrl = await getBaseUrl();
-    return NextResponse.redirect(`${baseUrl}/dashboard/platform/shops`);
+    return NextResponse.redirect(redirectUrl.toString());
   } catch (error) {
     console.error('OAuth callback error:', error);
     return NextResponse.json(
       { error: 'OAuth callback failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
-  }
-}
-
-async function upsertShop({ shopDomain, accessToken, platformId, userId }: { shopDomain: string; accessToken: string; platformId: string; userId: string }) {
-  // Check if shop already exists
-  const existingShops = await keystoneContext.sudo().query.Shop.findMany({
-    where: { domain: { equals: shopDomain } },
-    query: 'id platform { id }',
-  });
-
-  if (existingShops.length > 0) {
-    // Update existing shop
-    const existingShop = existingShops[0];
-    await keystoneContext.sudo().query.Shop.updateOne({
-      where: { id: existingShop.id },
-      data: { accessToken },
-      query: 'id',
-    });
-  } else {
-    // Create new shop
-    await keystoneContext.sudo().query.Shop.createOne({
-      data: {
-        name: shopDomain.split('.')[0].toUpperCase(),
-        accessToken,
-        domain: shopDomain,
-        platform: { connect: { id: platformId } },
-        user: { connect: { id: userId } },
-      },
-      query: 'id',
-    });
   }
 }

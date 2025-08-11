@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { keystoneContext } from '@/features/keystone/context';
 import { handleChannelOAuthCallback } from '@/features/integrations/channel/lib/executor';
-import { getAuthHeaders } from '@/features/dashboard/actions/auth';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 
 export async function GET(
@@ -15,33 +14,6 @@ export async function GET(
     // Get all query parameters
     const queryParams = Object.fromEntries(searchParams.entries());
     const { shop, code, state } = queryParams;
-
-    // Get authenticated user from session
-    const authHeaders = await getAuthHeaders();
-    const userQuery = `
-      query AuthenticatedUser {
-        authenticatedItem {
-          ... on User {
-            id
-            email
-            name
-          }
-        }
-      }
-    `;
-
-    const userResponse = await keystoneContext.sudo().withSession({ data: authHeaders }).graphql.run({
-      query: userQuery,
-    }) as any;
-
-    const authenticatedUser = userResponse.authenticatedItem;
-
-    if (!authenticatedUser) {
-      const baseUrl = await getBaseUrl();
-      return NextResponse.redirect(
-        `${baseUrl}/signin?from=${encodeURIComponent(request.url)}`
-      );
-    }
 
     if (!platform) {
       return NextResponse.json({ error: 'Platform not specified' }, { status: 422 });
@@ -64,7 +36,16 @@ export async function GET(
       return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
     }
 
-    // Handle OAuth callback using the executor
+    // We need the shop domain from OpenFront
+    if (!shop) {
+      return NextResponse.json({ error: 'Shop domain not provided' }, { status: 422 });
+    }
+
+    // Build the callback URL from the current request (same as virtual field logic)
+    const baseUrl = await getBaseUrl();
+    const correctCallbackUrl = `${baseUrl}/api/oauth/channel/${platform}/callback`;
+
+    // Handle OAuth callback using the executor - just exchange the code for access token
     const accessToken = await handleChannelOAuthCallback({
       platform: channelPlatform,
       code,
@@ -72,54 +53,22 @@ export async function GET(
       state,
       appKey: channelPlatform.appKey,
       appSecret: channelPlatform.appSecret,
-      redirectUri: channelPlatform.callbackUrl,
+      redirectUri: correctCallbackUrl, // Use the corrected URL instead of virtual field
     });
 
-    // Upsert channel
-    await upsertChannel({
-      channelDomain: shop,
-      accessToken,
-      platformId: channelPlatform.id,
-      userId: authenticatedUser.id,
-    });
+    // Redirect to channels page with query params to show create channel dialog
+    const redirectUrl = new URL(`${baseUrl}/dashboard/platform/channels`);
+    redirectUrl.searchParams.set('showCreateChannel', 'true');
+    redirectUrl.searchParams.set('platform', platform);
+    redirectUrl.searchParams.set('accessToken', accessToken);
+    redirectUrl.searchParams.set('domain', shop);
 
-    const baseUrl = await getBaseUrl();
-    return NextResponse.redirect(`${baseUrl}/dashboard/platform/channels`);
+    return NextResponse.redirect(redirectUrl.toString());
   } catch (error) {
     console.error('OAuth callback error:', error);
     return NextResponse.json(
       { error: 'OAuth callback failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
-  }
-}
-
-async function upsertChannel({ channelDomain, accessToken, platformId, userId }: { channelDomain: string; accessToken: string; platformId: string; userId: string }) {
-  // Check if channel already exists
-  const existingChannels = await keystoneContext.sudo().query.Channel.findMany({
-    where: { domain: { equals: channelDomain } },
-    query: 'id platform { id }',
-  });
-
-  if (existingChannels.length > 0) {
-    // Update existing channel
-    const existingChannel = existingChannels[0];
-    await keystoneContext.sudo().query.Channel.updateOne({
-      where: { id: existingChannel.id },
-      data: { accessToken },
-      query: 'id',
-    });
-  } else {
-    // Create new channel
-    await keystoneContext.sudo().query.Channel.createOne({
-      data: {
-        name: channelDomain.split('.')[0].toUpperCase(),
-        accessToken,
-        domain: channelDomain,
-        platform: { connect: { id: platformId } },
-        user: { connect: { id: userId } },
-      },
-      query: 'id',
-    });
   }
 }

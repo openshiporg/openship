@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { RiLoader2Fill } from "@remixicon/react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +51,7 @@ function SubmitButton() {
 }
 
 export function SignInForm({ from }: SignInFormProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const [state, formAction] = useActionState(signIn, initialState);
 
   return (
@@ -82,15 +85,26 @@ export function SignInForm({ from }: SignInFormProps) {
           </Label>
           <div className="relative mt-2">
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               autoComplete="current-password"
               placeholder="••••••••"
-              className="bg-muted/40"
+              className="pr-10 bg-muted/40"
               defaultValue={state.formData.password}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
         <SubmitButton />

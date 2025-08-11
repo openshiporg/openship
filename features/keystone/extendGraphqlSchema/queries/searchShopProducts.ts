@@ -21,6 +21,8 @@ async function searchShopProductsQuery(
         id
         name
         searchProductsFunction
+        appKey
+        appSecret
       }
     `,
   });

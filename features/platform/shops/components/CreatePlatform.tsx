@@ -31,12 +31,8 @@ import { Label } from "@/components/ui/label";
 // TODO: Import from actual shop adapters when available
 const shopAdapters = {
   shopify: "shopify",
+  openfront: "openfront",
   demo: "demo",
-  bigcommerce: "soon",
-  woocommerce: "soon",
-  Medusa: "soon",
-  Magento: "soon",
-  Stripe: "soon",
 };
 
 export function getFilteredProps(props: any, modifications: any[], defaultCollapse?: boolean) {
@@ -184,6 +180,8 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
       } else {
         // Use template slug for other platforms (shopify, etc.)
         const templateValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: value } };
+        const emptyValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: "" } };
+        
         functionValues = {
           orderLinkFunction: templateValue,
           updateProductFunction: templateValue, 
@@ -195,8 +193,9 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
           searchOrdersFunction: templateValue,
           addTrackingFunction: templateValue,
           addCartToPlatformOrderFunction: templateValue,
-          oAuthFunction: templateValue,
-          oAuthCallbackFunction: templateValue,
+          // Leave OAuth functions empty for Shopify since users likely don't have app keys yet
+          oAuthFunction: value === 'shopify' ? emptyValue : templateValue,
+          oAuthCallbackFunction: value === 'shopify' ? emptyValue : templateValue,
           cancelOrderWebhookHandler: templateValue,
           createOrderWebhookHandler: templateValue,
         };

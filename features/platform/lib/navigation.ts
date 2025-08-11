@@ -27,7 +27,7 @@ export const platformNavItems: PlatformNavItem[] = [
     title: 'Shops',
     href: '/platform/shops',
     color: 'green',
-    description: 'Connect e-commerce platforms like Shopify, BigCommerce to source products.',
+    description: 'Connect e-commerce platforms like Shopify, Openfront, BigCommerce to source products.',
     icon: Store,
   },
   {
