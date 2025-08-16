@@ -10,6 +10,8 @@ import { PlatformFilterBar } from '@/features/platform/components/PlatformFilter
 import { ShopsPageClient } from "../components/ShopsPageClient";
 import { CreateShop } from "../components/CreateShop";
 import { CreateShopFromURL } from "../components/CreateShopFromURL";
+import { OAuthInstallDialog } from "../components/OAuthInstallDialog";
+import { Pagination } from "@/features/dashboard/components/Pagination";
 
 // Define Shop type
 interface Shop {
@@ -219,11 +221,42 @@ export async function ShopListPage({ searchParams }: PageProps) {
           </div>
         </div>
 
+        {/* Pagination */}
+        {shops && shops.length > 0 && (
+          <Pagination
+            currentPage={page}
+            total={count}
+            pageSize={pageSize}
+            list={{
+              singular: "Shop",
+              plural: "Shops"
+            }}
+          />
+        )}
+
         {/* Auto-opening create shop dialog for OAuth redirects */}
         <CreateShopFromURL searchParams={{
           showCreateShop: typeof resolvedSearchParams.showCreateShop === "string" ? resolvedSearchParams.showCreateShop : undefined,
+          showCreateShopAndPlatform: typeof resolvedSearchParams.showCreateShopAndPlatform === "string" ? resolvedSearchParams.showCreateShopAndPlatform : undefined,
           platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,
           accessToken: typeof resolvedSearchParams.accessToken === "string" ? resolvedSearchParams.accessToken : undefined,
+          domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
+          // OAuth parameters from OpenFront  
+          client_id: typeof resolvedSearchParams.client_id === "string" ? resolvedSearchParams.client_id : undefined,
+          client_secret: typeof resolvedSearchParams.client_secret === "string" ? resolvedSearchParams.client_secret : undefined,
+          app_name: typeof resolvedSearchParams.app_name === "string" ? resolvedSearchParams.app_name : undefined,
+          scope: typeof resolvedSearchParams.scope === "string" ? resolvedSearchParams.scope : undefined,
+          redirect_uri: typeof resolvedSearchParams.redirect_uri === "string" ? resolvedSearchParams.redirect_uri : undefined,
+          state: typeof resolvedSearchParams.state === "string" ? resolvedSearchParams.state : undefined,
+        }} />
+
+        {/* OAuth Installation Dialog for OpenFront apps */}
+        <OAuthInstallDialog searchParams={{
+          showCreateShop: typeof resolvedSearchParams.showCreateShop === "string" ? resolvedSearchParams.showCreateShop : undefined,
+          client_id: typeof resolvedSearchParams.client_id === "string" ? resolvedSearchParams.client_id : undefined,
+          scope: typeof resolvedSearchParams.scope === "string" ? resolvedSearchParams.scope : undefined,
+          redirect_uri: typeof resolvedSearchParams.redirect_uri === "string" ? resolvedSearchParams.redirect_uri : undefined,
+          state: typeof resolvedSearchParams.state === "string" ? resolvedSearchParams.state : undefined,
           domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
         }} />
       </section>

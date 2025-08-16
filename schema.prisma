@@ -74,11 +74,21 @@ model Role {
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
-  user      User?    @relation("ApiKey_user", fields: [userId], references: [id])
-  userId    String?  @map("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id              String            @id @default(cuid())
+  name            String            @default("")
+  tokenHash       String            @unique @default("")
+  tokenPreview    String            @default("")
+  token           String            @default("")
+  scopes          Json?             @default("[]")
+  status          ApiKeyStatusType? @default(active)
+  expiresAt       DateTime?
+  lastUsedAt      DateTime?
+  usageCount      Json?             @default("{\"total\":0,\"daily\":{}}")
+  restrictedToIPs Json?             @default("[]")
+  user            User?             @relation("ApiKey_user", fields: [userId], references: [id])
+  userId          String?           @map("user")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
 
   @@index([userId])
 }
@@ -346,4 +356,10 @@ model TrackingDetail {
   updatedAt       DateTime   @default(now())
 
   @@index([userId])
+}
+
+enum ApiKeyStatusType {
+  active
+  inactive
+  revoked
 }

@@ -1,5 +1,5 @@
 import { list, group, graphql } from "@keystone-6/core";
-import { relationship, text, virtual } from "@keystone-6/core/fields";
+import { relationship, text, virtual, json } from "@keystone-6/core/fields";
 import { isSignedIn, rules, permissions } from "../access";
 import { trackingFields } from "./trackingFields";
 
@@ -49,12 +49,13 @@ export const ShopPlatform = list({
                 baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
               }
               
-              return `${baseUrl}/api/oauth/shop/${item.id}/callback`;
+              // Return simplified callback URL (no platform ID needed)
+              return `${baseUrl}/api/oauth/callback`;
             },
           }),
           ui: {
             description:
-              "This URL needs to be set as the callback in your app settings",
+              "Add this URL as the redirect URI in your OAuth app settings (same for all platforms)",
           },
         }),
       },

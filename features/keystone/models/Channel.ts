@@ -11,9 +11,9 @@ import { executeChannelAdapterFunction } from '../utils/channelProviderAdapter';
 export const Channel = list({
   access: {
     operation: {
-      query: isSignedIn,
+      query: permissions.canSeeOtherChannels,
       create: permissions.canCreateChannels,
-      update: isSignedIn,
+      update: permissions.canManageChannels,
       delete: permissions.canManageChannels,
     },
     filter: {

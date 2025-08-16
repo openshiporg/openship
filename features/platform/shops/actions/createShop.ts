@@ -43,12 +43,15 @@ export async function createShop(data: CreateShopInput) {
   } else {
     return { 
       success: false, 
-      error: response.errors?.[0]?.message || 'Failed to create shop' 
+      error: response.error || 'Failed to create shop' 
     };
   }
 }
 
 export async function initiateOAuthFlow(platformId: string, domain: string) {
+  // Import the state generator from the utility
+  const { generateOAuthState } = await import('@/features/integrations/lib/oauth-state');
+  
   // Get the platform details
   const query = `
     query GetPlatform($where: ShopPlatformWhereInput!) {
@@ -76,16 +79,20 @@ export async function initiateOAuthFlow(platformId: string, domain: string) {
     throw new Error('Platform does not support OAuth');
   }
 
+  // Generate state parameter with platform info
+  const state = await generateOAuthState(platformId, 'shop');
+  
   // The platform object needs to have the domain from user input
   const platformWithDomain = {
     ...platform,
     domain: domain, // Use the domain entered by the user
+    state: state, // Pass state to OAuth function
   };
   
-  // Call the OAuth function to get the auth URL
+  // Call the OAuth function to get the auth URL - use platform's callbackUrl
   const result = await handleShopOAuth({
     platform: platformWithDomain,
-    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/shop/${platformId}/callback`
+    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/callback`
   });
   
   // Redirect to the OAuth URL

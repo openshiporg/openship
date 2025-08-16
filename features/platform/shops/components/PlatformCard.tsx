@@ -92,7 +92,6 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, setSelect
           </h2>
           <div className="flex flex-wrap gap-2">
             <CreateShop
-              platforms={platforms}
               onShopCreated={handleShopCreated}
               trigger={
                 <Button

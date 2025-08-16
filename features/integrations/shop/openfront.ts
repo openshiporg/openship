@@ -682,10 +682,10 @@ export async function oAuthFunction({
   
   // Generate OpenFront OAuth URL
   const scopes = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
-  const state = Math.random().toString(36).substring(7);
+  const state = (platform as any).state || Math.random().toString(36).substring(7);
   
-  // Redirect to order management system page with install popup
-  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/order-management-system?` +
+  // Redirect to apps page with install popup
+  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/apps?` +
     `install=true&` +
     `client_id=${platform.appKey}&` +
     `scope=${encodeURIComponent(scopes)}&` +

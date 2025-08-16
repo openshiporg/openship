@@ -1,6 +1,8 @@
 // Keystone 6 Access Control - Following Official Documentation
 // https://keystonejs.com/docs/config/access-control
 
+import { checkApiKeyPermission, type OpenseaPermission } from './lib/api-key-scopes';
+
 export type Session = {
   itemId: string
   listKey: string
@@ -99,6 +101,16 @@ export const isSignedIn = ({ session }: OperationAccessArgs): boolean => {
   return Boolean(session)
 }
 
+// Helper function to check if API key scopes or role grants a permission
+function hasPermission(session: any, permission: OpenseaPermission): boolean {
+  // If this is an API key session, ONLY check API key scopes
+  if (session?.apiKeyScopes) {
+    return checkApiKeyPermission(session, permission);
+  }
+  // Otherwise, check role-based permissions for regular user sessions
+  return Boolean(session?.data?.role?.[permission]);
+}
+
 // Permission Functions - Operation Level Access Control
 export const permissions = {
   // Basic Dashboard Permissions
@@ -120,23 +132,23 @@ export const permissions = {
   // E-commerce Platform Permissions
   // Shop Management
   canSeeOtherShops: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherShops),
+    hasPermission(session, "canSeeOtherShops"),
   
   canManageShops: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageShops),
+    hasPermission(session, "canManageShops"),
   
   canCreateShops: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canCreateShops),
+    hasPermission(session, "canCreateShops"),
   
   // Channel Management
   canSeeOtherChannels: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherChannels),
+    hasPermission(session, "canSeeOtherChannels"),
   
   canManageChannels: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageChannels),
+    hasPermission(session, "canManageChannels"),
   
   canCreateChannels: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canCreateChannels),
+    hasPermission(session, "canCreateChannels"),
   
   canUpdateChannels: ({ session }: OperationAccessArgs): boolean => 
     Boolean(session?.data.role?.canManageChannels),

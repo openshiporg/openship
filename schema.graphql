@@ -662,13 +662,30 @@ input UserRelateToManyForCreateInput {
 
 type ApiKey {
   id: ID!
+  name: String
+  tokenHash: String
+  tokenPreview: String
+  token: String
+  scopes: JSON
+  status: ApiKeyStatusType
+  expiresAt: DateTime
+  lastUsedAt: DateTime
+  usageCount: JSON
+  restrictedToIPs: JSON
   user: User
   createdAt: DateTime
   updatedAt: DateTime
 }
 
+enum ApiKeyStatusType {
+  active
+  inactive
+  revoked
+}
+
 input ApiKeyWhereUniqueInput {
   id: ID
+  tokenHash: String
 }
 
 input ApiKeyWhereInput {
@@ -676,18 +693,49 @@ input ApiKeyWhereInput {
   OR: [ApiKeyWhereInput!]
   NOT: [ApiKeyWhereInput!]
   id: IDFilter
+  name: StringFilter
+  tokenHash: StringFilter
+  tokenPreview: StringFilter
+  token: StringFilter
+  status: ApiKeyStatusTypeNullableFilter
+  expiresAt: DateTimeNullableFilter
+  lastUsedAt: DateTimeNullableFilter
   user: UserWhereInput
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
 }
 
+input ApiKeyStatusTypeNullableFilter {
+  equals: ApiKeyStatusType
+  in: [ApiKeyStatusType!]
+  notIn: [ApiKeyStatusType!]
+  not: ApiKeyStatusTypeNullableFilter
+}
+
 input ApiKeyOrderByInput {
   id: OrderDirection
+  name: OrderDirection
+  tokenHash: OrderDirection
+  tokenPreview: OrderDirection
+  token: OrderDirection
+  status: OrderDirection
+  expiresAt: OrderDirection
+  lastUsedAt: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
 
 input ApiKeyUpdateInput {
+  name: String
+  tokenHash: String
+  tokenPreview: String
+  token: String
+  scopes: JSON
+  status: ApiKeyStatusType
+  expiresAt: DateTime
+  lastUsedAt: DateTime
+  usageCount: JSON
+  restrictedToIPs: JSON
   user: UserRelateToOneForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
@@ -705,6 +753,16 @@ input ApiKeyUpdateArgs {
 }
 
 input ApiKeyCreateInput {
+  name: String
+  tokenHash: String
+  tokenPreview: String
+  token: String
+  scopes: JSON
+  status: ApiKeyStatusType
+  expiresAt: DateTime
+  lastUsedAt: DateTime
+  usageCount: JSON
+  restrictedToIPs: JSON
   user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime

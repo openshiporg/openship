@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __glob = (map) => (path) => {
   var fn = map[path];
@@ -23,6 +25,14 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // features/integrations/channel/openfront.ts
@@ -45,7 +55,7 @@ async function searchProductsFunction({
   searchEntry,
   after
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const gqlQuery = import_graphql_request.gql`
     query SearchChannelProducts($where: ProductWhereInput, $take: Int, $skip: Int) {
       products(where: $where, take: $take, skip: $skip, orderBy: { createdAt: desc }) {
@@ -137,7 +147,7 @@ async function getProductFunction({
   variantId
 }) {
   console.log("OpenFront Channel getProductFunction called with:", { platform: platform.domain, productId, variantId });
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const gqlQuery = import_graphql_request.gql`
     query GetChannelProduct($productId: ID!, $variantId: ID) {
       product(where: { id: $productId }) {
@@ -200,7 +210,7 @@ async function createPurchaseFunction({
 }) {
   console.log(`\u{1F6D2} OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`\u{1F69A} OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const purchaseId = `PO-OF-${Date.now()}`;
   const orderNumber = `#${purchaseId}`;
   const totalPrice = cartItems.reduce((sum, item) => {
@@ -303,7 +313,7 @@ async function createWebhookFunction({
   endpoint,
   events
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const createWebhookMutation = import_graphql_request.gql`
     mutation CreateChannelWebhookEndpoint($data: WebhookEndpointCreateInput!) {
       createWebhookEndpoint(data: $data) {
@@ -338,7 +348,7 @@ async function deleteWebhookFunction({
   platform,
   webhookId
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const deleteWebhookMutation = import_graphql_request.gql`
     mutation DeleteChannelWebhookEndpoint($where: WebhookEndpointWhereUniqueInput!) {
       deleteWebhookEndpoint(where: $where) {
@@ -354,7 +364,7 @@ async function deleteWebhookFunction({
 async function getWebhooksFunction({
   platform
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const query = import_graphql_request.gql`
     query GetChannelWebhookEndpoints {
       webhookEndpoints(where: { isActive: { equals: true } }) {
@@ -387,7 +397,7 @@ async function addTrackingFunction({
   trackingCompany,
   trackingNumber
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
   const updateTrackingMutation = import_graphql_request.gql`
     mutation UpdateOrderTracking($where: OrderWhereUniqueInput!, $data: OrderUpdateInput!) {
       updateOrder(where: $where, data: $data) {
@@ -453,8 +463,8 @@ async function oAuthFunction({
     throw new Error("OpenFront OAuth requires appKey in platform configuration");
   }
   const scopes5 = "read_products,write_products,read_orders,write_orders,read_fulfillments,write_fulfillments,read_webhooks,write_webhooks";
-  const state = Math.random().toString(36).substring(7);
-  const openFrontAuthUrl = `${platform.domain}/api/oauth/authorize?client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
+  const state = platform.state || Math.random().toString(36).substring(7);
+  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/apps?install=true&client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
   return { authUrl: openFrontAuthUrl };
 }
 async function oAuthCallbackFunction({
@@ -496,17 +506,65 @@ async function oAuthCallbackFunction({
 function scopes() {
   return REQUIRED_SCOPES;
 }
-var import_graphql_request, createOpenFrontClient, REQUIRED_SCOPES;
+var import_graphql_request, getFreshAccessToken, createOpenFrontClient, REQUIRED_SCOPES;
 var init_openfront = __esm({
   "features/integrations/channel/openfront.ts"() {
     "use strict";
     import_graphql_request = require("graphql-request");
-    createOpenFrontClient = (platform) => {
+    getFreshAccessToken = async (platform) => {
+      const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
+      try {
+        const checkResponse = await fetch(tokenCheckUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: platform.appKey,
+            client_secret: platform.appSecret
+          })
+        });
+        if (checkResponse.ok) {
+          const { access_token, is_valid } = await checkResponse.json();
+          if (is_valid) {
+            return access_token;
+          }
+        }
+      } catch (error) {
+        console.log("Token check failed, will refresh:", error);
+      }
+      const tokenUrl = `${platform.domain}/api/oauth/token`;
+      console.log("\u{1F534} Attempting to refresh token:");
+      console.log("\u{1F534} Token URL:", tokenUrl);
+      console.log("\u{1F534} Client ID:", platform.appKey);
+      console.log("\u{1F534} Client Secret length:", platform.appSecret?.length);
+      console.log("\u{1F534} Refresh Token (first 10 chars):", platform.accessToken?.substring(0, 10));
+      const formData = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: platform.accessToken
+        // This is actually the refresh token stored in accessToken field
+      });
+      const response = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("\u{1F534} Token refresh failed:", errorText);
+        console.error("\u{1F534} Response status:", response.status);
+        throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+      }
+      const data = await response.json();
+      console.log("\u{1F7E2} Token refreshed successfully");
+      return data.access_token;
+    };
+    createOpenFrontClient = async (platform) => {
+      const accessToken = platform.appKey && platform.appSecret ? await getFreshAccessToken(platform) : platform.accessToken;
       return new import_graphql_request.GraphQLClient(
-        `https://${platform.domain}/api/graphql`,
+        `${platform.domain}/api/graphql`,
+        // Fixed: removed hardcoded https://
         {
           headers: {
-            "Authorization": `Bearer ${platform.accessToken}`,
+            "Authorization": `Bearer ${accessToken}`,
             "Content-Type": "application/json"
           }
         }
@@ -1637,8 +1695,8 @@ async function oAuthFunction3({
     throw new Error("OpenFront OAuth requires appKey in platform configuration");
   }
   const scopes5 = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
-  const state = Math.random().toString(36).substring(7);
-  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/order-management-system?install=true&client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
+  const state = platform.state || Math.random().toString(36).substring(7);
+  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/apps?install=true&client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
   console.log("\u{1F534} Generated authUrl:", openFrontAuthUrl);
   console.log("\u{1F534} Returning object:", { authUrl: openFrontAuthUrl });
   return { authUrl: openFrontAuthUrl };
@@ -1783,13 +1841,13 @@ async function addTrackingFunction2({
   });
   return result;
 }
-var import_graphql_request3, import_getBaseUrl, getFreshAccessToken, createOpenFrontClient2, REQUIRED_SCOPES3;
+var import_graphql_request3, import_getBaseUrl, getFreshAccessToken2, createOpenFrontClient2, REQUIRED_SCOPES3;
 var init_openfront2 = __esm({
   "features/integrations/shop/openfront.ts"() {
     "use strict";
     import_graphql_request3 = require("graphql-request");
     import_getBaseUrl = require("@/features/dashboard/lib/getBaseUrl");
-    getFreshAccessToken = async (platform) => {
+    getFreshAccessToken2 = async (platform) => {
       const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
       try {
         const checkResponse = await fetch(tokenCheckUrl, {
@@ -1836,7 +1894,7 @@ var init_openfront2 = __esm({
       return access_token;
     };
     createOpenFrontClient2 = async (platform) => {
-      const freshAccessToken = await getFreshAccessToken(platform);
+      const freshAccessToken = await getFreshAccessToken2(platform);
       return new import_graphql_request3.GraphQLClient(
         `${platform.domain}/api/graphql`,
         {
@@ -2824,10 +2882,68 @@ var import_config = require("dotenv/config");
 var import_core = require("@keystone-6/core");
 var import_fields2 = require("@keystone-6/core/fields");
 
+// features/keystone/lib/api-key-scopes.ts
+var SCOPE_TO_PERMISSIONS = {
+  // Orders
+  "read_orders": ["canSeeOtherOrders"],
+  "write_orders": ["canSeeOtherOrders", "canManageOrders", "canProcessOrders"],
+  // Products (these don't have direct permissions but follow the pattern)
+  "read_products": [],
+  "write_products": [],
+  // Shops
+  "read_shops": ["canSeeOtherShops"],
+  "write_shops": ["canSeeOtherShops", "canManageShops", "canCreateShops"],
+  // Channels
+  "read_channels": ["canSeeOtherChannels"],
+  "write_channels": ["canSeeOtherChannels", "canManageChannels", "canCreateChannels"],
+  // Matches
+  "read_matches": ["canSeeOtherMatches"],
+  "write_matches": ["canSeeOtherMatches", "canManageMatches", "canCreateMatches"],
+  // Links
+  "read_links": ["canSeeOtherLinks"],
+  "write_links": ["canSeeOtherLinks", "canManageLinks", "canCreateLinks"],
+  // Platforms
+  "read_platforms": ["canViewPlatformMetrics"],
+  "write_platforms": ["canViewPlatformMetrics", "canManagePlatforms"],
+  // Webhooks
+  "read_webhooks": ["canManageWebhooks"],
+  // Read webhooks requires manage permission
+  "write_webhooks": ["canManageWebhooks"],
+  // Analytics
+  "read_analytics": ["canAccessAnalytics", "canExportData"],
+  // Users
+  "read_users": ["canSeeOtherUsers"],
+  "write_users": ["canSeeOtherUsers", "canEditOtherUsers", "canManageUsers", "canManageRoles"]
+};
+function getPermissionsForApiKeyScopes(scopes5) {
+  const permissions6 = /* @__PURE__ */ new Set();
+  scopes5.forEach((scope) => {
+    const scopePermissions = SCOPE_TO_PERMISSIONS[scope];
+    if (scopePermissions) {
+      scopePermissions.forEach((permission) => permissions6.add(permission));
+    }
+  });
+  return Array.from(permissions6);
+}
+function hasApiKeyPermission(scopes5, permission) {
+  return getPermissionsForApiKeyScopes(scopes5).includes(permission);
+}
+function checkApiKeyPermission(session, permission) {
+  if (!session?.apiKeyScopes) return false;
+  const scopes5 = session.apiKeyScopes;
+  return hasApiKeyPermission(scopes5, permission);
+}
+
 // features/keystone/access.ts
 var isSignedIn = ({ session }) => {
   return Boolean(session);
 };
+function hasPermission(session, permission) {
+  if (session?.apiKeyScopes) {
+    return checkApiKeyPermission(session, permission);
+  }
+  return Boolean(session?.data?.role?.[permission]);
+}
 var permissions = {
   // Basic Dashboard Permissions
   canSeeOtherUsers: ({ session }) => Boolean(session?.data.role?.canSeeOtherUsers),
@@ -2837,13 +2953,13 @@ var permissions = {
   canAccessDashboard: ({ session }) => Boolean(session?.data.role?.canAccessDashboard),
   // E-commerce Platform Permissions
   // Shop Management
-  canSeeOtherShops: ({ session }) => Boolean(session?.data.role?.canSeeOtherShops),
-  canManageShops: ({ session }) => Boolean(session?.data.role?.canManageShops),
-  canCreateShops: ({ session }) => Boolean(session?.data.role?.canCreateShops),
+  canSeeOtherShops: ({ session }) => hasPermission(session, "canSeeOtherShops"),
+  canManageShops: ({ session }) => hasPermission(session, "canManageShops"),
+  canCreateShops: ({ session }) => hasPermission(session, "canCreateShops"),
   // Channel Management
-  canSeeOtherChannels: ({ session }) => Boolean(session?.data.role?.canSeeOtherChannels),
-  canManageChannels: ({ session }) => Boolean(session?.data.role?.canManageChannels),
-  canCreateChannels: ({ session }) => Boolean(session?.data.role?.canCreateChannels),
+  canSeeOtherChannels: ({ session }) => hasPermission(session, "canSeeOtherChannels"),
+  canManageChannels: ({ session }) => hasPermission(session, "canManageChannels"),
+  canCreateChannels: ({ session }) => hasPermission(session, "canCreateChannels"),
   canUpdateChannels: ({ session }) => Boolean(session?.data.role?.canManageChannels),
   // Order Management
   canSeeOtherOrders: ({ session }) => Boolean(session?.data.role?.canSeeOtherOrders),
@@ -3145,34 +3261,38 @@ var User = (0, import_core.list)({
 // features/keystone/models/ApiKey.ts
 var import_fields3 = require("@keystone-6/core/fields");
 var import_core2 = require("@keystone-6/core");
+
+// features/keystone/lib/crypto-utils.ts
+function generateApiKeyTokenSync() {
+  const prefix = "osp_";
+  const randomString = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  return `${prefix}${randomString}`;
+}
+function hashApiKeySync(key) {
+  let hash = 0;
+  if (key.length === 0) return hash.toString();
+  for (let i = 0; i < key.length; i++) {
+    const char = key.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// features/keystone/models/ApiKey.ts
+function generateApiKeyToken() {
+  return generateApiKeyTokenSync();
+}
+function hashApiKey(key) {
+  return hashApiKeySync(key);
+}
 var ApiKey = (0, import_core2.list)({
-  hooks: {
-    beforeOperation: async ({
-      listKey,
-      operation,
-      inputData,
-      item,
-      resolvedData,
-      context
-    }) => {
-      if (operation === "create") {
-        const existingKeys = await context.query.ApiKey.findMany({
-          where: { user: { id: { equals: context.session.itemId } } }
-        });
-        if (existingKeys.length > 0) {
-          await context.query.ApiKey.deleteMany({
-            where: existingKeys.map((key) => ({ id: key.id }))
-          });
-        }
-      }
-    }
-  },
   access: {
     operation: {
       query: isSignedIn,
       create: permissions.canCreateApiKeys,
-      update: isSignedIn,
-      delete: isSignedIn
+      update: permissions.canManageApiKeys,
+      delete: permissions.canManageApiKeys
     },
     filter: {
       query: rules.canReadApiKeys,
@@ -3180,19 +3300,135 @@ var ApiKey = (0, import_core2.list)({
       delete: rules.canManageApiKeys
     }
   },
+  hooks: {
+    validate: {
+      create: async ({ resolvedData, addValidationError }) => {
+        if (!resolvedData.scopes || resolvedData.scopes.length === 0) {
+          addValidationError("At least one scope is required for API keys");
+        }
+      }
+    },
+    resolveInput: {
+      create: async ({ listKey: listKey2, operation, inputData, item, resolvedData, context }) => {
+        if (operation !== "create") {
+          throw new Error("This hook should only run for create operations");
+        }
+        const token = generateApiKeyToken();
+        const tokenHash = hashApiKey(token);
+        context._createdApiKeyToken = token;
+        return {
+          ...resolvedData,
+          tokenHash,
+          tokenPreview: `${token.substring(0, 12)}...${token.substring(token.length - 4)}`,
+          token,
+          // Store the full token in the database field
+          user: resolvedData.user || (context.session?.itemId ? { connect: { id: context.session.itemId } } : void 0)
+        };
+      }
+    },
+    afterOperation: {
+      create: async ({ listKey: listKey2, operation, item, resolvedData, context }) => {
+        if (operation === "create" && context._createdApiKeyToken) {
+          return {
+            ...item,
+            token: context._createdApiKeyToken
+          };
+        }
+        return item;
+      }
+    }
+  },
   fields: {
+    name: (0, import_fields3.text)({
+      validation: { isRequired: true },
+      ui: {
+        description: "A descriptive name for this API key (e.g. 'Production Bot', 'Analytics Dashboard')"
+      }
+    }),
+    tokenHash: (0, import_fields3.text)({
+      validation: { isRequired: true },
+      isIndexed: "unique",
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "hidden" },
+        listView: { fieldMode: "hidden" }
+      }
+    }),
+    tokenPreview: (0, import_fields3.text)({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read" },
+        listView: { fieldMode: "read" },
+        description: "Preview of the API key (actual key is hidden for security)"
+      }
+    }),
+    token: (0, import_fields3.text)({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "hidden" },
+        listView: { fieldMode: "hidden" },
+        description: "Full API key token (only available during creation)"
+      }
+    }),
+    scopes: (0, import_fields3.json)({
+      defaultValue: [],
+      ui: {
+        description: "Array of scopes for this API key. Available scopes: orders:read, orders:write, shops:read, shops:write, channels:read, channels:write, etc."
+      }
+    }),
+    status: (0, import_fields3.select)({
+      type: "enum",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+        { label: "Revoked", value: "revoked" }
+      ],
+      defaultValue: "active",
+      ui: {
+        description: "Current status of this API key"
+      }
+    }),
+    expiresAt: (0, import_fields3.timestamp)({
+      ui: {
+        description: "When this API key expires (optional - leave blank for no expiration)"
+      }
+    }),
+    lastUsedAt: (0, import_fields3.timestamp)({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read" },
+        description: "Last time this API key was used"
+      }
+    }),
+    usageCount: (0, import_fields3.json)({
+      defaultValue: { total: 0, daily: {} },
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read" },
+        description: "Usage statistics for this API key"
+      }
+    }),
+    restrictedToIPs: (0, import_fields3.json)({
+      defaultValue: [],
+      ui: {
+        description: "Optional: Restrict this key to specific IP addresses (array of IPs)"
+      }
+    }),
     user: (0, import_fields3.relationship)({
       ref: "User.apiKeys",
-      hooks: {
-        resolveInput({ operation, resolvedData, context }) {
-          if (operation === "create" && !resolvedData.user && context.session?.itemId) {
-            return { connect: { id: context.session?.itemId } };
-          }
-          return resolvedData.user;
-        }
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read" }
       }
     }),
     ...trackingFields
+  },
+  ui: {
+    labelField: "name",
+    listView: {
+      initialColumns: ["name", "tokenPreview", "scopes", "status", "lastUsedAt", "expiresAt"]
+    },
+    description: "Secure API keys for programmatic access to Openship"
   }
 });
 
@@ -4555,9 +4791,9 @@ var import_core9 = require("@keystone-6/core");
 var Channel = (0, import_core8.list)({
   access: {
     operation: {
-      query: isSignedIn,
+      query: permissions.canSeeOtherChannels,
       create: permissions.canCreateChannels,
-      update: isSignedIn,
+      update: permissions.canManageChannels,
       delete: permissions.canManageChannels
     },
     filter: {
@@ -5328,9 +5564,9 @@ var import_core12 = require("@keystone-6/core");
 var Shop = (0, import_core11.list)({
   access: {
     operation: {
-      query: isSignedIn,
+      query: permissions.canSeeOtherShops,
       create: permissions.canCreateShops,
-      update: isSignedIn,
+      update: permissions.canManageShops,
       delete: permissions.canManageShops
     },
     filter: {
@@ -5954,11 +6190,11 @@ var ShopPlatform = (0, import_core18.list)({
               if (!baseUrl) {
                 baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
               }
-              return `${baseUrl}/api/oauth/shop/${item.id}/callback`;
+              return `${baseUrl}/api/oauth/callback`;
             }
           }),
           ui: {
-            description: "This URL needs to be set as the callback in your app settings"
+            description: "Add this URL as the redirect URI in your OAuth app settings (same for all platforms)"
           }
         })
       }
@@ -6055,11 +6291,11 @@ var ChannelPlatform = (0, import_core19.list)({
               if (!baseUrl) {
                 baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
               }
-              return `${baseUrl}/api/oauth/channel/${item.id}/callback`;
+              return `${baseUrl}/api/oauth/callback`;
             }
           }),
           ui: {
-            description: "This URL needs to be set as the callback in your app settings"
+            description: "Add this URL as the redirect URI in your OAuth app settings (same for all platforms)"
           }
         })
       }
@@ -6129,9 +6365,6 @@ var models = {
   TrackingDetail
   // Add other models here as needed
 };
-
-// features/keystone/index.ts
-var import_session = require("@keystone-6/core/session");
 
 // features/keystone/extendGraphqlSchema/index.ts
 var import_schema = require("@graphql-tools/schema");
@@ -7169,14 +7402,139 @@ async function sendPasswordResetEmail(resetToken, to, baseUrl) {
 }
 
 // features/keystone/index.ts
+var import_iron = __toESM(require("@hapi/iron"));
+var cookie = __toESM(require("cookie"));
 var databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 var sessionConfig = {
   maxAge: 60 * 60 * 24 * 360,
   // How long they stay signed in?
   secret: process.env.SESSION_SECRET || "this secret should only be used in testing"
 };
+var listKey = "User";
+function statelessSessions({
+  secret,
+  maxAge = 60 * 60 * 24 * 360,
+  path = "/",
+  secure = process.env.NODE_ENV === "production",
+  ironOptions = import_iron.default.defaults,
+  domain,
+  sameSite = "lax",
+  cookieName = "keystonejs-session"
+}) {
+  if (!secret) {
+    throw new Error("You must specify a session secret to use sessions");
+  }
+  if (secret.length < 32) {
+    throw new Error("The session secret must be at least 32 characters long");
+  }
+  return {
+    async get({ context }) {
+      if (!context?.req) return;
+      const authHeader = context.req.headers.authorization;
+      console.log("\u{1F511} AUTH HEADER:", authHeader);
+      if (authHeader?.startsWith("Bearer ")) {
+        const accessToken = authHeader.replace("Bearer ", "");
+        console.log("\u{1F511} ACCESS TOKEN:", accessToken);
+        if (accessToken.startsWith("osp_")) {
+          console.log("\u{1F511} API KEY DETECTED, VALIDATING...");
+          try {
+            const tokenHash = hashApiKeySync(accessToken);
+            console.log("\u{1F511} TOKEN HASH:", tokenHash);
+            const apiKey = await context.sudo().query.ApiKey.findOne({
+              where: { tokenHash },
+              query: `
+                id
+                name
+                scopes
+                status
+                expiresAt
+                user { id }
+              `
+            });
+            console.log("\u{1F511} API KEY FOUND:", JSON.stringify(apiKey, null, 2));
+            if (!apiKey) {
+              console.log("\u{1F511} API KEY NOT FOUND");
+              return;
+            }
+            if (apiKey.status !== "active") {
+              console.log("\u{1F511} API KEY NOT ACTIVE:", apiKey.status);
+              return;
+            }
+            if (apiKey.expiresAt && /* @__PURE__ */ new Date() > new Date(apiKey.expiresAt)) {
+              console.log("\u{1F511} API KEY EXPIRED");
+              await context.sudo().query.ApiKey.updateOne({
+                where: { id: apiKey.id },
+                data: { status: "revoked" }
+              });
+              return;
+            }
+            if (apiKey.user?.id) {
+              const session = {
+                itemId: apiKey.user.id,
+                listKey,
+                apiKeyScopes: apiKey.scopes || []
+                // Attach scopes for permission checking
+              };
+              console.log("\u{1F511} RETURNING SESSION:", JSON.stringify(session, null, 2));
+              return session;
+            }
+          } catch (err) {
+            console.log("\u{1F511} API Key validation error:", err);
+            return;
+          }
+        }
+        try {
+          return await import_iron.default.unseal(accessToken, secret, ironOptions);
+        } catch (err) {
+        }
+      }
+      const cookies = cookie.parse(context.req.headers.cookie || "");
+      const token = cookies[cookieName];
+      if (!token) return;
+      try {
+        return await import_iron.default.unseal(token, secret, ironOptions);
+      } catch (err) {
+      }
+    },
+    async end({ context }) {
+      if (!context?.res) return;
+      context.res.setHeader(
+        "Set-Cookie",
+        cookie.serialize(cookieName, "", {
+          maxAge: 0,
+          expires: /* @__PURE__ */ new Date(),
+          httpOnly: true,
+          secure,
+          path,
+          sameSite,
+          domain
+        })
+      );
+    },
+    async start({ context, data }) {
+      if (!context?.res) return;
+      const sealedData = await import_iron.default.seal(data, secret, {
+        ...ironOptions,
+        ttl: maxAge * 1e3
+      });
+      context.res.setHeader(
+        "Set-Cookie",
+        cookie.serialize(cookieName, sealedData, {
+          maxAge,
+          expires: new Date(Date.now() + maxAge * 1e3),
+          httpOnly: true,
+          secure,
+          path,
+          sameSite,
+          domain
+        })
+      );
+      return sealedData;
+    }
+  };
+}
 var { withAuth } = (0, import_auth.createAuth)({
-  listKey: "User",
+  listKey,
   identityField: "email",
   secretField: "password",
   initFirstItem: {
@@ -7233,7 +7591,7 @@ var keystone_default = withAuth(
     ui: {
       isAccessAllowed: ({ session }) => session?.data.role?.canAccessDashboard ?? false
     },
-    session: (0, import_session.statelessSessions)(sessionConfig),
+    session: statelessSessions(sessionConfig),
     graphql: {
       extendGraphqlSchema
     }

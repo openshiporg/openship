@@ -18,9 +18,9 @@ import { executeShopAdapterFunction } from '../utils/shopProviderAdapter';
 export const Shop = list({
   access: {
     operation: {
-      query: isSignedIn,
+      query: permissions.canSeeOtherShops,
       create: permissions.canCreateShops,
-      update: isSignedIn,
+      update: permissions.canManageShops,
       delete: permissions.canManageShops,
     },
     filter: {

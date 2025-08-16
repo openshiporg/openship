@@ -14,9 +14,9 @@ export const VIEW_ORDER = [
   "relationship",
   "timestamp",
   "checkbox",
-  "virtual",
-  "select",
   "json",
+  "select",
+  "virtual",
   "float",
   "integer"
 ];

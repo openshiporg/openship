@@ -5,6 +5,7 @@ import {
   Sparkles,
   LucideIcon,
   ArrowRightLeft,
+  Key,
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -43,6 +44,13 @@ export const platformNavItems: PlatformNavItem[] = [
     color: 'purple',
     description: 'Map shop items to channel items for automated inventory synchronization.',
     icon: ArrowRightLeft,
+  },
+  {
+    title: 'API Keys',
+    href: '/platform/api-keys',
+    color: 'orange',
+    description: 'Manage secure API keys for programmatic access to Openship.',
+    icon: Key,
   },
 ];
 

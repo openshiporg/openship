@@ -56,6 +56,8 @@ export function ChannelPlatformSelect({
             channelPlatforms {
               id
               name
+              appKey
+              appSecret
               oAuthFunction
               oAuthCallbackFunction
             }

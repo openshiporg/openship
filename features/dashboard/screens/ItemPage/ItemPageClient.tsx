@@ -444,7 +444,7 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
       />
       
       <main className="w-full max-w-5xl p-4 md:p-6">
-        <div className="grid lg:grid-cols-[minmax(240px,2fr)_3fr] gap-6 gap-y-8 min-h-[calc(100vh-8rem)]">
+        <div className="grid lg:grid-cols-[minmax(240px,2fr)_3fr] gap-6 gap-y-8">
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] flex flex-col h-full">
             <div className="space-y-6 flex-grow overflow-y-auto pb-2">

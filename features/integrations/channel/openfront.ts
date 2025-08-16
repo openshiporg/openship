@@ -32,13 +32,76 @@ interface DeleteWebhookArgs {
   webhookId: string;
 }
 
-// Helper function to create OpenFront GraphQL client
-const createOpenFrontClient = (platform: OpenFrontPlatform) => {
+// Helper function to get fresh access token using OpenFront database (same as shop)
+const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
+  // First, check if we have a valid access token in OpenFront's database
+  const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
+  
+  try {
+    const checkResponse = await fetch(tokenCheckUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: platform.appKey,
+        client_secret: platform.appSecret
+      })
+    });
+
+    if (checkResponse.ok) {
+      const { access_token, is_valid } = await checkResponse.json();
+      if (is_valid) {
+        return access_token; // Return existing valid token
+      }
+    }
+  } catch (error) {
+    console.log('Token check failed, will refresh:', error);
+  }
+
+  // If no valid token exists or check failed, refresh using the refresh token
+  const tokenUrl = `${platform.domain}/api/oauth/token`;
+  
+  console.log('🔴 Attempting to refresh token:');
+  console.log('🔴 Token URL:', tokenUrl);
+  console.log('🔴 Client ID:', platform.appKey);
+  console.log('🔴 Client Secret length:', platform.appSecret?.length);
+  console.log('🔴 Refresh Token (first 10 chars):', platform.accessToken?.substring(0, 10));
+  
+  const formData = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: platform.accessToken, // This is actually the refresh token stored in accessToken field
+  });
+
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('🔴 Token refresh failed:', errorText);
+    console.error('🔴 Response status:', response.status);
+    throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  console.log('🟢 Token refreshed successfully');
+  
+  return data.access_token;
+};
+
+// Helper function to create OpenFront GraphQL client (now async like shop)
+const createOpenFrontClient = async (platform: OpenFrontPlatform) => {
+  // Get fresh access token if needed
+  const accessToken = platform.appKey && platform.appSecret
+    ? await getFreshAccessToken(platform)
+    : platform.accessToken;
+
   return new GraphQLClient(
-    `https://${platform.domain}/api/graphql`,
+    `${platform.domain}/api/graphql`, // Fixed: removed hardcoded https://
     {
       headers: {
-        "Authorization": `Bearer ${platform.accessToken}`,
+        "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     }
@@ -55,7 +118,7 @@ export async function searchProductsFunction({
   searchEntry: string; 
   after?: string; 
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   const gqlQuery = gql`
     query SearchChannelProducts($where: ProductWhereInput, $take: Int, $skip: Int) {
@@ -166,7 +229,7 @@ export async function getProductFunction({
 }) {
   console.log("OpenFront Channel getProductFunction called with:", { platform: platform.domain, productId, variantId });
   
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   const gqlQuery = gql`
     query GetChannelProduct($productId: ID!, $variantId: ID) {
@@ -247,7 +310,7 @@ export async function createPurchaseFunction({
   console.log(`🛒 OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`🚚 OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
 
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   // Generate unique purchase ID
   const purchaseId = `PO-OF-${Date.now()}`;
@@ -372,7 +435,7 @@ export async function createWebhookFunction({
   endpoint: string;
   events: string[];
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   const createWebhookMutation = gql`
     mutation CreateChannelWebhookEndpoint($data: WebhookEndpointCreateInput!) {
@@ -419,7 +482,7 @@ export async function deleteWebhookFunction({
   platform: OpenFrontPlatform;
   webhookId: string;
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   const deleteWebhookMutation = gql`
     mutation DeleteChannelWebhookEndpoint($where: WebhookEndpointWhereUniqueInput!) {
@@ -442,7 +505,7 @@ export async function getWebhooksFunction({
 }: {
   platform: OpenFrontPlatform;
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   const query = gql`
     query GetChannelWebhookEndpoints {
@@ -488,7 +551,7 @@ export async function addTrackingFunction({
   trackingCompany: string;
   trackingNumber: string;
 }) {
-  const openFrontClient = createOpenFrontClient(platform);
+  const openFrontClient = await createOpenFrontClient(platform);
 
   // Update fulfillment order with tracking information
   const updateTrackingMutation = gql`
@@ -579,10 +642,11 @@ export async function oAuthFunction({
   
   // Generate OpenFront OAuth URL for channel installation
   const scopes = "read_products,write_products,read_orders,write_orders,read_fulfillments,write_fulfillments,read_webhooks,write_webhooks";
-  const state = Math.random().toString(36).substring(7);
+  const state = (platform as any).state || Math.random().toString(36).substring(7);
   
-  // Just use the domain as-is, like Shopify does
-  const openFrontAuthUrl = `${platform.domain}/api/oauth/authorize?` +
+  // Redirect to apps page with install popup (same as shop integration)
+  const openFrontAuthUrl = `${platform.domain}/dashboard/platform/apps?` +
+    `install=true&` +
     `client_id=${platform.appKey}&` +
     `scope=${encodeURIComponent(scopes)}&` +
     `redirect_uri=${encodeURIComponent(callbackUrl)}&` +

@@ -1,12 +1,11 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { useList } from "@/features/dashboard/hooks/useAdminMeta";
-import { useCreateItem } from "@/features/dashboard/utils/useCreateItem";
-import { enhanceFields } from "@/features/dashboard/utils/enhanceFields";
+import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CirclePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createChannel, initiateOAuthFlow } from "../actions/createChannel";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogClose,
@@ -17,66 +16,118 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Fields } from "@/features/dashboard/components/Fields";
-import { getFilteredProps } from "../../shops/components/CreatePlatform";
+import { ChannelPlatformSelect } from "./ChannelPlatformSelect";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export function CreateChannel() {
+interface CreateChannelProps {
+  onChannelCreated?: () => void;
+  trigger?: React.ReactElement;
+}
+
+export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps = {}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [selectedPlatformData, setSelectedPlatformData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  const { list } = useList('Channel');
-
-  // Create enhanced fields like Keystone does
-  const enhancedFields = useMemo(() => {
-    if (!list?.fields) return {}
-    return enhanceFields(list.fields, list.key)
-  }, [list?.fields, list?.key])
-
-  // Use the create item hook with enhanced fields
-  const createItem = useCreateItem(list, enhancedFields);
   
-  if (!createItem) return null;
+  // Form fields
+  const [name, setName] = useState('');
+  const [domain, setDomain] = useState('');
+  const [accessToken, setAccessToken] = useState('');
 
   const handleChannelCreation = async () => {
-    const item = await createItem.create()
-    if (item?.id) {
-      setIsDialogOpen(false);
-      // Use Next.js router to refresh the page properly
-      router.refresh();
+    if (!selectedPlatform) {
+      toast.error('Please select a platform');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Check if this is OAuth platform
+      if (
+        selectedPlatformData?.appKey &&
+        selectedPlatformData?.appSecret &&
+        selectedPlatformData?.oAuthFunction &&
+        selectedPlatformData?.oAuthCallbackFunction
+      ) {
+        // OAuth flow - redirect to platform OAuth
+        if (!domain) {
+          toast.error('Please enter a domain');
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Initiating OAuth flow for domain:', domain);
+        await initiateOAuthFlow(selectedPlatform, domain);
+        return;
+      }
+
+      // Manual creation flow
+      if (!name || !domain || !accessToken) {
+        toast.error('Please fill in all fields');
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Creating channel with:', {
+        name,
+        domain,
+        accessToken,
+        platformId: selectedPlatform
+      });
+
+      const result = await createChannel({
+        name,
+        domain,
+        accessToken,
+        platformId: selectedPlatform
+      });
+
+      if (result.success) {
+        toast.success('Channel created successfully');
+        setIsDialogOpen(false);
+        router.refresh();
+        onChannelCreated?.();
+      } else {
+        toast.error(result.error || 'Failed to create channel');
+      }
+    } catch (error) {
+      console.error('Error creating channel:', error);
+      toast.error('An error occurred while creating the channel');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
+    setSelectedPlatform('');
+    setSelectedPlatformData(null);
+    setName('');
+    setDomain('');
+    setAccessToken('');
   };
 
-  const filteredProps = useMemo(() => {
-    if (!createItem) return null
-
-    const modifications = [
-      { key: "platform" },
-      { key: "name" },
-      { key: "domain" },
-      { key: "accessToken" },
-    ];
-
-    return getFilteredProps(createItem.props, modifications, false);
-  }, [createItem?.props]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button
-          className={cn(
-            buttonVariants({ size: "icon" }),
-            "lg:px-4 lg:py-2 lg:w-auto rounded-lg"
-          )}
-        >
-          <CirclePlus />
-          <span className="hidden lg:inline">Create Channel</span>
-        </Button>
+        {trigger || (
+          <Button
+            className={cn(
+              buttonVariants({ size: "icon" }),
+              "lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+            )}
+          >
+            <CirclePlus />
+            <span className="hidden lg:inline">Create Channel</span>
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Channel</DialogTitle>
           <DialogDescription>
@@ -84,7 +135,69 @@ export function CreateChannel() {
           </DialogDescription>
         </DialogHeader>
 
-        {filteredProps && <Fields {...filteredProps} />}
+        <div className="space-y-6">
+          <ChannelPlatformSelect 
+            value={selectedPlatform}
+            onValueChange={setSelectedPlatform}
+            onPlatformDataChange={setSelectedPlatformData}
+          />
+
+          {selectedPlatform && selectedPlatformData && (
+            <div className="space-y-4">
+              {/* Check if platform has OAuth - if it does AND has app credentials, only show domain */}
+              {selectedPlatformData.oAuthFunction && selectedPlatformData.oAuthCallbackFunction && selectedPlatformData.appKey && selectedPlatformData.appSecret ? (
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Domain</Label>
+                  <Input
+                    id="domain"
+                    type="text"
+                    placeholder="your-channel-domain.com"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="bg-muted/40"
+                  />
+                </div>
+              ) : (
+                /* No OAuth or missing app credentials - need all fields for manual setup */
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Channel name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="bg-muted/40"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="domain">Domain</Label>
+                    <Input
+                      id="domain"
+                      type="text"
+                      placeholder="your-channel-domain.com"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      className="bg-muted/40"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accessToken">Access Token</Label>
+                    <Input
+                      id="accessToken"
+                      type="text"
+                      placeholder="Enter access token"
+                      value={accessToken}
+                      onChange={(e) => setAccessToken(e.target.value)}
+                      className="bg-muted/40"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         <DialogFooter>
           <DialogClose asChild>
@@ -93,10 +206,12 @@ export function CreateChannel() {
             </Button>
           </DialogClose>
           <Button
-            disabled={createItem.state === "loading"}
+            disabled={isLoading || !selectedPlatform}
             onClick={handleChannelCreation}
           >
-            {createItem.state === "loading" ? "Creating..." : "Create Channel"}
+            {isLoading ? "Creating..." : 
+             (selectedPlatformData?.oAuthFunction && selectedPlatformData?.oAuthCallbackFunction && selectedPlatformData?.appKey && selectedPlatformData?.appSecret
+              ? `Install App on ${selectedPlatformData.name}` : "Create Channel")}
           </Button>
         </DialogFooter>
       </DialogContent>

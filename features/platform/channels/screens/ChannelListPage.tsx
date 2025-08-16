@@ -8,6 +8,8 @@ import { ChannelListClient } from "../components/ChannelListClient";
 import { PlatformFilterBar } from '@/features/platform/components/PlatformFilterBar';
 import { ChannelsPageClient } from "../components/ChannelsPageClient";
 import { CreateChannel } from "../components/CreateChannel";
+import { CreateChannelFromURL } from "../components/CreateChannelFromURL";
+import { Pagination } from "@/features/dashboard/components/Pagination";
 
 // Define Channel type
 interface Channel {
@@ -200,6 +202,27 @@ export async function ChannelListPage({ searchParams }: PageProps) {
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {channels && channels.length > 0 && (
+          <Pagination
+            currentPage={page}
+            total={count}
+            pageSize={pageSize}
+            list={{
+              singular: "Channel",
+              plural: "Channels"
+            }}
+          />
+        )}
+
+        {/* Auto-opening create channel dialog for OAuth redirects */}
+        <CreateChannelFromURL searchParams={{
+          showCreateChannel: typeof resolvedSearchParams.showCreateChannel === "string" ? resolvedSearchParams.showCreateChannel : undefined,
+          platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,
+          accessToken: typeof resolvedSearchParams.accessToken === "string" ? resolvedSearchParams.accessToken : undefined,
+          domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
+        }} />
       </section>
     );
   } catch (error) {

@@ -247,135 +247,11 @@ EXAMPLES:
 
 Always complete the full workflow and return actual data, not just schema discovery. The system works with any model type dynamically.`;
 
-const platformSpecificInstructions = `
-
-OPENSHIP ORDER ROUTING PLATFORM EXPERTISE:
-
-You're working with Openship, an order routing platform that connects sales channels (shops) to fulfillment partners (channels). When users request order routing operations, follow these platform-specific patterns:
-
-CORE CONCEPTS UNDERSTANDING:
-- **Shops**: Where you sell (Shopify, WooCommerce, Amazon, eBay, custom platforms)
-- **Channels**: Where you fulfill (suppliers, 3PLs, dropshippers, fulfillment centers)
-- **Links**: Store-level connections between shops and channels (routes ALL orders)
-- **Matches**: Product-level connections between specific shop products and channel products (more granular control)
-- **Orders**: Come from shops, get processed through links/matches, trigger purchases on channels
-
-PLATFORM CREATION PATTERN:
-Before connecting shops or channels, platforms must exist with adapter functions:
-
-1. **ShopPlatform Creation**:
-   - name: "Shopify Shop", "Custom Shop", etc.
-   - appKey, appSecret: OAuth credentials (if using OAuth)
-   - searchProductsFunction: "shopify" or "https://custom-api.com/search-products"
-   - getProductFunction: "shopify" or "https://custom-api.com/get-product"  
-   - searchOrdersFunction: "shopify" or "https://custom-api.com/search-orders"
-   - updateProductFunction: "shopify" or "https://custom-api.com/update-product"
-   - createWebhookFunction, oAuthFunction, etc.
-
-2. **ChannelPlatform Creation**:
-   - name: "Shopify Channel", "Custom Fulfillment", etc.
-   - searchProductsFunction: "shopify" or "https://supplier-api.com/search-products"
-   - getProductFunction: "shopify" or "https://supplier-api.com/get-product"
-   - createPurchaseFunction: "shopify" or "https://supplier-api.com/create-purchase"
-   - createWebhookFunction, etc.
-
-SHOP/CHANNEL CONNECTION PATTERN:
-After platforms exist, connect actual shops/channels:
-
-1. **Shop Creation**:
-   - name: "Main Shopify Store"
-   - domain: "mystore.myshopify.com" or custom domain
-   - accessToken: OAuth token or API key
-   - platform: { connect: { id: "shopPlatformId" } }
-   - linkMode: "sequential" (try links in order) or "simultaneous" (try all links)
-
-2. **Channel Creation**:
-   - name: "Supplier A", "3PL Warehouse"
-   - domain: "supplier-a.com" 
-   - accessToken: API credentials
-   - platform: { connect: { id: "channelPlatformId" } }
-
-ORDER ROUTING WORKFLOWS:
-
-**Link-Based Routing** (Store-level):
-1. Create Link: createLink({ shop: { connect: { id } }, channel: { connect: { id } }, rank: 1 })
-2. When order arrives → checks link rank order → routes ALL line items to channel
-3. Best for: Simple routing, single supplier setups
-
-**Match-Based Routing** (Product-level):
-1. Create ShopItem: createShopItem({ productId: "shop-product-123", shop: { connect: { id } } })
-2. Create ChannelItem: createChannelItem({ productId: "channel-product-456", channel: { connect: { id } } })
-3. Create Match: createMatch({ input: [shopItemId], output: [channelItemId] })
-4. When order arrives → checks matches per product → routes specific items to specific channels
-5. Best for: Multiple suppliers, complex routing logic
-
-ORDER PROCESSING FLOW:
-1. **Create Order**: createOrder({ orderId: "external-id", shop: { connect: { id } }, lineItems: [...] })
-   - Auto-processes if linkOrder=true or matchOrder=true
-   - Creates CartItems based on links/matches
-   - If processOrder=true, immediately creates purchases on channels
-
-2. **Manual Processing**: Use placeOrders mutation to process pending orders
-
-CUSTOM ENDPOINT INTEGRATION:
-When creating platforms with custom HTTP endpoints, they must implement:
-
-**Shop Endpoints**:
-- POST /search-products: Search shop inventory
-- POST /get-product: Get single product details  
-- POST /search-orders: Retrieve orders from shop
-- POST /update-product: Sync inventory/pricing back to shop
-
-**Channel Endpoints**:
-- POST /search-products: Search available products for purchase
-- POST /get-product: Get purchasable product details
-- POST /create-purchase: Create purchase order on channel
-- POST /webhook/tracking-created: Handle fulfillment notifications
-
-WEBHOOK MANAGEMENT:
-- Shops send webhooks when orders created/cancelled → triggers Openship processing
-- Channels send webhooks when purchases fulfilled/cancelled → updates order tracking
-- Use createShopWebhook/createChannelWebhook mutations to set up webhooks
-
-INVENTORY SYNCHRONIZATION:
-- Matches track inventory levels between shop products and channel products
-- Use updateShopProduct mutation to sync inventory from channels back to shops
-- Use inventoryNeedsToBeSynced virtual field to detect sync requirements
-
-COMPLEX SCENARIOS:
-
-**Multi-Channel Fulfillment**:
-- Create multiple matches for one shop product → different channels fulfill based on availability
-- Use match ranking and inventory levels to route dynamically
-
-**Sequential vs Simultaneous Linking**:
-- sequential: Try first link, if fails try second (fallback suppliers)
-- simultaneous: Send to all linked channels (split orders, fastest fulfillment)
-
-**Dynamic Routing with whereClause**:
-- Links can have dynamicWhereClause to route orders based on criteria
-- Example: Route orders >$100 to premium fulfillment, <$100 to standard
-
-ERROR HANDLING & MONITORING:
-- Orders have status field (PENDING, PROCESSING, COMPLETE, ERROR)
-- Failed processing adds error message to order
-- Use searchShopOrders and other monitoring queries to track system health
-
-MUTATION EXAMPLES:
-- "Create Shopify shop platform" → createShopPlatform with Shopify adapter functions
-- "Connect my Shopify store" → createShop with domain and access token
-- "Set up supplier channel" → createChannelPlatform + createChannel  
-- "Match this product" → createShopItem + createChannelItem + createMatch
-- "Link stores" → createLink between shop and channel
-- "Process pending orders" → placeOrders mutation
-
-This ensures all order routing operations follow Openship's established patterns for connecting sales channels to fulfillment partners.`;
-
     const streamTextConfig: any = {
       model: openrouter(model),
       tools: aiTools,
       messages: messages.length > 0 ? messages : [{ role: 'user', content: prompt }],
-      system: systemInstructions + platformSpecificInstructions,
+      system: systemInstructions,
       maxSteps: 10,
       onStepFinish: async (step: { toolCalls?: any[]; toolResults?: any[]; finishReason?: string; usage?: any; text?: string; }) => {
         // Track if any CRUD operations were called
@@ -412,16 +288,12 @@ This ensures all order routing operations follow Openship's established patterns
     const response = streamText(streamTextConfig);
     
     // Create a custom stream that includes our data change notification
-    const stream = response.toTextStreamResponse();
-    const reader = stream.body?.getReader();
+    const stream = response.toDataStream();
+    const reader = stream.getReader();
     
     return new Response(
       new ReadableStream({
         async start(controller) {
-          if (!reader) {
-            controller.close();
-            return;
-          }
           try {
             while (true) {
               const { done, value } = await reader.read();

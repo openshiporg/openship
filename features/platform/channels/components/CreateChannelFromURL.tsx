@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createChannel } from "../actions/channels";
+import { createChannel } from "../actions/createChannel";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -18,29 +18,74 @@ import { Label } from "@/components/ui/label";
 
 interface CreateChannelFromURLProps {
   onChannelCreated?: () => void;
+  searchParams?: {
+    showCreateChannel?: string;
+    platform?: string;
+    accessToken?: string;
+    domain?: string;
+    platformInitiated?: string;
+  };
 }
 
-export function CreateChannelFromURL({ onChannelCreated }: CreateChannelFromURLProps) {
+export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateChannelFromURLProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   
   // Form fields - pre-filled from URL params
   const [name, setName] = useState('');
   const [domain, setDomain] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [platformId, setPlatformId] = useState('');
+  const [isPlatformInitiated, setIsPlatformInitiated] = useState(false);
 
   useEffect(() => {
+    if (!searchParams) return;
+    
     // Check if we should auto-open and pre-fill
-    const showCreateChannel = searchParams.get('showCreateChannel');
-    const urlPlatform = searchParams.get('platform');
-    const urlAccessToken = searchParams.get('accessToken');
-    const urlDomain = searchParams.get('domain');
+    const { 
+      showCreateChannel, 
+      platform: urlPlatform, 
+      accessToken: urlAccessToken, 
+      domain: urlDomain,
+      platformInitiated
+    } = searchParams;
 
+    console.log('CreateChannelFromURL - Search params:', {
+      showCreateChannel,
+      urlPlatform,
+      urlAccessToken,
+      urlDomain,
+      platformInitiated
+    });
+
+    // Handle platform-initiated flow (from OpenFront)
+    if (showCreateChannel === 'true' && urlPlatform && urlDomain && platformInitiated === 'true') {
+      console.log('🚀 Platform-initiated channel flow detected');
+      setIsPlatformInitiated(true);
+      setPlatformId(urlPlatform);
+      setDomain(decodeURIComponent(urlDomain));
+      
+      // Auto-generate channel name from domain  
+      const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
+      const cleanName = domainWithoutProtocol.split('.')[0].replace(/[-_]/g, ' ');
+      const capitalizedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) + ' Channel';
+      setName(capitalizedName);
+      
+      setIsDialogOpen(true);
+
+      // Clean URL params
+      const newUrl = new URL(window.location.href);
+      ['showCreateChannel', 'platform', 'domain', 'platformInitiated'].forEach(param => {
+        newUrl.searchParams.delete(param);
+      });
+      router.replace(newUrl.pathname + newUrl.search);
+      return;
+    }
+
+    // Handle standard OAuth callback flow
     if (showCreateChannel === 'true' && urlPlatform && urlAccessToken && urlDomain) {
-      // Pre-fill form with URL data
+      console.log('✅ Standard OAuth callback flow');
       setPlatformId(urlPlatform);
       setAccessToken(urlAccessToken);
       setDomain(decodeURIComponent(urlDomain));
@@ -49,15 +94,13 @@ export function CreateChannelFromURL({ onChannelCreated }: CreateChannelFromURLP
       const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
       setName(domainWithoutProtocol);
       
-      // Auto-open dialog
       setIsDialogOpen(true);
 
-      // Clear URL params to clean up browser history
+      // Clear URL params
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('showCreateChannel');
-      newUrl.searchParams.delete('platform');
-      newUrl.searchParams.delete('accessToken');
-      newUrl.searchParams.delete('domain');
+      ['showCreateChannel', 'platform', 'accessToken', 'domain'].forEach(param => {
+        newUrl.searchParams.delete(param);
+      });
       router.replace(newUrl.pathname + newUrl.search);
     }
   }, [searchParams, router]);
@@ -95,6 +138,7 @@ export function CreateChannelFromURL({ onChannelCreated }: CreateChannelFromURLP
 
       toast.success('Channel created successfully!');
       setIsDialogOpen(false);
+      router.refresh(); // Add router.refresh() like the regular CreateChannel component
       
       // Reset form
       setName('');
