@@ -21,18 +21,18 @@ interface CreateShopFromURLProps {
   onShopCreated?: () => void;
   searchParams?: {
     showCreateShop?: string;
-    showCreateShopAndPlatform?: string;
     platform?: string;
     accessToken?: string;
     domain?: string;
-    platformInitiated?: string;
-    // OAuth parameters from OpenFront
+    // OAuth parameters from marketplace flow
     client_id?: string;
     client_secret?: string;
     app_name?: string;
-    scope?: string;
-    redirect_uri?: string;
-    state?: string;
+    adapter_slug?: string; // Identifies which adapter to use (e.g., 'openfront', 'shopify')
+    code?: string;
+    // Token parameters from OAuth callback
+    refreshToken?: string;
+    tokenExpiresAt?: string;
   };
 }
 
@@ -46,118 +46,80 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
   const [domain, setDomain] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [platformId, setPlatformId] = useState('');
-  const [isOAuthFlow, setIsOAuthFlow] = useState(false);
-  const [isPlatformInitiated, setIsPlatformInitiated] = useState(false);
-  const [isReverseOAuthFlow, setIsReverseOAuthFlow] = useState(false);
+  const [isMarketplaceFlow, setIsMarketplaceFlow] = useState(false);
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [appName, setAppName] = useState('');
-  const [oauthParams, setOauthParams] = useState<{
-    client_id: string;
-    scope: string;
-    redirect_uri: string;
-    state: string;
-  } | null>(null);
+  const [adapterSlug, setAdapterSlug] = useState('');
+  const [oauthCode, setOauthCode] = useState('');
+  const [refreshToken, setRefreshToken] = useState('');
+  const [tokenExpiresAt, setTokenExpiresAt] = useState('');
 
   useEffect(() => {
-    if (!searchParams) return;
+    if (!searchParams || !searchParams.showCreateShop) return;
     
-    // Check if we should auto-open and pre-fill
     const { 
-      showCreateShop,
-      showCreateShopAndPlatform,
       platform: urlPlatform, 
       accessToken: urlAccessToken, 
       domain: urlDomain,
-      platformInitiated,
       client_id,
       client_secret,
-      app_name
+      app_name,
+      adapter_slug,
+      code,
+      refreshToken: urlRefreshToken,
+      tokenExpiresAt: urlTokenExpiresAt
     } = searchParams;
 
-    console.log('CreateShopFromURL - Search params:', {
-      showCreateShop,
-      showCreateShopAndPlatform,
-      urlPlatform,
-      urlAccessToken,
-      urlDomain,
-      platformInitiated,
-      client_id,
-      client_secret,
-      app_name
+    if (!urlDomain) return;
+
+    console.log('CreateShopFromURL - Processing OAuth callback:', {
+      hasClientId: !!client_id,
+      hasPlatformId: !!urlPlatform,
+      hasAccessToken: !!urlAccessToken,
+      hasCode: !!code,
+      domain: urlDomain
     });
 
-    // Handle reverse OAuth flow (OpenFront → Openship with auto platform/shop creation)
-    if (showCreateShopAndPlatform === 'true' && client_id && client_secret && urlAccessToken && urlDomain) {
-      console.log('🚀 Reverse OAuth flow detected - auto-create platform and shop');
-      setIsReverseOAuthFlow(true);
+    // Auto-generate shop name from domain
+    const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
+    const cleanName = domainWithoutProtocol.split('.')[0].replace(/[-_]/g, ' ');
+    const capitalizedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) + ' Store';
+    setName(capitalizedName);
+    setDomain(decodeURIComponent(urlDomain));
+    
+    // Check if this is marketplace flow (has client_id) or long flow (has platform)
+    if (client_id && client_secret && app_name && adapter_slug && urlAccessToken) {
+      // Marketplace flow - OAuth already exchanged, ready to create platform/shop
+      console.log('✅ Marketplace flow detected');
+      setIsMarketplaceFlow(true);
       setClientId(client_id);
       setClientSecret(client_secret);
-      setAppName(app_name || 'OpenFront Integration');
+      setAppName(app_name);
+      setAdapterSlug(adapter_slug);
       setAccessToken(urlAccessToken);
-      setDomain(decodeURIComponent(urlDomain));
-      
-      // Auto-generate shop name from domain
-      const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
-      const cleanName = domainWithoutProtocol.split('.')[0].replace(/[-_]/g, ' ');
-      const capitalizedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) + ' Store';
-      setName(capitalizedName);
-      
-      setIsDialogOpen(true);
-
-      // Clean URL params
-      const newUrl = new URL(window.location.href);
-      ['showCreateShopAndPlatform', 'client_id', 'client_secret', 'app_name', 'accessToken', 'domain'].forEach(param => {
-        newUrl.searchParams.delete(param);
-      });
-      router.replace(newUrl.pathname + newUrl.search);
-      return;
-    }
-
-    // Handle platform-initiated flow (from OpenFront)
-    if (showCreateShop === 'true' && urlPlatform && urlDomain && platformInitiated === 'true') {
-      console.log('🚀 Platform-initiated flow detected');
-      setIsPlatformInitiated(true);
-      setPlatformId(urlPlatform);
-      setDomain(decodeURIComponent(urlDomain));
-      
-      // Auto-generate shop name from domain  
-      const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
-      const cleanName = domainWithoutProtocol.split('.')[0].replace(/[-_]/g, ' ');
-      const capitalizedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) + ' Store';
-      setName(capitalizedName);
-      
-      setIsDialogOpen(true);
-
-      // Clean URL params
-      const newUrl = new URL(window.location.href);
-      ['showCreateShop', 'platform', 'domain', 'platformInitiated'].forEach(param => {
-        newUrl.searchParams.delete(param);
-      });
-      router.replace(newUrl.pathname + newUrl.search);
-      return;
-    }
-
-    // Handle standard OAuth callback flow
-    if (showCreateShop === 'true' && urlPlatform && urlAccessToken && urlDomain) {
-      console.log('✅ Standard OAuth callback flow');
+    } else if (urlPlatform && urlAccessToken) {
+      // Long flow - platform exists, just need to create shop
+      console.log('✅ Long flow detected');
       setPlatformId(urlPlatform);
       setAccessToken(urlAccessToken);
-      setDomain(decodeURIComponent(urlDomain));
       
-      // Auto-generate shop name from domain
-      const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
-      setName(domainWithoutProtocol);
-      
-      setIsDialogOpen(true);
-
-      // Clear URL params
-      const newUrl = new URL(window.location.href);
-      ['showCreateShop', 'platform', 'accessToken', 'domain'].forEach(param => {
-        newUrl.searchParams.delete(param);
-      });
-      router.replace(newUrl.pathname + newUrl.search);
+      // Set additional token data if provided
+      if (urlRefreshToken) setRefreshToken(urlRefreshToken);
+      if (urlTokenExpiresAt) setTokenExpiresAt(urlTokenExpiresAt);
+    } else {
+      console.log('❌ Invalid OAuth callback - missing required parameters');
+      return;
     }
+    
+    setIsDialogOpen(true);
+
+    // Clean URL params
+    const newUrl = new URL(window.location.href);
+    ['showCreateShop', 'platform', 'accessToken', 'domain', 'client_id', 'client_secret', 'app_name', 'adapter_slug', 'refreshToken', 'tokenExpiresAt', 'code'].forEach(param => {
+      newUrl.searchParams.delete(param);
+    });
+    router.replace(newUrl.pathname + newUrl.search);
   }, [searchParams, router]);
 
   const handleShopCreation = async () => {
@@ -174,129 +136,98 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
     setIsLoading(true);
 
     try {
-      // Reverse OAuth flow: Find or create platform, then create shop
-      if (isReverseOAuthFlow && clientId && clientSecret && accessToken.trim()) {
-        console.log('🚀 Processing reverse OAuth flow - find or create platform');
+      let finalPlatformId = platformId;
+
+      // Marketplace flow: Check if platform exists
+      if (isMarketplaceFlow && clientId && clientSecret) {
+        console.log('🔍 Checking if platform exists for client_id:', clientId);
         
-        // Import platform management functions
         const { getShopPlatformByClientId } = await import('../actions/getShopPlatformByClientId');
-        
-        // Check if platform already exists with this client_id
         const platformResult = await getShopPlatformByClientId(clientId);
-        let platform = null;
+        
+        console.log('🔍 Platform check result:', platformResult);
         
         if (platformResult.success && platformResult.data) {
-          platform = platformResult.data;
-          console.log('✅ Found existing platform:', platform.name);
-          toast.success(`Using existing platform: ${platform.name}`);
+          // Platform exists, use it
+          finalPlatformId = platformResult.data.id;
+          console.log('✅ Found existing platform ID:', finalPlatformId, 'Name:', platformResult.data.name);
         } else {
-          console.log('📦 Creating new platform for:', appName);
-          
-          // Create new platform
-          const platformResult = await createShopPlatform({
-            name: appName + ' (Auto-created)',
-            clientId: clientId,
-            clientSecret: clientSecret,
-            scopes: ['read_products', 'write_products', 'read_orders', 'write_orders'],
-            redirectUri: window.location.origin + '/api/oauth/callback',
-            domain: domain || 'auto-created'
-          });
-
-          if (!platformResult.success) {
-            toast.error(platformResult.error || 'Failed to create platform');
-            return;
-          }
-          
-          platform = platformResult.data;
-          toast.success(`Created new platform: ${platform.name}`);
+          // Platform doesn't exist, will create inline with shop
+          console.log('📦 Platform does not exist, will create inline');
+          finalPlatformId = null;
         }
+      }
 
-        // Now create the shop using the platform
-        const shopResult = await createShop({
-          name: name.trim(),
-          domain: domain.trim(),
-          accessToken: accessToken.trim(),
-          platformId: platform.id,
-        });
-
-        if (shopResult.success) {
-          toast.success('Shop connected successfully!');
-          setIsDialogOpen(false);
-          router.refresh();
-          
-          if (onShopCreated) {
-            onShopCreated();
-          }
-        } else {
-          toast.error(shopResult.error || 'Failed to create shop');
-        }
+      // For marketplace flow, access token should come from OAuth callback
+      let finalAccessToken = accessToken;
+      if (!finalAccessToken && !isMarketplaceFlow) {
+        toast.error('Access token is required');
         return;
       }
 
-      // Platform-initiated flow: Start OAuth process
-      if (isPlatformInitiated && !accessToken.trim()) {
-        if (!platformId) {
-          toast.error('Platform ID is missing');
-          return;
-        }
-        
-        console.log('🚀 Starting OAuth flow for platform-initiated setup');
-        
-        // Create shop with temporary token first
-        const shopResult = await createShop({
-          name: name.trim(),
-          domain: domain.trim(),
-          accessToken: 'oauth-pending',
-          platformId,
-        });
-
-        if (shopResult.success) {
-          toast.success('Shop created! Redirecting for OAuth authorization...');
-          
-          // Import OAuth flow initiation
-          const { initiateOAuthFlow } = await import('../actions/createShop');
-          
-          // This will redirect to OpenFront for OAuth
-          await initiateOAuthFlow(platformId, domain.trim());
-          
-          // Note: Redirect happens in initiateOAuthFlow
-        } else {
-          toast.error(shopResult.error || 'Failed to create shop');
-        }
-        return;
-      }
-
-      // Standard flow: Create shop with provided access token
-      if (!platformId) {
-        toast.error('Platform ID is missing');
-        return;
-      }
-      
-      if (!accessToken.trim()) {
-        toast.error('Please enter an access token');
-        return;
-      }
-
-      await createShop({
+      // Create the shop
+      const shopData: any = {
         name: name.trim(),
         domain: domain.trim(),
-        accessToken: accessToken.trim(),
-        platformId,
-      });
+        accessToken: finalAccessToken.trim(),
+        ...(refreshToken && { refreshToken: refreshToken }),
+        ...(tokenExpiresAt && { tokenExpiresAt: new Date(tokenExpiresAt) }),
+      };
 
-      toast.success('Shop created successfully!');
-      setIsDialogOpen(false);
-      router.refresh();
-      
-      // Reset form
-      setName('');
-      setDomain('');
-      setAccessToken('');
-      setPlatformId('');
-      setIsPlatformInitiated(false);
-      
-      if (onShopCreated) {
-        onShopCreated();
+      console.log('🏪 Creating shop with data:');
+      console.log('  - finalPlatformId:', finalPlatformId);
+      console.log('  - isMarketplaceFlow:', isMarketplaceFlow);
+      console.log('  - clientId:', clientId);
+      console.log('  - adapterSlug:', adapterSlug);
+
+      if (finalPlatformId) {
+        console.log('🔗 Using existing platform ID:', finalPlatformId);
+        shopData.platformId = finalPlatformId;
+      } else if (isMarketplaceFlow && clientId && clientSecret && appName && adapterSlug) {
+        // Create platform inline using dynamic adapter slug
+        console.log('📦 Creating platform inline with adapter:', adapterSlug);
+        shopData.platform = {
+          create: {
+            name: appName + ' (Auto-created)',
+            appKey: clientId,
+            appSecret: clientSecret,
+            // Use adapter slug for all function mappings
+            searchProductsFunction: adapterSlug,
+            getProductFunction: adapterSlug,
+            searchOrdersFunction: adapterSlug,
+            updateProductFunction: adapterSlug,
+            createWebhookFunction: adapterSlug,
+            oAuthFunction: adapterSlug,
+            oAuthCallbackFunction: adapterSlug,
+            createOrderWebhookHandler: adapterSlug,
+            cancelOrderWebhookHandler: adapterSlug,
+            addTrackingFunction: adapterSlug,
+            orderLinkFunction: adapterSlug,
+            addCartToPlatformOrderFunction: adapterSlug,
+            getWebhooksFunction: adapterSlug,
+            deleteWebhookFunction: adapterSlug,
+          }
+        };
+        console.log('📦 Platform inline creation data:', shopData.platform.create);
+      } else {
+        console.log('❌ No platform connection - this will cause an error');
+        console.log('❌ Missing: finalPlatformId?', !finalPlatformId, 'isMarketplaceFlow?', !isMarketplaceFlow, 'clientId?', !clientId, 'adapterSlug?', !adapterSlug);
+      }
+
+      console.log('🏪 Final shopData before createShop call:', JSON.stringify(shopData, null, 2));
+
+      const shopResult = await createShop(shopData);
+
+      if (shopResult.success) {
+        toast.success('Shop connected successfully!');
+        setIsDialogOpen(false);
+        router.refresh();
+        
+        if (onShopCreated) {
+          onShopCreated();
+        }
+      } else {
+        toast.error(shopResult.error || 'Failed to create shop');
       }
     } catch (error) {
       console.error('Error creating shop:', error);
@@ -313,31 +244,23 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
     setDomain('');
     setAccessToken('');
     setPlatformId('');
-    setIsPlatformInitiated(false);
-    setIsReverseOAuthFlow(false);
+    setIsMarketplaceFlow(false);
     setClientId('');
     setClientSecret('');
     setAppName('');
+    setRefreshToken('');
+    setTokenExpiresAt('');
   };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isReverseOAuthFlow 
-              ? 'Connect Openfront Store' 
-              : isPlatformInitiated 
-                ? 'Confirm Shop Connection' 
-                : 'Create Shop'
-            }
-          </DialogTitle>
+          <DialogTitle>Connect OpenFront Store</DialogTitle>
           <DialogDescription>
-            {isReverseOAuthFlow
+            {isMarketplaceFlow
               ? 'Setting up your OpenFront integration. We\'ll create the platform if needed and connect your store.'
-              : isPlatformInitiated 
-                ? 'Confirm the details below to connect your OpenFront store to Openship.'
-                : 'Complete your shop setup with the OAuth credentials received.'
+              : 'Complete your shop setup with the OAuth credentials received.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -365,7 +288,7 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
             />
           </div>
 
-          {!isPlatformInitiated && !isReverseOAuthFlow && (
+          {!isMarketplaceFlow && (
             <div>
               <Label htmlFor="accessToken">Access Token</Label>
               <Input
@@ -379,25 +302,13 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
             </div>
           )}
 
-          {isReverseOAuthFlow && (
-            <div className="text-sm bg-green-50 dark:bg-green-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-              <p className="font-medium text-green-900 dark:text-green-100 mb-1">
-                ✅ OpenFront Integration Ready
+          {isMarketplaceFlow && (
+            <div className="text-sm bg-zinc-50 dark:bg-zinc-950/20 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                openfront Integration
               </p>
-              <p className="text-green-700 dark:text-green-300 text-xs">
-                OAuth completed successfully. We'll automatically find or create the platform and connect your store.
-              </p>
-            </div>
-          )}
-
-          {isPlatformInitiated && (
-            <div className="text-sm bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                🚀 Platform-initiated setup
-              </p>
-              <p className="text-blue-700 dark:text-blue-300 text-xs">
-                This connection was initiated from your OpenFront store. 
-                After confirming, you'll be redirected to authorize the connection.
+              <p className="text-zinc-700 dark:text-zinc-300 text-xs">
+                This platform will be created with the shop.
               </p>
             </div>
           )}
@@ -416,8 +327,8 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
             disabled={isLoading}
           >
             {isLoading 
-              ? (isReverseOAuthFlow ? 'Connecting...' : isPlatformInitiated ? 'Setting up...' : 'Creating...') 
-              : (isReverseOAuthFlow ? 'Connect Store' : isPlatformInitiated ? 'Connect & Authorize' : 'Create Shop')
+              ? 'Connecting...' 
+              : 'Connect Store'
             }
           </Button>
         </DialogFooter>

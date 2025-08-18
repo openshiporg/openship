@@ -37,6 +37,17 @@ export const Channel = list({
         displayMode: "textarea",
       },
     }),
+    refreshToken: text({
+      ui: {
+        displayMode: "textarea",
+        description: "Long-lived OAuth refresh token (30 days)",
+      },
+    }),
+    tokenExpiresAt: timestamp({
+      ui: {
+        description: "When the current access token expires",
+      },
+    }),
     metadata: json({
       defaultValue: {},
     }),

@@ -4,6 +4,8 @@ import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 interface OpenFrontPlatform {
   domain: string;
   accessToken: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date | string;
   appKey?: string;
   appSecret?: string;
 }
@@ -54,61 +56,105 @@ interface WebhookEventArgs {
   headers: Record<string, string>;
 }
 
-// Helper function to get fresh access token using OpenFront database
+// Helper function to get fresh access token with proper OAuth 2.0 flow
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
-  // First, check if we have a valid access token in OpenFront's database
-  const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-  
-  try {
-    const checkResponse = await fetch(tokenCheckUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: platform.appKey,
-        client_secret: platform.appSecret
-      })
+  // Check if we have local access token expiry information
+  if (platform.tokenExpiresAt && platform.refreshToken) {
+    const expiresAt = typeof platform.tokenExpiresAt === 'string' 
+      ? new Date(platform.tokenExpiresAt) 
+      : platform.tokenExpiresAt;
+    
+    // If access token hasn't expired yet, use it
+    if (expiresAt > new Date()) {
+      console.log('🟢 Using cached access token (not expired)');
+      return platform.accessToken;
+    }
+    
+    console.log('🟡 Access token expired, refreshing with refresh token');
+    
+    // Use refresh token to get new access token
+    const tokenUrl = `${platform.domain}/api/oauth/token`;
+    
+    const formData = new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: platform.refreshToken,
     });
 
-    if (checkResponse.ok) {
-      const { access_token, is_valid } = await checkResponse.json();
-      if (is_valid) {
-        return access_token; // Return existing valid token
-      }
+    const response = await fetch(tokenUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔴 Token refresh failed:', errorText);
+      throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
     }
-  } catch (error) {
-    console.log('Token check failed, will refresh:', error);
+
+    const { access_token } = await response.json();
+    console.log('🟢 Token refreshed successfully');
+    
+    // TODO: Update stored access token and expiry in database
+    // This would require updating the shop/channel record with new tokens
+    
+    return access_token;
   }
-
-  // If no valid token exists or check failed, refresh using the refresh token
-  const tokenUrl = `${platform.domain}/api/oauth/token`;
   
-  console.log('🔴 Attempting to refresh token:');
-  console.log('🔴 Token URL:', tokenUrl);
-  console.log('🔴 Client ID:', platform.appKey);
-  console.log('🔴 Client Secret length:', platform.appSecret?.length);
-  console.log('🔴 Client Secret bytes:', [...(platform.appSecret || '')].map(c => c.charCodeAt(0)));
-  console.log('🔴 Refresh Token (first 10 chars):', platform.accessToken?.substring(0, 10));
-  
-  const formData = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token: platform.accessToken, // This is actually the refresh token stored in accessToken field
-  });
+  // Fallback: Legacy implementation for existing shops without refresh tokens
+  if (platform.appKey && platform.appSecret) {
+    console.log('🟡 Using legacy token refresh flow');
+    
+    // First, check if we have a valid access token in OpenFront's database
+    const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
+    
+    try {
+      const checkResponse = await fetch(tokenCheckUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: platform.appKey,
+          client_secret: platform.appSecret
+        })
+      });
 
-  const response = await fetch(tokenUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData,
-  });
+      if (checkResponse.ok) {
+        const { access_token, is_valid } = await checkResponse.json();
+        if (is_valid) {
+          return access_token; // Return existing valid token
+        }
+      }
+    } catch (error) {
+      console.log('Token check failed, will refresh:', error);
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('🔴 Token refresh failed:', errorText);
-    console.error('🔴 Response status:', response.status);
-    throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+    // Legacy refresh using accessToken field as refresh token
+    const tokenUrl = `${platform.domain}/api/oauth/token`;
+    
+    const formData = new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: platform.accessToken, // Legacy: accessToken field contains refresh token
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔴 Legacy token refresh failed:', errorText);
+      throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+    }
+
+    const { access_token } = await response.json();
+    return access_token;
   }
-
-  const { access_token } = await response.json();
-  return access_token;
+  
+  // If no refresh capability, just use the access token as-is
+  console.log('🟠 No refresh token available, using access token as-is');
+  return platform.accessToken;
 };
 
 // Helper function to create OpenFront GraphQL client with fresh token
@@ -756,9 +802,15 @@ export async function oAuthCallbackFunction({
     throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
   }
 
-  const { access_token } = await response.json();
+  const { access_token, refresh_token, expires_in } = await response.json();
   
-  return access_token; // Return just the token, as expected by OpenShip
+  // Return OAuth token data for proper storage
+  return {
+    access_token,
+    refresh_token,
+    expires_in,
+    expires_at: new Date(Date.now() + (expires_in * 1000))
+  };
 }
 
 export async function createOrderWebhookHandler({

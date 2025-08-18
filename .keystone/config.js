@@ -1741,8 +1741,13 @@ async function oAuthCallbackFunction3({
     console.error("OpenFront OAuth error:", errorText);
     throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
   }
-  const { access_token } = await response.json();
-  return access_token;
+  const { access_token, refresh_token, expires_in } = await response.json();
+  return {
+    access_token,
+    refresh_token,
+    expires_in,
+    expires_at: new Date(Date.now() + expires_in * 1e3)
+  };
 }
 async function createOrderWebhookHandler({
   platform,
@@ -1848,50 +1853,74 @@ var init_openfront2 = __esm({
     import_graphql_request3 = require("graphql-request");
     import_getBaseUrl = require("@/features/dashboard/lib/getBaseUrl");
     getFreshAccessToken2 = async (platform) => {
-      const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-      try {
-        const checkResponse = await fetch(tokenCheckUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client_id: platform.appKey,
-            client_secret: platform.appSecret
-          })
-        });
-        if (checkResponse.ok) {
-          const { access_token: access_token2, is_valid } = await checkResponse.json();
-          if (is_valid) {
-            return access_token2;
-          }
+      if (platform.tokenExpiresAt && platform.refreshToken) {
+        const expiresAt = typeof platform.tokenExpiresAt === "string" ? new Date(platform.tokenExpiresAt) : platform.tokenExpiresAt;
+        if (expiresAt > /* @__PURE__ */ new Date()) {
+          console.log("\u{1F7E2} Using cached access token (not expired)");
+          return platform.accessToken;
         }
-      } catch (error) {
-        console.log("Token check failed, will refresh:", error);
+        console.log("\u{1F7E1} Access token expired, refreshing with refresh token");
+        const tokenUrl = `${platform.domain}/api/oauth/token`;
+        const formData = new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: platform.refreshToken
+        });
+        const response = await fetch(tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("\u{1F534} Token refresh failed:", errorText);
+          throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+        }
+        const { access_token } = await response.json();
+        console.log("\u{1F7E2} Token refreshed successfully");
+        return access_token;
       }
-      const tokenUrl = `${platform.domain}/api/oauth/token`;
-      console.log("\u{1F534} Attempting to refresh token:");
-      console.log("\u{1F534} Token URL:", tokenUrl);
-      console.log("\u{1F534} Client ID:", platform.appKey);
-      console.log("\u{1F534} Client Secret length:", platform.appSecret?.length);
-      console.log("\u{1F534} Client Secret bytes:", [...platform.appSecret || ""].map((c) => c.charCodeAt(0)));
-      console.log("\u{1F534} Refresh Token (first 10 chars):", platform.accessToken?.substring(0, 10));
-      const formData = new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: platform.accessToken
-        // This is actually the refresh token stored in accessToken field
-      });
-      const response = await fetch(tokenUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("\u{1F534} Token refresh failed:", errorText);
-        console.error("\u{1F534} Response status:", response.status);
-        throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+      if (platform.appKey && platform.appSecret) {
+        console.log("\u{1F7E1} Using legacy token refresh flow");
+        const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
+        try {
+          const checkResponse = await fetch(tokenCheckUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              client_id: platform.appKey,
+              client_secret: platform.appSecret
+            })
+          });
+          if (checkResponse.ok) {
+            const { access_token: access_token2, is_valid } = await checkResponse.json();
+            if (is_valid) {
+              return access_token2;
+            }
+          }
+        } catch (error) {
+          console.log("Token check failed, will refresh:", error);
+        }
+        const tokenUrl = `${platform.domain}/api/oauth/token`;
+        const formData = new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: platform.accessToken
+          // Legacy: accessToken field contains refresh token
+        });
+        const response = await fetch(tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("\u{1F534} Legacy token refresh failed:", errorText);
+          throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+        }
+        const { access_token } = await response.json();
+        return access_token;
       }
-      const { access_token } = await response.json();
-      return access_token;
+      console.log("\u{1F7E0} No refresh token available, using access token as-is");
+      return platform.accessToken;
     };
     createOpenFrontClient2 = async (platform) => {
       const freshAccessToken = await getFreshAccessToken2(platform);
@@ -4817,6 +4846,17 @@ var Channel = (0, import_core8.list)({
         displayMode: "textarea"
       }
     }),
+    refreshToken: (0, import_fields11.text)({
+      ui: {
+        displayMode: "textarea",
+        description: "Long-lived OAuth refresh token (30 days)"
+      }
+    }),
+    tokenExpiresAt: (0, import_fields11.timestamp)({
+      ui: {
+        description: "When the current access token expires"
+      }
+    }),
     metadata: (0, import_fields11.json)({
       defaultValue: {}
     }),
@@ -5588,6 +5628,17 @@ var Shop = (0, import_core11.list)({
     accessToken: (0, import_fields13.text)({
       ui: {
         displayMode: "textarea"
+      }
+    }),
+    refreshToken: (0, import_fields13.text)({
+      ui: {
+        displayMode: "textarea",
+        description: "Long-lived OAuth refresh token (30 days)"
+      }
+    }),
+    tokenExpiresAt: (0, import_fields13.timestamp)({
+      ui: {
+        description: "When the current access token expires"
       }
     }),
     linkMode: (0, import_fields13.select)({

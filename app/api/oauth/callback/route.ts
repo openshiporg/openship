@@ -70,25 +70,22 @@ export async function GET(request: NextRequest) {
     
     console.log('🔵 CALLBACK: Received state parameter:', state);
     
-    // Handle simplified auto-create flow
-    if (autoCreate && clientId && shop) {
-      console.log('🚀 SIMPLIFIED FLOW: Auto-creating platform and shop');
-      return await handleAutoCreateFlow({
-        code,
-        shop,
-        clientId,
-        appName: appName || 'OpenFront Store',
-        request
-      });
-    }
+    // Simplified auto-create flow is handled by marketplace flow instead
     
-    // Decode and validate signed state (original flow)
+    // Decode and validate state (handle both base64 and JSON formats)
     let signedState;
     try {
-      const decoded = Buffer.from(state, 'base64').toString();
-      console.log('🔵 CALLBACK: Decoded state string:', decoded);
-      signedState = JSON.parse(decoded);
-      console.log('🔵 CALLBACK: Parsed signed state:', signedState);
+      // First try to parse as direct JSON (marketplace flow from OpenFront)
+      try {
+        signedState = JSON.parse(state);
+        console.log('🔵 CALLBACK: Parsed state as direct JSON:', signedState);
+      } catch {
+        // If that fails, try base64 decoding (original flow from OpenShip)
+        const decoded = Buffer.from(state, 'base64').toString();
+        console.log('🔵 CALLBACK: Decoded state string from base64:', decoded);
+        signedState = JSON.parse(decoded);
+        console.log('🔵 CALLBACK: Parsed signed state from base64:', signedState);
+      }
     } catch (e) {
       console.error('🔴 CALLBACK: Failed to decode state:', e);
       return NextResponse.json(
@@ -97,31 +94,97 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const { payload, signature } = signedState;
-    
-    // Verify signature
-    const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
-    if (signature !== expectedSignature) {
-      console.error('🔴 CALLBACK: Invalid state signature');
-      return NextResponse.json(
-        { error: 'Invalid state signature' },
-        { status: 400 }
-      );
-    }
-    
-    // Parse verified payload
+    // Handle different state formats
     let stateData;
-    try {
-      stateData = JSON.parse(payload);
-      console.log('🔵 CALLBACK: Verified state data:', stateData);
-    } catch (e) {
-      console.error('🔴 CALLBACK: Failed to parse payload:', e);
-      return NextResponse.json(
-        { error: 'Invalid state payload' },
-        { status: 400 }
-      );
+    
+    if (signedState.type === 'marketplace') {
+      // Marketplace flow - state is already the data we need
+      console.log('🔵 CALLBACK: Detected marketplace flow');
+      stateData = signedState;
+    } else {
+      // Original OpenShip flow - has payload and signature
+      console.log('🔵 CALLBACK: Detected original OpenShip flow');
+      const { payload, signature } = signedState;
+      
+      // Verify signature
+      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
+      if (signature !== expectedSignature) {
+        console.error('🔴 CALLBACK: Invalid state signature');
+        return NextResponse.json(
+          { error: 'Invalid state signature' },
+          { status: 400 }
+        );
+      }
+      
+      // Parse verified payload
+      try {
+        stateData = JSON.parse(payload);
+        console.log('🔵 CALLBACK: Verified state data:', stateData);
+      } catch (e) {
+        console.error('🔴 CALLBACK: Failed to parse payload:', e);
+        return NextResponse.json(
+          { error: 'Invalid state payload' },
+          { status: 400 }
+        );
+      }
     }
     
+    console.log('🔵 CALLBACK: State verified successfully');
+    
+    // Handle marketplace flow - exchange code for tokens then redirect
+    if (stateData.type === 'marketplace') {
+      console.log('🔵 CALLBACK: Processing marketplace flow - exchanging code for tokens');
+      
+      // Create minimal platform object for adapter
+      const marketplacePlatform = {
+        domain: shop,
+        accessToken: '', // Will be set after OAuth exchange
+        appKey: stateData.client_id,
+        appSecret: stateData.client_secret,
+        oAuthCallbackFunction: stateData.adapter_slug // Use dynamic adapter slug
+      };
+      
+      // Exchange code for access token using OpenFront adapter directly
+      const tokenResult = await handleShopOAuthCallback({
+        platform: marketplacePlatform,
+        code,
+        shop: shop || undefined,
+        state: 'marketplace-flow',
+        appKey: stateData.client_id,
+        appSecret: stateData.client_secret,
+        redirectUri: `${await getBaseUrl()}/api/oauth/callback`
+      });
+      
+      // Handle both old string format and new object format
+      let accessToken, refreshToken, tokenExpiresAt;
+      if (typeof tokenResult === 'string') {
+        accessToken = tokenResult;
+      } else {
+        accessToken = tokenResult.access_token;
+        refreshToken = tokenResult.refresh_token;
+        tokenExpiresAt = tokenResult.expires_at;
+      }
+      
+      const baseUrl = await getBaseUrl();
+      const redirectUrl = new URL(`${baseUrl}/dashboard/platform/shops`);
+      redirectUrl.searchParams.set('showCreateShop', 'true');
+      redirectUrl.searchParams.set('domain', shop ?? '');
+      redirectUrl.searchParams.set('accessToken', accessToken);
+      redirectUrl.searchParams.set('client_id', stateData.client_id);
+      redirectUrl.searchParams.set('client_secret', stateData.client_secret);
+      redirectUrl.searchParams.set('app_name', stateData.app_name);
+      redirectUrl.searchParams.set('adapter_slug', stateData.adapter_slug);
+      if (refreshToken) {
+        redirectUrl.searchParams.set('refreshToken', refreshToken);
+      }
+      if (tokenExpiresAt) {
+        redirectUrl.searchParams.set('tokenExpiresAt', tokenExpiresAt.toISOString());
+      }
+      
+      return NextResponse.redirect(redirectUrl.toString());
+    }
+    
+    // Handle original OpenShip flow
     const { platformId, type, timestamp } = stateData;
     
     // Check if state is expired (10 minutes max)
@@ -133,8 +196,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    console.log('🔵 CALLBACK: State verified successfully');
     
     // Fetch the platform based on type
     let platform;
@@ -157,8 +218,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Shop platform not found' }, { status: 404 });
       }
       
-      // Exchange code for access token
-      accessToken = await handleShopOAuthCallback({
+      // Exchange code for tokens
+      const tokenResult = await handleShopOAuthCallback({
         platform,
         code,
         shop: shop || undefined,
@@ -168,11 +229,25 @@ export async function GET(request: NextRequest) {
         redirectUri: `${baseUrl}/api/oauth/callback`, // Single callback URL
       });
       
+      // Handle both old string format and new object format for backward compatibility
+      if (typeof tokenResult === 'string') {
+        // Legacy format - just access token
+        accessToken = tokenResult;
+      } else {
+        // New format - object with both tokens
+        accessToken = tokenResult.access_token;
+      }
+      
       // Redirect to shops page with params
       const redirectUrl = new URL(`${baseUrl}/dashboard/platform/shops`);
       redirectUrl.searchParams.set('showCreateShop', 'true');
       redirectUrl.searchParams.set('platform', platformId);
       redirectUrl.searchParams.set('accessToken', accessToken);
+      if (typeof tokenResult === 'object') {
+        // Include additional token data for new implementations
+        redirectUrl.searchParams.set('refreshToken', tokenResult.refresh_token);
+        redirectUrl.searchParams.set('tokenExpiresAt', tokenResult.expires_at.toISOString());
+      }
       redirectUrl.searchParams.set('domain', shop ?? '');
       
       return NextResponse.redirect(redirectUrl.toString());
@@ -232,123 +307,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Handle simplified auto-create flow from OpenFront
-async function handleAutoCreateFlow({
-  code,
-  shop,
-  clientId,
-  appName,
-  request
-}: {
-  code: string;
-  shop: string;
-  clientId: string;
-  appName: string;
-  request: NextRequest;
-}) {
-  try {
-    console.log('🚀 AUTO-CREATE: Starting simplified flow');
-    console.log('🚀 Shop domain:', shop);
-    console.log('🚀 Client ID:', clientId);
-    console.log('🚀 App name:', appName);
-    
-    const baseUrl = await getBaseUrl();
-    
-    // Step 1: Fetch client secret from OpenFront
-    let clientSecret;
-    try {
-      const appDetailsUrl = `${shop}/api/oauth/app-details`;
-      const response = await fetch(appDetailsUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId })
-      });
-      
-      if (response.ok) {
-        const appDetails = await response.json();
-        clientSecret = appDetails.client_secret;
-        console.log('✅ Retrieved client secret from OpenFront');
-      } else {
-        console.log('⚠️ Could not fetch client secret, using placeholder');
-        clientSecret = 'auto-generated-placeholder';
-      }
-    } catch (error) {
-      console.log('⚠️ Error fetching client secret:', error);
-      clientSecret = 'auto-generated-placeholder';
-    }
-    
-    // Step 2: Auto-create shop platform
-    const platformName = `${appName} (Auto-created)`;
-    const platform = await keystoneContext.sudo().query.ShopPlatform.createOne({
-      data: {
-        name: platformName,
-        appKey: clientId,
-        appSecret: clientSecret,
-        // OpenFront adapter functions
-        searchProductsFunction: 'openfront',
-        getProductFunction: 'openfront', 
-        searchOrdersFunction: 'openfront',
-        updateProductFunction: 'openfront',
-        createWebhookFunction: 'openfront',
-        oAuthFunction: 'openfront',
-        oAuthCallbackFunction: 'openfront',
-        createOrderWebhookHandler: 'openfront',
-        cancelOrderWebhookHandler: 'openfront',
-        addTrackingFunction: 'openfront',
-        orderLinkFunction: 'openfront',
-        addCartToPlatformOrderFunction: 'openfront',
-        getWebhooksFunction: 'openfront',
-        deleteWebhookFunction: 'openfront',
-      },
-      query: `id name appKey appSecret`,
-    });
-    
-    console.log('✅ Auto-created platform:', platform.name);
-    
-    // Step 3: Exchange OAuth code for access token
-    const accessToken = await handleShopOAuthCallback({
-      platform,
-      code,
-      shop: shop || undefined,
-      state: 'auto-create-flow',
-      appKey: platform.appKey,
-      appSecret: platform.appSecret,
-      redirectUri: `${baseUrl}/api/oauth/callback`
-    });
-    
-    console.log('✅ Got access token from OAuth exchange');
-    
-    // Step 4: Auto-create shop instance
-    const shopName = shop.replace(/^https?:\/\//, '').replace(/\/$/, '').split('.')[0] + ' Store';
-    const shopInstance = await keystoneContext.sudo().query.Shop.createOne({
-      data: {
-        name: shopName,
-        domain: shop,
-        accessToken: accessToken,
-        platform: { connect: { id: platform.id } },
-      },
-      query: `id name domain`,
-    });
-    
-    console.log('✅ Auto-created shop:', shopInstance.name);
-    
-    // Step 5: Redirect to success page
-    const redirectUrl = new URL(`${baseUrl}/dashboard/platform/shops`);
-    redirectUrl.searchParams.set('created', 'true');
-    redirectUrl.searchParams.set('shop_id', shopInstance.id);
-    redirectUrl.searchParams.set('platform_id', platform.id);
-    
-    console.log('🔄 Redirecting to shops page with success');
-    return NextResponse.redirect(redirectUrl.toString());
-    
-  } catch (error) {
-    console.error('❌ Auto-create flow failed:', error);
-    return NextResponse.json(
-      { 
-        error: 'Auto-create failed', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
-      },
-      { status: 500 }
-    );
-  }
-}

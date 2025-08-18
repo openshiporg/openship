@@ -1028,6 +1028,8 @@ type Shop {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   linkMode: String
   metadata: JSON
   platform: ShopPlatform
@@ -1055,6 +1057,8 @@ input ShopWhereInput {
   name: StringFilter
   domain: StringFilter
   accessToken: StringFilter
+  refreshToken: StringFilter
+  tokenExpiresAt: DateTimeNullableFilter
   linkMode: StringNullableFilter
   platform: ShopPlatformWhereInput
   user: UserWhereInput
@@ -1085,6 +1089,8 @@ input ShopOrderByInput {
   name: OrderDirection
   domain: OrderDirection
   accessToken: OrderDirection
+  refreshToken: OrderDirection
+  tokenExpiresAt: OrderDirection
   linkMode: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
@@ -1094,6 +1100,8 @@ input ShopUpdateInput {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   linkMode: String
   metadata: JSON
   platform: ShopPlatformRelateToOneForUpdateInput
@@ -1120,6 +1128,8 @@ input ShopCreateInput {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   linkMode: String
   metadata: JSON
   platform: ShopPlatformRelateToOneForCreateInput
@@ -1141,6 +1151,8 @@ type Channel {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   metadata: JSON
   platform: ChannelPlatform
   user: User
@@ -1167,6 +1179,8 @@ input ChannelWhereInput {
   name: StringFilter
   domain: StringFilter
   accessToken: StringFilter
+  refreshToken: StringFilter
+  tokenExpiresAt: DateTimeNullableFilter
   platform: ChannelPlatformWhereInput
   user: UserWhereInput
   links: LinkManyRelationFilter
@@ -1181,6 +1195,8 @@ input ChannelOrderByInput {
   name: OrderDirection
   domain: OrderDirection
   accessToken: OrderDirection
+  refreshToken: OrderDirection
+  tokenExpiresAt: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -1189,6 +1205,8 @@ input ChannelUpdateInput {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   metadata: JSON
   platform: ChannelPlatformRelateToOneForUpdateInput
   user: UserRelateToOneForUpdateInput
@@ -1214,6 +1232,8 @@ input ChannelCreateInput {
   name: String
   domain: String
   accessToken: String
+  refreshToken: String
+  tokenExpiresAt: DateTime
   metadata: JSON
   platform: ChannelPlatformRelateToOneForCreateInput
   user: UserRelateToOneForCreateInput
