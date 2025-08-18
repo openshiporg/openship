@@ -196,7 +196,7 @@ export function Field({
                     }
                   }
                 }}
-                className="mt-1"
+                className="mt-1 shadow-xs"
               />
             </div>
           )}
@@ -327,7 +327,7 @@ export function controller(config: FieldControllerConfig<TimestampFieldMeta>): F
                         }
                       }
                     }}
-                    className="mt-1"
+                    className="mt-1 shadow-xs"
                   />
                 </div>
               )}

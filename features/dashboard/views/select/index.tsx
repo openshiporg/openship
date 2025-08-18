@@ -195,7 +195,7 @@ export function Field({
               onValueChange={onSelectionChange}
               value={selectedKey || ''}
             >
-              <SelectTrigger className={errorMessage ? 'border-red-500' : ''}>
+              <SelectTrigger className={errorMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}>
                 <SelectValue placeholder="Select an option..." />
               </SelectTrigger>
               <SelectContent>

@@ -19,6 +19,7 @@ import * as document from "./document"
 import * as checkbox from "./checkbox"
 import * as bigInt from "./bigInt"
 import * as decimal from "./decimal"
+import * as multiselect from "./multiselect"
 
 // Define interfaces for field implementations
 export interface Field {
@@ -141,7 +142,8 @@ export const fieldTypes: FieldTypesRegistry = {
   image,
   document,
   checkbox,
-  decimal
+  decimal,
+  multiselect
 }
 
 // Type definition matching Keystone exactly

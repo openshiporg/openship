@@ -77,6 +77,7 @@ interface AiChatConfig {
     model: string;
     maxTokens: string;
   };
+  chatMode?: "sidebar" | "chatbox";
 }
 
 // LocalStorage Manager
@@ -86,6 +87,8 @@ class AiChatStorage {
     const onboarded = localStorage.getItem("aiChatOnboarded") === "true";
     const keyMode =
       (localStorage.getItem("aiKeyMode") as "env" | "local") || "env";
+    const chatMode =
+      (localStorage.getItem("aiChatMode") as "sidebar" | "chatbox") || "chatbox";
 
     const localKeys =
       keyMode === "local"
@@ -97,7 +100,7 @@ class AiChatStorage {
           }
         : undefined;
 
-    return { enabled, onboarded, keyMode, localKeys };
+    return { enabled, onboarded, keyMode, localKeys, chatMode };
   }
 
   static saveConfig(config: Partial<AiChatConfig>) {
@@ -109,6 +112,9 @@ class AiChatStorage {
     }
     if (config.keyMode !== undefined) {
       localStorage.setItem("aiKeyMode", config.keyMode);
+    }
+    if (config.chatMode !== undefined) {
+      localStorage.setItem("aiChatMode", config.chatMode);
     }
     if (config.localKeys) {
       localStorage.setItem("openRouterApiKey", config.localKeys.apiKey);
@@ -904,7 +910,7 @@ export function AiChatSidebar() {
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       components={{
                         p: ({ children }) => (
-                          <div className="mb-1 last:mb-0 break-words text-sm">
+                          <div className="mb-1 last:mb-0 break-words">
                             {children}
                           </div>
                         ),
@@ -923,14 +929,14 @@ export function AiChatSidebar() {
                         code: ({ children, ...props }) => {
                           if ((props as any).inline) {
                             return (
-                              <code className="bg-muted px-1 rounded font-mono break-all text-sm">
+                              <code className="bg-muted px-1 rounded font-mono break-all">
                                 {children}
                               </code>
                             );
                           }
                           return (
                             <pre className="bg-muted border rounded p-2 overflow-x-auto">
-                              <code className="font-mono break-all text-sm">
+                              <code className="font-mono break-all">
                                 {children}
                               </code>
                             </pre>
@@ -944,7 +950,7 @@ export function AiChatSidebar() {
                       {message.content}
                     </ReactMarkdown>
                   ) : (
-                    <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1 text-muted-foreground">
                       <span className="animate-pulse">Thinking...</span>
                     </div>
                   )}

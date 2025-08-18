@@ -6,7 +6,9 @@
 
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FieldContainer } from '@/components/ui/field-container'
+import { FieldLabel } from '@/components/ui/field-label'
+import { FieldDescription } from '@/components/ui/field-description'
 import { entriesTyped } from '../../lib/entriesTyped'
 import type {
   FieldController,
@@ -104,8 +106,11 @@ export function Field({
   const errorMessage = (forceValidation || isDirty) && validate(value)
 
   return (
-    <div className="space-y-2">
-      <Label>{field.label}</Label>
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {field.description && (
+        <FieldDescription>{field.description}</FieldDescription>
+      )}
       <Input
         type="number"
         step="any"
@@ -120,16 +125,13 @@ export function Field({
           onChange({ ...value, value: inputValue })
         }}
         value={value.value ?? ''}
-        className={errorMessage ? 'border-red-500' : ''}
+        className={errorMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}
         placeholder="Enter decimal number..."
       />
-      {field.description && (
-        <p className="text-sm text-muted-foreground">{field.description}</p>
-      )}
       {errorMessage && (
         <p className="text-sm text-red-600" role="alert">{errorMessage}</p>
       )}
-    </div>
+    </FieldContainer>
   )
 }
 

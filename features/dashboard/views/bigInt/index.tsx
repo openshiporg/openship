@@ -227,7 +227,7 @@ export function Field({
           autoFocus={autoFocus}
           readOnly
           defaultValue="--"
-          className="bg-muted"
+          className="bg-muted shadow-xs"
         />
         <p className="text-xs text-muted-foreground mt-1">
           This field is set to auto increment. It will default to the next available number.
@@ -262,7 +262,7 @@ export function Field({
         autoFocus={autoFocus}
         readOnly={isReadOnly}
         inputMode="numeric"
-        className={errorMessage ? 'border-destructive' : ''}
+        className={errorMessage ? 'border-destructive shadow-xs' : 'shadow-xs'}
         onBlur={() => setDirty(true)}
         onChange={e => onChange?.({ ...value, value: e.target.value === '' ? null : e.target.value })}
         value={value.value ?? ''}

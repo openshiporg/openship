@@ -291,7 +291,7 @@ const MarkButton = forwardRef<HTMLButtonElement, MarkButtonProps>(function MarkB
 
 const ToolbarContainer = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="sticky top-0 z-20 border-b">
+    <div className="sticky top-0 z-10 border-b">
       <div className="flex flex-row justify-between items-center h-10">
         {children}
       </div>

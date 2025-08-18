@@ -220,7 +220,7 @@ export function Field({
             type={secureTextEntry ? 'password' : 'text'}
             value={value.value}
             required={isRequired}
-            className={validationMessage ? 'border-red-500' : ''}
+            className={validationMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}
             onBlur={() => setTouched({ ...touched, value: true })}
             onChange={(e) => onChange?.({ ...value, value: e.target.value })}
             onKeyDown={onEscape}
@@ -231,7 +231,7 @@ export function Field({
             placeholder="Confirm password"
             type={secureTextEntry ? 'password' : 'text'}
             value={value.confirm}
-            className={validationMessage ? 'border-red-500' : ''}
+            className={validationMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}
             onBlur={() => setTouched({ ...touched, confirm: true })}
             onChange={(e) => onChange?.({ ...value, confirm: e.target.value })}
             onKeyDown={onEscape}

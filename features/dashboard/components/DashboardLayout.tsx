@@ -118,7 +118,7 @@ function DashboardLayoutContent({ children, adminMeta, authenticatedItem }: Dash
 }
 
 function ChatModeProvider({ children }: { children: React.ReactNode }) {
-  const [chatMode, setChatMode] = useState<ChatMode>('sidebar')
+  const [chatMode, setChatMode] = useState<ChatMode>('chatbox')
   const [isFloatingChatVisible, setIsFloatingChatVisible] = useState(false)
   
   // Shared chat state

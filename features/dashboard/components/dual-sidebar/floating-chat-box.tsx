@@ -13,6 +13,7 @@ import {
   X,
   MessageSquare,
   PanelRight,
+  AlertCircle,
 } from "lucide-react";
 
 // UI Components
@@ -66,6 +67,7 @@ interface AiChatConfig {
     model: string;
     maxTokens: string;
   };
+  chatMode?: "sidebar" | "chatbox";
 }
 
 // LocalStorage Manager
@@ -75,6 +77,8 @@ class AiChatStorage {
     const onboarded = localStorage.getItem("aiChatOnboarded") === "true";
     const keyMode =
       (localStorage.getItem("aiKeyMode") as "env" | "local") || "env";
+    const chatMode =
+      (localStorage.getItem("aiChatMode") as "sidebar" | "chatbox") || "chatbox";
 
     const localKeys =
       keyMode === "local"
@@ -85,7 +89,7 @@ class AiChatStorage {
           }
         : undefined;
 
-    return { enabled, onboarded, keyMode, localKeys };
+    return { enabled, onboarded, keyMode, localKeys, chatMode };
   }
 
   static saveConfig(config: Partial<AiChatConfig>) {
@@ -97,6 +101,9 @@ class AiChatStorage {
     }
     if (config.keyMode !== undefined) {
       localStorage.setItem("aiKeyMode", config.keyMode);
+    }
+    if (config.chatMode !== undefined) {
+      localStorage.setItem("aiChatMode", config.chatMode);
     }
     if (config.localKeys) {
       localStorage.setItem("openRouterApiKey", config.localKeys.apiKey);
@@ -325,6 +332,62 @@ const LocalKeysModal = ({
   );
 };
 
+// Mini Onboarding Component for Floating Box
+function MiniOnboarding({ onComplete }: { onComplete: () => void }) {
+  const [confirmationText, setConfirmationText] = useState("");
+
+  const handleSubmit = () => {
+    if (confirmationText !== "I understand the risks") return;
+    onComplete();
+  };
+
+  const canSubmit = () => {
+    return confirmationText === "I understand the risks";
+  };
+
+  return (
+    <div className="p-3 space-y-3 bg-muted/40 border border-muted rounded-lg m-2">
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Setup AI Assistant</h3>
+        <p className="text-xs text-muted-foreground">
+          AI can create, update, and delete your data. Backup your database regularly.
+        </p>
+      </div>
+
+      <div className="border border-destructive/50 bg-destructive/5 rounded-lg p-2">
+
+        <p className="flex items-center gap-2 text-xs text-destructive-foreground">
+                            <AlertCircle className="size-4"/>
+
+          Use with caution - can modify everything you can
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="mini-confirmation" className="text-xs">
+          Type "I understand the risks"
+        </Label>
+        <Input
+          id="mini-confirmation"
+          value={confirmationText}
+          onChange={(e) => setConfirmationText(e.target.value)}
+          placeholder="I understand the risks"
+          className="mt-2 text-base"
+        />
+      </div>
+
+      <Button
+        onClick={handleSubmit}
+        variant="destructive"
+        className="w-full text-xs h-7"
+        disabled={!canSubmit()}
+      >
+        Enable AI Chat
+      </Button>
+    </div>
+  );
+}
+
 // Compact Chat Message for Floating Box
 function ChatMessage({
   isUser,
@@ -403,6 +466,20 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
   // Helper function to check if shared keys are properly configured
   const isSharedKeysConfigured = () => {
     return sharedKeysStatus?.available || false;
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = () => {
+    const newConfig: AiChatConfig = {
+      enabled: true,
+      onboarded: true,
+      keyMode: isSharedKeysConfigured() ? "env" : "local",
+      localKeys: undefined,
+    };
+
+    AiChatStorage.saveConfig(newConfig);
+    setAiConfig(newConfig);
+    setSelectedMode(newConfig.keyMode);
   };
 
   // Get settings button status color
@@ -751,8 +828,8 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
         )}
       </ChatContainerRoot>
 
-      {/* Input Area */}
-      {isAiChatReady && (
+      {/* Input Area or Mini Onboarding */}
+      {isAiChatReady ? (
         <div className="shadow bg-background border border-transparent ring-1 ring-foreground/10 m-3 space-y-3 rounded-lg p-3">
           <textarea
             value={input}
@@ -791,6 +868,8 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
             </Button>
           </div>
         </div>
+      ) : (
+        <MiniOnboarding onComplete={handleOnboardingComplete} />
       )}
 
       <LocalKeysModal

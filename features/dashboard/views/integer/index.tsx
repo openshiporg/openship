@@ -6,8 +6,10 @@
 
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { FieldContainer } from '@/components/ui/field-container'
+import { FieldLabel } from '@/components/ui/field-label'
+import { FieldDescription } from '@/components/ui/field-description'
 import { Info } from 'lucide-react'
 import { entriesTyped } from '../../lib/entriesTyped'
 import type {
@@ -80,12 +82,15 @@ export function Field({
 
   if (field.hasAutoIncrementDefault && value.kind === 'create') {
     return (
-      <div className="space-y-2">
-        <Label>{field.label}</Label>
+      <FieldContainer>
+        <FieldLabel>{field.label}</FieldLabel>
+        {field.description && (
+          <FieldDescription>{field.description}</FieldDescription>
+        )}
         <Input
           readOnly
           value="Auto increment"
-          className="bg-muted"
+          className="bg-muted shadow-xs"
         />
         <Alert>
           <Info className="h-4 w-4" />
@@ -93,10 +98,7 @@ export function Field({
             This field is set to auto increment. It will default to the next available number.
           </AlertDescription>
         </Alert>
-        {field.description && (
-          <p className="text-sm text-muted-foreground">{field.description}</p>
-        )}
-      </div>
+      </FieldContainer>
     )
   }
 
@@ -113,8 +115,11 @@ export function Field({
   const errorMessage = (forceValidation || isDirty) && validate(value)
 
   return (
-    <div className="space-y-2">
-      <Label>{field.label}</Label>
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {field.description && (
+        <FieldDescription>{field.description}</FieldDescription>
+      )}
       <Input
         type="number"
         step="1"
@@ -128,15 +133,12 @@ export function Field({
           onChange({ ...value, value: !Number.isFinite(numValue) ? null : numValue })
         }}
         value={value.value ?? ''}
-        className={errorMessage ? 'border-red-500' : ''}
+        className={errorMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}
       />
-      {field.description && (
-        <p className="text-sm text-muted-foreground">{field.description}</p>
-      )}
       {errorMessage && (
         <p className="text-sm text-red-600" role="alert">{errorMessage}</p>
       )}
-    </div>
+    </FieldContainer>
   )
 }
 
