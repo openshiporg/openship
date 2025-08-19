@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { ChatContainerRoot, ChatContainerContent, ChatContainerScrollAnchor } from "./chat-container";
+import {
+  ChatContainerRoot,
+  ChatContainerContent,
+  ChatContainerScrollAnchor,
+} from "./chat-container";
 import { ScrollButton } from "./scroll-button";
 import {
   ArrowUp,
@@ -37,7 +41,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { getSharedKeys, checkSharedKeysAvailable } from "@/features/dashboard/actions/ai-chat";
+import {
+  getSharedKeys,
+  checkSharedKeysAvailable,
+} from "@/features/dashboard/actions/ai-chat";
 import { ModeSplitButton } from "./mode-split-button";
 import {
   Tooltip,
@@ -78,13 +85,15 @@ class AiChatStorage {
     const keyMode =
       (localStorage.getItem("aiKeyMode") as "env" | "local") || "env";
     const chatMode =
-      (localStorage.getItem("aiChatMode") as "sidebar" | "chatbox") || "chatbox";
+      (localStorage.getItem("aiChatMode") as "sidebar" | "chatbox") ||
+      "chatbox";
 
     const localKeys =
       keyMode === "local"
         ? {
             apiKey: localStorage.getItem("openRouterApiKey") || "",
-            model: localStorage.getItem("openRouterModel") || "openai/gpt-4o-mini",
+            model:
+              localStorage.getItem("openRouterModel") || "openai/gpt-4o-mini",
             maxTokens: localStorage.getItem("openRouterMaxTokens") || "4000",
           }
         : undefined;
@@ -121,7 +130,10 @@ const SharedKeysModal = ({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sharedKeysStatus: {available: boolean; missing: {apiKey: boolean; model: boolean; maxTokens: boolean}} | null;
+  sharedKeysStatus: {
+    available: boolean;
+    missing: { apiKey: boolean; model: boolean; maxTokens: boolean };
+  } | null;
 }) => {
   const setVars = [];
   const missingVars = [];
@@ -155,12 +167,10 @@ const SharedKeysModal = ({
             When using shared keys, the API keys are configured at the
             application level through environment variables.
           </p>
-          
+
           {setVars.length > 0 && (
             <div className="bg-muted/40 rounded-lg p-3 border border-transparent ring-1 ring-foreground/10">
-              <h4 className="font-medium text-sm mb-2">
-                Available Keys
-              </h4>
+              <h4 className="font-medium text-sm mb-2">Available Keys</h4>
               <div className="space-y-1">
                 {setVars.map((envVar) => (
                   <div key={envVar.name} className="flex items-center gap-2">
@@ -222,7 +232,9 @@ const LocalKeysModal = ({
   onSave: (keys: { apiKey: string; model: string; maxTokens: string }) => void;
 }) => {
   const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState(initialKeys?.model || "openai/gpt-4o-mini");
+  const [model, setModel] = useState(
+    initialKeys?.model || "openai/gpt-4o-mini"
+  );
   const [maxTokens, setMaxTokens] = useState(initialKeys?.maxTokens || "4000");
   const [showMaskedKey, setShowMaskedKey] = useState(false);
 
@@ -264,7 +276,10 @@ const LocalKeysModal = ({
                     <Info className="size-3 text-muted-foreground hover:text-foreground cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>You can get your OpenRouter API key at https://openrouter.ai/settings/keys</p>
+                    <p>
+                      You can get your OpenRouter API key at
+                      https://openrouter.ai/settings/keys
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -279,7 +294,9 @@ const LocalKeysModal = ({
                   setShowMaskedKey(false); // Hide masked placeholder when user types
                 }
               }}
-              placeholder={showMaskedKey ? "••••••••••••••••••••••••••••••••" : "sk-or-..."}
+              placeholder={
+                showMaskedKey ? "••••••••••••••••••••••••••••••••" : "sk-or-..."
+              }
             />
           </div>
           <div>
@@ -291,7 +308,10 @@ const LocalKeysModal = ({
                     <Info className="size-3 text-muted-foreground hover:text-foreground cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>You can get different model slugs from https://openrouter.ai/models</p>
+                    <p>
+                      You can get different model slugs from
+                      https://openrouter.ai/models
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -305,7 +325,9 @@ const LocalKeysModal = ({
             />
           </div>
           <div>
-            <Label htmlFor="maxTokens" className="block mb-2">Max Tokens</Label>
+            <Label htmlFor="maxTokens" className="block mb-2">
+              Max Tokens
+            </Label>
             <Input
               id="maxTokens"
               type="number"
@@ -323,7 +345,11 @@ const LocalKeysModal = ({
           >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!apiKey && !initialKeys?.apiKey} size="sm">
+          <Button
+            onClick={handleSave}
+            disabled={!apiKey && !initialKeys?.apiKey}
+            size="sm"
+          >
             Save Keys
           </Button>
         </DialogFooter>
@@ -346,19 +372,18 @@ function MiniOnboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="p-3 space-y-3 bg-muted/40 border border-muted rounded-lg m-2">
+    <div className="p-3 space-y-3 bg-muted/40 border border-transparent ring-2 ring-foreground/5 rounded-lg m-2">
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Setup AI Assistant</h3>
         <p className="text-xs text-muted-foreground">
-          AI can create, update, and delete your data. Backup your database regularly.
+          AI can create, update, and delete your data. Backup your database
+          regularly.
         </p>
       </div>
 
       <div className="border border-destructive/50 bg-destructive/5 rounded-lg p-2">
-
         <p className="flex items-center gap-2 text-xs text-destructive-foreground">
-                            <AlertCircle className="size-4"/>
-
+          <AlertCircle className="size-4" />
           Use with caution - can modify everything you can
         </p>
       </div>
@@ -397,12 +422,16 @@ function ChatMessage({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`text-sm flex items-start gap-2 ${isUser ? "justify-end" : ""}`}>
+    <div
+      className={`text-sm flex items-start gap-2 ${
+        isUser ? "justify-end" : ""
+      }`}
+    >
       <div
         className={cn(
           "max-w-[80%] break-words overflow-hidden",
-          isUser 
-            ? "bg-primary text-primary-foreground px-3 py-2 rounded-2xl rounded-tr-sm" 
+          isUser
+            ? "bg-primary text-primary-foreground px-3 py-2 rounded-2xl rounded-tr-sm"
             : "bg-muted px-3 py-2 rounded-2xl rounded-tl-sm"
         )}
       >
@@ -418,15 +447,25 @@ interface FloatingChatBoxProps {
   onModeChange: () => void;
 }
 
-export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingChatBoxProps) {
+export function FloatingChatBox({
+  onClose,
+  isVisible,
+  onModeChange,
+}: FloatingChatBoxProps) {
   const router = useRouter();
-  const { messages, setMessages, loading, setLoading, sending, setSending } = useChatMode();
+  const { messages, setMessages, loading, setLoading, sending, setSending } =
+    useChatMode();
   const [input, setInput] = useState("");
   const [aiConfig, setAiConfig] = useState<AiChatConfig | null>(null);
-  const [selectedMode, setSelectedMode] = useState<"env" | "local" | "disabled">("env");
+  const [selectedMode, setSelectedMode] = useState<
+    "env" | "local" | "disabled"
+  >("env");
   const [showLocalKeysModal, setShowLocalKeysModal] = useState(false);
   const [showSharedKeysModal, setShowSharedKeysModal] = useState(false);
-  const [sharedKeysStatus, setSharedKeysStatus] = useState<{available: boolean; missing: {apiKey: boolean; model: boolean; maxTokens: boolean}} | null>(null);
+  const [sharedKeysStatus, setSharedKeysStatus] = useState<{
+    available: boolean;
+    missing: { apiKey: boolean; model: boolean; maxTokens: boolean };
+  } | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isLoadingSharedKeys, setIsLoadingSharedKeys] = useState(true);
 
@@ -450,7 +489,7 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
         const status = await checkSharedKeysAvailable();
         setSharedKeysStatus(status);
       } catch (error) {
-        console.error('Failed to check shared keys status:', error);
+        console.error("Failed to check shared keys status:", error);
       } finally {
         setIsLoadingSharedKeys(false);
       }
@@ -564,7 +603,8 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
         if (!aiConfig.localKeys?.apiKey || !aiConfig.localKeys?.model) {
           const errorMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: "Error: Local API key and model are required. Please configure them in settings.",
+            content:
+              "Error: Local API key and model are required. Please configure them in settings.",
             isUser: false,
             timestamp: new Date(),
           };
@@ -619,7 +659,9 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
         } catch (error) {
           const errorMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            content: `Error: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
             isUser: false,
             timestamp: new Date(),
           };
@@ -639,7 +681,7 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
         } catch {
           errorMessage = `HTTP ${res.status}: ${res.statusText}`;
         }
-        
+
         const errorMsg: Message = {
           id: (Date.now() + 1).toString(),
           content: `Error: ${errorMessage}`,
@@ -694,7 +736,7 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
                 router.refresh();
               }
             } catch (error) {
-              console.error('Failed to parse data change notification:', error);
+              console.error("Failed to parse data change notification:", error);
             }
           }
         }
@@ -726,25 +768,31 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
     return null;
   }
 
-  const isAiChatReady = aiConfig?.enabled && aiConfig?.onboarded && selectedMode !== "disabled";
+  const isAiChatReady =
+    aiConfig?.enabled && aiConfig?.onboarded && selectedMode !== "disabled";
 
   return (
-    <div className="fixed bottom-20 right-3 w-80 h-96 bg-zinc-50 dark:bg-zinc-950 border border-border rounded-lg shadow-xl z-40 flex flex-col">
+    <div className="fixed bottom-20 right-3 w-80 h-96 bg-sidebar border border-border rounded-lg shadow-xl z-40 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <h3 className="font-medium text-sm">AI Assistant</h3>
         <div className="flex items-center gap-1">
-          <Select value="chatbox" onValueChange={(value) => {
-            if (value === "sidebar") {
-              onModeChange();
-            }
-          }}>
+          <Select
+            value="chatbox"
+            onValueChange={(value) => {
+              if (value === "sidebar") {
+                onModeChange();
+              }
+            }}
+          >
             <SelectPrimitive.Trigger className="h-6 w-6 p-0 border-0 bg-transparent hover:bg-accent rounded flex items-center justify-center">
               <MessageSquare className="h-4 w-4" />
             </SelectPrimitive.Trigger>
             <SelectContent className="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2 [&_*[role=option]>span]:flex [&_*[role=option]>span]:items-center [&_*[role=option]>span]:gap-2">
               <SelectGroup>
-                <SelectLabel className="text-[10px] text-muted-foreground uppercase font-medium pl-2">Open assistant in</SelectLabel>
+                <SelectLabel className="text-[10px] text-muted-foreground uppercase font-medium pl-2">
+                  Open assistant in
+                </SelectLabel>
                 <SelectItem value="chatbox">
                   <MessageSquare className="size-3 opacity-60" />
                   <span className="truncate">Chat bubble</span>
@@ -797,9 +845,7 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
                           }
                           return (
                             <pre className="bg-muted border rounded p-2 overflow-x-auto text-xs">
-                              <code className="font-mono">
-                                {children}
-                              </code>
+                              <code className="font-mono">{children}</code>
                             </pre>
                           );
                         },
@@ -816,10 +862,10 @@ export function FloatingChatBox({ onClose, isVisible, onModeChange }: FloatingCh
               )}
             </ChatMessage>
           ))}
-          
+
           <ChatContainerScrollAnchor />
         </ChatContainerContent>
-        
+
         {/* Scroll Button */}
         {messages.length > 0 && (
           <div className="absolute bottom-2 right-2">

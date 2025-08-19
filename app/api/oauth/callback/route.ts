@@ -144,16 +144,29 @@ export async function GET(request: NextRequest) {
         oAuthCallbackFunction: stateData.adapter_slug // Use dynamic adapter slug
       };
       
-      // Exchange code for access token using OpenFront adapter directly
-      const tokenResult = await handleShopOAuthCallback({
-        platform: marketplacePlatform,
-        code,
-        shop: shop || undefined,
-        state: 'marketplace-flow',
-        appKey: stateData.client_id,
-        appSecret: stateData.client_secret,
-        redirectUri: `${await getBaseUrl()}/api/oauth/callback`
-      });
+      // Determine app type for proper OAuth handler
+      const marketplaceAppType = stateData.app_type || 'shop'; // Default to shop for backward compatibility
+      
+      // Exchange code for access token using appropriate OAuth handler
+      const tokenResult = marketplaceAppType === 'channel' 
+        ? await handleChannelOAuthCallback({
+            platform: marketplacePlatform,
+            code,
+            shop: shop || undefined,
+            state: 'marketplace-flow',
+            appKey: stateData.client_id,
+            appSecret: stateData.client_secret,
+            redirectUri: `${await getBaseUrl()}/api/oauth/callback`
+          })
+        : await handleShopOAuthCallback({
+            platform: marketplacePlatform,
+            code,
+            shop: shop || undefined,
+            state: 'marketplace-flow',
+            appKey: stateData.client_id,
+            appSecret: stateData.client_secret,
+            redirectUri: `${await getBaseUrl()}/api/oauth/callback`
+          });
       
       // Handle both old string format and new object format
       let accessToken, refreshToken, tokenExpiresAt;
@@ -166,8 +179,14 @@ export async function GET(request: NextRequest) {
       }
       
       const baseUrl = await getBaseUrl();
-      const redirectUrl = new URL(`${baseUrl}/dashboard/platform/shops`);
-      redirectUrl.searchParams.set('showCreateShop', 'true');
+      
+      // Determine redirect URL based on app type
+      const redirectAppType = stateData.app_type || 'shop'; // Default to shop for backward compatibility
+      const endpoint = redirectAppType === 'channel' ? 'channels' : 'shops';
+      const createParam = redirectAppType === 'channel' ? 'showCreateChannel' : 'showCreateShop';
+      
+      const redirectUrl = new URL(`${baseUrl}/dashboard/platform/${endpoint}`);
+      redirectUrl.searchParams.set(createParam, 'true');
       redirectUrl.searchParams.set('domain', shop ?? '');
       redirectUrl.searchParams.set('accessToken', accessToken);
       redirectUrl.searchParams.set('client_id', stateData.client_id);

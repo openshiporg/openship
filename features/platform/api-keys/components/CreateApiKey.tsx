@@ -144,7 +144,19 @@ export function CreateApiKey() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen);
+      if (!newOpen) {
+        // Reset all state when dialog is closed
+        setShowToken(false);
+        setCreatedToken("");
+        setFormData({
+          name: "",
+          scopes: [] as Option[],
+          expiresAt: "",
+        });
+      }
+    }}>
       <DialogTrigger asChild>
         <Button 
           size="icon"

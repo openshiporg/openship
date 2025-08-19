@@ -219,9 +219,21 @@ export async function ChannelListPage({ searchParams }: PageProps) {
         {/* Auto-opening create channel dialog for OAuth redirects */}
         <CreateChannelFromURL searchParams={{
           showCreateChannel: typeof resolvedSearchParams.showCreateChannel === "string" ? resolvedSearchParams.showCreateChannel : undefined,
+          showCreateChannelAndChannelAndPlatform: typeof resolvedSearchParams.showCreateChannelAndChannelAndPlatform === "string" ? resolvedSearchParams.showCreateChannelAndChannelAndPlatform : undefined,
           platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,
           accessToken: typeof resolvedSearchParams.accessToken === "string" ? resolvedSearchParams.accessToken : undefined,
           domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
+          // OAuth parameters from OpenFront  
+          client_id: typeof resolvedSearchParams.client_id === "string" ? resolvedSearchParams.client_id : undefined,
+          client_secret: typeof resolvedSearchParams.client_secret === "string" ? resolvedSearchParams.client_secret : undefined,
+          app_name: typeof resolvedSearchParams.app_name === "string" ? resolvedSearchParams.app_name : undefined,
+          adapter_slug: typeof resolvedSearchParams.adapter_slug === "string" ? resolvedSearchParams.adapter_slug : undefined,
+          scope: typeof resolvedSearchParams.scope === "string" ? resolvedSearchParams.scope : undefined,
+          redirect_uri: typeof resolvedSearchParams.redirect_uri === "string" ? resolvedSearchParams.redirect_uri : undefined,
+          state: typeof resolvedSearchParams.state === "string" ? resolvedSearchParams.state : undefined,
+          // Token parameters from OAuth callback
+          refreshToken: typeof resolvedSearchParams.refreshToken === "string" ? resolvedSearchParams.refreshToken : undefined,
+          tokenExpiresAt: typeof resolvedSearchParams.tokenExpiresAt === "string" ? resolvedSearchParams.tokenExpiresAt : undefined,
         }} />
       </section>
     );
