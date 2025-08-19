@@ -20,6 +20,23 @@ import { createApiKey } from "../actions/getApiKeys";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+// Client-side token generation
+function generateApiKeyToken(): string {
+  // Generate a secure API key token in the browser
+  const prefix = 'osp_';
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  
+  // Convert to base62 (alphanumeric) for readability
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < randomBytes.length; i++) {
+    result += chars[randomBytes[i] % chars.length];
+  }
+  
+  return prefix + result;
+}
+
 // Define API key scopes as options for MultipleSelector
 const scopeOptions: Option[] = [
   { value: "read_orders", label: "read_orders" },
@@ -79,14 +96,19 @@ export function CreateApiKey() {
     setLoading(true);
 
     try {
+      // Generate token client-side
+      const generatedToken = generateApiKeyToken();
+      
       const result = await createApiKey({
         name: formData.name,
         scopes: formData.scopes.map(scope => scope.value),
         expiresAt: formData.expiresAt || undefined,
+        tokenSecret: generatedToken, // Pass the generated token to be hashed
       });
 
-      if (result.success && result.data) {
-        setCreatedToken(result.data.token || "osp_sample_token_for_demo");
+      if (result.success) {
+        // Show the generated token (this is the only time it will be visible)
+        setCreatedToken(generatedToken);
         setShowToken(true);
         toast.success("API key created successfully!");
         router.refresh();
@@ -124,11 +146,12 @@ export function CreateApiKey() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-8 gap-1">
-          <Plus className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Create API Key
-          </span>
+        <Button 
+          size="icon"
+          className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden lg:inline">Create API Key</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
@@ -156,16 +179,6 @@ export function CreateApiKey() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="expiresAt">Expiration (optional)</Label>
-                  <Input
-                    id="expiresAt"
-                    type="datetime-local"
-                    value={formData.expiresAt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
-                  />
-                </div>
-
-                <div className="grid gap-2">
                   <Label>
                     Scopes <span className="text-red-500">*</span>
                   </Label>
@@ -180,10 +193,21 @@ export function CreateApiKey() {
                     hidePlaceholderWhenSelected={true}
                     emptyIndicator={<p className="text-center text-sm">No scopes found</p>}
                     onChange={handleScopeChange}
+                    className="text-base"
                   />
                   <p className="text-muted-foreground mt-2 text-xs">
                     Select the minimum permissions needed for this API key
                   </p>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="expiresAt">Expiration (optional)</Label>
+                  <Input
+                    id="expiresAt"
+                    type="datetime-local"
+                    value={formData.expiresAt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                  />
                 </div>
               </div>
               <DialogFooter>

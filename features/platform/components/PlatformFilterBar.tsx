@@ -8,11 +8,13 @@ import {
   Search,
   SlidersHorizontal,
   ArrowUpDown,
+  Columns3,
   CirclePlus,
 } from "lucide-react"
 import { FilterAdd } from "../../dashboard/components/FilterAdd"
 import { FilterList } from "../../dashboard/components/FilterList"
 import { SortSelection } from "../../dashboard/components/SortSelection"
+import { FieldSelection } from "../../dashboard/components/FieldSelection"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import Link from "next/link"
@@ -22,9 +24,11 @@ import { enhanceFields } from '../../dashboard/utils/enhanceFields'
 interface PlatformFilterBarProps {
   list: any
   customCreateButton?: React.ReactNode
+  showDisplayButton?: boolean
+  selectedFields?: Set<string>
 }
 
-export function PlatformFilterBar({ list, customCreateButton }: PlatformFilterBarProps) {
+export function PlatformFilterBar({ list, customCreateButton, showDisplayButton = false, selectedFields = new Set() }: PlatformFilterBarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -127,6 +131,19 @@ export function PlatformFilterBar({ list, customCreateButton }: PlatformFilterBa
               <span className="hidden lg:inline">Sort</span>
             </Button>
           </SortSelection>
+
+          {showDisplayButton && (
+            <FieldSelection listMeta={list} selectedFields={selectedFields}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:px-4 lg:py-2 lg:w-auto rounded-lg"
+              >
+                <Columns3 className="stroke-muted-foreground" />
+                <span className="hidden lg:inline">Display</span>
+              </Button>
+            </FieldSelection>
+          )}
 
           {!list.hideCreate && (
             customCreateButton || (

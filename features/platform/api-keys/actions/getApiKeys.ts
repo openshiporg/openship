@@ -120,6 +120,7 @@ export async function createApiKey(data: {
   name: string;
   scopes: string[];
   expiresAt?: string;
+  tokenSecret: string;
 }) {
   const query = `
     mutation CreateApiKey($data: ApiKeyCreateInput!) {
@@ -135,7 +136,6 @@ export async function createApiKey(data: {
         restrictedToIPs
         createdAt
         updatedAt
-        token
         user {
           id
           name
@@ -145,10 +145,15 @@ export async function createApiKey(data: {
     }
   `;
 
+  // Create preview from the token (first 8 chars + "...")
+  const tokenPreview = data.tokenSecret.substring(0, 12) + "...";
+
   const apiKeyData = {
     name: data.name,
     scopes: data.scopes,
     expiresAt: data.expiresAt,
+    tokenSecret: data.tokenSecret,
+    tokenPreview,
   };
 
   try {

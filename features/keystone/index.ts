@@ -8,6 +8,7 @@ import { sendPasswordResetEmail } from "./lib/mail";
 import Iron from "@hapi/iron";
 import * as cookie from "cookie";
 import { hashApiKeySync } from "./lib/crypto-utils";
+import bcryptjs from "bcryptjs";
 
 const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 
@@ -61,49 +62,94 @@ export function statelessSessions({
         if (accessToken.startsWith("osp_")) {
           console.log('🔑 API KEY DETECTED, VALIDATING...');
           try {
-            const tokenHash = hashApiKeySync(accessToken);
-            console.log('🔑 TOKEN HASH:', tokenHash);
-            
-            const apiKey = await context.sudo().query.ApiKey.findOne({
-              where: { tokenHash },
+            // Get all active API keys and test the token against each one
+            const apiKeys = await context.sudo().query.ApiKey.findMany({
+              where: { status: { equals: 'active' } },
               query: `
                 id
                 name
                 scopes
                 status
                 expiresAt
+                usageCount
+                tokenSecret { isSet }
                 user { id }
               `,
             });
             
-            console.log('🔑 API KEY FOUND:', JSON.stringify(apiKey, null, 2));
+            console.log('🔑 CHECKING AGAINST', apiKeys.length, 'ACTIVE API KEYS');
             
-            if (!apiKey) {
-              console.log('🔑 API KEY NOT FOUND');
-              return; // API key not found
+            let matchingApiKey = null;
+            
+            // Test token against each API key using bcryptjs (same as Keystone's default KDF)
+            for (const apiKey of apiKeys) {
+              try {
+                if (!apiKey.tokenSecret?.isSet) continue;
+                
+                // Get the full API key item with the tokenSecret value
+                const fullApiKey = await context.sudo().db.ApiKey.findOne({
+                  where: { id: apiKey.id },
+                });
+                
+                if (!fullApiKey || typeof fullApiKey.tokenSecret !== 'string') {
+                  continue;
+                }
+                
+                // Use bcryptjs to compare - this is exactly what Keystone does internally
+                const isValid = await bcryptjs.compare(accessToken, fullApiKey.tokenSecret);
+                
+                if (isValid) {
+                  matchingApiKey = apiKey;
+                  console.log('🔑 FOUND MATCHING API KEY:', apiKey.id);
+                  break;
+                }
+              } catch (error) {
+                console.log('🔑 ERROR VERIFYING API KEY:', error);
+                // Continue to next API key if this one doesn't match
+                continue;
+              }
             }
             
-            if (apiKey.status !== 'active') {
-              console.log('🔑 API KEY NOT ACTIVE:', apiKey.status);
+            if (!matchingApiKey) {
+              console.log('🔑 NO MATCHING API KEY FOUND');
+              return; // API key not found or invalid
+            }
+            
+            if (matchingApiKey.status !== 'active') {
+              console.log('🔑 API KEY NOT ACTIVE:', matchingApiKey.status);
               return; // API key is inactive
             }
             
-            if (apiKey.expiresAt && new Date() > new Date(apiKey.expiresAt)) {
+            if (matchingApiKey.expiresAt && new Date() > new Date(matchingApiKey.expiresAt)) {
               console.log('🔑 API KEY EXPIRED');
               // Auto-revoke expired keys
               await context.sudo().query.ApiKey.updateOne({
-                where: { id: apiKey.id },
+                where: { id: matchingApiKey.id },
                 data: { status: 'revoked' },
               });
               return; // API key has expired
             }
             
+            // Update usage statistics (async, don't wait)
+            const today = new Date().toISOString().split('T')[0];
+            const usage = matchingApiKey.usageCount || { total: 0, daily: {} };
+            usage.total = (usage.total || 0) + 1;
+            usage.daily[today] = (usage.daily[today] || 0) + 1;
+            
+            context.sudo().query.ApiKey.updateOne({
+              where: { id: matchingApiKey.id },
+              data: {
+                lastUsedAt: new Date(),
+                usageCount: usage,
+              },
+            }).catch(console.error);
+            
             // Return user session with API key scopes attached
-            if (apiKey.user?.id) {
+            if (matchingApiKey.user?.id) {
               const session = { 
-                itemId: apiKey.user.id, 
+                itemId: matchingApiKey.user.id, 
                 listKey,
-                apiKeyScopes: apiKey.scopes || [] // Attach scopes for permission checking
+                apiKeyScopes: matchingApiKey.scopes || [] // Attach scopes for permission checking
               };
               console.log('🔑 RETURNING SESSION:', JSON.stringify(session, null, 2));
               return session;

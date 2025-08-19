@@ -76,9 +76,8 @@ model Role {
 model ApiKey {
   id              String            @id @default(cuid())
   name            String            @default("")
-  tokenHash       String            @unique @default("")
+  tokenSecret     String
   tokenPreview    String            @default("")
-  token           String            @default("")
   scopes          Json?             @default("[]")
   status          ApiKeyStatusType? @default(active)
   expiresAt       DateTime?

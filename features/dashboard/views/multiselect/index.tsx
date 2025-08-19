@@ -17,7 +17,7 @@ import type {
 
 // Types matching Keystone exactly
 export type AdminMultiSelectFieldMeta = {
-  options: readonly { label: string; value: string | number }[]
+  options: { label: string; value: string | number }[]
   type: 'string' | 'integer' | 'enum'
   defaultValue: string[] | number[]
 }
@@ -128,7 +128,7 @@ export function CardValue({ item, field }: CellProps) {
 
 export const controller = (
   config: Config
-): FieldController<Value, KeystoneOption[]> & {
+): FieldController<Value, string[]> & {
   options: KeystoneOption[]
   type: 'string' | 'integer' | 'enum'
   valuesToOptionsWithStringValues: Record<string, KeystoneOption>
@@ -164,7 +164,7 @@ export const controller = (
     serialize: value => ({ [config.path]: value.map(x => parseValue(x.value)) }),
     validate: () => true,
     filter: {
-      Filter: ({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) => {
+      Filter: ({ value, onChange, type }: any) => {
         const selectedValues = new Set(value || [])
         
         return (

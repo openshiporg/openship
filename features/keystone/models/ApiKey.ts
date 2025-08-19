@@ -1,5 +1,6 @@
 import {
   text,
+  password,
   relationship,
   multiselect,
   select,
@@ -88,38 +89,12 @@ export const ApiKey = list({
       },
     },
     resolveInput: {
-      create: async ({ listKey, operation, inputData, item, resolvedData, context }) => {
-        // Note: item is undefined for create operations per KeystoneJS docs
-        if (operation !== 'create') {
-          throw new Error('This hook should only run for create operations');
-        }
-        
-        // Generate secure token and hash it
-        const token = generateApiKeyToken();
-        const tokenHash = hashApiKey(token);
-        
-        // Store the token in context so we can return it in the mutation
-        (context as any)._createdApiKeyToken = token;
-        
+      create: async ({ resolvedData, context }) => {
+        // Auto-assign user relationship
         return {
           ...resolvedData,
-          tokenHash,
-          tokenPreview: `${token.substring(0, 12)}...${token.substring(token.length - 4)}`,
-          token: token, // Store the full token in the database field
           user: resolvedData.user || (context.session?.itemId ? { connect: { id: context.session.itemId } } : undefined),
         };
-      },
-    },
-    afterOperation: {
-      create: async ({ listKey, operation, item, resolvedData, context }) => {
-        // Add the real token to the returned item so GraphQL can access it
-        if (operation === 'create' && (context as any)._createdApiKeyToken) {
-          return {
-            ...item,
-            token: (context as any)._createdApiKeyToken
-          };
-        }
-        return item;
       },
     },
   },
@@ -131,13 +106,13 @@ export const ApiKey = list({
       },
     }),
     
-    tokenHash: text({
+    tokenSecret: password({
       validation: { isRequired: true },
-      isIndexed: "unique",
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "hidden" },
         listView: { fieldMode: "hidden" },
+        description: "Secure API key token (hashed and never displayed)",
       },
     }),
     
@@ -147,15 +122,6 @@ export const ApiKey = list({
         itemView: { fieldMode: "read" },
         listView: { fieldMode: "read" },
         description: "Preview of the API key (actual key is hidden for security)",
-      },
-    }),
-    
-    token: text({
-      ui: {
-        createView: { fieldMode: "hidden" },
-        itemView: { fieldMode: "hidden" },
-        listView: { fieldMode: "hidden" },
-        description: "Full API key token (only available during creation)",
       },
     }),
     
@@ -229,7 +195,29 @@ export const ApiKey = list({
   },
 });
 
-// Helper functions for API key validation
+// Helper function to validate API key tokens using password field
+export async function validateApiKeyToken(
+  apiKeyId: string,
+  token: string,
+  context: any
+): Promise<boolean> {
+  try {
+    // Use Keystone's built-in password verification through createAuth
+    // This is a simplified approach - we'll handle this in the authentication layer
+    const result = await context.query.ApiKey.authenticateItemWithPassword({
+      identifier: apiKeyId,
+      secret: token,
+      identityField: 'id',
+      secretField: 'tokenSecret'
+    });
+    
+    return result.success;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Simplified validation function for API keys
 export async function validateApiKey(
   token: string,
   requiredScopes: ApiKeyScope[] = [],
@@ -244,70 +232,10 @@ export async function validateApiKey(
     return { valid: false, error: 'Invalid API key format' };
   }
   
-  const tokenHash = hashApiKeySync(token);
-  
-  const apiKey = await context.query.ApiKey.findOne({
-    where: { tokenHash },
-    query: `
-      id
-      name
-      scopes
-      status
-      expiresAt
-      usageCount
-      restrictedToIPs
-      user { id name email }
-    `,
-  });
-  
-  if (!apiKey) {
-    return { valid: false, error: 'API key not found' };
-  }
-  
-  if (apiKey.status !== 'active') {
-    return { valid: false, error: `API key is ${apiKey.status}` };
-  }
-  
-  if (apiKey.expiresAt && new Date() > new Date(apiKey.expiresAt)) {
-    // Auto-revoke expired keys
-    await context.query.ApiKey.updateOne({
-      where: { id: apiKey.id },
-      data: { status: 'revoked' },
-    });
-    return { valid: false, error: 'API key has expired' };
-  }
-  
-  // Check if key has required scopes
-  const keyScopes = apiKey.scopes || [];
-  const missingScopes = requiredScopes.filter(scope => !keyScopes.includes(scope));
-  
-  if (missingScopes.length > 0) {
-    return { 
-      valid: false, 
-      error: `Missing required scopes: ${missingScopes.join(', ')}` 
-    };
-  }
-  
-  // Update usage statistics
-  const today = new Date().toISOString().split('T')[0];
-  const usage = apiKey.usageCount || { total: 0, daily: {} };
-  usage.total = (usage.total || 0) + 1;
-  usage.daily[today] = (usage.daily[today] || 0) + 1;
-  
-  // Update last used and usage count (async, don't wait)
-  context.query.ApiKey.updateOne({
-    where: { id: apiKey.id },
-    data: {
-      lastUsedAt: new Date(),
-      usageCount: usage,
-    },
-  }).catch(console.error);
-  
-  return {
-    valid: true,
-    user: apiKey.user,
-    scopes: keyScopes,
-  };
+  // This will be handled differently - we'll need to update the keystone/index.ts
+  // authentication logic to use the password field directly
+  // For now, return a placeholder that will be updated in the auth layer
+  return { valid: false, error: 'API key validation moved to auth layer' };
 }
 
 // Scope validation helper
@@ -327,40 +255,40 @@ export function getPermissionsForScopes(scopes: ApiKeyScope[]): string[] {
   
   scopes.forEach(scope => {
     switch (scope) {
-      case 'orders:read':
+      case 'read_orders':
         permissions.add('canReadOrders');
         break;
-      case 'orders:write':
+      case 'write_orders':
         permissions.add('canReadOrders');
         permissions.add('canManageOrders');
         permissions.add('canProcessOrders');
         break;
-      case 'products:read':
+      case 'read_products':
         // Add product read permissions
         break;
-      case 'products:write':
+      case 'write_products':
         // Add product write permissions
         break;
-      case 'shops:read':
+      case 'read_shops':
         permissions.add('canReadShops');
         break;
-      case 'shops:write':
+      case 'write_shops':
         permissions.add('canReadShops');
         permissions.add('canManageShops');
         permissions.add('canCreateShops');
         break;
-      case 'channels:read':
+      case 'read_channels':
         permissions.add('canReadChannels');
         break;
-      case 'channels:write':
+      case 'write_channels':
         permissions.add('canReadChannels');
         permissions.add('canManageChannels');
         permissions.add('canCreateChannels');
         break;
-      case 'users:read':
+      case 'read_users':
         permissions.add('canReadUsers');
         break;
-      case 'users:write':
+      case 'write_users':
         permissions.add('canReadUsers');
         permissions.add('canManageUsers');
         permissions.add('canManageRoles');

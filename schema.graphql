@@ -663,9 +663,8 @@ input UserRelateToManyForCreateInput {
 type ApiKey {
   id: ID!
   name: String
-  tokenHash: String
+  tokenSecret: PasswordState
   tokenPreview: String
-  token: String
   scopes: JSON
   status: ApiKeyStatusType
   expiresAt: DateTime
@@ -685,7 +684,6 @@ enum ApiKeyStatusType {
 
 input ApiKeyWhereUniqueInput {
   id: ID
-  tokenHash: String
 }
 
 input ApiKeyWhereInput {
@@ -694,9 +692,7 @@ input ApiKeyWhereInput {
   NOT: [ApiKeyWhereInput!]
   id: IDFilter
   name: StringFilter
-  tokenHash: StringFilter
   tokenPreview: StringFilter
-  token: StringFilter
   status: ApiKeyStatusTypeNullableFilter
   expiresAt: DateTimeNullableFilter
   lastUsedAt: DateTimeNullableFilter
@@ -715,9 +711,7 @@ input ApiKeyStatusTypeNullableFilter {
 input ApiKeyOrderByInput {
   id: OrderDirection
   name: OrderDirection
-  tokenHash: OrderDirection
   tokenPreview: OrderDirection
-  token: OrderDirection
   status: OrderDirection
   expiresAt: OrderDirection
   lastUsedAt: OrderDirection
@@ -727,9 +721,8 @@ input ApiKeyOrderByInput {
 
 input ApiKeyUpdateInput {
   name: String
-  tokenHash: String
+  tokenSecret: String
   tokenPreview: String
-  token: String
   scopes: JSON
   status: ApiKeyStatusType
   expiresAt: DateTime
@@ -754,9 +747,8 @@ input ApiKeyUpdateArgs {
 
 input ApiKeyCreateInput {
   name: String
-  tokenHash: String
+  tokenSecret: String
   tokenPreview: String
-  token: String
   scopes: JSON
   status: ApiKeyStatusType
   expiresAt: DateTime

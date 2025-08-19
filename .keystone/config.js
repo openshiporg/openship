@@ -3290,31 +3290,6 @@ var User = (0, import_core.list)({
 // features/keystone/models/ApiKey.ts
 var import_fields3 = require("@keystone-6/core/fields");
 var import_core2 = require("@keystone-6/core");
-
-// features/keystone/lib/crypto-utils.ts
-function generateApiKeyTokenSync() {
-  const prefix = "osp_";
-  const randomString = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Date.now().toString(36);
-  return `${prefix}${randomString}`;
-}
-function hashApiKeySync(key) {
-  let hash = 0;
-  if (key.length === 0) return hash.toString();
-  for (let i = 0; i < key.length; i++) {
-    const char = key.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-// features/keystone/models/ApiKey.ts
-function generateApiKeyToken() {
-  return generateApiKeyTokenSync();
-}
-function hashApiKey(key) {
-  return hashApiKeySync(key);
-}
 var ApiKey = (0, import_core2.list)({
   access: {
     operation: {
@@ -3338,32 +3313,11 @@ var ApiKey = (0, import_core2.list)({
       }
     },
     resolveInput: {
-      create: async ({ listKey: listKey2, operation, inputData, item, resolvedData, context }) => {
-        if (operation !== "create") {
-          throw new Error("This hook should only run for create operations");
-        }
-        const token = generateApiKeyToken();
-        const tokenHash = hashApiKey(token);
-        context._createdApiKeyToken = token;
+      create: async ({ resolvedData, context }) => {
         return {
           ...resolvedData,
-          tokenHash,
-          tokenPreview: `${token.substring(0, 12)}...${token.substring(token.length - 4)}`,
-          token,
-          // Store the full token in the database field
           user: resolvedData.user || (context.session?.itemId ? { connect: { id: context.session.itemId } } : void 0)
         };
-      }
-    },
-    afterOperation: {
-      create: async ({ listKey: listKey2, operation, item, resolvedData, context }) => {
-        if (operation === "create" && context._createdApiKeyToken) {
-          return {
-            ...item,
-            token: context._createdApiKeyToken
-          };
-        }
-        return item;
       }
     }
   },
@@ -3374,13 +3328,13 @@ var ApiKey = (0, import_core2.list)({
         description: "A descriptive name for this API key (e.g. 'Production Bot', 'Analytics Dashboard')"
       }
     }),
-    tokenHash: (0, import_fields3.text)({
+    tokenSecret: (0, import_fields3.password)({
       validation: { isRequired: true },
-      isIndexed: "unique",
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "hidden" },
-        listView: { fieldMode: "hidden" }
+        listView: { fieldMode: "hidden" },
+        description: "Secure API key token (hashed and never displayed)"
       }
     }),
     tokenPreview: (0, import_fields3.text)({
@@ -3389,14 +3343,6 @@ var ApiKey = (0, import_core2.list)({
         itemView: { fieldMode: "read" },
         listView: { fieldMode: "read" },
         description: "Preview of the API key (actual key is hidden for security)"
-      }
-    }),
-    token: (0, import_fields3.text)({
-      ui: {
-        createView: { fieldMode: "hidden" },
-        itemView: { fieldMode: "hidden" },
-        listView: { fieldMode: "hidden" },
-        description: "Full API key token (only available during creation)"
       }
     }),
     scopes: (0, import_fields3.json)({
@@ -7455,6 +7401,7 @@ async function sendPasswordResetEmail(resetToken, to, baseUrl) {
 // features/keystone/index.ts
 var import_iron = __toESM(require("@hapi/iron"));
 var cookie = __toESM(require("cookie"));
+var import_bcryptjs = __toESM(require("bcryptjs"));
 var databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
 var sessionConfig = {
   maxAge: 60 * 60 * 24 * 360,
@@ -7489,41 +7436,73 @@ function statelessSessions({
         if (accessToken.startsWith("osp_")) {
           console.log("\u{1F511} API KEY DETECTED, VALIDATING...");
           try {
-            const tokenHash = hashApiKeySync(accessToken);
-            console.log("\u{1F511} TOKEN HASH:", tokenHash);
-            const apiKey = await context.sudo().query.ApiKey.findOne({
-              where: { tokenHash },
+            const apiKeys = await context.sudo().query.ApiKey.findMany({
+              where: { status: { equals: "active" } },
               query: `
                 id
                 name
                 scopes
                 status
                 expiresAt
+                usageCount
+                tokenSecret { isSet }
                 user { id }
               `
             });
-            console.log("\u{1F511} API KEY FOUND:", JSON.stringify(apiKey, null, 2));
-            if (!apiKey) {
-              console.log("\u{1F511} API KEY NOT FOUND");
+            console.log("\u{1F511} CHECKING AGAINST", apiKeys.length, "ACTIVE API KEYS");
+            let matchingApiKey = null;
+            for (const apiKey of apiKeys) {
+              try {
+                if (!apiKey.tokenSecret?.isSet) continue;
+                const fullApiKey = await context.sudo().db.ApiKey.findOne({
+                  where: { id: apiKey.id }
+                });
+                if (!fullApiKey || typeof fullApiKey.tokenSecret !== "string") {
+                  continue;
+                }
+                const isValid = await import_bcryptjs.default.compare(accessToken, fullApiKey.tokenSecret);
+                if (isValid) {
+                  matchingApiKey = apiKey;
+                  console.log("\u{1F511} FOUND MATCHING API KEY:", apiKey.id);
+                  break;
+                }
+              } catch (error) {
+                console.log("\u{1F511} ERROR VERIFYING API KEY:", error);
+                continue;
+              }
+            }
+            if (!matchingApiKey) {
+              console.log("\u{1F511} NO MATCHING API KEY FOUND");
               return;
             }
-            if (apiKey.status !== "active") {
-              console.log("\u{1F511} API KEY NOT ACTIVE:", apiKey.status);
+            if (matchingApiKey.status !== "active") {
+              console.log("\u{1F511} API KEY NOT ACTIVE:", matchingApiKey.status);
               return;
             }
-            if (apiKey.expiresAt && /* @__PURE__ */ new Date() > new Date(apiKey.expiresAt)) {
+            if (matchingApiKey.expiresAt && /* @__PURE__ */ new Date() > new Date(matchingApiKey.expiresAt)) {
               console.log("\u{1F511} API KEY EXPIRED");
               await context.sudo().query.ApiKey.updateOne({
-                where: { id: apiKey.id },
+                where: { id: matchingApiKey.id },
                 data: { status: "revoked" }
               });
               return;
             }
-            if (apiKey.user?.id) {
+            const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+            const usage = matchingApiKey.usageCount || { total: 0, daily: {} };
+            usage.total = (usage.total || 0) + 1;
+            usage.daily[today] = (usage.daily[today] || 0) + 1;
+            context.sudo().query.ApiKey.updateOne({
+              where: { id: matchingApiKey.id },
+              data: {
+                lastUsedAt: /* @__PURE__ */ new Date(),
+                usageCount: usage
+              }
+            }).catch(console.error);
+            if (matchingApiKey.user?.id) {
               const session = {
-                itemId: apiKey.user.id,
+                itemId: matchingApiKey.user.id,
                 listKey,
-                apiKeyScopes: apiKey.scopes || []
+                apiKeyScopes: matchingApiKey.scopes || []
                 // Attach scopes for permission checking
               };
               console.log("\u{1F511} RETURNING SESSION:", JSON.stringify(session, null, 2));
