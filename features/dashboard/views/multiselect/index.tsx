@@ -42,7 +42,14 @@ interface MultiSelectFieldProps {
 
 interface CellProps {
   item: Record<string, any>
-  field: any
+  field: {
+    path: string
+    label: string
+    fieldMeta?: {
+      options?: { label: string; value: string | number }[]
+      type?: 'string' | 'integer' | 'enum'
+    }
+  }
   linkTo?: { href: string }
 }
 
@@ -101,27 +108,82 @@ export function Field({ field, value, onChange, autoFocus }: MultiSelectFieldPro
 
 export function Cell({ item, field, linkTo }: CellProps) {
   const value: readonly string[] | readonly number[] = item[field.path] ?? []
-  const label = value
-    .map(value => field.valuesToOptionsWithStringValues[value]?.label || value)
-    .join(', ')
+  
+  // Build options mapping from field meta if not provided
+  const optionsWithStringValues = field.fieldMeta?.options?.map(x => ({
+    label: x.label,
+    value: x.value.toString(),
+  })) || []
+  
+  const valuesToOptionsWithStringValues = Object.fromEntries(
+    optionsWithStringValues.map(option => [option.value, option])
+  )
+  
+  const labels = value
+    .map(value => valuesToOptionsWithStringValues[value]?.label || value)
+  
+  if (labels.length === 0) {
+    return (
+      <span className="text-sm">
+        <span className="text-gray-400">—</span>
+      </span>
+    )
+  }
+
+  const displayLabels = labels.length < 3 ? labels : labels.slice(0, 2)
+  const overflow = labels.length < 3 ? 0 : labels.length - 2
   
   return (
     <span className="text-sm">
-      {label || <span className="text-gray-400">—</span>}
+      {displayLabels.join(', ')}
+      {overflow > 0 && (
+        <span className="opacity-50 font-medium">
+          {`, and ${overflow} more`}
+        </span>
+      )}
     </span>
   )
 }
 
 export function CardValue({ item, field }: CellProps) {
   const value: readonly string[] | readonly number[] = item[field.path] ?? []
-  const label = value
-    .map(value => field.valuesToOptionsWithStringValues[value]?.label || value)
-    .join(', ')
+  
+  // Build options mapping from field meta if not provided
+  const optionsWithStringValues = field.fieldMeta?.options?.map(x => ({
+    label: x.label,
+    value: x.value.toString(),
+  })) || []
+  
+  const valuesToOptionsWithStringValues = Object.fromEntries(
+    optionsWithStringValues.map(option => [option.value, option])
+  )
+  
+  const labels = value
+    .map(value => valuesToOptionsWithStringValues[value]?.label || value)
+  
+  if (labels.length === 0) {
+    return (
+      <div>
+        <div className="text-sm font-medium">{field.label}</div>
+        <div className="text-sm text-gray-600">—</div>
+      </div>
+    )
+  }
+
+  const displayLabels = labels.length < 3 ? labels : labels.slice(0, 2)
+  const overflow = labels.length < 3 ? 0 : labels.length - 2
 
   return (
     <div>
       <div className="text-sm font-medium">{field.label}</div>
-      <div className="text-sm text-gray-600">{label || '—'}</div>
+      <div className="text-sm text-gray-600">
+        {displayLabels.join(', ')}
+        {overflow > 0 && (
+          <span className="opacity-50 font-medium">
+            {`, and ${overflow} more`}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

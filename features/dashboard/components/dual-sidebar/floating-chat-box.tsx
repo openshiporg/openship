@@ -372,7 +372,7 @@ function MiniOnboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="p-3 space-y-3 bg-muted/40 border border-transparent ring-2 ring-foreground/5 rounded-lg m-2">
+    <div className="p-3 space-y-3 bg-background border border-transparent ring-2 ring-foreground/5 rounded-lg m-2">
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Setup AI Assistant</h3>
         <p className="text-xs text-muted-foreground">
@@ -382,9 +382,9 @@ function MiniOnboarding({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="border border-destructive/50 bg-destructive/5 rounded-lg p-2">
-        <p className="flex items-center gap-2 text-xs text-destructive-foreground">
+        <p className="flex items-start gap-2 text-xs text-destructive-foreground">
           <AlertCircle className="size-4" />
-          Use with caution - can modify everything you can
+          Use with caution, chat can modify everything you can
         </p>
       </div>
 
@@ -772,7 +772,7 @@ export function FloatingChatBox({
     aiConfig?.enabled && aiConfig?.onboarded && selectedMode !== "disabled";
 
   return (
-    <div className="fixed bottom-20 right-3 w-80 h-96 bg-sidebar border border-border rounded-lg shadow-xl z-40 flex flex-col">
+    <div className="fixed bottom-20 right-3 w-90 h-100 bg-sidebar border border-border rounded-lg shadow-xl z-40 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <h3 className="font-medium text-sm">AI Assistant</h3>
