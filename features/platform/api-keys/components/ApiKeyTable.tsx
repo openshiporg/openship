@@ -426,7 +426,7 @@ export default function ApiKeyTable({ data }: ApiKeyTableProps) {
       {/* Edit Drawer */}
       <EditItemDrawerClientWrapper
         listKey="apiKeys"
-        itemId={editDrawerOpen.itemId}
+        itemId={editDrawerOpen.itemId || ""}
         open={editDrawerOpen.open}
         onClose={() => setEditDrawerOpen({ open: false })}
       />

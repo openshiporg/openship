@@ -159,7 +159,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
     setIsLoading(true);
 
     try {
-      let finalPlatformId = platformId;
+      let finalPlatformId: string | null = platformId;
 
       // Marketplace flow: Check if platform exists
       if (isMarketplaceFlow && clientId && clientSecret) {

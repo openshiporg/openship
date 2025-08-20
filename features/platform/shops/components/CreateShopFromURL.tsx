@@ -30,6 +30,9 @@ interface CreateShopFromURLProps {
     app_name?: string;
     adapter_slug?: string; // Identifies which adapter to use (e.g., 'openfront', 'shopify')
     code?: string;
+    scope?: string;
+    redirect_uri?: string;
+    state?: string;
     // Token parameters from OAuth callback
     refreshToken?: string;
     tokenExpiresAt?: string;
@@ -136,7 +139,7 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
     setIsLoading(true);
 
     try {
-      let finalPlatformId = platformId;
+      let finalPlatformId: string | null = platformId;
 
       // Marketplace flow: Check if platform exists
       if (isMarketplaceFlow && clientId && clientSecret) {
