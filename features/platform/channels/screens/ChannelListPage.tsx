@@ -219,7 +219,6 @@ export async function ChannelListPage({ searchParams }: PageProps) {
         {/* Auto-opening create channel dialog for OAuth redirects */}
         <CreateChannelFromURL searchParams={{
           showCreateChannel: typeof resolvedSearchParams.showCreateChannel === "string" ? resolvedSearchParams.showCreateChannel : undefined,
-          showCreateChannelAndChannelAndPlatform: typeof resolvedSearchParams.showCreateChannelAndChannelAndPlatform === "string" ? resolvedSearchParams.showCreateChannelAndChannelAndPlatform : undefined,
           platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,
           accessToken: typeof resolvedSearchParams.accessToken === "string" ? resolvedSearchParams.accessToken : undefined,
           domain: typeof resolvedSearchParams.domain === "string" ? resolvedSearchParams.domain : undefined,
