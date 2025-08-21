@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createChannel } from "../actions/createChannel";
+import { createChannelPlatform } from "../actions/createChannelPlatform";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,11 +21,9 @@ interface CreateChannelFromURLProps {
   onChannelCreated?: () => void;
   searchParams?: {
     showCreateChannel?: string;
-    showCreateChannelAndChannelAndPlatform?: string;
     platform?: string;
     accessToken?: string;
     domain?: string;
-    platformInitiated?: string;
     // OAuth parameters from marketplace flow
     client_id?: string;
     client_secret?: string;
@@ -50,7 +49,6 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
   const [domain, setDomain] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [platformId, setPlatformId] = useState('');
-  const [isPlatformInitiated, setIsPlatformInitiated] = useState(false);
   const [isMarketplaceFlow, setIsMarketplaceFlow] = useState(false);
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
@@ -73,8 +71,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
       adapter_slug,
       code,
       refreshToken: urlRefreshToken,
-      tokenExpiresAt: urlTokenExpiresAt,
-      platformInitiated
+      tokenExpiresAt: urlTokenExpiresAt
     } = searchParams;
 
     if (!urlDomain) return;
@@ -84,8 +81,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
       hasPlatformId: !!urlPlatform,
       hasAccessToken: !!urlAccessToken,
       hasCode: !!code,
-      domain: urlDomain,
-      platformInitiated
+      domain: urlDomain
     });
 
     // Auto-generate channel name from domain
@@ -95,26 +91,10 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
     setName(capitalizedName);
     setDomain(decodeURIComponent(urlDomain));
     
-    // Handle platform-initiated flow (from OpenFront)
-    if (platformInitiated === 'true' && urlPlatform) {
-      console.log('🚀 Platform-initiated channel flow detected');
-      setIsPlatformInitiated(true);
-      setPlatformId(urlPlatform);
-      setIsDialogOpen(true);
-
-      // Clean URL params
-      const newUrl = new URL(window.location.href);
-      ['showCreateChannel', 'platform', 'domain', 'platformInitiated'].forEach(param => {
-        newUrl.searchParams.delete(param);
-      });
-      router.replace(newUrl.pathname + newUrl.search);
-      return;
-    }
-    
     // Check if this is marketplace flow (has client_id) or long flow (has platform)
     if (client_id && client_secret && app_name && adapter_slug && urlAccessToken) {
-      // Marketplace flow - OAuth already exchanged, ready to create platform/channel
-      console.log('✅ Marketplace flow detected for channels');
+      // Marketplace flow - OAuth already exchanged, ready to create platform/shop
+      console.log('✅ Marketplace flow detected');
       setIsMarketplaceFlow(true);
       setClientId(client_id);
       setClientSecret(client_secret);
@@ -123,7 +103,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
       setAccessToken(urlAccessToken);
     } else if (urlPlatform && urlAccessToken) {
       // Long flow - platform exists, just need to create channel
-      console.log('✅ Long flow detected for channels');
+      console.log('✅ Long flow detected');
       setPlatformId(urlPlatform);
       setAccessToken(urlAccessToken);
       
@@ -139,7 +119,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
 
     // Clean URL params
     const newUrl = new URL(window.location.href);
-    ['showCreateChannel', 'showCreateChannelAndChannelAndPlatform', 'platform', 'accessToken', 'domain', 'client_id', 'client_secret', 'app_name', 'adapter_slug', 'refreshToken', 'tokenExpiresAt', 'code'].forEach(param => {
+    ['showCreateChannel', 'platform', 'accessToken', 'domain', 'client_id', 'client_secret', 'app_name', 'adapter_slug', 'refreshToken', 'tokenExpiresAt', 'code'].forEach(param => {
       newUrl.searchParams.delete(param);
     });
     router.replace(newUrl.pathname + newUrl.search);
@@ -163,36 +143,36 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
 
       // Marketplace flow: Check if platform exists
       if (isMarketplaceFlow && clientId && clientSecret) {
-        console.log('🔍 Checking if channel platform exists for client_id:', clientId);
+        console.log('🔍 Checking if platform exists for client_id:', clientId);
         
         const { getChannelPlatformByClientId } = await import('../actions/getChannelPlatformByClientId');
         const platformResult = await getChannelPlatformByClientId(clientId);
         
-        console.log('🔍 Channel platform check result:', platformResult);
+        console.log('🔍 Platform check result:', platformResult);
         
         if (platformResult.success && platformResult.data) {
           // Platform exists, use it
           finalPlatformId = platformResult.data.id;
-          console.log('✅ Found existing channel platform ID:', finalPlatformId, 'Name:', platformResult.data.name);
+          console.log('✅ Found existing platform ID:', finalPlatformId, 'Name:', platformResult.data.name);
         } else {
-          // Platform doesn't exist, will create inline with channel
-          console.log('📦 Channel platform does not exist, will create inline');
+          // Platform doesn't exist, will create inline with shop
+          console.log('📦 Platform does not exist, will create inline');
           finalPlatformId = null;
         }
       }
 
       // For marketplace flow, access token should come from OAuth callback
       let finalAccessToken = accessToken;
-      if (!finalAccessToken && !isMarketplaceFlow && !isPlatformInitiated) {
+      if (!finalAccessToken && !isMarketplaceFlow) {
         toast.error('Access token is required');
         return;
       }
 
-      // Create the channel
+      // Create the shop
       const channelData: any = {
         name: name.trim(),
         domain: domain.trim(),
-        accessToken: finalAccessToken?.trim() || '',
+        accessToken: finalAccessToken.trim(),
         ...(refreshToken && { refreshToken: refreshToken }),
         ...(tokenExpiresAt && { tokenExpiresAt: new Date(tokenExpiresAt) }),
       };
@@ -200,16 +180,15 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
       console.log('🏪 Creating channel with data:');
       console.log('  - finalPlatformId:', finalPlatformId);
       console.log('  - isMarketplaceFlow:', isMarketplaceFlow);
-      console.log('  - isPlatformInitiated:', isPlatformInitiated);
       console.log('  - clientId:', clientId);
       console.log('  - adapterSlug:', adapterSlug);
 
       if (finalPlatformId) {
-        console.log('🔗 Using existing channel platform ID:', finalPlatformId);
+        console.log('🔗 Using existing platform ID:', finalPlatformId);
         channelData.platformId = finalPlatformId;
       } else if (isMarketplaceFlow && clientId && clientSecret && appName && adapterSlug) {
         // Create platform inline using dynamic adapter slug
-        console.log('📦 Creating channel platform inline with adapter:', adapterSlug);
+        console.log('📦 Creating platform inline with adapter:', adapterSlug);
         channelData.platform = {
           create: {
             name: appName + ' (Auto-created)',
@@ -232,8 +211,8 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
             deleteWebhookFunction: adapterSlug,
           }
         };
-        console.log('📦 Channel platform inline creation data:', channelData.platform.create);
-      } else if (!isPlatformInitiated) {
+        console.log('📦 Platform inline creation data:', channelData.platform.create);
+      } else {
         console.log('❌ No platform connection - this will cause an error');
         console.log('❌ Missing: finalPlatformId?', !finalPlatformId, 'isMarketplaceFlow?', !isMarketplaceFlow, 'clientId?', !clientId, 'adapterSlug?', !adapterSlug);
       }
@@ -269,11 +248,9 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
     setAccessToken('');
     setPlatformId('');
     setIsMarketplaceFlow(false);
-    setIsPlatformInitiated(false);
     setClientId('');
     setClientSecret('');
     setAppName('');
-    setAdapterSlug('');
     setRefreshToken('');
     setTokenExpiresAt('');
   };
@@ -286,8 +263,6 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
           <DialogDescription>
             {isMarketplaceFlow
               ? 'Setting up your OpenFront integration. We\'ll create the platform if needed and connect your channel.'
-              : isPlatformInitiated
-              ? 'Connect your channel using the platform setup from OpenFront.'
               : 'Complete your channel setup with the OAuth credentials received.'
             }
           </DialogDescription>
@@ -311,12 +286,12 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
               id="domain"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
-              placeholder="channel.example.com"
+              placeholder="shop.example.com"
               disabled={isLoading}
             />
           </div>
 
-          {!isMarketplaceFlow && !isPlatformInitiated && (
+          {!isMarketplaceFlow && (
             <div>
               <Label htmlFor="accessToken">Access Token</Label>
               <Input
@@ -337,17 +312,6 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
               </p>
               <p className="text-zinc-700 dark:text-zinc-300 text-xs">
                 This platform will be created with the channel.
-              </p>
-            </div>
-          )}
-
-          {isPlatformInitiated && (
-            <div className="text-sm bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Platform Integration
-              </p>
-              <p className="text-blue-700 dark:text-blue-300 text-xs">
-                Using existing platform for this channel connection.
               </p>
             </div>
           )}
