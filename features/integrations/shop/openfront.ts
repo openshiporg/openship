@@ -172,6 +172,16 @@ const createOpenFrontClient = async (platform: OpenFrontPlatform) => {
   );
 };
 
+// Helper function to get product image URL
+// imagePath is a relative path (e.g., "/images/product.jpg") that needs domain prepended
+// image.url is an absolute S3 URL that can be used directly
+const getProductImageUrl = (productImage: any, domain: string): string | null => {
+  if (productImage?.imagePath) {
+    return `${domain}${productImage.imagePath}`;
+  }
+  return productImage?.image?.url || null;
+};
+
 // Function to search products
 export async function searchProductsFunction({ 
   platform, 
@@ -197,6 +207,7 @@ export async function searchProductsFunction({
           image {
             url
           }
+          imagePath
         }
         productVariants {
           id
@@ -262,7 +273,7 @@ export async function searchProductsFunction({
       const firstImage = product.productImages[0];
       
       return {
-        image: firstImage?.image?.url || null,
+        image: getProductImageUrl(firstImage, platform.domain),
         title: `${product.title} - ${variant.title}`,
         productId: product.id,
         variantId: variant.id,
@@ -316,6 +327,7 @@ export async function getProductFunction({
           image {
             url
           }
+          imagePath
         }
         productVariants(where: { id: { equals: $variantId } }) {
           id
@@ -346,6 +358,7 @@ export async function getProductFunction({
           image {
             url
           }
+          imagePath
         }
         productVariants {
           id
