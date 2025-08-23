@@ -49,8 +49,6 @@ async function searchShopOrders(
     `,
   });
 
-  console.log("🔴 searchShopOrders - shopId:", shopId);
-  console.log("🔴 searchShopOrders - shop result:", shop);
   
   if (!shop) {
     throw new Error("Shop not found");

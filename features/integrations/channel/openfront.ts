@@ -3,6 +3,8 @@ import { GraphQLClient, gql } from "graphql-request";
 interface OpenFrontPlatform {
   domain: string;
   accessToken: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date | string;
   appKey?: string;
   appSecret?: string;
 }
@@ -32,76 +34,60 @@ interface DeleteWebhookArgs {
   webhookId: string;
 }
 
-// Helper function to get fresh access token using OpenFront database (same as shop)
+// Helper function to get fresh access token with proper OAuth 2.0 flow
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
-  // First, check if we have a valid access token in OpenFront's database
-  const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-  
-  try {
-    const checkResponse = await fetch(tokenCheckUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: platform.appKey,
-        client_secret: platform.appSecret
-      })
+  // Check if we have local access token expiry information
+  if (platform.tokenExpiresAt && platform.refreshToken) {
+    const expiresAt = typeof platform.tokenExpiresAt === 'string' 
+      ? new Date(platform.tokenExpiresAt) 
+      : platform.tokenExpiresAt;
+    
+    // If access token hasn't expired yet, use it
+    if (expiresAt > new Date()) {
+      return platform.accessToken;
+    }
+    
+    // Use refresh token to get new access token
+    const tokenUrl = `${platform.domain}/api/oauth/token`;
+    
+    const formData = new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: platform.refreshToken,
     });
 
-    if (checkResponse.ok) {
-      const { access_token, is_valid } = await checkResponse.json();
-      if (is_valid) {
-        return access_token; // Return existing valid token
-      }
+    const response = await fetch(tokenUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Token refresh failed:', errorText);
+      throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
     }
-  } catch (error) {
-    console.log('Token check failed, will refresh:', error);
+
+    const { access_token } = await response.json();
+    
+    // TODO: Update stored access token and expiry in database
+    // This would require updating the shop/channel record with new tokens
+    
+    return access_token;
   }
-
-  // If no valid token exists or check failed, refresh using the refresh token
-  const tokenUrl = `${platform.domain}/api/oauth/token`;
   
-  console.log('🔴 Attempting to refresh token:');
-  console.log('🔴 Token URL:', tokenUrl);
-  console.log('🔴 Client ID:', platform.appKey);
-  console.log('🔴 Client Secret length:', platform.appSecret?.length);
-  console.log('🔴 Refresh Token (first 10 chars):', platform.accessToken?.substring(0, 10));
-  
-  const formData = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token: platform.accessToken, // This is actually the refresh token stored in accessToken field
-  });
-
-  const response = await fetch(tokenUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('🔴 Token refresh failed:', errorText);
-    console.error('🔴 Response status:', response.status);
-    throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  console.log('🟢 Token refreshed successfully');
-  
-  return data.access_token;
+  // If no refresh capability, just use the access token as-is
+  return platform.accessToken;
 };
 
-// Helper function to create OpenFront GraphQL client (now async like shop)
+// Helper function to create OpenFront GraphQL client with fresh token
 const createOpenFrontClient = async (platform: OpenFrontPlatform) => {
-  // Get fresh access token if needed
-  const accessToken = platform.appKey && platform.appSecret
-    ? await getFreshAccessToken(platform)
-    : platform.accessToken;
+  const freshAccessToken = await getFreshAccessToken(platform);
 
   return new GraphQLClient(
-    `${platform.domain}/api/graphql`, // Fixed: removed hardcoded https://
+    `${platform.domain}/api/graphql`,
     {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        "Authorization": `Bearer ${freshAccessToken}`,
         "Content-Type": "application/json",
       },
     }
@@ -312,7 +298,6 @@ export async function createPurchaseFunction({
   platform,
   cartItems,
   shipping,
-  notes,
 }: {
   platform: OpenFrontPlatform;
   cartItems: any[];

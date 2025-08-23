@@ -25,12 +25,6 @@ export async function POST(
     const headers = Object.fromEntries(request.headers.entries());
     const { shopId } = await params;
 
-    console.log('🚀 CREATE ORDER WEBHOOK RECEIVED');
-    console.log('📋 Shop ID:', shopId);
-    console.log('📦 Webhook Body:', JSON.stringify(body, null, 2));
-    console.log('📋 Headers:', JSON.stringify(headers, null, 2));
-    console.log('⏰ Timestamp:', new Date().toISOString());
-    console.log('================================================');
 
     // Respond immediately to acknowledge receipt
     const response = NextResponse.json({ received: true });
@@ -40,16 +34,13 @@ export async function POST(
 
     return response;
   } catch (error) {
-    console.error('💥 WEBHOOK ENDPOINT ERROR:', error);
-    console.error('💥 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('WEBHOOK ENDPOINT ERROR:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
 async function processWebhook(shopId: string, body: any, headers: any) {
   try {
-    console.log('🔍 STEP 1: Finding shop in database...');
-    
     // Find the shop and its platform
     const shop = await keystoneContext.sudo().query.Shop.findOne({
       where: { id: shopId },
@@ -78,22 +69,9 @@ async function processWebhook(shopId: string, body: any, headers: any) {
     });
 
     if (!shop) {
-      console.error('❌ STEP 1 FAILED: Shop not found:', shopId);
+      console.error('Shop not found:', shopId);
       return;
     }
-
-    console.log('✅ STEP 1 SUCCESS: Shop found');
-    console.log('🏪 Shop Details:', {
-      id: shop.id,
-      domain: shop.domain,
-      userId: shop.user.id,
-      userEmail: shop.user.email,
-      linksCount: shop.links.length,
-      platformName: shop.platform.name,
-      handler: shop.platform.createOrderWebhookHandler
-    });
-
-    console.log('🔧 STEP 2: Processing webhook with shop adapter...');
 
     // Use the shop provider adapter to handle the webhook
     const orderData = await handleShopOrderWebhook({
@@ -106,18 +84,8 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       headers,
     });
 
-    console.log('✅ STEP 2 SUCCESS: Webhook processed by adapter');
-    console.log('📝 Order Data from Adapter:', JSON.stringify(orderData, null, 2));
-
-    console.log('🗄️ STEP 3: Creating order in database...');
-    console.log('🧹 Data after removeEmpty:', JSON.stringify(removeEmpty({
-      ...orderData,
-      shop: { connect: { id: shop.id } },
-      user: { connect: { id: shop.user.id } },
-    }), null, 2));
-
     // Create the order in the database using removeEmpty (like Dasher)
-    const order = await keystoneContext.sudo().query.Order.createOne({
+    await keystoneContext.sudo().query.Order.createOne({
       data: removeEmpty({
         ...orderData,
         shop: { connect: { id: shop.id } },
@@ -157,15 +125,7 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       `,
     });
 
-    console.log('✅ STEP 3 SUCCESS: Order created in database');
-    console.log('🎉 FINAL ORDER:', JSON.stringify(order, null, 2));
-    console.log('🚀 WEBHOOK PROCESSING COMPLETE - SUCCESS!');
-    console.log('================================================');
-
   } catch (error) {
-    console.error('💥 WEBHOOK PROCESSING ERROR:', error);
-    console.error('💥 Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('💥 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.log('================================================');
+    console.error('WEBHOOK PROCESSING ERROR:', error instanceof Error ? error.message : 'Unknown error');
   }
 }

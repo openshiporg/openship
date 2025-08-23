@@ -66,11 +66,9 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
     
     // If access token hasn't expired yet, use it
     if (expiresAt > new Date()) {
-      console.log('🟢 Using cached access token (not expired)');
       return platform.accessToken;
     }
     
-    console.log('🟡 Access token expired, refreshing with refresh token');
     
     // Use refresh token to get new access token
     const tokenUrl = `${platform.domain}/api/oauth/token`;
@@ -88,12 +86,11 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('🔴 Token refresh failed:', errorText);
+      console.error('Token refresh failed:', errorText);
       throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
     }
 
     const { access_token } = await response.json();
-    console.log('🟢 Token refreshed successfully');
     
     // TODO: Update stored access token and expiry in database
     // This would require updating the shop/channel record with new tokens
@@ -101,59 +98,8 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
     return access_token;
   }
   
-  // Fallback: Legacy implementation for existing shops without refresh tokens
-  if (platform.appKey && platform.appSecret) {
-    console.log('🟡 Using legacy token refresh flow');
-    
-    // First, check if we have a valid access token in OpenFront's database
-    const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-    
-    try {
-      const checkResponse = await fetch(tokenCheckUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client_id: platform.appKey,
-          client_secret: platform.appSecret
-        })
-      });
-
-      if (checkResponse.ok) {
-        const { access_token, is_valid } = await checkResponse.json();
-        if (is_valid) {
-          return access_token; // Return existing valid token
-        }
-      }
-    } catch (error) {
-      console.log('Token check failed, will refresh:', error);
-    }
-
-    // Legacy refresh using accessToken field as refresh token
-    const tokenUrl = `${platform.domain}/api/oauth/token`;
-    
-    const formData = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: platform.accessToken, // Legacy: accessToken field contains refresh token
-    });
-
-    const response = await fetch(tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('🔴 Legacy token refresh failed:', errorText);
-      throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
-    }
-
-    const { access_token } = await response.json();
-    return access_token;
-  }
   
   // If no refresh capability, just use the access token as-is
-  console.log('🟠 No refresh token available, using access token as-is');
   return platform.accessToken;
 };
 
@@ -730,10 +676,6 @@ export async function oAuthFunction({
   platform: OpenFrontPlatform;
   callbackUrl: string;
 }) {
-  console.log('🔴 oAuthFunction START');
-  console.log('🔴 Platform domain:', platform.domain);
-  console.log('🔴 Platform appKey:', platform.appKey);
-  console.log('🔴 Callback URL:', callbackUrl);
   
   if (!platform.appKey) {
     throw new Error("OpenFront OAuth requires appKey in platform configuration");
@@ -752,8 +694,6 @@ export async function oAuthFunction({
     `state=${state}&` +
     `response_type=code`;
   
-  console.log('🔴 Generated authUrl:', openFrontAuthUrl);
-  console.log('🔴 Returning object:', { authUrl: openFrontAuthUrl });
   
   return { authUrl: openFrontAuthUrl };
 }
@@ -783,13 +723,6 @@ export async function oAuthCallbackFunction({
   const clientId = appKey || platform.appKey;
   const clientSecret = appSecret || platform.appSecret;
   
-  console.log('🔵 OPENSHIP TOKEN EXCHANGE:');
-  console.log('🔵 Domain:', domain);
-  console.log('🔵 TokenUrl:', tokenUrl);
-  console.log('🔵 ClientId:', clientId);
-  console.log('🔵 ClientSecret:', clientSecret);
-  console.log('🔵 Code:', code);
-  console.log('🔵 RedirectUri:', redirectUri);
   
   if (!clientId || !clientSecret) {
     throw new Error("OpenFront OAuth requires appKey and appSecret in platform configuration or as parameters");
@@ -845,8 +778,8 @@ export async function createOrderWebhookHandler({
   const lineItemsOutput = event.data?.orderLineItems?.map((item: any) => ({
     name: item.title,
     image: item.productVariant?.product?.productImages?.[0]?.image?.url || null,
-    price: item.unitPrice / 100, // Convert from cents
-    quantity: item.quantity,
+    price: item.unitPrice ? (item.unitPrice / 100) : 0, // Convert from cents, handle null/undefined
+    quantity: item.quantity || 0,
     productId: item.productVariant?.product?.id,
     variantId: item.productVariant?.id,
     sku: item.productVariant?.sku || "",
@@ -869,10 +802,10 @@ export async function createOrderWebhookHandler({
     country: orderData.countryCode,
     phone: orderData.phone,
     currency: orderData.currency?.code || "USD",
-    totalPrice: orderData.total / 100, // Convert from cents
-    subTotalPrice: (orderData.subtotal || orderData.total) / 100,
-    totalDiscounts: (orderData.totalDiscounts || 0) / 100,
-    totalTax: (orderData.totalTax || 0) / 100,
+    totalPrice: orderData.total ? (orderData.total / 100) : 0, // Convert from cents, handle null/undefined
+    subTotalPrice: (orderData.subtotal || orderData.total) ? ((orderData.subtotal || orderData.total) / 100) : 0,
+    totalDiscounts: orderData.totalDiscounts ? (orderData.totalDiscounts / 100) : 0,
+    totalTax: orderData.totalTax ? (orderData.totalTax / 100) : 0,
     status: "INPROCESS",
     linkOrder: true,
     matchOrder: true,
