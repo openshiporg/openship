@@ -279,7 +279,7 @@ export async function getProductFunction({
   const firstImage = product.productImages[0];
 
   const transformedProduct = {
-    image: firstImage?.image?.url || null,
+    image: getProductImageUrl(firstImage, platform.domain),
     title: `${product.title} - ${variant.title}`,
     productId: product.id,
     variantId: variant.id,

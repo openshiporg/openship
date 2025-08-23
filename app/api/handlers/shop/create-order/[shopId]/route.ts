@@ -25,6 +25,11 @@ export async function POST(
     const headers = Object.fromEntries(request.headers.entries());
     const { shopId } = await params;
 
+    console.log('=== WEBHOOK RECEIVED ===');
+    console.log('Shop ID:', shopId);
+    console.log('Headers:', JSON.stringify(headers, null, 2));
+    console.log('Webhook Body:', JSON.stringify(body, null, 2));
+    console.log('========================');
 
     // Respond immediately to acknowledge receipt
     const response = NextResponse.json({ received: true });
@@ -41,6 +46,8 @@ export async function POST(
 
 async function processWebhook(shopId: string, body: any, headers: any) {
   try {
+    console.log('=== PROCESSING WEBHOOK ===');
+    
     // Find the shop and its platform
     const shop = await keystoneContext.sudo().query.Shop.findOne({
       where: { id: shopId },
@@ -73,7 +80,20 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       return;
     }
 
+    console.log('Shop found:', {
+      id: shop.id,
+      domain: shop.domain,
+      platform: shop.platform.name,
+      userId: shop.user.id
+    });
+
     // Use the shop provider adapter to handle the webhook
+    console.log('Calling handleShopOrderWebhook with platform:', {
+      platformName: shop.platform.name,
+      domain: shop.domain,
+      hasAccessToken: !!shop.accessToken
+    });
+
     const orderData = await handleShopOrderWebhook({
       platform: {
         ...shop.platform,
@@ -84,13 +104,20 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       headers,
     });
 
+    console.log('Order data from webhook handler:', JSON.stringify(orderData, null, 2));
+
+    // Log the data that will be sent to Keystone after removeEmpty
+    const finalOrderData = removeEmpty({
+      ...orderData,
+      shop: { connect: { id: shop.id } },
+      user: { connect: { id: shop.user.id } },
+    });
+    
+    console.log('Final order data (after removeEmpty):', JSON.stringify(finalOrderData, null, 2));
+
     // Create the order in the database using removeEmpty (like Dasher)
-    await keystoneContext.sudo().query.Order.createOne({
-      data: removeEmpty({
-        ...orderData,
-        shop: { connect: { id: shop.id } },
-        user: { connect: { id: shop.user.id } },
-      }),
+    const createdOrder = await keystoneContext.sudo().query.Order.createOne({
+      data: finalOrderData,
       query: `
         id
         orderId
@@ -112,6 +139,17 @@ async function processWebhook(shopId: string, body: any, headers: any) {
         linkOrder
         matchOrder
         processOrder
+        lineItems {
+          id
+          name
+          image
+          price
+          quantity
+          productId
+          variantId
+          sku
+          lineItemId
+        }
         shop {
           id
           domain
@@ -125,7 +163,11 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       `,
     });
 
+    console.log('Order created successfully:', JSON.stringify(createdOrder, null, 2));
+    console.log('========================');
+
   } catch (error) {
     console.error('WEBHOOK PROCESSING ERROR:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Full error:', error);
   }
 }

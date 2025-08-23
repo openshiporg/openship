@@ -347,7 +347,7 @@ export async function getProductFunction({
   const firstImage = product.productImages[0];
 
   const transformedProduct = {
-    image: firstImage?.image?.url || null,
+    image: getProductImageUrl(firstImage, platform.domain),
     title: `${product.title} - ${variant.title}`,
     productId: product.id,
     variantId: variant.id,
@@ -485,7 +485,7 @@ export async function searchOrdersFunction({
         lineItemId: lineItem.id,
         name: lineItem.title,
         quantity: lineItem.quantity,
-        image: lineItem.thumbnail || lineItem.productVariant?.product?.thumbnail || "",
+        image: getProductImageUrl({ imagePath: lineItem.thumbnail, image: { url: lineItem.productVariant?.product?.thumbnail } }, platform.domain) || "",
         price: lineItem.moneyAmount ? (lineItem.moneyAmount.amount / 100).toFixed(2) : "0.00",
         variantId: lineItem.productVariant?.id || "",
         productId: lineItem.productVariant?.product?.id || "",
@@ -777,7 +777,7 @@ export async function createOrderWebhookHandler({
   // Transform OpenFront order to Openship format
   const lineItemsOutput = event.data?.orderLineItems?.map((item: any) => ({
     name: item.title,
-    image: item.productVariant?.product?.productImages?.[0]?.image?.url || null,
+    image: getProductImageUrl(item.productVariant?.product?.productImages?.[0], platform.domain),
     price: item.unitPrice ? (item.unitPrice / 100) : 0, // Convert from cents, handle null/undefined
     quantity: item.quantity || 0,
     productId: item.productVariant?.product?.id,
