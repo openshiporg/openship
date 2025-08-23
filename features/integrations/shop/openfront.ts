@@ -769,43 +769,46 @@ export async function createOrderWebhookHandler({
   headers: Record<string, string>;
 }) {
   // Verify webhook authenticity using OpenFront's signature
-  const signature = headers["x-openfront-webhook-signature"];
+  const signature = headers["x-openfront-webhook-signature"] || headers["X-OpenFront-Webhook-Signature"];
   if (!signature) {
+    console.error("Missing webhook signature. Available headers:", Object.keys(headers));
     throw new Error("Missing webhook signature");
   }
 
   // Transform OpenFront order to Openship format
-  const lineItemsOutput = event.data?.orderLineItems?.map((item: any) => ({
+  const lineItemsOutput = event.data?.lineItems?.map((item: any) => ({
     name: item.title,
-    image: getProductImageUrl(item.productVariant?.product?.productImages?.[0], platform.domain),
-    price: item.unitPrice ? (item.unitPrice / 100) : 0, // Convert from cents, handle null/undefined
+    image: getProductImageUrl(item.productVariant?.product?.productImages?.[0], platform.domain) || item.thumbnail,
+    price: item.moneyAmount?.amount ? (item.moneyAmount.amount / 100) : 0, // Convert from cents to float
     quantity: item.quantity || 0,
-    productId: item.productVariant?.product?.id,
-    variantId: item.productVariant?.id,
-    sku: item.productVariant?.sku || "",
-    lineItemId: item.id,
+    productId: item.productVariant?.product?.id?.toString(),
+    variantId: item.productVariant?.id?.toString(),
+    sku: item.productVariant?.sku || item.sku || "",
+    lineItemId: item.id?.toString(),
   })) || [];
 
   // Return Keystone-ready order data
   const orderData = event.data;
+  const shippingAddress = orderData.shippingAddress || {};
+  
   return {
-    orderId: orderData.id,
-    orderName: orderData.orderNumber,
-    email: orderData.customerEmail,
-    firstName: orderData.firstName,
-    lastName: orderData.lastName,
-    streetAddress1: orderData.address1,
-    streetAddress2: orderData.address2,
-    city: orderData.city,
-    state: orderData.state,
-    zip: orderData.postalCode,
-    country: orderData.countryCode,
-    phone: orderData.phone,
-    currency: orderData.currency?.code || "USD",
-    totalPrice: orderData.total ? (orderData.total / 100) : 0, // Convert from cents, handle null/undefined
-    subTotalPrice: (orderData.subtotal || orderData.total) ? ((orderData.subtotal || orderData.total) / 100) : 0,
-    totalDiscounts: orderData.totalDiscounts ? (orderData.totalDiscounts / 100) : 0,
-    totalTax: orderData.totalTax ? (orderData.totalTax / 100) : 0,
+    orderId: orderData.id?.toString(),
+    orderName: orderData.displayId ? `#${orderData.displayId}` : "",
+    email: orderData.email || "",
+    firstName: shippingAddress.firstName || "",
+    lastName: shippingAddress.lastName || "",
+    streetAddress1: shippingAddress.address1 || "",
+    streetAddress2: shippingAddress.address2 || "",
+    city: shippingAddress.city || "",
+    state: shippingAddress.province || "",
+    zip: shippingAddress.postalCode || "",
+    country: shippingAddress.country?.iso2?.toUpperCase() || "",
+    phone: shippingAddress.phone || "",
+    currency: orderData.currency?.code?.toUpperCase() || "USD",
+    totalPrice: orderData.rawTotal ? (orderData.rawTotal / 100) : 0, // rawTotal is in cents, convert to float
+    subTotalPrice: parseFloat(orderData.subtotal?.replace(/[$,]/g, '') || '0'), // Parse formatted string to float
+    totalDiscounts: parseFloat(orderData.discount?.replace(/[$,]/g, '') || '0'), // Parse formatted string to float
+    totalTax: parseFloat(orderData.tax?.replace(/[$,]/g, '') || '0'), // Parse formatted string to float
     status: "INPROCESS",
     linkOrder: true,
     matchOrder: true,

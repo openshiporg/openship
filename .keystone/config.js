@@ -66,6 +66,7 @@ async function searchProductsFunction({
           image {
             url
           }
+          imagePath
         }
         productVariants {
           id
@@ -116,7 +117,7 @@ async function searchProductsFunction({
       const firstPrice = variant.prices[0];
       const firstImage = product.productImages[0];
       return {
-        image: firstImage?.image?.url || null,
+        image: getProductImageUrl(firstImage, platform.domain),
         title: `${product.title} - ${variant.title}`,
         productId: product.id,
         variantId: variant.id,
@@ -158,6 +159,7 @@ async function getProductFunction({
           image {
             url
           }
+          imagePath
         }
         productVariants(where: $variantId ? { id: { equals: $variantId } } : {}) {
           id
@@ -190,7 +192,7 @@ async function getProductFunction({
   const firstPrice = variant.prices[0];
   const firstImage = product.productImages[0];
   const transformedProduct = {
-    image: firstImage?.image?.url || null,
+    image: getProductImageUrl(firstImage, platform.domain),
     title: `${product.title} - ${variant.title}`,
     productId: product.id,
     variantId: variant.id,
@@ -205,8 +207,7 @@ async function getProductFunction({
 async function createPurchaseFunction({
   platform,
   cartItems,
-  shipping,
-  notes
+  shipping
 }) {
   console.log(`\u{1F6D2} OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`\u{1F69A} OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
@@ -506,69 +507,54 @@ async function oAuthCallbackFunction({
 function scopes() {
   return REQUIRED_SCOPES;
 }
-var import_graphql_request, getFreshAccessToken, createOpenFrontClient, REQUIRED_SCOPES;
+var import_graphql_request, getFreshAccessToken, createOpenFrontClient, getProductImageUrl, REQUIRED_SCOPES;
 var init_openfront = __esm({
   "features/integrations/channel/openfront.ts"() {
     "use strict";
     import_graphql_request = require("graphql-request");
     getFreshAccessToken = async (platform) => {
-      const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-      try {
-        const checkResponse = await fetch(tokenCheckUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client_id: platform.appKey,
-            client_secret: platform.appSecret
-          })
-        });
-        if (checkResponse.ok) {
-          const { access_token, is_valid } = await checkResponse.json();
-          if (is_valid) {
-            return access_token;
-          }
+      if (platform.tokenExpiresAt && platform.refreshToken) {
+        const expiresAt = typeof platform.tokenExpiresAt === "string" ? new Date(platform.tokenExpiresAt) : platform.tokenExpiresAt;
+        if (expiresAt > /* @__PURE__ */ new Date()) {
+          return platform.accessToken;
         }
-      } catch (error) {
-        console.log("Token check failed, will refresh:", error);
+        const tokenUrl = `${platform.domain}/api/oauth/token`;
+        const formData = new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: platform.refreshToken
+        });
+        const response = await fetch(tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Token refresh failed:", errorText);
+          throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+        }
+        const { access_token } = await response.json();
+        return access_token;
       }
-      const tokenUrl = `${platform.domain}/api/oauth/token`;
-      console.log("\u{1F534} Attempting to refresh token:");
-      console.log("\u{1F534} Token URL:", tokenUrl);
-      console.log("\u{1F534} Client ID:", platform.appKey);
-      console.log("\u{1F534} Client Secret length:", platform.appSecret?.length);
-      console.log("\u{1F534} Refresh Token (first 10 chars):", platform.accessToken?.substring(0, 10));
-      const formData = new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: platform.accessToken
-        // This is actually the refresh token stored in accessToken field
-      });
-      const response = await fetch(tokenUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("\u{1F534} Token refresh failed:", errorText);
-        console.error("\u{1F534} Response status:", response.status);
-        throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
-      }
-      const data = await response.json();
-      console.log("\u{1F7E2} Token refreshed successfully");
-      return data.access_token;
+      return platform.accessToken;
     };
     createOpenFrontClient = async (platform) => {
-      const accessToken = platform.appKey && platform.appSecret ? await getFreshAccessToken(platform) : platform.accessToken;
+      const freshAccessToken = await getFreshAccessToken(platform);
       return new import_graphql_request.GraphQLClient(
         `${platform.domain}/api/graphql`,
-        // Fixed: removed hardcoded https://
         {
           headers: {
-            "Authorization": `Bearer ${accessToken}`,
+            "Authorization": `Bearer ${freshAccessToken}`,
             "Content-Type": "application/json"
           }
         }
       );
+    };
+    getProductImageUrl = (productImage, domain) => {
+      if (productImage?.imagePath) {
+        return `${domain}${productImage.imagePath}`;
+      }
+      return productImage?.image?.url || null;
     };
     REQUIRED_SCOPES = "read_products,write_products,read_orders,write_orders,read_fulfillments,write_fulfillments,read_webhooks,write_webhooks";
   }
@@ -1262,6 +1248,7 @@ async function searchProductsFunction3({
           image {
             url
           }
+          imagePath
         }
         productVariants {
           id
@@ -1317,7 +1304,7 @@ async function searchProductsFunction3({
       const firstPrice = variant.prices[0];
       const firstImage = product.productImages[0];
       return {
-        image: firstImage?.image?.url || null,
+        image: getProductImageUrl2(firstImage, platform.domain),
         title: `${product.title} - ${variant.title}`,
         productId: product.id,
         variantId: variant.id,
@@ -1361,6 +1348,7 @@ async function getProductFunction3({
           image {
             url
           }
+          imagePath
         }
         productVariants(where: { id: { equals: $variantId } }) {
           id
@@ -1391,6 +1379,7 @@ async function getProductFunction3({
           image {
             url
           }
+          imagePath
         }
         productVariants {
           id
@@ -1424,7 +1413,7 @@ async function getProductFunction3({
   const firstPrice = variant.prices[0];
   const firstImage = product.productImages[0];
   const transformedProduct = {
-    image: firstImage?.image?.url || null,
+    image: getProductImageUrl2(firstImage, platform.domain),
     title: `${product.title} - ${variant.title}`,
     productId: product.id,
     variantId: variant.id,
@@ -1546,7 +1535,7 @@ async function searchOrdersFunction({
         lineItemId: lineItem.id,
         name: lineItem.title,
         quantity: lineItem.quantity,
-        image: lineItem.thumbnail || lineItem.productVariant?.product?.thumbnail || "",
+        image: getProductImageUrl2({ imagePath: lineItem.thumbnail, image: { url: lineItem.productVariant?.product?.thumbnail } }, platform.domain) || "",
         price: lineItem.moneyAmount ? (lineItem.moneyAmount.amount / 100).toFixed(2) : "0.00",
         variantId: lineItem.productVariant?.id || "",
         productId: lineItem.productVariant?.product?.id || "",
@@ -1687,18 +1676,12 @@ async function oAuthFunction3({
   platform,
   callbackUrl
 }) {
-  console.log("\u{1F534} oAuthFunction START");
-  console.log("\u{1F534} Platform domain:", platform.domain);
-  console.log("\u{1F534} Platform appKey:", platform.appKey);
-  console.log("\u{1F534} Callback URL:", callbackUrl);
   if (!platform.appKey) {
     throw new Error("OpenFront OAuth requires appKey in platform configuration");
   }
   const scopes5 = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
   const state = platform.state || Math.random().toString(36).substring(7);
   const openFrontAuthUrl = `${platform.domain}/dashboard/platform/apps?install=true&client_id=${platform.appKey}&scope=${encodeURIComponent(scopes5)}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${state}&response_type=code`;
-  console.log("\u{1F534} Generated authUrl:", openFrontAuthUrl);
-  console.log("\u{1F534} Returning object:", { authUrl: openFrontAuthUrl });
   return { authUrl: openFrontAuthUrl };
 }
 async function oAuthCallbackFunction3({
@@ -1714,13 +1697,6 @@ async function oAuthCallbackFunction3({
   const tokenUrl = `${domain}/api/oauth/token`;
   const clientId = appKey || platform.appKey;
   const clientSecret = appSecret || platform.appSecret;
-  console.log("\u{1F535} OPENSHIP TOKEN EXCHANGE:");
-  console.log("\u{1F535} Domain:", domain);
-  console.log("\u{1F535} TokenUrl:", tokenUrl);
-  console.log("\u{1F535} ClientId:", clientId);
-  console.log("\u{1F535} ClientSecret:", clientSecret);
-  console.log("\u{1F535} Code:", code);
-  console.log("\u{1F535} RedirectUri:", redirectUri);
   if (!clientId || !clientSecret) {
     throw new Error("OpenFront OAuth requires appKey and appSecret in platform configuration or as parameters");
   }
@@ -1760,10 +1736,10 @@ async function createOrderWebhookHandler({
   }
   const lineItemsOutput = event.data?.orderLineItems?.map((item) => ({
     name: item.title,
-    image: item.productVariant?.product?.productImages?.[0]?.image?.url || null,
-    price: item.unitPrice / 100,
-    // Convert from cents
-    quantity: item.quantity,
+    image: getProductImageUrl2(item.productVariant?.product?.productImages?.[0], platform.domain),
+    price: item.unitPrice ? item.unitPrice / 100 : 0,
+    // Convert from cents, handle null/undefined
+    quantity: item.quantity || 0,
     productId: item.productVariant?.product?.id,
     variantId: item.productVariant?.id,
     sku: item.productVariant?.sku || "",
@@ -1784,11 +1760,11 @@ async function createOrderWebhookHandler({
     country: orderData.countryCode,
     phone: orderData.phone,
     currency: orderData.currency?.code || "USD",
-    totalPrice: orderData.total / 100,
-    // Convert from cents
-    subTotalPrice: (orderData.subtotal || orderData.total) / 100,
-    totalDiscounts: (orderData.totalDiscounts || 0) / 100,
-    totalTax: (orderData.totalTax || 0) / 100,
+    totalPrice: orderData.total ? orderData.total / 100 : 0,
+    // Convert from cents, handle null/undefined
+    subTotalPrice: orderData.subtotal || orderData.total ? (orderData.subtotal || orderData.total) / 100 : 0,
+    totalDiscounts: orderData.totalDiscounts ? orderData.totalDiscounts / 100 : 0,
+    totalTax: orderData.totalTax ? orderData.totalTax / 100 : 0,
     status: "INPROCESS",
     linkOrder: true,
     matchOrder: true,
@@ -1846,7 +1822,7 @@ async function addTrackingFunction2({
   });
   return result;
 }
-var import_graphql_request3, import_getBaseUrl, getFreshAccessToken2, createOpenFrontClient2, REQUIRED_SCOPES3;
+var import_graphql_request3, import_getBaseUrl, getFreshAccessToken2, createOpenFrontClient2, getProductImageUrl2, REQUIRED_SCOPES3;
 var init_openfront2 = __esm({
   "features/integrations/shop/openfront.ts"() {
     "use strict";
@@ -1856,10 +1832,8 @@ var init_openfront2 = __esm({
       if (platform.tokenExpiresAt && platform.refreshToken) {
         const expiresAt = typeof platform.tokenExpiresAt === "string" ? new Date(platform.tokenExpiresAt) : platform.tokenExpiresAt;
         if (expiresAt > /* @__PURE__ */ new Date()) {
-          console.log("\u{1F7E2} Using cached access token (not expired)");
           return platform.accessToken;
         }
-        console.log("\u{1F7E1} Access token expired, refreshing with refresh token");
         const tokenUrl = `${platform.domain}/api/oauth/token`;
         const formData = new URLSearchParams({
           grant_type: "refresh_token",
@@ -1872,54 +1846,12 @@ var init_openfront2 = __esm({
         });
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("\u{1F534} Token refresh failed:", errorText);
-          throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
-        }
-        const { access_token } = await response.json();
-        console.log("\u{1F7E2} Token refreshed successfully");
-        return access_token;
-      }
-      if (platform.appKey && platform.appSecret) {
-        console.log("\u{1F7E1} Using legacy token refresh flow");
-        const tokenCheckUrl = `${platform.domain}/api/oauth/check-token`;
-        try {
-          const checkResponse = await fetch(tokenCheckUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              client_id: platform.appKey,
-              client_secret: platform.appSecret
-            })
-          });
-          if (checkResponse.ok) {
-            const { access_token: access_token2, is_valid } = await checkResponse.json();
-            if (is_valid) {
-              return access_token2;
-            }
-          }
-        } catch (error) {
-          console.log("Token check failed, will refresh:", error);
-        }
-        const tokenUrl = `${platform.domain}/api/oauth/token`;
-        const formData = new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: platform.accessToken
-          // Legacy: accessToken field contains refresh token
-        });
-        const response = await fetch(tokenUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData
-        });
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("\u{1F534} Legacy token refresh failed:", errorText);
+          console.error("Token refresh failed:", errorText);
           throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
         }
         const { access_token } = await response.json();
         return access_token;
       }
-      console.log("\u{1F7E0} No refresh token available, using access token as-is");
       return platform.accessToken;
     };
     createOpenFrontClient2 = async (platform) => {
@@ -1933,6 +1865,12 @@ var init_openfront2 = __esm({
           }
         }
       );
+    };
+    getProductImageUrl2 = (productImage, domain) => {
+      if (productImage?.imagePath) {
+        return `${domain}${productImage.imagePath}`;
+      }
+      return productImage?.image?.url || null;
     };
     REQUIRED_SCOPES3 = "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_webhooks,write_webhooks";
   }
@@ -5057,8 +4995,6 @@ async function getShopWebhooks3(root, { shopId }, context) {
       where: { id: shopId },
       query: "id domain accessToken platform { id getWebhooksFunction }"
     });
-    console.log("\u{1F534} getShopWebhooks - shopId:", shopId);
-    console.log("\u{1F534} getShopWebhooks - shop result:", shop);
     if (!shop) {
       throw new Error("Shop not found");
     }
@@ -5116,8 +5052,6 @@ async function searchShopOrders3(root, { shopId, searchEntry, take = 25, skip = 
       }
     `
   });
-  console.log("\u{1F534} searchShopOrders - shopId:", shopId);
-  console.log("\u{1F534} searchShopOrders - shop result:", shop);
   if (!shop) {
     throw new Error("Shop not found");
   }
