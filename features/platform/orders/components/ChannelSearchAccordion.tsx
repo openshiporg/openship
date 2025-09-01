@@ -164,7 +164,7 @@ export const ChannelSearchAccordion: React.FC<ChannelSearchAccordionProps> = ({
           <div className="space-y-2 mt-2 max-h-60 overflow-y-auto">
             {searchResults.map((product) => (
               <div
-                key={product.productId}
+                key={`${product.productId}-${product.variantId}`}
                 className="flex items-center space-x-2 p-2 bg-background rounded-md border"
               >
                 <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">

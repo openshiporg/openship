@@ -444,7 +444,7 @@ const MultipleSelector = ({
           inputRef?.current?.focus()
         }}
       >
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
           {selected.map((option) => {
             return (
               <div
@@ -545,7 +545,7 @@ const MultipleSelector = ({
         >
           {open && (
             <CommandList
-              className="bg-popover text-popover-foreground shadow-lg outline-hidden"
+              className="bg-popover text-popover-foreground shadow-lg outline-hidden max-h-48 overflow-auto"
               onMouseLeave={() => {
                 setOnScrollbar(false)
               }}

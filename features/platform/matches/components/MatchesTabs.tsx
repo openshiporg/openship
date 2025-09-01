@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Square, Store, Tv } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -144,11 +143,9 @@ export function MatchesTabs({ statusCounts, onSelectAll, selectedItems, totalIte
               >
                 <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
                   {status.label}
-                  {status.value === "MATCHES" ? (
-                    <Badge color={statusConfig[status.value as keyof typeof statusConfig].color} className="px-1.5 py-0 text-[10px] leading-[14px] rounded-sm shadow-xs inline-flex items-center h-[18px]">
-                      {status.count}
-                    </Badge>
-                  ) : null}
+                  <span className="rounded-sm bg-background border shadow-xs px-1.5 py-0 text-[10px] leading-[14px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 inline-flex items-center h-[18px]">
+                    {status.count}
+                  </span>
                 </div>
               </div>
             );

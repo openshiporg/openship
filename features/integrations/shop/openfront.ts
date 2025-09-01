@@ -1,5 +1,6 @@
 import { GraphQLClient, gql } from "graphql-request";
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
+import { keystoneContext } from '@/features/keystone/context';
 
 interface OpenFrontPlatform {
   domain: string;
@@ -58,48 +59,132 @@ interface WebhookEventArgs {
 
 // Helper function to get fresh access token with proper OAuth 2.0 flow
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
-  // Check if we have local access token expiry information
-  if (platform.tokenExpiresAt && platform.refreshToken) {
-    const expiresAt = typeof platform.tokenExpiresAt === 'string' 
-      ? new Date(platform.tokenExpiresAt) 
-      : platform.tokenExpiresAt;
-    
-    // If access token hasn't expired yet, use it
-    if (expiresAt > new Date()) {
-      return platform.accessToken;
-    }
-    
-    
-    // Use refresh token to get new access token
-    const tokenUrl = `${platform.domain}/api/oauth/token`;
-    
-    const formData = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: platform.refreshToken,
-    });
-
-    const response = await fetch(tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Token refresh failed:', errorText);
-      throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
-    }
-
-    const { access_token } = await response.json();
-    
-    // TODO: Update stored access token and expiry in database
-    // This would require updating the shop/channel record with new tokens
-    
-    return access_token;
+  console.log('🔄 [OpenFront Shop] getFreshAccessToken called');
+  console.log('🔄 [OpenFront Shop] Platform domain:', platform.domain);
+  console.log('🔄 [OpenFront Shop] Actual access token:', platform.accessToken);
+  
+  // Get shop with OAuth credentials from database
+  const shops = await keystoneContext.sudo().query.Shop.findMany({
+    where: { 
+      domain: { equals: platform.domain },
+      accessToken: { equals: platform.accessToken }
+    },
+    query: 'id refreshToken tokenExpiresAt platform { appKey appSecret }'
+  });
+  
+  if (!shops || shops.length === 0) {
+    console.log('⚠️ [OpenFront Shop] No matching shop found in database');
+    return platform.accessToken;
   }
   
+  const shop = shops[0];
+  console.log('🔄 [OpenFront Shop] Found shop:', shop.id);
+  console.log('🔄 [OpenFront Shop] Has refresh token:', !!shop.refreshToken);
+  console.log('🔄 [OpenFront Shop] Token expires at:', shop.tokenExpiresAt);
+  console.log('🔄 [OpenFront Shop] Has appKey:', !!shop.platform?.appKey);
+  console.log('🔄 [OpenFront Shop] Has appSecret:', !!shop.platform?.appSecret);
+  console.log('🔄 [OpenFront Shop] Actual refresh token:', shop.refreshToken);
   
-  // If no refresh capability, just use the access token as-is
+  // If we have a refresh token, check if we need to refresh
+  if (shop.refreshToken) {
+    console.log('🔄 [OpenFront Shop] Refresh token found, checking if refresh needed');
+    
+    // Check if access token has expired (if we have expiry info)
+    let shouldRefresh = false;
+    
+    if (shop.tokenExpiresAt) {
+      const expiresAt = typeof shop.tokenExpiresAt === 'string' 
+        ? new Date(shop.tokenExpiresAt) 
+        : shop.tokenExpiresAt;
+      
+      const now = new Date();
+      shouldRefresh = expiresAt <= now;
+      
+      console.log('🔄 [OpenFront Shop] Token expiry check:');
+      console.log('🔄 [OpenFront Shop] - Expires at:', expiresAt.toISOString());
+      console.log('🔄 [OpenFront Shop] - Current time:', now.toISOString());
+      console.log('🔄 [OpenFront Shop] - Should refresh:', shouldRefresh);
+    } else {
+      // If no expiry info, assume token needs refresh
+      shouldRefresh = true;
+      console.log('🔄 [OpenFront Shop] No expiry info found, assuming refresh needed');
+    }
+    
+    if (shouldRefresh) {
+      console.log('🔄 [OpenFront Shop] Starting token refresh process...');
+      
+      // Use refresh token to get new access token
+      const tokenUrl = `${platform.domain}/api/oauth/token`;
+      console.log('🔄 [OpenFront Shop] Token URL:', tokenUrl);
+      
+      const formData = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: shop.refreshToken,
+        client_id: shop.platform?.appKey || "",
+        client_secret: shop.platform?.appSecret || "",
+      });
+
+      console.log('🔄 [OpenFront Shop] Refresh request params:');
+      console.log('🔄 [OpenFront Shop] - grant_type: refresh_token');
+      console.log('🔄 [OpenFront Shop] - client_id:', shop.platform?.appKey || "NOT_SET");
+      console.log('🔄 [OpenFront Shop] - client_secret:', shop.platform?.appSecret ? "SET" : "NOT_SET");
+      console.log('🔄 [OpenFront Shop] - refresh_token:', shop.refreshToken ? "SET" : "NOT_SET");
+
+      console.log('🔄 [OpenFront Shop] Making refresh token request...');
+      const response = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+      });
+
+      console.log('🔄 [OpenFront Shop] Refresh response status:', response.status);
+      console.log('🔄 [OpenFront Shop] Refresh response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚨 [OpenFront Shop] Token refresh failed:', errorText);
+        console.error('🚨 [OpenFront Shop] Response status:', response.status);
+        console.error('🚨 [OpenFront Shop] Response statusText:', response.statusText);
+        throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
+      }
+
+      const tokenData = await response.json();
+      console.log('🔄 [OpenFront Shop] Token refresh response received');
+      console.log('🔄 [OpenFront Shop] - Has access_token:', !!tokenData.access_token);
+      console.log('🔄 [OpenFront Shop] - Has refresh_token:', !!tokenData.refresh_token);
+      console.log('🔄 [OpenFront Shop] - Expires in:', tokenData.expires_in, 'seconds');
+      
+      const { access_token, refresh_token, expires_in } = tokenData;
+      
+      // Update stored access token and expiry in database
+      console.log('🔄 [OpenFront Shop] Updating tokens in database...');
+      try {
+        console.log('🔄 [OpenFront Shop] Updating shop:', shop.id);
+        await keystoneContext.sudo().query.Shop.updateOne({
+          where: { id: shop.id },
+          data: {
+            accessToken: access_token,
+            ...(refresh_token && { refreshToken: refresh_token }),
+            ...(expires_in && { tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)) })
+          }
+        });
+        console.log('✅ [OpenFront Shop] Shop updated with new tokens:', shop.id);
+      } catch (error) {
+        console.error('🚨 [OpenFront Shop] Failed to update shop tokens in database:', error);
+        // Continue with the request even if database update fails
+      }
+      
+      console.log('✅ [OpenFront Shop] Returning fresh access token');
+      return access_token;
+    } else {
+      // Token hasn't expired yet, use existing one
+      console.log('✅ [OpenFront Shop] Token still valid, using existing access token');
+      return platform.accessToken;
+    }
+  }
+  
+  // If no refresh token, just use the access token as-is
+  console.log('⚠️ [OpenFront Shop] No refresh token available, using existing access token');
   return platform.accessToken;
 };
 
@@ -370,6 +455,7 @@ export async function searchOrdersFunction({
   searchEntry: string;
   after?: string;
 }) {
+  console.log("fuckkk")
   const openFrontClient = await createOpenFrontClient(platform);
 
   const gqlQuery = gql`
@@ -459,6 +545,8 @@ export async function searchOrdersFunction({
     skip,
   }) as any;
 
+  console.log("Orders from OpenFront:", orders);
+
   // Transform orders to Openship format
   const transformedOrders = orders.map((order: any) => {
     const shippingAddress = order.shippingAddress || {};
@@ -481,22 +569,31 @@ export async function searchOrdersFunction({
       financialStatus: order.status,
       totalPrice: order.rawTotal ? (order.rawTotal / 100).toFixed(2) : "0.00",
       currency: order.currency?.code || "USD",
-      lineItems: (order.lineItems || []).map((lineItem: any) => ({
-        lineItemId: lineItem.id,
-        name: lineItem.title,
-        quantity: lineItem.quantity,
-        image: getProductImageUrl({ imagePath: lineItem.thumbnail, image: { url: lineItem.productVariant?.product?.thumbnail } }, platform.domain) || "",
-        price: lineItem.moneyAmount ? (lineItem.moneyAmount.amount / 100).toFixed(2) : "0.00",
-        variantId: lineItem.productVariant?.id || "",
-        productId: lineItem.productVariant?.product?.id || "",
-        sku: lineItem.sku || lineItem.productVariant?.sku || "",
-      })),
+      lineItems: (order.lineItems || []).map((lineItem: any) => {
+        // Combine product title and variant title like in channel search
+        const productTitle = lineItem.productVariant?.product?.title || '';
+        const variantTitle = lineItem.productVariant?.title || '';
+        const combinedTitle = productTitle && variantTitle ? `${productTitle} - ${variantTitle}` : lineItem.title;
+        
+        return {
+          lineItemId: lineItem.id,
+          name: combinedTitle,
+          quantity: lineItem.quantity,
+          image: getProductImageUrl({ imagePath: lineItem.thumbnail, image: { url: lineItem.productVariant?.product?.thumbnail } }, platform.domain) || "",
+          price: lineItem.moneyAmount ? (lineItem.moneyAmount.amount / 100).toFixed(2) : "0.00",
+          variantId: lineItem.productVariant?.id || "",
+          productId: lineItem.productVariant?.product?.id || "",
+          sku: lineItem.sku || lineItem.productVariant?.sku || "",
+        };
+      }),
       cartItems: [],
       fulfillments: [],
       note: "",
       cursor: Buffer.from((skip + orders.indexOf(order) + 1).toString()).toString('base64'),
     };
   });
+
+  console.log("Transformed orders:", transformedOrders);
 
   const hasNextPage = skip + take < ordersCount;
   const endCursor = hasNextPage ? Buffer.from((skip + take).toString()).toString('base64') : null;
@@ -750,12 +847,12 @@ export async function oAuthCallbackFunction({
 
   const { access_token, refresh_token, expires_in } = await response.json();
   
-  // Return OAuth token data for proper storage
+  // Return OAuth response with refresh token support
   return {
-    access_token,
-    refresh_token,
-    expires_in,
-    expires_at: new Date(Date.now() + (expires_in * 1000))
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    expiresIn: expires_in,
+    tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)).toISOString()
   };
 }
 
@@ -776,16 +873,23 @@ export async function createOrderWebhookHandler({
   }
 
   // Transform OpenFront order to Openship format
-  const lineItemsOutput = event.data?.lineItems?.map((item: any) => ({
-    name: item.title,
-    image: getProductImageUrl(item.productVariant?.product?.productImages?.[0], platform.domain) || item.thumbnail,
-    price: item.moneyAmount?.amount ? (item.moneyAmount.amount / 100) : 0, // Convert from cents to float
-    quantity: item.quantity || 0,
-    productId: item.productVariant?.product?.id?.toString(),
-    variantId: item.productVariant?.id?.toString(),
-    sku: item.productVariant?.sku || item.sku || "",
-    lineItemId: item.id?.toString(),
-  })) || [];
+  const lineItemsOutput = event.data?.lineItems?.map((item: any) => {
+    // Combine product title and variant title like in channel search
+    const productTitle = item.productVariant?.product?.title || '';
+    const variantTitle = item.productVariant?.title || '';
+    const combinedTitle = productTitle && variantTitle ? `${productTitle} - ${variantTitle}` : item.title;
+    
+    return {
+      name: combinedTitle,
+      image: getProductImageUrl(item.productVariant?.product?.productImages?.[0], platform.domain) || item.thumbnail,
+      price: item.moneyAmount?.amount ? (item.moneyAmount.amount / 100) : 0, // Convert from cents to float
+      quantity: item.quantity || 0,
+      productId: item.productVariant?.product?.id?.toString(),
+      variantId: item.productVariant?.id?.toString(),
+      sku: item.productVariant?.sku || item.sku || "",
+      lineItemId: item.id?.toString(),
+    };
+  }) || [];
 
   // Return Keystone-ready order data
   const orderData = event.data;

@@ -52,7 +52,6 @@ export function statelessSessions({
       
       // Check for OAuth Bearer token authentication
       const authHeader = context.req.headers.authorization;
-      console.log('🔑 AUTH HEADER:', authHeader);
       
       if (authHeader?.startsWith("Bearer ")) {
         const accessToken = authHeader.replace("Bearer ", "");

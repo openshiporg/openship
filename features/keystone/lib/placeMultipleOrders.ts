@@ -44,6 +44,7 @@ export async function placeMultipleOrders({ ids, query }: { ids: string[]; query
       zip,
       country,
       phone,
+      currency,
       user,
       shop,
       orderId: shopOrderId,
@@ -61,7 +62,8 @@ export async function placeMultipleOrders({ ids, query }: { ids: string[]; query
         state,
         zip,
         country,
-        phone
+        phone,
+        currency
         shop {
           domain
           accessToken
@@ -155,6 +157,7 @@ export async function placeMultipleOrders({ ids, query }: { ids: string[]; query
             country,
             phone,
             email: user.email,
+            currency,
                 },
           notes: "",
         });

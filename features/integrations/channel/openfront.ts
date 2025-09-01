@@ -1,4 +1,5 @@
 import { GraphQLClient, gql } from "graphql-request";
+import { keystoneContext } from '@/features/keystone/context';
 
 interface OpenFrontPlatform {
   domain: string;
@@ -36,46 +37,132 @@ interface DeleteWebhookArgs {
 
 // Helper function to get fresh access token with proper OAuth 2.0 flow
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
-  // Check if we have local access token expiry information
-  if (platform.tokenExpiresAt && platform.refreshToken) {
-    const expiresAt = typeof platform.tokenExpiresAt === 'string' 
-      ? new Date(platform.tokenExpiresAt) 
-      : platform.tokenExpiresAt;
+  console.log('🔄 [OpenFront Channel] getFreshAccessToken called');
+  console.log('🔄 [OpenFront Channel] Platform domain:', platform.domain);
+  console.log('🔄 [OpenFront Channel] Actual access token:', platform.accessToken);
+  
+  // Get channel with OAuth credentials from database
+  const channels = await keystoneContext.sudo().query.Channel.findMany({
+    where: { 
+      domain: { equals: platform.domain },
+      accessToken: { equals: platform.accessToken }
+    },
+    query: 'id refreshToken tokenExpiresAt platform { appKey appSecret }'
+  });
+  
+  if (!channels || channels.length === 0) {
+    console.log('⚠️ [OpenFront Channel] No matching channel found in database');
+    return platform.accessToken;
+  }
+  
+  const channel = channels[0];
+  console.log('🔄 [OpenFront Channel] Found channel:', channel.id);
+  console.log('🔄 [OpenFront Channel] Has refresh token:', !!channel.refreshToken);
+  console.log('🔄 [OpenFront Channel] Token expires at:', channel.tokenExpiresAt);
+  console.log('🔄 [OpenFront Channel] Has appKey:', !!channel.platform?.appKey);
+  console.log('🔄 [OpenFront Channel] Has appSecret:', !!channel.platform?.appSecret);
+  console.log('🔄 [OpenFront Channel] Actual refresh token:', channel.refreshToken);
+  
+  // If we have a refresh token, check if we need to refresh
+  if (channel.refreshToken) {
+    console.log('🔄 [OpenFront Channel] Refresh token found, checking if refresh needed');
     
-    // If access token hasn't expired yet, use it
-    if (expiresAt > new Date()) {
-      return platform.accessToken;
+    // Check if access token has expired (if we have expiry info)
+    let shouldRefresh = false;
+    
+    if (channel.tokenExpiresAt) {
+      const expiresAt = typeof channel.tokenExpiresAt === 'string' 
+        ? new Date(channel.tokenExpiresAt) 
+        : channel.tokenExpiresAt;
+      
+      const now = new Date();
+      shouldRefresh = expiresAt <= now;
+      
+      console.log('🔄 [OpenFront Channel] Token expiry check:');
+      console.log('🔄 [OpenFront Channel] - Expires at:', expiresAt.toISOString());
+      console.log('🔄 [OpenFront Channel] - Current time:', now.toISOString());
+      console.log('🔄 [OpenFront Channel] - Should refresh:', shouldRefresh);
+    } else {
+      // If no expiry info, assume token needs refresh
+      shouldRefresh = true;
+      console.log('🔄 [OpenFront Channel] No expiry info found, assuming refresh needed');
     }
     
-    // Use refresh token to get new access token
+    if (shouldRefresh) {
+      console.log('🔄 [OpenFront Channel] Starting token refresh process...');
+      
+      // Use refresh token to get new access token
     const tokenUrl = `${platform.domain}/api/oauth/token`;
+    console.log('🔄 [OpenFront Channel] Token URL:', tokenUrl);
     
     const formData = new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: platform.refreshToken,
+      refresh_token: channel.refreshToken,
+      client_id: channel.platform?.appKey || "",
+      client_secret: channel.platform?.appSecret || "",
     });
 
+    console.log('🔄 [OpenFront Channel] Refresh request params:');
+    console.log('🔄 [OpenFront Channel] - grant_type: refresh_token');
+    console.log('🔄 [OpenFront Channel] - client_id:', channel.platform?.appKey || "NOT_SET");
+    console.log('🔄 [OpenFront Channel] - client_secret:', channel.platform?.appSecret ? "SET" : "NOT_SET");
+    console.log('🔄 [OpenFront Channel] - refresh_token:', channel.refreshToken ? "SET" : "NOT_SET");
+
+    console.log('🔄 [OpenFront Channel] Making refresh token request...');
     const response = await fetch(tokenUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData,
     });
 
+    console.log('🔄 [OpenFront Channel] Refresh response status:', response.status);
+    console.log('🔄 [OpenFront Channel] Refresh response ok:', response.ok);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Token refresh failed:', errorText);
+      console.error('🚨 [OpenFront Channel] Token refresh failed:', errorText);
+      console.error('🚨 [OpenFront Channel] Response status:', response.status);
+      console.error('🚨 [OpenFront Channel] Response statusText:', response.statusText);
       throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
     }
 
-    const { access_token } = await response.json();
+    const tokenData = await response.json();
+    console.log('🔄 [OpenFront Channel] Token refresh response received');
+    console.log('🔄 [OpenFront Channel] - Has access_token:', !!tokenData.access_token);
+    console.log('🔄 [OpenFront Channel] - Has refresh_token:', !!tokenData.refresh_token);
+    console.log('🔄 [OpenFront Channel] - Expires in:', tokenData.expires_in, 'seconds');
     
-    // TODO: Update stored access token and expiry in database
-    // This would require updating the shop/channel record with new tokens
+    const { access_token, refresh_token, expires_in } = tokenData;
     
+    // Update stored access token and expiry in database
+    console.log('🔄 [OpenFront Channel] Updating tokens in database...');
+    try {
+      console.log('🔄 [OpenFront Channel] Updating channel:', channel.id);
+      await keystoneContext.sudo().query.Channel.updateOne({
+        where: { id: channel.id },
+        data: {
+          accessToken: access_token,
+          ...(refresh_token && { refreshToken: refresh_token }),
+          ...(expires_in && { tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)) })
+        }
+      });
+      console.log('✅ [OpenFront Channel] Channel updated with new tokens:', channel.id);
+    } catch (error) {
+      console.error('🚨 [OpenFront Channel] Failed to update channel tokens in database:', error);
+      // Continue with the request even if database update fails
+    }
+    
+    console.log('✅ [OpenFront Channel] Returning fresh access token');
     return access_token;
+    } else {
+      // Token hasn't expired yet, use existing one
+      console.log('✅ [OpenFront Channel] Token still valid, using existing access token');
+      return platform.accessToken;
+    }
   }
   
-  // If no refresh capability, just use the access token as-is
+  // If no refresh token, just use the access token as-is
+  console.log('⚠️ [OpenFront Channel] No refresh token available, using existing access token');
   return platform.accessToken;
 };
 
@@ -229,7 +316,7 @@ export async function getProductFunction({
   const openFrontClient = await createOpenFrontClient(platform);
 
   const gqlQuery = gql`
-    query GetChannelProduct($productId: ID!, $variantId: ID) {
+    query GetChannelProduct($productId: ID!, $variantWhere: ProductVariantWhereInput) {
       product(where: { id: $productId }) {
         id
         title
@@ -240,7 +327,7 @@ export async function getProductFunction({
           }
           imagePath
         }
-        productVariants(where: $variantId ? { id: { equals: $variantId } } : {}) {
+        productVariants(where: $variantWhere) {
           id
           title
           sku
@@ -260,7 +347,7 @@ export async function getProductFunction({
 
   const { product } = await openFrontClient.request(gqlQuery, {
     productId,
-    variantId,
+    variantWhere: variantId ? { id: { equals: variantId } } : {},
   }) as any;
 
   if (!product || product.status !== "published") {
@@ -306,108 +393,197 @@ export async function createPurchaseFunction({
 }) {
   console.log(`🛒 OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`🚚 OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
+  console.log(`📦 OpenFront Channel: Full shipping data:`, JSON.stringify(shipping, null, 2));
+  console.log(`📦 OpenFront Channel: Platform data:`, JSON.stringify(platform, null, 2));
+  console.log(`📦 OpenFront Channel: Cart items:`, JSON.stringify(cartItems, null, 2));
 
   const openFrontClient = await createOpenFrontClient(platform);
 
-  // Generate unique purchase ID
-  const purchaseId = `PO-OF-${Date.now()}`;
-  const orderNumber = `#${purchaseId}`;
-
-  // Calculate total price
-  const totalPrice = cartItems.reduce((sum: number, item: any) => {
-    return sum + (parseFloat(item.price) * item.quantity);
-  }, 0);
-
-  // Create fulfillment order in OpenFront
-  const createOrderMutation = gql`
-    mutation CreateFulfillmentOrder($data: OrderCreateInput!) {
-      createOrder(data: $data) {
-        id
-        orderNumber
-        total
-        status
-        orderLineItems {
+  try {
+    // Step 1: Get region data with currency ID and taxRate (like storefront does)
+    const currencyCode = (shipping?.currency || "USD").toLowerCase();
+    const getRegionQuery = gql`
+      query GetRegion($currencyCode: String!) {
+        regions(where: { currency: { code: { equals: $currencyCode } } }) {
           id
-          title
-          quantity
-          unitPrice
-          productVariant {
+          taxRate
+          currency {
             id
-            title
-            sku
-            product {
+            code
+          }
+        }
+      }
+    `;
+    
+    const { regions } = await openFrontClient.request(getRegionQuery, {
+      currencyCode: currencyCode,
+    }) as any;
+    
+    const region = regions[0];
+    if (!region) {
+      throw new Error(`No region found for currency: ${currencyCode}`);
+    }
+
+    // Step 2: Create cart (following storefront flow)
+    console.log("🛒 [OpenFront Channel] Creating cart with region:", region.id);
+    
+    const { createCart: cart } = await openFrontClient.request(gql`
+      mutation CreateCart($data: CartCreateInput!) {
+        createCart(data: $data) {
+          id
+          region {
+            id
+            currency {
               id
-              title
+              code
             }
           }
         }
       }
-    }
-  `;
-
-  try {
-    // Prepare order data
-    const orderData = {
-      orderNumber,
-      customerEmail: shipping?.email || "fulfillment@openship.org",
-      firstName: shipping?.firstName || "Fulfillment",
-      lastName: shipping?.lastName || "Order",
-      address1: shipping?.streetAddress1 || "",
-      address2: shipping?.streetAddress2 || "",
-      city: shipping?.city || "",
-      state: shipping?.state || "",
-      postalCode: shipping?.zip || "",
-      countryCode: shipping?.country || "US",
-      phone: shipping?.phone || "",
-      total: Math.round(totalPrice * 100), // Convert to cents
-      subtotal: Math.round(totalPrice * 100),
-      status: "pending_fulfillment",
-      orderLineItems: {
-        create: cartItems.map((item: any) => ({
-          title: item.name || `Product ${item.variantId}`,
-          quantity: item.quantity,
-          unitPrice: Math.round(parseFloat(item.price) * 100), // Convert to cents
-          productVariant: { connect: { id: item.variantId } }
-        }))
+    `, {
+      data: {
+        region: { connect: { id: region.id } },
+        email: shipping?.email || `order-${Date.now()}@openship.generated`
       }
-    };
-
-    const result = await openFrontClient.request(createOrderMutation, {
-      data: orderData,
     }) as any;
 
-    const order = result.createOrder;
+    console.log("✅ [OpenFront Channel] Cart created with ID:", cart.id);
 
-    console.log(`📧 OpenFront Channel: Fulfillment Order Created: ${orderNumber}`);
-    console.log(`💰 OpenFront Channel: Total: $${totalPrice.toFixed(2)}`);
+    // Step 3: Add line items to cart (this computes unitPrice/total automatically)
+    const lineItemsToCreate = [];
+    for (const item of cartItems) {
+      lineItemsToCreate.push({
+        productVariant: { connect: { id: item.variantId } },
+        quantity: item.quantity
+      });
+    }
 
-    // Process line items for response
-    const processedLineItems = order.orderLineItems.map((item: any) => ({
-      id: item.id,
-      title: item.title,
+    console.log("📦 [OpenFront Channel] Adding", lineItemsToCreate.length, "line items to cart");
+
+    await openFrontClient.request(gql`
+      mutation AddLineItemsToCart($cartId: ID!, $data: CartUpdateInput!) {
+        updateActiveCart(cartId: $cartId, data: $data) {
+          id
+        }
+      }
+    `, {
+      cartId: cart.id,
+      data: {
+        lineItems: {
+          create: lineItemsToCreate
+        }
+      }
+    }) as any;
+
+    console.log("✅ [OpenFront Channel] Line items added to cart");
+
+    // Step 4: Create addresses and add to cart
+    console.log("📍 [OpenFront Channel] Creating shipping address");
+    
+    const { createAddress: shippingAddr } = await openFrontClient.request(gql`
+      mutation CreateAddress($data: AddressCreateInput!) {
+        createAddress(data: $data) {
+          id
+        }
+      }
+    `, {
+      data: {
+        firstName: shipping?.firstName || "Guest",
+        lastName: shipping?.lastName || "Customer", 
+        address1: shipping?.address1 || "123 Default St",
+        city: shipping?.city || "Default City",
+        province: shipping?.state || "NY",
+        postalCode: shipping?.zip || "10001",
+        phone: shipping?.phone || "",
+        country: {
+          connect: {
+            iso2: (shipping?.country || "US").toLowerCase()
+          }
+        }
+      }
+    }) as any;
+
+    console.log("✅ [OpenFront Channel] Shipping address created:", shippingAddr.id);
+
+    // Step 5: Update cart with addresses
+    await openFrontClient.request(gql`
+      mutation UpdateCartAddresses($cartId: ID!, $data: CartUpdateInput!) {
+        updateActiveCart(cartId: $cartId, data: $data) {
+          id
+        }
+      }
+    `, {
+      cartId: cart.id,
+      data: {
+        shippingAddress: { connect: { id: shippingAddr.id } },
+        billingAddress: { connect: { id: shippingAddr.id } }
+      }
+    }) as any;
+
+    console.log("✅ [OpenFront Channel] Cart updated with addresses");
+
+    // Step 6: Complete cart to create order (like storefront placeOrder)
+    console.log("🎯 [OpenFront Channel] Completing cart to create order");
+    
+    console.log("🎯 [OpenFront Channel] Calling completeActiveCart for cart:", cart.id);
+    
+    const completeResult = await openFrontClient.request(gql`
+      mutation CompleteActiveCart($cartId: ID!) {
+        completeActiveCart(cartId: $cartId)
+      }
+    `, {
+      cartId: cart.id
+    }) as any;
+
+    console.log("🔍 [OpenFront Channel] completeActiveCart result:", JSON.stringify(completeResult, null, 2));
+
+    const order = completeResult.completeActiveCart;
+    if (!order?.id) {
+      throw new Error("Failed to complete cart - no order created");
+    }
+
+    console.log("🔍 [OpenFront Channel] COMPLETE ORDER RESULT:", JSON.stringify(order, null, 2));
+    console.log("🎉 [OpenFront Channel] Order created successfully:", order.id);
+
+    // Process line items from cart items (since order doesn't include line items)
+    const processedLineItems = cartItems.map((item: any) => ({
+      id: item.variantId,
+      title: item.name || `Product ${item.variantId}`,
       quantity: item.quantity,
-      variantId: item.productVariant.id,
-      productId: item.productVariant.product.id
+      variantId: item.variantId,
     }));
 
-    // Return success response
+    // Return in the same format as Shopify channel
     return {
       purchaseId: order.id,
-      orderNumber: order.orderNumber,
-      totalPrice: (order.total / 100).toFixed(2),
+      orderNumber: `#${order.displayId}`,
+      totalPrice: order.total,
       invoiceUrl: `https://${platform.domain}/admin/orders/${order.id}`,
       lineItems: processedLineItems,
-      status: "processing"
+      status: "pending",
     };
 
-  } catch (error) {
-    console.error('OpenFront Channel: Purchase creation failed:', error);
+  } catch (error: any) {
+    console.error('🚨 OpenFront Channel: Purchase creation failed:', error);
     
-    // Return error response
+    if (error.response?.errors) {
+      console.error('🚨 GraphQL Errors:');
+      error.response.errors.forEach((err: any, i: number) => {
+        console.error(`   ${i + 1}. ${err.message}`);
+        if (err.path) {
+          console.error(`      Path: ${err.path.join(' -> ')}`);
+        }
+        if (err.extensions) {
+          console.error(`      Extensions:`, err.extensions);
+        }
+      });
+    }
+    
+    // Return error response with detailed error info
     return {
-      purchaseId,
-      orderNumber,
-      totalPrice: totalPrice.toFixed(2),
+      purchaseId: null,
+      orderNumber: null,
+      totalPrice: "0.00",
       invoiceUrl: null,
       lineItems: cartItems.map((item: any) => ({
         id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -422,7 +598,7 @@ export async function createPurchaseFunction({
   }
 }
 
-// Function to create webhook for channel events
+// Function to create webhook for channel events - simplified to update user's webhook URL
 export async function createWebhookFunction({
   platform,
   endpoint,
@@ -432,46 +608,128 @@ export async function createWebhookFunction({
   endpoint: string;
   events: string[];
 }) {
-  const openFrontClient = await createOpenFrontClient(platform);
+  console.log('🪝 [OpenFront Channel] createWebhookFunction called');
+  console.log('🪝 [OpenFront Channel] Platform domain:', platform.domain);
+  console.log('🪝 [OpenFront Channel] Endpoint URL:', endpoint);
+  console.log('🪝 [OpenFront Channel] Events received:', events);
+  console.log('🪝 [OpenFront Channel] Events type:', typeof events, 'Array?', Array.isArray(events));
+  console.log('🪝 [OpenFront Channel] Platform data:', JSON.stringify(platform, null, 2));
 
-  const createWebhookMutation = gql`
-    mutation CreateChannelWebhookEndpoint($data: WebhookEndpointCreateInput!) {
-      createWebhookEndpoint(data: $data) {
-        id
-        url
-        events
-        isActive
-        secret
+  // Map Openship channel events to OpenFront events
+  const eventMap: Record<string, string> = {
+    ORDER_CREATED: "order.created",
+    ORDER_CANCELLED: "order.cancelled", 
+    TRACKING_CREATED: "fulfillment.created",
+  };
+
+  const openFrontEvents = events.map(event => {
+    const mapped = eventMap[event] || event;
+    console.log(`🪝 [OpenFront Channel] Mapping: ${event} -> ${mapped}`);
+    return mapped;
+  });
+  console.log('🪝 [OpenFront Channel] Final mapped events array:', openFrontEvents);
+  console.log('🪝 [OpenFront Channel] Joined events string:', openFrontEvents.join(", "));
+
+  try {
+    console.log('🪝 [OpenFront Channel] Creating OpenFront GraphQL client...');
+    const openFrontClient = await createOpenFrontClient(platform);
+    console.log('✅ [OpenFront Channel] GraphQL client created successfully');
+
+    // Get current user from the access token
+    console.log('🪝 [OpenFront Channel] Fetching current user...');
+    const getUserQuery = gql`
+      query GetCurrentUser {
+        authenticatedItem {
+          ... on User {
+            id
+            email
+            orderWebhookUrl
+          }
+        }
+      }
+    `;
+
+    console.log('🪝 [OpenFront Channel] Executing getUserQuery...');
+    const { authenticatedItem: user } = await openFrontClient.request(getUserQuery) as any;
+    console.log('🪝 [OpenFront Channel] getUserQuery result:', JSON.stringify(user, null, 2));
+    
+    if (!user) {
+      console.error('🚨 [OpenFront Channel] User not authenticated - authenticatedItem is null/undefined');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('✅ [OpenFront Channel] User authenticated successfully');
+    console.log('🪝 [OpenFront Channel] User ID:', user.id);
+    console.log('🪝 [OpenFront Channel] User email:', user.email);
+    console.log('🪝 [OpenFront Channel] Current webhook URL:', user.orderWebhookUrl);
+
+    // Update the user's webhook URL using updateActiveUser (bypasses access restrictions)
+    console.log('🪝 [OpenFront Channel] Updating user webhook URL...');
+    const updateUserMutation = gql`
+      mutation UpdateActiveUserWebhookUrl($data: UserUpdateProfileInput!) {
+        updateActiveUser(data: $data) {
+          id
+          orderWebhookUrl
+        }
+      }
+    `;
+
+    console.log('🪝 [OpenFront Channel] Update mutation variables:');
+    console.log('🪝 [OpenFront Channel] - User ID:', user.id);
+    console.log('🪝 [OpenFront Channel] - New webhook URL:', endpoint);
+
+    const result = await openFrontClient.request(updateUserMutation, {
+      data: { orderWebhookUrl: endpoint }
+    }) as any;
+
+    console.log('🪝 [OpenFront Channel] Update mutation result:', JSON.stringify(result, null, 2));
+
+    const updatedUser = result.updateActiveUser;
+    console.log('✅ [OpenFront Channel] User webhook URL updated successfully');
+    console.log('🪝 [OpenFront Channel] Updated user ID:', updatedUser.id);
+    console.log('🪝 [OpenFront Channel] Updated webhook URL:', updatedUser.orderWebhookUrl);
+
+    const webhookResponse = { 
+      webhooks: [{ 
+        id: `user-${updatedUser.id}`,
+        callbackUrl: updatedUser.orderWebhookUrl,
+        topic: openFrontEvents.join(", "), // Join array into comma-separated string
+        format: "JSON",
+        createdAt: new Date().toISOString()
+      }], 
+      webhookId: `user-${updatedUser.id}`
+    };
+
+    console.log('🪝 [OpenFront Channel] Final webhook response:', JSON.stringify(webhookResponse, null, 2));
+    return webhookResponse;
+
+  } catch (error: any) {
+    console.error('🚨 [OpenFront Channel] createWebhookFunction failed:', error);
+    console.error('🚨 [OpenFront Channel] Error message:', error.message);
+    console.error('🚨 [OpenFront Channel] Error stack:', error.stack);
+    
+    if (error.response) {
+      console.error('🚨 [OpenFront Channel] GraphQL response:', JSON.stringify(error.response, null, 2));
+      
+      if (error.response.errors) {
+        console.error('🚨 [OpenFront Channel] GraphQL errors:');
+        error.response.errors.forEach((err: any, i: number) => {
+          console.error(`🚨 [OpenFront Channel]   ${i + 1}. ${err.message}`);
+          if (err.path) {
+            console.error(`🚨 [OpenFront Channel]      Path: ${err.path.join(' -> ')}`);
+          }
+          if (err.extensions) {
+            console.error(`🚨 [OpenFront Channel]      Extensions:`, err.extensions);
+          }
+        });
       }
     }
-  `;
-
-  // Map channel events to OpenFront events
-  const eventMap: Record<string, string> = {
-    PURCHASE_CREATED: "order.created",
-    PURCHASE_SHIPPED: "fulfillment.shipped",
-    INVENTORY_UPDATED: "inventory.updated",
-  };
-
-  const openFrontEvents = events.map(event => eventMap[event] || event);
-
-  const result = await openFrontClient.request(createWebhookMutation, {
-    data: {
-      url: endpoint,
-      events: openFrontEvents,
-      isActive: true,
-    },
-  }) as any;
-
-  const webhook = result.createWebhookEndpoint;
-
-  return { 
-    webhooks: [webhook], 
-    webhookId: webhook.id 
-  };
+    
+    throw error;
+  }
 }
 
-// Function to delete webhook
+// Function to delete webhook - clear user's webhook URL
 export async function deleteWebhookFunction({
   platform,
   webhookId,
@@ -481,22 +739,28 @@ export async function deleteWebhookFunction({
 }) {
   const openFrontClient = await createOpenFrontClient(platform);
 
-  const deleteWebhookMutation = gql`
-    mutation DeleteChannelWebhookEndpoint($where: WebhookEndpointWhereUniqueInput!) {
-      deleteWebhookEndpoint(where: $where) {
+  // Extract user ID from webhookId (format: "user-{userId}")
+  const userId = webhookId.replace('user-', '');
+
+  // Clear the user's webhook URL
+  const updateUserMutation = gql`
+    mutation ClearUserWebhookUrl($where: UserWhereUniqueInput!, $data: UserUpdateInput!) {
+      updateUser(where: $where, data: $data) {
         id
+        orderWebhookUrl
       }
     }
   `;
 
-  const result = await openFrontClient.request(deleteWebhookMutation, {
-    where: { id: webhookId },
+  const result = await openFrontClient.request(updateUserMutation, {
+    where: { id: userId },
+    data: { orderWebhookUrl: null }
   });
 
   return result;
 }
 
-// Function to get webhooks
+// Function to get webhooks - get user's webhook URL  
 export async function getWebhooksFunction({
   platform,
 }: {
@@ -504,34 +768,41 @@ export async function getWebhooksFunction({
 }) {
   const openFrontClient = await createOpenFrontClient(platform);
 
-  const query = gql`
-    query GetChannelWebhookEndpoints {
-      webhookEndpoints(where: { isActive: { equals: true } }) {
-        id
-        url
-        events
-        isActive
-        createdAt
+  // Map OpenFront events back to Openship channel events
+  const eventMap: Record<string, string> = {
+    "order.created": "PURCHASE_CREATED",
+    "fulfillment.created": "PURCHASE_SHIPPED",
+  };
+
+  // Get current user's webhook URL
+  const getUserQuery = gql`
+    query GetCurrentUser {
+      authenticatedItem {
+        ... on User {
+          id
+          email
+          orderWebhookUrl
+          createdAt
+        }
       }
     }
   `;
 
-  const { webhookEndpoints } = await openFrontClient.request(query) as any;
+  const { authenticatedItem: user } = await openFrontClient.request(getUserQuery) as any;
+  
+  if (!user || !user.orderWebhookUrl) {
+    return { webhooks: [] };
+  }
 
-  // Map OpenFront events back to channel events
-  const eventMap: Record<string, string> = {
-    "order.created": "PURCHASE_CREATED",
-    "fulfillment.shipped": "PURCHASE_SHIPPED",
-    "inventory.updated": "INVENTORY_UPDATED",
-  };
-
-  const webhooks = webhookEndpoints.map((webhook: any) => ({
-    id: webhook.id,
-    callbackUrl: webhook.url,
-    topic: webhook.events.map((event: string) => eventMap[event] || event),
+  // For OpenFront channels, we support both PURCHASE_CREATED and PURCHASE_SHIPPED
+  // Since we store a single webhook URL on the user, we return both events as supported
+  const webhooks = [{
+    id: `user-${user.id}`,
+    callbackUrl: user.orderWebhookUrl,
+    topic: ["PURCHASE_CREATED", "PURCHASE_SHIPPED"], // These are the channel events we support
     format: "JSON",
-    createdAt: webhook.createdAt,
-  }));
+    createdAt: user.createdAt
+  }];
 
   return { webhooks };
 }
@@ -702,9 +973,15 @@ export async function oAuthCallbackFunction({
     throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
   }
 
-  const { access_token } = await response.json();
+  const { access_token, refresh_token, expires_in } = await response.json();
   
-  return access_token; // Return just the token, as expected by OpenShip
+  // Return OAuth response with refresh token support
+  return {
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    expiresIn: expires_in,
+    tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)).toISOString()
+  };
 }
 
 // Required OAuth scopes for OpenFront channel integration

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, Copy } from "lucide-react";
 import {
@@ -15,7 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import MultipleSelector, { Option } from "@/components/ui/multiselect";
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { XIcon, ChevronDown } from "lucide-react";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { createApiKey } from "../actions/getApiKeys";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -37,7 +40,12 @@ function generateApiKeyToken(): string {
   return prefix + result;
 }
 
-// Define API key scopes as options for MultipleSelector
+export interface Option {
+  value: string;
+  label: string;
+}
+
+// Define API key scopes as options
 const scopeOptions: Option[] = [
   { value: "read_orders", label: "read_orders" },
   { value: "write_orders", label: "write_orders" },
@@ -59,6 +67,169 @@ const scopeOptions: Option[] = [
   { value: "read_users", label: "read_users" },
   { value: "write_users", label: "write_users" },
 ];
+
+function ScopesMultiSelect({
+  value = [],
+  onChange,
+  options = [],
+  placeholder = "Select scopes for this API key",
+  isDisabled = false,
+}: {
+  value?: Option[];
+  onChange?: (options: Option[]) => void;
+  options?: Option[];
+  placeholder?: string;
+  isDisabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const commandRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        commandRef.current &&
+        !commandRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = useCallback(
+    (option: Option) => {
+      if (!value.some((v) => v.value === option.value)) {
+        const newValue = [...value, option];
+        onChange?.(newValue);
+      }
+      setInputValue("");
+    },
+    [value, onChange]
+  );
+
+  const handleRemove = useCallback(
+    (optionToRemove: Option) => {
+      const newValue = value.filter((v) => v.value !== optionToRemove.value);
+      onChange?.(newValue);
+    },
+    [value, onChange]
+  );
+
+  const handleClearAll = useCallback(() => {
+    onChange?.([]);
+  }, [onChange]);
+
+  // Filter out selected options and by input value
+  const filteredOptions = options.filter(
+    (option) => !value.some((v) => v.value === option.value) &&
+    option.label.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={commandRef}>
+      <div
+        className={cn(
+          "border-input ring-offset-background focus-within:ring-ring flex min-h-11 w-full items-center justify-between rounded-md border bg-transparent px-4 py-2 focus-within:ring-2 focus-within:ring-offset-2 text-left",
+          isDisabled && "cursor-not-allowed opacity-50"
+        )}
+        onClick={() => {
+          if (!isDisabled) {
+            setOpen(true);
+            inputRef.current?.focus();
+          }
+        }}
+      >
+        <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+          {value.map((option) => (
+            <div
+              key={option.value}
+              className="animate-fadeIn bg-background text-secondary-foreground relative inline-flex h-7 cursor-default items-center rounded-md border ps-2 pe-7 text-xs font-medium transition-all disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 max-w-full"
+            >
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]">{option.label}</span>
+              {!isDisabled && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove(option);
+                  }}
+                  className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 absolute -inset-y-px -end-px flex size-7 items-center justify-center rounded-e-md border border-transparent p-0 outline-hidden transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))}
+          <input
+            ref={inputRef}
+            disabled={isDisabled}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className={cn(
+              "placeholder:text-muted-foreground flex-1 bg-transparent outline-none",
+              value.length === 0 ? "w-full" : "w-20"
+            )}
+            placeholder={value.length === 0 ? placeholder : ""}
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          {value.length > 0 && !isDisabled && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearAll();
+              }}
+              className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          )}
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </div>
+      </div>
+      {open && (
+        <div className="absolute z-10 mt-1 w-full max-w-[400px]">
+          <Command className="border-input rounded-md border bg-popover shadow-md">
+            <CommandList className="max-h-48">
+              <>
+                {filteredOptions.length === 0 ? (
+                  <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                    {inputValue.length > 0 ? (
+                      <>No results found for "{inputValue}"</>
+                    ) : (
+                      <>All options have been selected</>
+                    )}
+                  </CommandEmpty>
+                ) : (
+                  <CommandGroup>
+                    {filteredOptions.map((option) => (
+                      <div className="px-1 py-0.5" key={option.value}>
+                        <div 
+                          onClick={() => handleSelect(option)}
+                          className="relative cursor-pointer rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <div className="flex-1 whitespace-normal break-words overflow-visible min-w-0 pr-2">
+                            {option.label}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CommandGroup>
+                )}
+              </>
+            </CommandList>
+          </Command>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function CreateApiKey() {
   const [open, setOpen] = useState(false);
@@ -136,10 +307,62 @@ export function CreateApiKey() {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(createdToken);
-      toast.success("API key copied to clipboard!");
+      // Modern browsers with clipboard API support
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(createdToken);
+        toast.success("API key copied to clipboard!");
+        return;
+      }
+
+      // Fallback for older browsers or non-secure contexts
+      const textArea = document.createElement("textarea");
+      textArea.value = createdToken;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        toast.success("API key copied to clipboard!");
+      } else {
+        throw new Error("Copy command failed");
+      }
     } catch (error) {
-      toast.error("Failed to copy API key");
+      console.error("Copy failed:", error);
+      
+      // Final fallback - detect mobile and provide instructions
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Mobile-specific fallback: create a temporary input and select it
+        try {
+          const input = document.createElement("input");
+          input.value = createdToken;
+          input.style.position = "fixed";
+          input.style.left = "-999999px";
+          input.style.top = "-999999px";
+          document.body.appendChild(input);
+          input.focus();
+          input.setSelectionRange(0, input.value.length);
+          
+          // Show instructions to user
+          toast.error("Please manually copy the selected text above");
+          
+          // Clean up after a delay
+          setTimeout(() => {
+            document.body.removeChild(input);
+          }, 5000);
+        } catch (mobileError) {
+          toast.error("Copy failed. Please manually select and copy the API key");
+        }
+      } else {
+        toast.error("Copy failed. Please manually select and copy the API key");
+      }
     }
   };
 
@@ -194,18 +417,11 @@ export function CreateApiKey() {
                   <Label>
                     Scopes <span className="text-red-500">*</span>
                   </Label>
-                  <MultipleSelector
-                    commandProps={{
-                      label: "Select API key scopes",
-                    }}
+                  <ScopesMultiSelect
                     value={formData.scopes}
-                    defaultOptions={scopeOptions}
-                    placeholder="Select scopes for this API key"
-                    hideClearAllButton={false}
-                    hidePlaceholderWhenSelected={true}
-                    emptyIndicator={<p className="text-center text-sm">No scopes found</p>}
+                    options={scopeOptions}
                     onChange={handleScopeChange}
-                    className="text-base"
+                    placeholder="Select scopes for this API key"
                   />
                   <p className="text-muted-foreground mt-2 text-xs">
                     Select the minimum permissions needed for this API key
@@ -214,11 +430,10 @@ export function CreateApiKey() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="expiresAt">Expiration (optional)</Label>
-                  <Input
-                    id="expiresAt"
-                    type="datetime-local"
+                  <DateTimePicker
                     value={formData.expiresAt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                    onChange={(value) => setFormData(prev => ({ ...prev, expiresAt: value }))}
+                    placeholder="Set expiration date and time"
                   />
                 </div>
               </div>
@@ -251,7 +466,7 @@ export function CreateApiKey() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-mono truncate">
+                        <div className="text-sm font-mono truncate max-w-[200px]">
                           {createdToken}
                         </div>
                       </div>

@@ -24,8 +24,8 @@ export const ChannelPlatform = list({
       description:
         "Adding these fields will enable this platform to be installed as an app by users.",
       fields: {
-        appKey: text({ validation: { isRequired: true } }),
-        appSecret: text({ validation: { isRequired: true } }),
+        appKey: text(),
+        appSecret: text(),
         callbackUrl: virtual({
           field: graphql.field({
             type: graphql.String,

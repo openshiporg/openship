@@ -153,7 +153,7 @@ openship/
 
 ## Documentation
 
-For comprehensive technical documentation, see [docs.openship.org/openship/ecommerce](https://docs.openship.org/openship/ecommerce) which covers:
+For comprehensive technical documentation, see [docs.openship.org/docs/openship/ecommerce](https://docs.openship.org/docs/openship/ecommerce) which covers:
 - Complete integration guides
 - API reference and operations
 - Custom shop and channel development
@@ -176,15 +176,6 @@ Openship is production-ready and can be deployed to:
 - Webhook reliability and retry mechanisms
 - Monitoring and alerting for failed orders
 
-## Foundation
-
-This project is built on [next-keystone-starter](https://github.com/junaid33/next-keystone-starter), which provides:
-- Modern full-stack architecture
-- KeystoneJS 6 integration with Next.js 15
-- Authentication and session management
-- Database setup with Prisma
-- Development tooling and configuration
-
 ## Contributing
 
 We welcome contributions! Please see our contributing guidelines for details on:
@@ -199,7 +190,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Documentation**: Check our comprehensive documentation at [docs.openship.org/openship/ecommerce](https://docs.openship.org/openship/ecommerce)
+- **Documentation**: Check our comprehensive documentation at [docs.openship.org/docs/openship/ecommerce](https://docs.openship.org/docs/openship/ecommerce)
 - **Issues**: Report bugs and feature requests on GitHub Issues
 - **Community**: Join our community discussions
 - **Enterprise**: Contact us for enterprise support and custom integrations
@@ -207,4 +198,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Openship** - Order Routing Platform  
-Built with Next.js 15 and KeystoneJS 6 on [next-keystone-starter](https://github.com/junaid33/next-keystone-starter)
+Built with Next.js 15 and KeystoneJS 6

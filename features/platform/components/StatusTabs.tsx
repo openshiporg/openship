@@ -85,7 +85,7 @@ export function StatusTabs({ statusCounts, statusConfig, entityName, onSelectAll
       />
 
       <div
-        className="absolute bottom-[-1px] h-[2px] bg-foreground transition-all duration-300 ease-out ml-4 md:ml-6"
+        className="absolute bottom-[-1px] h-[2px] bg-blue-500 transition-all duration-300 ease-out ml-4 md:ml-6"
         style={{
           left: `${activeTabOffsetLeft - scrollOffset}px`,
           width: `${activeTabWidth}px`,
@@ -137,9 +137,9 @@ export function StatusTabs({ statusCounts, statusConfig, entityName, onSelectAll
               >
                 <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
                   {status.label}
-                  <Badge color={config.color as any} className="px-1.5 py-0 text-[10px] leading-[14px] rounded-sm shadow-xs inline-flex items-center h-[18px]">
+                  <span className="rounded-sm bg-background border shadow-xs px-1.5 py-0 text-[10px] leading-[14px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 inline-flex items-center h-[18px]">
                     {status.count}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             );

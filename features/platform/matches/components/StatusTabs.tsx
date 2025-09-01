@@ -9,17 +9,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 const statusConfig = {
   SHOP: {
     label: "Shop Products",
-    icon: Layers3,
+    // No icon for platforms
     color: "blue"
   },
   CHANNEL: {
     label: "Channel Products",
-    icon: Database,
+    // No icon for platforms
     color: "green"
   },
   MATCHES: {
     label: "Matches",
     icon: Square,
+    iconColor: "text-purple-500",
     color: "purple"
   },
 } as const;
@@ -90,13 +91,14 @@ export function StatusTabs({ statusCounts, onSelectAll, selectedItems, totalItem
     updateScroll(n => n + 1);
   };
 
-  const activeIndex = statuses.findIndex((s) => s.value === currentStatus);
+  const activeIndex = currentStatus === "all" ? 0 : statuses.findIndex((s) => s.value === currentStatus) + 1;
   const activeTabOffsetLeft = tabRefs.current[activeIndex]?.offsetLeft || 0;
   const activeTabWidth = tabRefs.current[activeIndex]?.offsetWidth || 0;
   const scrollOffset = scrollContainerRef.current ? scrollContainerRef.current.scrollLeft : 0;
 
   return (
     <div className="relative">
+      {/* Hover background */}
       <div
         className="absolute h-[28px] mt-1 transition-all duration-300 ease-out bg-muted/60 rounded-[6px] flex items-center ml-4 md:ml-6"
         style={{
@@ -106,11 +108,13 @@ export function StatusTabs({ statusCounts, onSelectAll, selectedItems, totalItem
         }}
       />
 
+      {/* Active indicator line */}
       <div
-        className="absolute bottom-[-1px] h-[2px] bg-foreground transition-all duration-300 ease-out ml-4 md:ml-6"
+        className="absolute h-[2px] bg-blue-500 transition-all duration-300 ease-out ml-4 md:ml-6"
         style={{
           left: `${activeTabOffsetLeft - scrollOffset}px`,
           width: `${activeTabWidth}px`,
+          bottom: '-1.5px',
         }}
       />
 
@@ -124,25 +128,32 @@ export function StatusTabs({ statusCounts, onSelectAll, selectedItems, totalItem
             />
           )}
           {statuses.map((status, index) => {
-            const StatusIcon = statusConfig[status.value as keyof typeof statusConfig].icon;
+            const config = statusConfig[status.value as keyof typeof statusConfig];
+            const StatusIcon = config.icon;
+            const iconColor = config.iconColor;
+            const isActive = currentStatus === status.value;
+            
             return (
               <div
                 key={status.value}
-                ref={el => { tabRefs.current[index] = el }}
+                ref={el => { tabRefs.current[index + 1] = el }}
                 className={`px-3 py-2 cursor-pointer transition-colors duration-300 ${
-                  currentStatus === status.value
+                  isActive
                     ? "text-foreground"
                     : "text-muted-foreground"
                 }`}
-                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseEnter={() => setHoveredIndex(index + 1)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 onClick={() => handleStatusChange(status.value)}
               >
                 <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
+                  {/* Only show icon for MATCHES */}
+                  {StatusIcon && <StatusIcon className={`h-4 w-4 ${iconColor}`} />}
                   {status.label}
-                  <Badge color={statusConfig[status.value as keyof typeof statusConfig].color} className="px-1.5 py-0 text-[10px] leading-[14px] rounded-sm shadow-xs inline-flex items-center h-[18px]">
+                  {/* Use neutral badge for all tabs */}
+                  <span className="rounded-sm bg-background border shadow-xs px-1.5 py-0 text-[10px] leading-[14px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 inline-flex items-center h-[18px]">
                     {status.count}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             );

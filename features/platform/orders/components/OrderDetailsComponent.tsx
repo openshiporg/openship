@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 
 // Helper function to safely format price - handles text prices that may not be numeric
 function formatPrice(price: string | number | undefined, currency: string = '$'): string {
@@ -78,6 +78,18 @@ import { useToast } from '@/components/ui/use-toast';
 import { Order } from "../lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { deleteItemAction } from '@/features/dashboard/actions/item-actions';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 
 interface OrderDetailsComponentProps {
   order: Order;
@@ -132,6 +144,37 @@ export const OrderDetailsComponent = ({
   const handleMatchOrder = async () => {
     onAction('matchOrder', order.id);
   };
+
+  // Delete handler exactly like EditItemDrawer
+  const handleDelete = useCallback(async () => {
+    try {
+      const { errors } = await deleteItemAction('Order', order.id);
+      
+      const error = errors?.find(x => x.path === undefined || x.path?.length === 1);
+      if (error) {
+        toast({
+          title: 'Unable to delete order',
+          description: error.message,
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      toast({
+        title: 'Order deleted successfully'
+      });
+      
+      // Refresh the page or trigger parent refresh
+      window.location.reload();
+      
+    } catch (err: any) {
+      toast({
+        title: 'Unable to delete order',
+        description: err.message || "An unexpected error occurred",
+        variant: 'destructive'
+      });
+    }
+  }, [order.id, toast]);
 
   return (
     <>
@@ -197,7 +240,8 @@ export const OrderDetailsComponent = ({
               <StatusBadge status={order.status as any} />
               {currentAction && (
                 <Badge
-                  className="uppercase tracking-wide font-medium text-xs flex items-center gap-1.5 border py-0.5"
+                  color="zinc"
+                  className="text-[.6rem] sm:text-[.7rem] py-0 px-2 sm:px-3 tracking-wide font-medium rounded-md border h-6 uppercase flex items-center gap-1.5"
                 >
                   <Loader2 className="size-3.5 shrink-0 animate-spin" />
                   {getLoadingText(currentAction)}
@@ -214,54 +258,52 @@ export const OrderDetailsComponent = ({
                       <MoreVertical className="stroke-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onAction("getMatch", order.id)}>
-                      <Square
-                        size={16}
-                        className="opacity-60 mr-2"
-                        aria-hidden="true"
-                      />
-                      GET MATCH
+                      <Square size={16} className="opacity-40" strokeWidth={2} aria-hidden="true" />
+                      Get Match
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onAction("saveMatch", order.id)}>
-                      <Save
-                        size={16}
-                        className="opacity-60 mr-2"
-                        aria-hidden="true"
-                      />
-                      SAVE MATCH
+                      <Save size={16} className="opacity-40" strokeWidth={2} aria-hidden="true" />
+                      Save Match
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onAction("placeOrder", order.id)}>
-                      <Ticket
-                        size={16}
-                        className="opacity-60 mr-2"
-                        aria-hidden="true"
-                      />
-                      PLACE ORDER
+                      <Ticket size={16} className="opacity-40" strokeWidth={2} aria-hidden="true" />
+                      Place Order
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsEditDrawerOpen(true)}>
-                      <FilePenLine
-                        size={16}
-                        className="opacity-60 mr-2"
-                        aria-hidden="true"
-                      />
-                      EDIT ORDER
+                      <FilePenLine size={16} className="opacity-40" strokeWidth={2} aria-hidden="true" />
+                      Edit Order
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => {
-                        if (confirm(`Are you sure you want to delete order ${order.orderName || order.orderId}? This action cannot be undone.`)) {
-                          onAction("deleteOrder", order.id);
-                        }
-                      }}
-                      className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
-                    >
-                      <Trash2
-                        size={16}
-                        className="opacity-60 mr-2"
-                        aria-hidden="true"
-                      />
-                      DELETE ORDER
-                    </DropdownMenuItem>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem 
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
+                        >
+                          <Trash2 size={16} className="opacity-40" strokeWidth={2} aria-hidden="true" />
+                          Delete Order
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete order</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete{' '}
+                            <strong>
+                              Order {order.orderName || `#${order.orderId}`}
+                            </strong>
+                            ? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete}>
+                            Yes, delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}

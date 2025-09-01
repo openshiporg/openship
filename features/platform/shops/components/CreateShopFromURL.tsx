@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createShop } from "../actions/createShop";
+import { createShop, CreateShopInput } from "../actions/createShop";
 import { createShopPlatform } from "../actions/createShopPlatform";
 import { toast } from "sonner";
 import {
@@ -76,14 +76,6 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
 
     if (!urlDomain) return;
 
-    console.log('CreateShopFromURL - Processing OAuth callback:', {
-      hasClientId: !!client_id,
-      hasPlatformId: !!urlPlatform,
-      hasAccessToken: !!urlAccessToken,
-      hasCode: !!code,
-      domain: urlDomain
-    });
-
     // Auto-generate shop name from domain
     const domainWithoutProtocol = decodeURIComponent(urlDomain).replace(/^https?:\/\//, '');
     const cleanName = domainWithoutProtocol.split('.')[0].replace(/[-_]/g, ' ');
@@ -92,37 +84,38 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
     setDomain(decodeURIComponent(urlDomain));
     
     // Check if this is marketplace flow (has client_id) or long flow (has platform)
-    if (client_id && client_secret && app_name && adapter_slug && urlAccessToken) {
+    if (client_id && client_secret && app_name && adapter_slug && urlAccessToken && urlAccessToken !== 'undefined') {
       // Marketplace flow - OAuth already exchanged, ready to create platform/shop
-      console.log('✅ Marketplace flow detected');
       setIsMarketplaceFlow(true);
       setClientId(client_id);
       setClientSecret(client_secret);
       setAppName(app_name);
       setAdapterSlug(adapter_slug);
       setAccessToken(urlAccessToken);
+      
+      if (urlRefreshToken) {
+        setRefreshToken(urlRefreshToken);
+      }
+      if (urlTokenExpiresAt) {
+        setTokenExpiresAt(urlTokenExpiresAt);
+      }
     } else if (urlPlatform && urlAccessToken) {
       // Long flow - platform exists, just need to create shop
-      console.log('✅ Long flow detected');
       setPlatformId(urlPlatform);
       setAccessToken(urlAccessToken);
       
       // Set additional token data if provided
-      if (urlRefreshToken) setRefreshToken(urlRefreshToken);
-      if (urlTokenExpiresAt) setTokenExpiresAt(urlTokenExpiresAt);
+      if (urlRefreshToken) {
+        setRefreshToken(urlRefreshToken);
+      }
+      if (urlTokenExpiresAt) {
+        setTokenExpiresAt(urlTokenExpiresAt);
+      }
     } else {
-      console.log('❌ Invalid OAuth callback - missing required parameters');
       return;
     }
     
     setIsDialogOpen(true);
-
-    // Clean URL params
-    const newUrl = new URL(window.location.href);
-    ['showCreateShop', 'platform', 'accessToken', 'domain', 'client_id', 'client_secret', 'app_name', 'adapter_slug', 'refreshToken', 'tokenExpiresAt', 'code'].forEach(param => {
-      newUrl.searchParams.delete(param);
-    });
-    router.replace(newUrl.pathname + newUrl.search);
   }, [searchParams, router]);
 
   const handleShopCreation = async () => {
@@ -143,20 +136,14 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
 
       // Marketplace flow: Check if platform exists
       if (isMarketplaceFlow && clientId && clientSecret) {
-        console.log('🔍 Checking if platform exists for client_id:', clientId);
-        
         const { getShopPlatformByClientId } = await import('../actions/getShopPlatformByClientId');
         const platformResult = await getShopPlatformByClientId(clientId);
-        
-        console.log('🔍 Platform check result:', platformResult);
         
         if (platformResult.success && platformResult.data) {
           // Platform exists, use it
           finalPlatformId = platformResult.data.id;
-          console.log('✅ Found existing platform ID:', finalPlatformId, 'Name:', platformResult.data.name);
         } else {
           // Platform doesn't exist, will create inline with shop
-          console.log('📦 Platform does not exist, will create inline');
           finalPlatformId = null;
         }
       }
@@ -169,26 +156,24 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
       }
 
       // Create the shop
-      const shopData: any = {
+      const shopData: CreateShopInput = {
         name: name.trim(),
         domain: domain.trim(),
         accessToken: finalAccessToken.trim(),
-        ...(refreshToken && { refreshToken: refreshToken }),
-        ...(tokenExpiresAt && { tokenExpiresAt: new Date(tokenExpiresAt) }),
       };
 
-      console.log('🏪 Creating shop with data:');
-      console.log('  - finalPlatformId:', finalPlatformId);
-      console.log('  - isMarketplaceFlow:', isMarketplaceFlow);
-      console.log('  - clientId:', clientId);
-      console.log('  - adapterSlug:', adapterSlug);
+      if (refreshToken) {
+        shopData.refreshToken = refreshToken;
+      }
+
+      if (tokenExpiresAt) {
+        shopData.tokenExpiresAt = new Date(tokenExpiresAt);
+      }
 
       if (finalPlatformId) {
-        console.log('🔗 Using existing platform ID:', finalPlatformId);
         shopData.platformId = finalPlatformId;
       } else if (isMarketplaceFlow && clientId && clientSecret && appName && adapterSlug) {
         // Create platform inline using dynamic adapter slug
-        console.log('📦 Creating platform inline with adapter:', adapterSlug);
         shopData.platform = {
           create: {
             name: appName + ' (Auto-created)',
@@ -211,19 +196,21 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
             deleteWebhookFunction: adapterSlug,
           }
         };
-        console.log('📦 Platform inline creation data:', shopData.platform.create);
-      } else {
-        console.log('❌ No platform connection - this will cause an error');
-        console.log('❌ Missing: finalPlatformId?', !finalPlatformId, 'isMarketplaceFlow?', !isMarketplaceFlow, 'clientId?', !clientId, 'adapterSlug?', !adapterSlug);
       }
-
-      console.log('🏪 Final shopData before createShop call:', JSON.stringify(shopData, null, 2));
 
       const shopResult = await createShop(shopData);
 
       if (shopResult.success) {
         toast.success('Shop connected successfully!');
         setIsDialogOpen(false);
+        
+        // Clean URL params after successful creation
+        const newUrl = new URL(window.location.href);
+        ['showCreateShop', 'platform', 'accessToken', 'domain', 'client_id', 'client_secret', 'app_name', 'adapter_slug', 'refreshToken', 'tokenExpiresAt', 'code'].forEach(param => {
+          newUrl.searchParams.delete(param);
+        });
+        router.replace(newUrl.pathname + newUrl.search);
+        
         router.refresh();
         
         if (onShopCreated) {
@@ -259,10 +246,10 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connect OpenFront Store</DialogTitle>
+          <DialogTitle>Connect Openfront Store</DialogTitle>
           <DialogDescription>
             {isMarketplaceFlow
-              ? 'Setting up your OpenFront integration. We\'ll create the platform if needed and connect your store.'
+              ? 'Setting up your Openfront integration. We\'ll create the platform if needed and connect your store.'
               : 'Complete your shop setup with the OAuth credentials received.'
             }
           </DialogDescription>
@@ -308,7 +295,7 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
           {isMarketplaceFlow && (
             <div className="text-sm bg-zinc-50 dark:bg-zinc-950/20 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-                openfront Integration
+                Openfront Integration
               </p>
               <p className="text-zinc-700 dark:text-zinc-300 text-xs">
                 This platform will be created with the shop.

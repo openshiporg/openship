@@ -38,6 +38,9 @@ async function generateOAuthState(platformId: string, type: 'shop' | 'channel'):
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🚀 OAuth callback endpoint called');
+    console.log('🔍 Request URL:', request.url);
+    
     const { searchParams } = new URL(request.url);
     
     // Get OAuth parameters
@@ -51,6 +54,16 @@ export async function GET(request: NextRequest) {
     const autoCreate = searchParams.get('auto_create') === 'true';
     const appName = searchParams.get('app_name');
     const clientId = searchParams.get('client_id');
+
+    console.log('🔍 OAuth callback parameters:');
+    console.log('  - code:', code ? `${code.substring(0, 10)}...` : 'MISSING');
+    console.log('  - state:', state ? `${state.substring(0, 20)}...` : 'MISSING');
+    console.log('  - shop:', shop);
+    console.log('  - error:', error);
+    console.log('  - errorDescription:', errorDescription);
+    console.log('  - autoCreate:', autoCreate);
+    console.log('  - appName:', appName);
+    console.log('  - clientId:', clientId);
     
     // Handle OAuth errors
     if (error) {
@@ -168,14 +181,24 @@ export async function GET(request: NextRequest) {
             redirectUri: `${await getBaseUrl()}/api/oauth/callback`
           });
       
+      console.log('🔍 Token exchange result type:', typeof tokenResult);
+      console.log('🔍 Token exchange result:', typeof tokenResult === 'string' ? `${tokenResult.substring(0, 10)}...` : tokenResult);
+      
       // Handle both old string format and new object format
       let accessToken, refreshToken, tokenExpiresAt;
       if (typeof tokenResult === 'string') {
+        console.log('📝 Using legacy string token format');
         accessToken = tokenResult;
       } else {
-        accessToken = tokenResult.access_token;
-        refreshToken = tokenResult.refresh_token;
-        tokenExpiresAt = tokenResult.expires_at;
+        console.log('📝 Using new object token format');
+        // OpenFront returns camelCase field names
+        accessToken = tokenResult.accessToken;
+        refreshToken = tokenResult.refreshToken;
+        tokenExpiresAt = tokenResult.tokenExpiresAt;
+        console.log('🔑 Token details:');
+        console.log('  - accessToken present:', !!accessToken);
+        console.log('  - refreshToken present:', !!refreshToken);
+        console.log('  - tokenExpiresAt present:', !!tokenExpiresAt);
       }
       
       const baseUrl = await getBaseUrl();
@@ -185,6 +208,12 @@ export async function GET(request: NextRequest) {
       const endpoint = redirectAppType === 'channel' ? 'channels' : 'shops';
       const createParam = redirectAppType === 'channel' ? 'showCreateChannel' : 'showCreateShop';
       
+      console.log('🎯 Building redirect URL:');
+      console.log('  - baseUrl:', baseUrl);
+      console.log('  - redirectAppType:', redirectAppType);
+      console.log('  - endpoint:', endpoint);
+      console.log('  - createParam:', createParam);
+      
       const redirectUrl = new URL(`${baseUrl}/dashboard/platform/${endpoint}`);
       redirectUrl.searchParams.set(createParam, 'true');
       redirectUrl.searchParams.set('domain', shop ?? '');
@@ -193,12 +222,23 @@ export async function GET(request: NextRequest) {
       redirectUrl.searchParams.set('client_secret', stateData.client_secret);
       redirectUrl.searchParams.set('app_name', stateData.app_name);
       redirectUrl.searchParams.set('adapter_slug', stateData.adapter_slug);
+      
+      console.log('🔑 Adding optional tokens to redirect:');
       if (refreshToken) {
+        console.log('  - Adding refreshToken to URL params');
         redirectUrl.searchParams.set('refreshToken', refreshToken);
+      } else {
+        console.log('  - No refreshToken to add');
       }
       if (tokenExpiresAt) {
-        redirectUrl.searchParams.set('tokenExpiresAt', tokenExpiresAt.toISOString());
+        console.log('  - Adding tokenExpiresAt to URL params:', tokenExpiresAt);
+        // tokenExpiresAt is already a string from OpenFront adapter
+        redirectUrl.searchParams.set('tokenExpiresAt', tokenExpiresAt);
+      } else {
+        console.log('  - No tokenExpiresAt to add');
       }
+      
+      console.log('🎯 Final redirect URL:', redirectUrl.toString());
       
       return NextResponse.redirect(redirectUrl.toString());
     }
@@ -254,7 +294,7 @@ export async function GET(request: NextRequest) {
         accessToken = tokenResult;
       } else {
         // New format - object with both tokens
-        accessToken = tokenResult.access_token;
+        accessToken = tokenResult.accessToken;
       }
       
       // Redirect to shops page with params
@@ -264,8 +304,12 @@ export async function GET(request: NextRequest) {
       redirectUrl.searchParams.set('accessToken', accessToken);
       if (typeof tokenResult === 'object') {
         // Include additional token data for new implementations
-        redirectUrl.searchParams.set('refreshToken', tokenResult.refresh_token);
-        redirectUrl.searchParams.set('tokenExpiresAt', tokenResult.expires_at.toISOString());
+        if (tokenResult.refreshToken) {
+          redirectUrl.searchParams.set('refreshToken', tokenResult.refreshToken);
+        }
+        if (tokenResult.tokenExpiresAt) {
+          redirectUrl.searchParams.set('tokenExpiresAt', tokenResult.tokenExpiresAt);
+        }
       }
       redirectUrl.searchParams.set('domain', shop ?? '');
       
@@ -288,7 +332,7 @@ export async function GET(request: NextRequest) {
       }
       
       // Exchange code for access token
-      accessToken = await handleChannelOAuthCallback({
+      const channelTokenResult = await handleChannelOAuthCallback({
         platform,
         code,
         shop: shop || undefined,
@@ -298,11 +342,29 @@ export async function GET(request: NextRequest) {
         redirectUri: `${baseUrl}/api/oauth/callback`, // Single callback URL
       });
       
+      // Handle both old string format and new object format for backward compatibility
+      if (typeof channelTokenResult === 'string') {
+        // Legacy format - just access token
+        accessToken = channelTokenResult;
+      } else {
+        // New format - object with both tokens
+        accessToken = channelTokenResult.accessToken;
+      }
+      
       // Redirect to channels page with params
       const redirectUrl = new URL(`${baseUrl}/dashboard/platform/channels`);
       redirectUrl.searchParams.set('showCreateChannel', 'true');
       redirectUrl.searchParams.set('platform', platformId);
       redirectUrl.searchParams.set('accessToken', accessToken);
+      if (typeof channelTokenResult === 'object') {
+        // Include additional token data for new implementations
+        if (channelTokenResult.refreshToken) {
+          redirectUrl.searchParams.set('refreshToken', channelTokenResult.refreshToken);
+        }
+        if (channelTokenResult.tokenExpiresAt) {
+          redirectUrl.searchParams.set('tokenExpiresAt', channelTokenResult.tokenExpiresAt);
+        }
+      }
       redirectUrl.searchParams.set('domain', shop ?? '');
       
       return NextResponse.redirect(redirectUrl.toString());
