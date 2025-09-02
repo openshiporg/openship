@@ -16,6 +16,7 @@ import { FloatingChatBox } from './dual-sidebar/floating-chat-box'
 import { ChevronRight, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { AiConfigProvider, useChatMode as useAiChatMode } from '../hooks/use-ai-config'
 
 // Chat mode context
 type ChatMode = 'sidebar' | 'chatbox';
@@ -41,6 +42,8 @@ interface ChatModeContextType {
   setLoading: (loading: boolean) => void;
   sending: boolean;
   setSending: (sending: boolean) => void;
+  // User data for personalization
+  user?: any;
 }
 
 const ChatModeContext = createContext<ChatModeContextType | null>(null);
@@ -60,7 +63,7 @@ interface DashboardLayoutProps {
 }
 
 function FloatingChatButton() {
-  const { toggleSidebar, open } = useSidebarWithSide('right')
+  const { toggleSidebar, open, isMobile } = useSidebarWithSide('right')
   const { chatMode, isFloatingChatVisible, setIsFloatingChatVisible } = useChatMode()
   
   const handleClick = () => {
@@ -71,7 +74,11 @@ function FloatingChatButton() {
     }
   }
   
-  const Icon = chatMode === 'sidebar' && open 
+  // On mobile, sidebar is always overlaid, so don't show chevron when "open"
+  // Only show chevron when sidebar is actually visible on screen (desktop + open)
+  const showChevron = chatMode === 'sidebar' && open && !isMobile
+  
+  const Icon = showChevron
     ? ChevronRight 
     : chatMode === 'chatbox' && isFloatingChatVisible
     ? X
@@ -83,8 +90,8 @@ function FloatingChatButton() {
       size="icon"
       className={cn(
         "fixed bottom-3 z-40 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300",
-        chatMode === 'sidebar' && open
-          ? "right-[calc(30rem+1rem)] bg-background hover:bg-accent" 
+        showChevron
+          ? "right-[calc(18rem+1rem)] md:right-[calc(30rem+1rem)] bg-background hover:bg-accent" 
           : "right-3"
       )}
     >
@@ -117,8 +124,8 @@ function DashboardLayoutContent({ children, adminMeta, authenticatedItem }: Dash
   )
 }
 
-function ChatModeProvider({ children }: { children: React.ReactNode }) {
-  const [chatMode, setChatMode] = useState<ChatMode>('chatbox')
+function ChatModeProvider({ children, user }: { children: React.ReactNode; user?: any }) {
+  const { chatMode: aiChatMode, setChatMode: setAiChatMode } = useAiChatMode()
   const [isFloatingChatVisible, setIsFloatingChatVisible] = useState(false)
   
   // Shared chat state
@@ -127,8 +134,8 @@ function ChatModeProvider({ children }: { children: React.ReactNode }) {
   const [sending, setSending] = useState(false)
   
   // Auto-open chat box when switching to chatbox mode
-  const handleSetChatMode = (mode: ChatMode) => {
-    setChatMode(mode)
+  const setChatMode = (mode: ChatMode) => {
+    setAiChatMode(mode)
     if (mode === 'chatbox') {
       setIsFloatingChatVisible(true)
     }
@@ -136,8 +143,8 @@ function ChatModeProvider({ children }: { children: React.ReactNode }) {
   
   return (
     <ChatModeContext.Provider value={{
-      chatMode,
-      setChatMode: handleSetChatMode,
+      chatMode: aiChatMode,
+      setChatMode,
       isFloatingChatVisible,
       setIsFloatingChatVisible,
       messages,
@@ -145,7 +152,8 @@ function ChatModeProvider({ children }: { children: React.ReactNode }) {
       loading,
       setLoading,
       sending,
-      setSending
+      setSending,
+      user
     }}>
       {children}
     </ChatModeContext.Provider>
@@ -157,13 +165,15 @@ export function DashboardLayout({ children, adminMeta, authenticatedItem }: Dash
     <ErrorBoundary>
       <DashboardProvider>
         <AdminMetaProvider initialData={adminMeta}>
-          <ChatModeProvider>
-            <SidebarProvider defaultOpenRight={false}>
-              <DashboardLayoutContent adminMeta={adminMeta} authenticatedItem={authenticatedItem}>
-                {children}
-              </DashboardLayoutContent>
-            </SidebarProvider>
-          </ChatModeProvider>
+          <AiConfigProvider>
+            <ChatModeProvider user={authenticatedItem}>
+              <SidebarProvider defaultOpenRight={false}>
+                <DashboardLayoutContent adminMeta={adminMeta} authenticatedItem={authenticatedItem}>
+                  {children}
+                </DashboardLayoutContent>
+              </SidebarProvider>
+            </ChatModeProvider>
+          </AiConfigProvider>
         </AdminMetaProvider>
       </DashboardProvider>
     </ErrorBoundary>

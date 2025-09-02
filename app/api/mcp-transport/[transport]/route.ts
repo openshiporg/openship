@@ -95,7 +95,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ tra
           protocolVersion: '2024-11-05',
           capabilities: {
             tools: { listChanged: true },
-            logging: {}
           },
           serverInfo: {
             name: 'simple-mcp-server',
