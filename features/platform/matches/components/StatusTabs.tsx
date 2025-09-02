@@ -129,8 +129,8 @@ export function StatusTabs({ statusCounts, onSelectAll, selectedItems, totalItem
           )}
           {statuses.map((status, index) => {
             const config = statusConfig[status.value as keyof typeof statusConfig];
-            const StatusIcon = config.icon;
-            const iconColor = config.iconColor;
+            const StatusIcon = 'icon' in config ? config.icon : undefined;
+            const iconColor = 'iconColor' in config ? config.iconColor : undefined;
             const isActive = currentStatus === status.value;
             
             return (
