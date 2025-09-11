@@ -58,6 +58,7 @@ export interface CartItem {
   variantId: string;
   sku?: string;
   purchaseId?: string;
+  url?: string;
   error?: string;
   channel?: {
     id: string;

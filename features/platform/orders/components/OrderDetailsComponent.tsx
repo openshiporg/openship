@@ -75,10 +75,12 @@ import { ChannelSearchAccordion } from './ChannelSearchAccordion';
 import { ArrowRight } from "lucide-react";
 import { EditItemDrawerClientWrapper } from "@/features/platform/components/EditItemDrawerClientWrapper";
 import { useToast } from '@/components/ui/use-toast';
+import { useRouter } from 'next/navigation';
 import { Order } from "../lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { deleteItemAction } from '@/features/dashboard/actions/item-actions';
+import { deleteOrder } from "../actions/orders";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -114,6 +116,7 @@ export const OrderDetailsComponent = ({
 }: OrderDetailsComponentProps) => {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
   const currentAction = Object.entries(loadingActions).find(
     ([_, value]) => value[order.id]
   )?.[0];
@@ -145,16 +148,15 @@ export const OrderDetailsComponent = ({
     onAction('matchOrder', order.id);
   };
 
-  // Delete handler exactly like EditItemDrawer
+  // Delete handler using proper deleteOrder action
   const handleDelete = useCallback(async () => {
     try {
-      const { errors } = await deleteItemAction('Order', order.id);
+      const response = await deleteOrder(order.id);
       
-      const error = errors?.find(x => x.path === undefined || x.path?.length === 1);
-      if (error) {
+      if (!response.success) {
         toast({
           title: 'Unable to delete order',
-          description: error.message,
+          description: response.error || 'An error occurred while deleting the order',
           variant: 'destructive'
         });
         return;
@@ -164,8 +166,8 @@ export const OrderDetailsComponent = ({
         title: 'Order deleted successfully'
       });
       
-      // Refresh the page or trigger parent refresh
-      window.location.reload();
+      // Navigate back to orders list - the deleteOrder action already revalidates the path
+      router.push('/dashboard/platform/orders');
       
     } catch (err: any) {
       toast({
@@ -353,6 +355,7 @@ export const OrderDetailsComponent = ({
                   formattedUnitPrice: formatPrice(item.price, order.currency || '$'),
                   formattedTotal: calculateTotal(item.price, item.quantity, order.currency || '$'),
                   purchaseId: item.purchaseId,
+                  url: item.url,
                   error: item.error,
                   channel: item.channel,
                   variantData: {

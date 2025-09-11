@@ -40,6 +40,7 @@ var openfront_exports = {};
 __export(openfront_exports, {
   addTrackingFunction: () => addTrackingFunction,
   createPurchaseFunction: () => createPurchaseFunction,
+  createTrackingWebhookHandler: () => createTrackingWebhookHandler,
   createWebhookFunction: () => createWebhookFunction,
   deleteWebhookFunction: () => deleteWebhookFunction,
   fulfillmentUpdateWebhookHandler: () => fulfillmentUpdateWebhookHandler,
@@ -212,7 +213,7 @@ async function createPurchaseFunction({
   console.log(`\u{1F6D2} OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`\u{1F69A} OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
   console.log(`\u{1F4E6} OpenFront Channel: Full shipping data:`, JSON.stringify(shipping, null, 2));
-  console.log(`\u{1F4E6} OpenFront Channel: Platform data:`, JSON.stringify(platform, null, 2));
+  console.log(`\u{1F4E6} OpenFront Channel: Platform domain:`, platform.domain);
   console.log(`\u{1F4E6} OpenFront Channel: Cart items:`, JSON.stringify(cartItems, null, 2));
   const openFrontClient = await createOpenFrontClient(platform);
   try {
@@ -344,7 +345,7 @@ async function createPurchaseFunction({
       purchaseId: order.id,
       orderNumber: `#${order.displayId}`,
       totalPrice: order.total,
-      invoiceUrl: `https://${platform.domain}/admin/orders/${order.id}`,
+      url: `https://${platform.domain}/account/orders/details/${order.id}`,
       lineItems: processedLineItems,
       status: "pending"
     };
@@ -366,7 +367,7 @@ async function createPurchaseFunction({
       purchaseId: null,
       orderNumber: null,
       totalPrice: "0.00",
-      invoiceUrl: null,
+      url: null,
       lineItems: cartItems.map((item) => ({
         id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title: item.name || `Product ${item.variantId}`,
@@ -389,11 +390,14 @@ async function createWebhookFunction({
   console.log("\u{1FA9D} [OpenFront Channel] Endpoint URL:", endpoint);
   console.log("\u{1FA9D} [OpenFront Channel] Events received:", events);
   console.log("\u{1FA9D} [OpenFront Channel] Events type:", typeof events, "Array?", Array.isArray(events));
-  console.log("\u{1FA9D} [OpenFront Channel] Platform data:", JSON.stringify(platform, null, 2));
+  if (events.includes("ORDER_CANCELLED")) {
+    console.error("\u274C OpenFront does not support ORDER_CANCELLED webhooks yet");
+    throw new Error("OpenFront does not support ORDER_CANCELLED webhooks. Only TRACKING_CREATED webhooks are currently supported.");
+  }
   const eventMap = {
     ORDER_CREATED: "order.created",
-    ORDER_CANCELLED: "order.cancelled",
     TRACKING_CREATED: "fulfillment.created"
+    // ORDER_CANCELLED: "order.cancelled", // Not supported yet
   };
   const openFrontEvents = events.map((event) => {
     const mapped = eventMap[event] || event;
@@ -428,7 +432,7 @@ async function createWebhookFunction({
     console.log("\u2705 [OpenFront Channel] User authenticated successfully");
     console.log("\u{1FA9D} [OpenFront Channel] User ID:", user.id);
     console.log("\u{1FA9D} [OpenFront Channel] User email:", user.email);
-    console.log("\u{1FA9D} [OpenFront Channel] Current webhook URL:", user.orderWebhookUrl);
+    console.log("\u{1FA9D} [OpenFront Channel] Current webhook URL exists:", !!user.orderWebhookUrl);
     console.log("\u{1FA9D} [OpenFront Channel] Updating user webhook URL...");
     const updateUserMutation = import_graphql_request.gql`
       mutation UpdateActiveUserWebhookUrl($data: UserUpdateProfileInput!) {
@@ -440,7 +444,7 @@ async function createWebhookFunction({
     `;
     console.log("\u{1FA9D} [OpenFront Channel] Update mutation variables:");
     console.log("\u{1FA9D} [OpenFront Channel] - User ID:", user.id);
-    console.log("\u{1FA9D} [OpenFront Channel] - New webhook URL:", endpoint);
+    console.log("\u{1FA9D} [OpenFront Channel] - Setting new webhook URL");
     const result = await openFrontClient.request(updateUserMutation, {
       data: { orderWebhookUrl: endpoint }
     });
@@ -448,7 +452,7 @@ async function createWebhookFunction({
     const updatedUser = result.updateActiveUser;
     console.log("\u2705 [OpenFront Channel] User webhook URL updated successfully");
     console.log("\u{1FA9D} [OpenFront Channel] Updated user ID:", updatedUser.id);
-    console.log("\u{1FA9D} [OpenFront Channel] Updated webhook URL:", updatedUser.orderWebhookUrl);
+    console.log("\u{1FA9D} [OpenFront Channel] Webhook URL updated successfully");
     const webhookResponse = {
       webhooks: [{
         id: `user-${updatedUser.id}`,
@@ -488,21 +492,54 @@ async function deleteWebhookFunction({
   platform,
   webhookId
 }) {
-  const openFrontClient = await createOpenFrontClient(platform);
-  const userId = webhookId.replace("user-", "");
-  const updateUserMutation = import_graphql_request.gql`
-    mutation ClearUserWebhookUrl($where: UserWhereUniqueInput!, $data: UserUpdateInput!) {
-      updateUser(where: $where, data: $data) {
-        id
-        orderWebhookUrl
+  console.log("\u{1F5D1}\uFE0F OpenFront deleteWebhookFunction called:", { webhookId, platform: platform.domain });
+  try {
+    console.log("\u{1F5D1}\uFE0F [OpenFront Channel] Creating OpenFront GraphQL client...");
+    const openFrontClient = await createOpenFrontClient(platform);
+    console.log("\u2705 [OpenFront Channel] GraphQL client created successfully");
+    console.log("\u{1F5D1}\uFE0F [OpenFront Channel] Clearing user webhook URL...");
+    const updateUserMutation = import_graphql_request.gql`
+      mutation ClearActiveUserWebhookUrl($data: UserUpdateProfileInput!) {
+        updateActiveUser(data: $data) {
+          id
+          orderWebhookUrl
+        }
+      }
+    `;
+    console.log("\u{1F5D1}\uFE0F [OpenFront Channel] Clearing webhook URL for user");
+    const result = await openFrontClient.request(updateUserMutation, {
+      data: { orderWebhookUrl: "" }
+    });
+    console.log("\u{1F5D1}\uFE0F [OpenFront Channel] Clear mutation result:", JSON.stringify(result, null, 2));
+    const updatedUser = result.updateActiveUser;
+    console.log("\u2705 [OpenFront Channel] User webhook URL cleared successfully");
+    console.log("\u{1F5D1}\uFE0F [OpenFront Channel] Updated user ID:", updatedUser.id);
+    return {
+      success: true,
+      result: updatedUser,
+      deletedWebhookSubscriptionId: webhookId
+    };
+  } catch (error) {
+    console.error("\u{1F6A8} [OpenFront Channel] deleteWebhookFunction failed:", error);
+    console.error("\u{1F6A8} [OpenFront Channel] Error message:", error.message);
+    console.error("\u{1F6A8} [OpenFront Channel] Error stack:", error.stack);
+    if (error.response) {
+      console.error("\u{1F6A8} [OpenFront Channel] GraphQL response:", JSON.stringify(error.response, null, 2));
+      if (error.response.errors) {
+        console.error("\u{1F6A8} [OpenFront Channel] GraphQL errors:");
+        error.response.errors.forEach((err, i) => {
+          console.error(`\u{1F6A8} [OpenFront Channel]   ${i + 1}. ${err.message}`);
+          if (err.path) {
+            console.error(`\u{1F6A8} [OpenFront Channel]      Path: ${err.path.join(" -> ")}`);
+          }
+          if (err.extensions) {
+            console.error(`\u{1F6A8} [OpenFront Channel]      Extensions:`, err.extensions);
+          }
+        });
       }
     }
-  `;
-  const result = await openFrontClient.request(updateUserMutation, {
-    where: { id: userId },
-    data: { orderWebhookUrl: null }
-  });
-  return result;
+    throw error;
+  }
 }
 async function getWebhooksFunction({
   platform
@@ -531,8 +568,7 @@ async function getWebhooksFunction({
   const webhooks = [{
     id: `user-${user.id}`,
     callbackUrl: user.orderWebhookUrl,
-    topic: ["PURCHASE_CREATED", "PURCHASE_SHIPPED"],
-    // These are the channel events we support
+    topic: "TRACKING_CREATED",
     format: "JSON",
     createdAt: user.createdAt
   }];
@@ -655,6 +691,56 @@ async function oAuthCallbackFunction({
     tokenExpiresAt: new Date(Date.now() + expires_in * 1e3).toISOString()
   };
 }
+async function createTrackingWebhookHandler({
+  platform,
+  event,
+  headers
+}) {
+  console.log("\u{1F4E6} [OpenFront Channel] createTrackingWebhookHandler called");
+  console.log("\u{1F4E6} [OpenFront Channel] Event type:", event.event);
+  console.log("\u{1F4E6} [OpenFront Channel] Payload:", JSON.stringify(event, null, 2));
+  if (event.event !== "order.fulfilled") {
+    throw new Error(`Unsupported event type: ${event.event}`);
+  }
+  const order = event.order;
+  const fulfillment = event.fulfillment;
+  if (!order?.id) {
+    throw new Error("Missing order.id in webhook payload");
+  }
+  if (!fulfillment?.shippingLabels || fulfillment.shippingLabels.length === 0) {
+    throw new Error("Missing shipping labels in fulfillment data");
+  }
+  const shippingLabel = fulfillment.shippingLabels[0];
+  if (!shippingLabel.trackingNumber || !shippingLabel.carrier) {
+    throw new Error("Missing tracking number or carrier in shipping label");
+  }
+  console.log("\u{1F4E6} [OpenFront Channel] Tracking info extracted:");
+  console.log("\u{1F4E6} [OpenFront Channel] - Order ID:", order.id);
+  console.log("\u{1F4E6} [OpenFront Channel] - Tracking Number:", shippingLabel.trackingNumber);
+  console.log("\u{1F4E6} [OpenFront Channel] - Carrier:", shippingLabel.carrier);
+  return {
+    fulfillment: {
+      id: fulfillment.id || `fulfillment_${order.id}`,
+      orderId: order.id,
+      status: "shipped",
+      trackingCompany: shippingLabel.carrier,
+      trackingNumber: shippingLabel.trackingNumber,
+      trackingUrl: shippingLabel.url || null,
+      purchaseId: order.id,
+      // This is what the route expects to find cart items
+      lineItems: fulfillment.items?.map((item) => ({
+        id: item.id,
+        title: item.lineItem?.title || "Unknown Product",
+        quantity: item.quantity,
+        variantId: item.lineItem?.variantId || null,
+        productId: item.lineItem?.productId || null
+      })) || [],
+      createdAt: event.timestamp || (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: event.timestamp || (/* @__PURE__ */ new Date()).toISOString()
+    },
+    type: "fulfillment_created"
+  };
+}
 function scopes() {
   return REQUIRED_SCOPES;
 }
@@ -667,7 +753,6 @@ var init_openfront = __esm({
     getFreshAccessToken = async (platform) => {
       console.log("\u{1F504} [OpenFront Channel] getFreshAccessToken called");
       console.log("\u{1F504} [OpenFront Channel] Platform domain:", platform.domain);
-      console.log("\u{1F504} [OpenFront Channel] Actual access token:", platform.accessToken);
       const channels = await import_context.keystoneContext.sudo().query.Channel.findMany({
         where: {
           domain: { equals: platform.domain },
@@ -683,9 +768,8 @@ var init_openfront = __esm({
       console.log("\u{1F504} [OpenFront Channel] Found channel:", channel.id);
       console.log("\u{1F504} [OpenFront Channel] Has refresh token:", !!channel.refreshToken);
       console.log("\u{1F504} [OpenFront Channel] Token expires at:", channel.tokenExpiresAt);
-      console.log("\u{1F504} [OpenFront Channel] Has appKey:", !!channel.platform?.appKey);
-      console.log("\u{1F504} [OpenFront Channel] Has appSecret:", !!channel.platform?.appSecret);
-      console.log("\u{1F504} [OpenFront Channel] Actual refresh token:", channel.refreshToken);
+      console.log("\u{1F504} [OpenFront Channel] Has OAuth credentials:", !!(channel.platform?.appKey && channel.platform?.appSecret));
+      console.log("\u{1F504} [OpenFront Channel] Has refresh token:", !!channel.refreshToken);
       if (channel.refreshToken) {
         console.log("\u{1F504} [OpenFront Channel] Refresh token found, checking if refresh needed");
         let shouldRefresh = false;
@@ -713,8 +797,7 @@ var init_openfront = __esm({
           });
           console.log("\u{1F504} [OpenFront Channel] Refresh request params:");
           console.log("\u{1F504} [OpenFront Channel] - grant_type: refresh_token");
-          console.log("\u{1F504} [OpenFront Channel] - client_id:", channel.platform?.appKey || "NOT_SET");
-          console.log("\u{1F504} [OpenFront Channel] - client_secret:", channel.platform?.appSecret ? "SET" : "NOT_SET");
+          console.log("\u{1F504} [OpenFront Channel] Making token refresh request");
           console.log("\u{1F504} [OpenFront Channel] - refresh_token:", channel.refreshToken ? "SET" : "NOT_SET");
           console.log("\u{1F504} [OpenFront Channel] Making refresh token request...");
           const response = await fetch(tokenUrl, {
@@ -789,7 +872,7 @@ var shopify_exports = {};
 __export(shopify_exports, {
   cancelPurchaseWebhookHandler: () => cancelPurchaseWebhookHandler,
   createPurchaseFunction: () => createPurchaseFunction2,
-  createTrackingWebhookHandler: () => createTrackingWebhookHandler,
+  createTrackingWebhookHandler: () => createTrackingWebhookHandler2,
   createWebhookFunction: () => createWebhookFunction2,
   deleteWebhookFunction: () => deleteWebhookFunction2,
   getProductFunction: () => getProductFunction2,
@@ -1064,7 +1147,7 @@ async function createPurchaseFunction2({
     purchaseId: order.id.split("/").pop(),
     orderNumber: order.name,
     totalPrice: order.totalPrice,
-    invoiceUrl: draftOrder.invoiceUrl,
+    url: draftOrder.invoiceUrl,
     lineItems: order.lineItems.edges.map(({ node }) => ({
       id: node.id.split("/").pop(),
       title: node.title,
@@ -1244,7 +1327,7 @@ async function oAuthCallbackFunction2({
     domain: shop
   };
 }
-async function createTrackingWebhookHandler({
+async function createTrackingWebhookHandler2({
   platform,
   event,
   headers
@@ -2036,28 +2119,91 @@ function scopes3() {
   return REQUIRED_SCOPES3;
 }
 async function addTrackingFunction2({
+  platform,
   order,
   trackingCompany,
   trackingNumber
 }) {
-  const openFrontClient = await createOpenFrontClient2({
-    domain: order.shop.domain,
-    accessToken: order.shop.accessToken
+  const openFrontClient = await createOpenFrontClient2(platform);
+  const getTrackingUrl = (carrier, trackingNumber2) => {
+    switch (carrier?.toLowerCase()) {
+      case "ups":
+        return `https://www.ups.com/track?tracknum=${trackingNumber2}`;
+      case "usps":
+        return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber2}`;
+      case "fedex":
+        return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber2}`;
+      case "dhl":
+        return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber2}`;
+      default:
+        return "";
+    }
+  };
+  const getOrderQuery = import_graphql_request3.gql`
+    query GetOrderForFulfillment($orderId: ID!) {
+      order(where: { id: $orderId }) {
+        id
+        displayId
+        lineItems {
+          id
+          quantity
+        }
+      }
+    }
+  `;
+  const { order: orderData } = await openFrontClient.request(getOrderQuery, {
+    orderId: order.orderId
   });
+  if (!orderData || !orderData.lineItems || orderData.lineItems.length === 0) {
+    throw new Error(`Order ${order.orderId} not found or has no line items`);
+  }
   const createFulfillmentMutation = import_graphql_request3.gql`
     mutation CreateFulfillment($data: FulfillmentCreateInput!) {
       createFulfillment(data: $data) {
         id
-        trackingNumber
-        trackingCompany
+        shippingLabels {
+          id
+          status
+          trackingNumber
+          trackingUrl
+          carrier
+        }
+        fulfillmentItems {
+          id
+          quantity
+          lineItem {
+            id
+            title
+          }
+        }
       }
     }
   `;
   const fulfillmentData = {
     order: { connect: { id: order.orderId } },
-    trackingNumber,
-    trackingCompany,
-    status: "shipped"
+    fulfillmentProvider: { connect: { id: "manual" } },
+    fulfillmentItems: {
+      create: orderData.lineItems.map((lineItem) => ({
+        lineItem: { connect: { id: lineItem.id } },
+        quantity: lineItem.quantity
+      }))
+    },
+    shippingLabels: {
+      create: [{
+        status: "purchased",
+        carrier: trackingCompany,
+        trackingNumber,
+        trackingUrl: getTrackingUrl(trackingCompany, trackingNumber),
+        metadata: {
+          source: "openship"
+        }
+      }]
+    },
+    noNotification: false,
+    metadata: {
+      source: "openship",
+      createdBy: "openship_integration"
+    }
   };
   const result = await openFrontClient.request(createFulfillmentMutation, {
     data: fulfillmentData
@@ -2072,9 +2218,6 @@ var init_openfront2 = __esm({
     import_getBaseUrl = require("@/features/dashboard/lib/getBaseUrl");
     import_context2 = require("@/features/keystone/context");
     getFreshAccessToken2 = async (platform) => {
-      console.log("\u{1F504} [OpenFront Shop] getFreshAccessToken called");
-      console.log("\u{1F504} [OpenFront Shop] Platform domain:", platform.domain);
-      console.log("\u{1F504} [OpenFront Shop] Actual access token:", platform.accessToken);
       const shops = await import_context2.keystoneContext.sudo().query.Shop.findMany({
         where: {
           domain: { equals: platform.domain },
@@ -2083,70 +2226,38 @@ var init_openfront2 = __esm({
         query: "id refreshToken tokenExpiresAt platform { appKey appSecret }"
       });
       if (!shops || shops.length === 0) {
-        console.log("\u26A0\uFE0F [OpenFront Shop] No matching shop found in database");
         return platform.accessToken;
       }
       const shop = shops[0];
-      console.log("\u{1F504} [OpenFront Shop] Found shop:", shop.id);
-      console.log("\u{1F504} [OpenFront Shop] Has refresh token:", !!shop.refreshToken);
-      console.log("\u{1F504} [OpenFront Shop] Token expires at:", shop.tokenExpiresAt);
-      console.log("\u{1F504} [OpenFront Shop] Has appKey:", !!shop.platform?.appKey);
-      console.log("\u{1F504} [OpenFront Shop] Has appSecret:", !!shop.platform?.appSecret);
-      console.log("\u{1F504} [OpenFront Shop] Actual refresh token:", shop.refreshToken);
       if (shop.refreshToken) {
-        console.log("\u{1F504} [OpenFront Shop] Refresh token found, checking if refresh needed");
         let shouldRefresh = false;
         if (shop.tokenExpiresAt) {
           const expiresAt = typeof shop.tokenExpiresAt === "string" ? new Date(shop.tokenExpiresAt) : shop.tokenExpiresAt;
           const now = /* @__PURE__ */ new Date();
           shouldRefresh = expiresAt <= now;
-          console.log("\u{1F504} [OpenFront Shop] Token expiry check:");
-          console.log("\u{1F504} [OpenFront Shop] - Expires at:", expiresAt.toISOString());
-          console.log("\u{1F504} [OpenFront Shop] - Current time:", now.toISOString());
-          console.log("\u{1F504} [OpenFront Shop] - Should refresh:", shouldRefresh);
         } else {
           shouldRefresh = true;
-          console.log("\u{1F504} [OpenFront Shop] No expiry info found, assuming refresh needed");
         }
         if (shouldRefresh) {
-          console.log("\u{1F504} [OpenFront Shop] Starting token refresh process...");
           const tokenUrl = `${platform.domain}/api/oauth/token`;
-          console.log("\u{1F504} [OpenFront Shop] Token URL:", tokenUrl);
           const formData = new URLSearchParams({
             grant_type: "refresh_token",
             refresh_token: shop.refreshToken,
             client_id: shop.platform?.appKey || "",
             client_secret: shop.platform?.appSecret || ""
           });
-          console.log("\u{1F504} [OpenFront Shop] Refresh request params:");
-          console.log("\u{1F504} [OpenFront Shop] - grant_type: refresh_token");
-          console.log("\u{1F504} [OpenFront Shop] - client_id:", shop.platform?.appKey || "NOT_SET");
-          console.log("\u{1F504} [OpenFront Shop] - client_secret:", shop.platform?.appSecret ? "SET" : "NOT_SET");
-          console.log("\u{1F504} [OpenFront Shop] - refresh_token:", shop.refreshToken ? "SET" : "NOT_SET");
-          console.log("\u{1F504} [OpenFront Shop] Making refresh token request...");
           const response = await fetch(tokenUrl, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData
           });
-          console.log("\u{1F504} [OpenFront Shop] Refresh response status:", response.status);
-          console.log("\u{1F504} [OpenFront Shop] Refresh response ok:", response.ok);
           if (!response.ok) {
             const errorText = await response.text();
-            console.error("\u{1F6A8} [OpenFront Shop] Token refresh failed:", errorText);
-            console.error("\u{1F6A8} [OpenFront Shop] Response status:", response.status);
-            console.error("\u{1F6A8} [OpenFront Shop] Response statusText:", response.statusText);
             throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
           }
           const tokenData = await response.json();
-          console.log("\u{1F504} [OpenFront Shop] Token refresh response received");
-          console.log("\u{1F504} [OpenFront Shop] - Has access_token:", !!tokenData.access_token);
-          console.log("\u{1F504} [OpenFront Shop] - Has refresh_token:", !!tokenData.refresh_token);
-          console.log("\u{1F504} [OpenFront Shop] - Expires in:", tokenData.expires_in, "seconds");
           const { access_token, refresh_token, expires_in } = tokenData;
-          console.log("\u{1F504} [OpenFront Shop] Updating tokens in database...");
           try {
-            console.log("\u{1F504} [OpenFront Shop] Updating shop:", shop.id);
             await import_context2.keystoneContext.sudo().query.Shop.updateOne({
               where: { id: shop.id },
               data: {
@@ -2155,18 +2266,14 @@ var init_openfront2 = __esm({
                 ...expires_in && { tokenExpiresAt: new Date(Date.now() + expires_in * 1e3) }
               }
             });
-            console.log("\u2705 [OpenFront Shop] Shop updated with new tokens:", shop.id);
           } catch (error) {
-            console.error("\u{1F6A8} [OpenFront Shop] Failed to update shop tokens in database:", error);
+            console.error("Failed to update shop tokens in database:", error);
           }
-          console.log("\u2705 [OpenFront Shop] Returning fresh access token");
           return access_token;
         } else {
-          console.log("\u2705 [OpenFront Shop] Token still valid, using existing access token");
           return platform.accessToken;
         }
       }
-      console.log("\u26A0\uFE0F [OpenFront Shop] No refresh token available, using existing access token");
       return platform.accessToken;
     };
     createOpenFrontClient2 = async (platform) => {

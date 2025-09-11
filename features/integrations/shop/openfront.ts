@@ -59,9 +59,6 @@ interface WebhookEventArgs {
 
 // Helper function to get fresh access token with proper OAuth 2.0 flow
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
-  console.log('🔄 [OpenFront Shop] getFreshAccessToken called');
-  console.log('🔄 [OpenFront Shop] Platform domain:', platform.domain);
-  console.log('🔄 [OpenFront Shop] Actual access token:', platform.accessToken);
   
   // Get shop with OAuth credentials from database
   const shops = await keystoneContext.sudo().query.Shop.findMany({
@@ -73,22 +70,13 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
   });
   
   if (!shops || shops.length === 0) {
-    console.log('⚠️ [OpenFront Shop] No matching shop found in database');
     return platform.accessToken;
   }
   
   const shop = shops[0];
-  console.log('🔄 [OpenFront Shop] Found shop:', shop.id);
-  console.log('🔄 [OpenFront Shop] Has refresh token:', !!shop.refreshToken);
-  console.log('🔄 [OpenFront Shop] Token expires at:', shop.tokenExpiresAt);
-  console.log('🔄 [OpenFront Shop] Has appKey:', !!shop.platform?.appKey);
-  console.log('🔄 [OpenFront Shop] Has appSecret:', !!shop.platform?.appSecret);
-  console.log('🔄 [OpenFront Shop] Actual refresh token:', shop.refreshToken);
   
   // If we have a refresh token, check if we need to refresh
   if (shop.refreshToken) {
-    console.log('🔄 [OpenFront Shop] Refresh token found, checking if refresh needed');
-    
     // Check if access token has expired (if we have expiry info)
     let shouldRefresh = false;
     
@@ -99,23 +87,15 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
       
       const now = new Date();
       shouldRefresh = expiresAt <= now;
-      
-      console.log('🔄 [OpenFront Shop] Token expiry check:');
-      console.log('🔄 [OpenFront Shop] - Expires at:', expiresAt.toISOString());
-      console.log('🔄 [OpenFront Shop] - Current time:', now.toISOString());
-      console.log('🔄 [OpenFront Shop] - Should refresh:', shouldRefresh);
     } else {
       // If no expiry info, assume token needs refresh
       shouldRefresh = true;
-      console.log('🔄 [OpenFront Shop] No expiry info found, assuming refresh needed');
     }
     
     if (shouldRefresh) {
-      console.log('🔄 [OpenFront Shop] Starting token refresh process...');
       
       // Use refresh token to get new access token
       const tokenUrl = `${platform.domain}/api/oauth/token`;
-      console.log('🔄 [OpenFront Shop] Token URL:', tokenUrl);
       
       const formData = new URLSearchParams({
         grant_type: "refresh_token",
@@ -123,43 +103,23 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
         client_id: shop.platform?.appKey || "",
         client_secret: shop.platform?.appSecret || "",
       });
-
-      console.log('🔄 [OpenFront Shop] Refresh request params:');
-      console.log('🔄 [OpenFront Shop] - grant_type: refresh_token');
-      console.log('🔄 [OpenFront Shop] - client_id:', shop.platform?.appKey || "NOT_SET");
-      console.log('🔄 [OpenFront Shop] - client_secret:', shop.platform?.appSecret ? "SET" : "NOT_SET");
-      console.log('🔄 [OpenFront Shop] - refresh_token:', shop.refreshToken ? "SET" : "NOT_SET");
-
-      console.log('🔄 [OpenFront Shop] Making refresh token request...');
       const response = await fetch(tokenUrl, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,
       });
 
-      console.log('🔄 [OpenFront Shop] Refresh response status:', response.status);
-      console.log('🔄 [OpenFront Shop] Refresh response ok:', response.ok);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('🚨 [OpenFront Shop] Token refresh failed:', errorText);
-        console.error('🚨 [OpenFront Shop] Response status:', response.status);
-        console.error('🚨 [OpenFront Shop] Response statusText:', response.statusText);
         throw new Error(`Failed to refresh access token: ${response.statusText} - ${errorText}`);
       }
 
       const tokenData = await response.json();
-      console.log('🔄 [OpenFront Shop] Token refresh response received');
-      console.log('🔄 [OpenFront Shop] - Has access_token:', !!tokenData.access_token);
-      console.log('🔄 [OpenFront Shop] - Has refresh_token:', !!tokenData.refresh_token);
-      console.log('🔄 [OpenFront Shop] - Expires in:', tokenData.expires_in, 'seconds');
       
       const { access_token, refresh_token, expires_in } = tokenData;
       
       // Update stored access token and expiry in database
-      console.log('🔄 [OpenFront Shop] Updating tokens in database...');
       try {
-        console.log('🔄 [OpenFront Shop] Updating shop:', shop.id);
         await keystoneContext.sudo().query.Shop.updateOne({
           where: { id: shop.id },
           data: {
@@ -168,23 +128,19 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
             ...(expires_in && { tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)) })
           }
         });
-        console.log('✅ [OpenFront Shop] Shop updated with new tokens:', shop.id);
       } catch (error) {
-        console.error('🚨 [OpenFront Shop] Failed to update shop tokens in database:', error);
+        console.error('Failed to update shop tokens in database:', error);
         // Continue with the request even if database update fails
       }
       
-      console.log('✅ [OpenFront Shop] Returning fresh access token');
       return access_token;
     } else {
       // Token hasn't expired yet, use existing one
-      console.log('✅ [OpenFront Shop] Token still valid, using existing access token');
       return platform.accessToken;
     }
   }
   
   // If no refresh token, just use the access token as-is
-  console.log('⚠️ [OpenFront Shop] No refresh token available, using existing access token');
   return platform.accessToken;
 };
 
@@ -955,35 +911,107 @@ export function scopes() {
 }
 
 export async function addTrackingFunction({
+  platform,
   order,
   trackingCompany,
   trackingNumber,
 }: {
+  platform: OpenFrontPlatform;
   order: any;
   trackingCompany: string;
   trackingNumber: string;
 }) {
-  const openFrontClient = await createOpenFrontClient({
-    domain: order.shop.domain,
-    accessToken: order.shop.accessToken,
-  });
 
-  // Create fulfillment record in OpenFront
-  const createFulfillmentMutation = gql`
-    mutation CreateFulfillment($data: FulfillmentCreateInput!) {
-      createFulfillment(data: $data) {
+  const openFrontClient = await createOpenFrontClient(platform);
+
+  // Helper function to generate tracking URLs (same as frontend)
+  const getTrackingUrl = (carrier: string, trackingNumber: string): string => {
+    switch (carrier?.toLowerCase()) {
+      case 'ups':
+        return `https://www.ups.com/track?tracknum=${trackingNumber}`;
+      case 'usps':
+        return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+      case 'fedex':
+        return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+      case 'dhl':
+        return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+      default:
+        return '';
+    }
+  };
+
+  // First, get the order with its line items to create fulfillment items
+  const getOrderQuery = gql`
+    query GetOrderForFulfillment($orderId: ID!) {
+      order(where: { id: $orderId }) {
         id
-        trackingNumber
-        trackingCompany
+        displayId
+        lineItems {
+          id
+          quantity
+        }
       }
     }
   `;
 
+  const { order: orderData } = await openFrontClient.request(getOrderQuery, {
+    orderId: order.orderId
+  }) as any;
+
+  if (!orderData || !orderData.lineItems || orderData.lineItems.length === 0) {
+    throw new Error(`Order ${order.orderId} not found or has no line items`);
+  }
+
+  // Create fulfillment with all line items and shipping labels (matching frontend pattern)
+  const createFulfillmentMutation = gql`
+    mutation CreateFulfillment($data: FulfillmentCreateInput!) {
+      createFulfillment(data: $data) {
+        id
+        shippingLabels {
+          id
+          status
+          trackingNumber
+          trackingUrl
+          carrier
+        }
+        fulfillmentItems {
+          id
+          quantity
+          lineItem {
+            id
+            title
+          }
+        }
+      }
+    }
+  `;
+
+  // Build fulfillment data (matching frontend createManualFulfillment pattern exactly)
   const fulfillmentData = {
     order: { connect: { id: order.orderId } },
-    trackingNumber,
-    trackingCompany,
-    status: "shipped",
+    fulfillmentProvider: { connect: { code: "fp_manual" } },
+    fulfillmentItems: {
+      create: orderData.lineItems.map((lineItem: any) => ({
+        lineItem: { connect: { id: lineItem.id } },
+        quantity: lineItem.quantity
+      }))
+    },
+    shippingLabels: {
+      create: [{
+        status: "purchased",
+        carrier: trackingCompany,
+        trackingNumber: trackingNumber,
+        trackingUrl: getTrackingUrl(trackingCompany, trackingNumber),
+        metadata: {
+          source: "openship"
+        }
+      }]
+    },
+    noNotification: false,
+    metadata: {
+      source: "openship",
+      createdBy: "openship_integration"
+    }
   };
 
   const result = await openFrontClient.request(createFulfillmentMutation, {

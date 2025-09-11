@@ -39,7 +39,6 @@ interface DeleteWebhookArgs {
 const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
   console.log('🔄 [OpenFront Channel] getFreshAccessToken called');
   console.log('🔄 [OpenFront Channel] Platform domain:', platform.domain);
-  console.log('🔄 [OpenFront Channel] Actual access token:', platform.accessToken);
   
   // Get channel with OAuth credentials from database
   const channels = await keystoneContext.sudo().query.Channel.findMany({
@@ -59,9 +58,8 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
   console.log('🔄 [OpenFront Channel] Found channel:', channel.id);
   console.log('🔄 [OpenFront Channel] Has refresh token:', !!channel.refreshToken);
   console.log('🔄 [OpenFront Channel] Token expires at:', channel.tokenExpiresAt);
-  console.log('🔄 [OpenFront Channel] Has appKey:', !!channel.platform?.appKey);
-  console.log('🔄 [OpenFront Channel] Has appSecret:', !!channel.platform?.appSecret);
-  console.log('🔄 [OpenFront Channel] Actual refresh token:', channel.refreshToken);
+  console.log('🔄 [OpenFront Channel] Has OAuth credentials:', !!(channel.platform?.appKey && channel.platform?.appSecret));
+  console.log('🔄 [OpenFront Channel] Has refresh token:', !!channel.refreshToken);
   
   // If we have a refresh token, check if we need to refresh
   if (channel.refreshToken) {
@@ -104,8 +102,7 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
 
     console.log('🔄 [OpenFront Channel] Refresh request params:');
     console.log('🔄 [OpenFront Channel] - grant_type: refresh_token');
-    console.log('🔄 [OpenFront Channel] - client_id:', channel.platform?.appKey || "NOT_SET");
-    console.log('🔄 [OpenFront Channel] - client_secret:', channel.platform?.appSecret ? "SET" : "NOT_SET");
+    console.log('🔄 [OpenFront Channel] Making token refresh request');
     console.log('🔄 [OpenFront Channel] - refresh_token:', channel.refreshToken ? "SET" : "NOT_SET");
 
     console.log('🔄 [OpenFront Channel] Making refresh token request...');
@@ -394,7 +391,7 @@ export async function createPurchaseFunction({
   console.log(`🛒 OpenFront Channel: Creating purchase with ${cartItems.length} items`);
   console.log(`🚚 OpenFront Channel: Ship to: ${shipping?.firstName} ${shipping?.lastName}`);
   console.log(`📦 OpenFront Channel: Full shipping data:`, JSON.stringify(shipping, null, 2));
-  console.log(`📦 OpenFront Channel: Platform data:`, JSON.stringify(platform, null, 2));
+  console.log(`📦 OpenFront Channel: Platform domain:`, platform.domain);
   console.log(`📦 OpenFront Channel: Cart items:`, JSON.stringify(cartItems, null, 2));
 
   const openFrontClient = await createOpenFrontClient(platform);
@@ -558,7 +555,7 @@ export async function createPurchaseFunction({
       purchaseId: order.id,
       orderNumber: `#${order.displayId}`,
       totalPrice: order.total,
-      invoiceUrl: `https://${platform.domain}/admin/orders/${order.id}`,
+      url: `https://${platform.domain}/account/orders/details/${order.id}`,
       lineItems: processedLineItems,
       status: "pending",
     };
@@ -584,7 +581,7 @@ export async function createPurchaseFunction({
       purchaseId: null,
       orderNumber: null,
       totalPrice: "0.00",
-      invoiceUrl: null,
+      url: null,
       lineItems: cartItems.map((item: any) => ({
         id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title: item.name || `Product ${item.variantId}`,
@@ -613,13 +610,18 @@ export async function createWebhookFunction({
   console.log('🪝 [OpenFront Channel] Endpoint URL:', endpoint);
   console.log('🪝 [OpenFront Channel] Events received:', events);
   console.log('🪝 [OpenFront Channel] Events type:', typeof events, 'Array?', Array.isArray(events));
-  console.log('🪝 [OpenFront Channel] Platform data:', JSON.stringify(platform, null, 2));
 
-  // Map Openship channel events to OpenFront events
+  // Check if ORDER_CANCELLED is requested - OpenFront doesn't support this yet
+  if (events.includes('ORDER_CANCELLED')) {
+    console.error('❌ OpenFront does not support ORDER_CANCELLED webhooks yet');
+    throw new Error('OpenFront does not support ORDER_CANCELLED webhooks. Only TRACKING_CREATED webhooks are currently supported.');
+  }
+
+  // Map Openship channel events to OpenFront events  
   const eventMap: Record<string, string> = {
     ORDER_CREATED: "order.created",
-    ORDER_CANCELLED: "order.cancelled", 
     TRACKING_CREATED: "fulfillment.created",
+    // ORDER_CANCELLED: "order.cancelled", // Not supported yet
   };
 
   const openFrontEvents = events.map(event => {
@@ -661,7 +663,7 @@ export async function createWebhookFunction({
     console.log('✅ [OpenFront Channel] User authenticated successfully');
     console.log('🪝 [OpenFront Channel] User ID:', user.id);
     console.log('🪝 [OpenFront Channel] User email:', user.email);
-    console.log('🪝 [OpenFront Channel] Current webhook URL:', user.orderWebhookUrl);
+    console.log('🪝 [OpenFront Channel] Current webhook URL exists:', !!user.orderWebhookUrl);
 
     // Update the user's webhook URL using updateActiveUser (bypasses access restrictions)
     console.log('🪝 [OpenFront Channel] Updating user webhook URL...');
@@ -676,7 +678,7 @@ export async function createWebhookFunction({
 
     console.log('🪝 [OpenFront Channel] Update mutation variables:');
     console.log('🪝 [OpenFront Channel] - User ID:', user.id);
-    console.log('🪝 [OpenFront Channel] - New webhook URL:', endpoint);
+    console.log('🪝 [OpenFront Channel] - Setting new webhook URL');
 
     const result = await openFrontClient.request(updateUserMutation, {
       data: { orderWebhookUrl: endpoint }
@@ -687,7 +689,7 @@ export async function createWebhookFunction({
     const updatedUser = result.updateActiveUser;
     console.log('✅ [OpenFront Channel] User webhook URL updated successfully');
     console.log('🪝 [OpenFront Channel] Updated user ID:', updatedUser.id);
-    console.log('🪝 [OpenFront Channel] Updated webhook URL:', updatedUser.orderWebhookUrl);
+    console.log('🪝 [OpenFront Channel] Webhook URL updated successfully');
 
     const webhookResponse = { 
       webhooks: [{ 
@@ -737,27 +739,65 @@ export async function deleteWebhookFunction({
   platform: OpenFrontPlatform;
   webhookId: string;
 }) {
-  const openFrontClient = await createOpenFrontClient(platform);
+  console.log('🗑️ OpenFront deleteWebhookFunction called:', { webhookId, platform: platform.domain });
+  
+  try {
+    console.log('🗑️ [OpenFront Channel] Creating OpenFront GraphQL client...');
+    const openFrontClient = await createOpenFrontClient(platform);
+    console.log('✅ [OpenFront Channel] GraphQL client created successfully');
 
-  // Extract user ID from webhookId (format: "user-{userId}")
-  const userId = webhookId.replace('user-', '');
+    // Clear the user's webhook URL using updateActiveUser (same as createWebhookFunction)
+    console.log('🗑️ [OpenFront Channel] Clearing user webhook URL...');
+    const updateUserMutation = gql`
+      mutation ClearActiveUserWebhookUrl($data: UserUpdateProfileInput!) {
+        updateActiveUser(data: $data) {
+          id
+          orderWebhookUrl
+        }
+      }
+    `;
 
-  // Clear the user's webhook URL
-  const updateUserMutation = gql`
-    mutation ClearUserWebhookUrl($where: UserWhereUniqueInput!, $data: UserUpdateInput!) {
-      updateUser(where: $where, data: $data) {
-        id
-        orderWebhookUrl
+    console.log('🗑️ [OpenFront Channel] Clearing webhook URL for user');
+    const result = await openFrontClient.request(updateUserMutation, {
+      data: { orderWebhookUrl: "" }
+    }) as any;
+
+    console.log('🗑️ [OpenFront Channel] Clear mutation result:', JSON.stringify(result, null, 2));
+
+    const updatedUser = result.updateActiveUser;
+    console.log('✅ [OpenFront Channel] User webhook URL cleared successfully');
+    console.log('🗑️ [OpenFront Channel] Updated user ID:', updatedUser.id);
+
+    return { 
+      success: true, 
+      result: updatedUser,
+      deletedWebhookSubscriptionId: webhookId 
+    };
+
+  } catch (error: any) {
+    console.error('🚨 [OpenFront Channel] deleteWebhookFunction failed:', error);
+    console.error('🚨 [OpenFront Channel] Error message:', error.message);
+    console.error('🚨 [OpenFront Channel] Error stack:', error.stack);
+    
+    if (error.response) {
+      console.error('🚨 [OpenFront Channel] GraphQL response:', JSON.stringify(error.response, null, 2));
+      
+      if (error.response.errors) {
+        console.error('🚨 [OpenFront Channel] GraphQL errors:');
+        error.response.errors.forEach((err: any, i: number) => {
+          console.error(`🚨 [OpenFront Channel]   ${i + 1}. ${err.message}`);
+          if (err.path) {
+            console.error(`🚨 [OpenFront Channel]      Path: ${err.path.join(' -> ')}`);
+          }
+          if (err.extensions) {
+            console.error(`🚨 [OpenFront Channel]      Extensions:`, err.extensions);
+          }
+        });
       }
     }
-  `;
-
-  const result = await openFrontClient.request(updateUserMutation, {
-    where: { id: userId },
-    data: { orderWebhookUrl: null }
-  });
-
-  return result;
+    
+    throw error;
+  }
 }
 
 // Function to get webhooks - get user's webhook URL  
@@ -794,12 +834,11 @@ export async function getWebhooksFunction({
     return { webhooks: [] };
   }
 
-  // For OpenFront channels, we support both PURCHASE_CREATED and PURCHASE_SHIPPED
-  // Since we store a single webhook URL on the user, we return both events as supported
+  // For OpenFront channels, we only support TRACKING_CREATED
   const webhooks = [{
     id: `user-${user.id}`,
     callbackUrl: user.orderWebhookUrl,
-    topic: ["PURCHASE_CREATED", "PURCHASE_SHIPPED"], // These are the channel events we support
+    topic: "TRACKING_CREATED",
     format: "JSON",
     createdAt: user.createdAt
   }];
@@ -981,6 +1020,73 @@ export async function oAuthCallbackFunction({
     refreshToken: refresh_token,
     expiresIn: expires_in,
     tokenExpiresAt: new Date(Date.now() + (expires_in * 1000)).toISOString()
+  };
+}
+
+// Function to handle tracking/fulfillment webhook from OpenFront
+export async function createTrackingWebhookHandler({
+  platform,
+  event,
+  headers,
+}: {
+  platform: OpenFrontPlatform;
+  event: any;
+  headers: Record<string, string>;
+}) {
+  console.log('📦 [OpenFront Channel] createTrackingWebhookHandler called');
+  console.log('📦 [OpenFront Channel] Event type:', event.event);
+  console.log('📦 [OpenFront Channel] Payload:', JSON.stringify(event, null, 2));
+
+  // Validate event type
+  if (event.event !== 'order.fulfilled') {
+    throw new Error(`Unsupported event type: ${event.event}`);
+  }
+
+  // Extract order and fulfillment data
+  const order = event.order;
+  const fulfillment = event.fulfillment;
+
+  if (!order?.id) {
+    throw new Error('Missing order.id in webhook payload');
+  }
+
+  if (!fulfillment?.shippingLabels || fulfillment.shippingLabels.length === 0) {
+    throw new Error('Missing shipping labels in fulfillment data');
+  }
+
+  // Get the first shipping label for tracking info
+  const shippingLabel = fulfillment.shippingLabels[0];
+  
+  if (!shippingLabel.trackingNumber || !shippingLabel.carrier) {
+    throw new Error('Missing tracking number or carrier in shipping label');
+  }
+
+  console.log('📦 [OpenFront Channel] Tracking info extracted:');
+  console.log('📦 [OpenFront Channel] - Order ID:', order.id);
+  console.log('📦 [OpenFront Channel] - Tracking Number:', shippingLabel.trackingNumber);
+  console.log('📦 [OpenFront Channel] - Carrier:', shippingLabel.carrier);
+
+  // Return tracking data in the expected format (matching Shopify pattern)
+  return {
+    fulfillment: {
+      id: fulfillment.id || `fulfillment_${order.id}`,
+      orderId: order.id,
+      status: 'shipped',
+      trackingCompany: shippingLabel.carrier,
+      trackingNumber: shippingLabel.trackingNumber,
+      trackingUrl: shippingLabel.url || null,
+      purchaseId: order.id, // This is what the route expects to find cart items
+      lineItems: fulfillment.items?.map((item: any) => ({
+        id: item.id,
+        title: item.lineItem?.title || 'Unknown Product',
+        quantity: item.quantity,
+        variantId: item.lineItem?.variantId || null,
+        productId: item.lineItem?.productId || null,
+      })) || [],
+      createdAt: event.timestamp || new Date().toISOString(),
+      updatedAt: event.timestamp || new Date().toISOString(),
+    },
+    type: "fulfillment_created"
   };
 }
 

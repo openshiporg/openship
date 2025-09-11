@@ -372,7 +372,7 @@ export async function createPurchaseFunction({
     purchaseId: order.id.split("/").pop(),
     orderNumber: order.name,
     totalPrice: order.totalPrice,
-    invoiceUrl: draftOrder.invoiceUrl,
+    url: draftOrder.invoiceUrl,
     lineItems: order.lineItems.edges.map(({ node }: any) => ({
       id: node.id.split("/").pop(),
       title: node.title,

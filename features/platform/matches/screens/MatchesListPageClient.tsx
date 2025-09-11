@@ -224,7 +224,7 @@ export function MatchesListPageClient({
                               title: "Success",
                               description: "Price updated successfully",
                             });
-                            window.location.reload();
+                            // The updateChannelItem action already revalidates the matches path
                           } else {
                             toast({
                               title: "Error",
