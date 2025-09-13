@@ -237,14 +237,13 @@ function AISettingsDialogInner({ onSave, onOpenChange }: { onSave: () => void; o
           {configType === "local" && (
             <>
               {/* Step 2: Model Selection */}
-              <div className="flex gap-4 min-h-[8rem] mt-8">
-                <div className="flex flex-col items-center h-full">
-                  <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground">
-                    {getCurrentStepNumber("model")}
-                  </div>
-                  <div className="w-px flex-1 bg-border mt-4"></div>
+              <div className="flex flex-col items-center">
+                <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground mb-4">
+                  {getCurrentStepNumber("model")}
                 </div>
-                <div className="flex-1">
+                <div className="w-px bg-border flex-1"></div>
+              </div>
+              <div className="pb-4">
                   <Label
                     htmlFor="model"
                     className="text-sm font-medium text-foreground"
@@ -305,17 +304,15 @@ function AISettingsDialogInner({ onSave, onOpenChange }: { onSave: () => void; o
                     Enter any OpenRouter model slug or choose from popular options above.
                   </p>
                 </div>
-              </div>
 
               {/* Step 3: API Key */}
-              <div className="flex gap-4 min-h-[6rem] mt-8">
-                <div className="flex flex-col items-center h-full">
-                  <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground">
-                    {getCurrentStepNumber("apikey")}
-                  </div>
-                  <div className="w-px flex-1 bg-border mt-4"></div>
+              <div className="flex flex-col items-center">
+                <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground mb-4">
+                  {getCurrentStepNumber("apikey")}
                 </div>
-                <div className="flex-1">
+                <div className="w-px bg-border flex-1"></div>
+              </div>
+              <div className="pb-4">
                   <Label
                     htmlFor="api-key"
                     className="text-sm font-medium text-foreground"
@@ -331,16 +328,14 @@ function AISettingsDialogInner({ onSave, onOpenChange }: { onSave: () => void; o
                     className="shadow-sm mt-3"
                   />
                 </div>
-              </div>
 
               {/* Step 4: Max Tokens */}
-              <div className="flex gap-4 min-h-[8rem] mt-8">
-                <div className="flex flex-col items-center h-full">
-                  <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground">
-                    {getCurrentStepNumber("settings")}
-                  </div>
+              <div className="flex flex-col items-center">
+                <div className="inline-flex size-6 items-center justify-center rounded-sm bg-muted text-sm text-foreground mb-4">
+                  {getCurrentStepNumber("settings")}
                 </div>
-                <div className="flex-1">
+              </div>
+              <div className="pb-4">
                   <Label
                     htmlFor="max-tokens"
                     className="text-sm font-medium text-foreground"
@@ -362,7 +357,6 @@ function AISettingsDialogInner({ onSave, onOpenChange }: { onSave: () => void; o
                   </SelectContent>
                 </Select>
               </div>
-            </div>
             </>
           )}
           </div>
