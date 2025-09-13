@@ -2181,7 +2181,7 @@ async function addTrackingFunction2({
   `;
   const fulfillmentData = {
     order: { connect: { id: order.orderId } },
-    fulfillmentProvider: { connect: { id: "manual" } },
+    fulfillmentProvider: { connect: { code: "fp_manual" } },
     fulfillmentItems: {
       create: orderData.lineItems.map((lineItem) => ({
         lineItem: { connect: { id: lineItem.id } },
