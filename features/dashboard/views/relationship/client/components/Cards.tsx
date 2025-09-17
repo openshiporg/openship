@@ -459,7 +459,6 @@ export function Cards({
                   setShowConnectItems(true);
                   setHideConnectItemsLabel("Cancel");
                 }}
-                className="text-gray-600 hover:text-gray-800"
               >
                 Link existing {foreignList.singular}
               </Button>
