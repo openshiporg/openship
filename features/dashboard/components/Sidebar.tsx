@@ -152,7 +152,7 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
           </SidebarMenu>
           
           {/* Platform Dropdown - Icon Mode */}
-          <div className="hidden group-has-[[data-collapsible=icon]]/sidebar-wrapper:block">
+          <SidebarMenu className="hidden group-has-[[data-collapsible=icon]]/sidebar-wrapper:block">
             <DropdownMenu>
               <SidebarMenuItem>
                 <DropdownMenuTrigger asChild>
@@ -194,14 +194,14 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
                 </DropdownMenuContent>
               </SidebarMenuItem>
             </DropdownMenu>
-          </div>
+          </SidebarMenu>
         </SidebarGroup>
 
         {/* Models Dropdown - Collapsible */}
         {dashboardItems.map((dashboardItem) => (
           <SidebarGroup key={dashboardItem.title}>
             <SidebarGroupLabel>{dashboardItem.title}</SidebarGroupLabel>
-            <div className="max-h-full overflow-y-auto group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">
+            <SidebarMenu className="group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">
               <Collapsible
                 key={dashboardItem.title}
                 asChild
@@ -240,10 +240,10 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
-            </div>
+            </SidebarMenu>
 
             {/* Models Dropdown - Icon Mode */}
-            <div className="hidden group-has-[[data-collapsible=icon]]/sidebar-wrapper:block">
+            <SidebarMenu className="hidden group-has-[[data-collapsible=icon]]/sidebar-wrapper:block">
               <DropdownMenu>
                 <SidebarMenuItem>
                   <DropdownMenuTrigger asChild>
@@ -285,7 +285,7 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
                   </DropdownMenuContent>
                 </SidebarMenuItem>
               </DropdownMenu>
-            </div>
+            </SidebarMenu>
           </SidebarGroup>
         ))}
       </SidebarContent>
