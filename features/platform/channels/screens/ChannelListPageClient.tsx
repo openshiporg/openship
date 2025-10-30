@@ -63,7 +63,7 @@ export function ChannelListPageClient({
   // Extract current search params (reactive to URL changes)
   const currentSearchParams = useMemo(() => {
     const params: Record<string, string> = {}
-    searchParams.forEach((value, key) => {
+    searchParams?.forEach((value, key) => {
       params[key] = value
     })
     return params

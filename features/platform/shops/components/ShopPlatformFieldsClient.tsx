@@ -63,8 +63,12 @@ export function ShopPlatformFieldsClient({
 
         // Fetch item data - EXACTLY like EditItemDrawerClientWrapper
         const itemResponse = await getItemAction(listData, platformId)
-        if (!itemResponse.success || !itemResponse.data?.item) {
+        if (!itemResponse.success) {
           setError(itemResponse.error || 'Failed to load item')
+          return
+        }
+        if (!itemResponse.data?.item) {
+          setError('Failed to load item')
           return
         }
         setItem(itemResponse.data.item)

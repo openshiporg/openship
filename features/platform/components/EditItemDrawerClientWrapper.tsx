@@ -71,8 +71,12 @@ export function EditItemDrawerClientWrapper({
 
         // Fetch item data
         const itemResponse = await getItemAction(listData, itemId)
-        if (!itemResponse.success || !itemResponse.data?.item) {
+        if (!itemResponse.success) {
           setError(itemResponse.error || 'Failed to load item')
+          return
+        }
+        if (!itemResponse.data?.item) {
+          setError('Failed to load item')
           return
         }
         setItem(itemResponse.data.item)

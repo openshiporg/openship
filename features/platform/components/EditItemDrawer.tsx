@@ -84,7 +84,7 @@ export async function EditItemDrawer({
             </DrawerHeader>
             <div className="p-6 text-center">
               <p className="text-destructive">
-                Failed to load item: {itemResponse.error || 'Unknown error'}
+                Failed to load item: {'error' in itemResponse ? itemResponse.error : 'Unknown error'}
               </p>
             </div>
           </DrawerContent>

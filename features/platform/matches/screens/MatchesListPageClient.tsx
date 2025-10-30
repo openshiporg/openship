@@ -101,7 +101,7 @@ export function MatchesListPageClient({
   // Extract current search params (reactive to URL changes)
   const currentSearchParams = useMemo(() => {
     const params: Record<string, string> = {}
-    urlSearchParams.forEach((value, key) => {
+    urlSearchParams?.forEach((value, key) => {
       params[key] = value
     })
     return params
