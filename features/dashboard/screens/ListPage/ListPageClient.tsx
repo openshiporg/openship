@@ -1,14 +1,14 @@
 /**
- * ListPageClient - Client Component  
+ * ListPageClient - Client Component
  * Based on Keystone's ListPage implementation but using ShadCN components
- * Follows the same pattern as ItemPageClient
+ * Now using React Query for data fetching with SSR hydration
  */
 
 'use client'
 
-import React, { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { 
+import React, { useState, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
   SearchX,
   Table as TableIcon,
   Triangle,
@@ -25,6 +25,9 @@ import { ListTable } from '../../components/ListTable'
 import { useDashboard } from '../../context/DashboardProvider'
 import { useSelectedFields } from '../../hooks/useSelectedFields'
 import { useSort } from '../../hooks/useSort'
+import { useListItemsQuery } from '../../hooks/useListItems.query'
+import { buildOrderByClause } from '../../lib/buildOrderByClause'
+import { buildWhereClause } from '../../lib/buildWhereClause'
 
 interface ListPageClientProps {
   list: any
@@ -32,7 +35,7 @@ interface ListPageClientProps {
   initialError: string | null
   initialSearchParams: {
     page: number
-    pageSize: number  
+    pageSize: number
     search: string
   }
 }
@@ -62,35 +65,111 @@ function EmptyStateSearch({ onResetFilters }: { onResetFilters: () => void }) {
 }
 
 
-export function ListPageClient({ 
-  list, 
-  initialData, 
-  initialError, 
-  initialSearchParams 
+export function ListPageClient({
+  list,
+  initialData,
+  initialError,
+  initialSearchParams
 }: ListPageClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { basePath } = useDashboard()
+
   // Hooks for sorting and field selection
   const selectedFields = useSelectedFields(list)
   const sort = useSort(list)
 
-  // Extract data from props
-  const data = initialData
-  const error = initialError
-  const currentPage = initialSearchParams.page
-  const pageSize = initialSearchParams.pageSize
-  const searchString = initialSearchParams.search
+  // Extract current search params (reactive to URL changes)
+  const currentSearchParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    searchParams?.forEach((value, key) => {
+      params[key] = value
+    })
+    return params
+  }, [searchParams])
+
+  const currentPage = parseInt(currentSearchParams.page || '1', 10) || 1
+  const pageSize = parseInt(currentSearchParams.pageSize || list.pageSize?.toString() || '50', 10)
+  const searchString = currentSearchParams.search || ''
+
+  // Build query variables from current search params
+  const variables = useMemo(() => {
+    const orderBy = buildOrderByClause(list, currentSearchParams)
+    const filterWhere = buildWhereClause(list, currentSearchParams)
+    const searchParameters = searchString ? { search: searchString } : {}
+    const searchWhere = buildWhereClause(list, searchParameters)
+
+    // Combine search and filters
+    const whereConditions = []
+    if (Object.keys(searchWhere).length > 0) {
+      whereConditions.push(searchWhere)
+    }
+    if (Object.keys(filterWhere).length > 0) {
+      whereConditions.push(filterWhere)
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {}
+
+    return {
+      where,
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
+      orderBy
+    }
+  }, [list, currentSearchParams, currentPage, pageSize, searchString])
+
+  // Build selected fields from URL or defaults
+  const querySelectedFields = useMemo(() => {
+    let fields = ['id']
+
+    if (currentSearchParams.fields) {
+      const fieldsFromUrl = currentSearchParams.fields.split(',').filter(field => {
+        return field in (list.fields || {})
+      })
+      fields = [...fields, ...fieldsFromUrl]
+    } else {
+      if (list.initialColumns && list.initialColumns.length > 0) {
+        fields = [...fields, ...list.initialColumns]
+      } else if (list.fields) {
+        Object.keys(list.fields).forEach(fieldKey => {
+          if (['name', 'title', 'label', 'createdAt', 'updatedAt'].includes(fieldKey)) {
+            fields.push(fieldKey)
+          }
+        })
+      }
+    }
+
+    return [...new Set(fields)]
+  }, [currentSearchParams.fields, list.fields, list.initialColumns])
+
+  // Use React Query hook with server-side initial data
+  // IMPORTANT: Using placeholderData instead of initialData so invalidation works properly
+  const { data: queryData, error: queryError, isLoading, isFetching } = useListItemsQuery(
+    {
+      listKey: list.key,
+      variables,
+      selectedFields: querySelectedFields
+    },
+    {
+      // Use placeholderData to show server data immediately, but still allow refetching
+      placeholderData: initialError ? undefined : initialData,
+    }
+  )
+
+  // Use query data, fallback to initial data
+  const data = queryData || initialData
+  const error = queryError ? queryError.message : initialError
 
   // Handle page change - simplified since FilterBar handles search/filters
   const handlePageChange = useCallback((newPage: number) => {
     const params = new URLSearchParams(window.location.search)
-    
+
     if (newPage && newPage > 1) {
       params.set('page', newPage.toString())
     } else {
       params.delete('page')
     }
-    
+
     const newUrl = params.toString() ? `?${params.toString()}` : ''
     router.push(newUrl)
   }, [router])

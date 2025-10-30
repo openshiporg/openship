@@ -12,14 +12,11 @@ import { Sidebar } from './Sidebar'
 import { ErrorBoundary } from './ErrorBoundary'
 import { DashboardProvider } from '../context/DashboardProvider'
 import { RightSidebar } from './dual-sidebar/right-sidebar'
-import { FloatingChatBox } from './dual-sidebar/floating-chat-box'
-import { ChevronRight, Sparkles, X } from 'lucide-react'
+import { ChevronRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { AiConfigProvider, useChatMode as useAiChatMode } from '../hooks/use-ai-config'
-
-// Chat mode context
-type ChatMode = 'sidebar' | 'chatbox';
+import { AiConfigProvider } from '../hooks/use-ai-config'
+import { QueryProvider } from '../providers/QueryProvider'
 
 // Shared Message type
 interface Message {
@@ -30,10 +27,6 @@ interface Message {
 }
 
 interface ChatModeContextType {
-  chatMode: ChatMode;
-  setChatMode: (mode: ChatMode) => void;
-  isFloatingChatVisible: boolean;
-  setIsFloatingChatVisible: (visible: boolean) => void;
   // Shared messages state
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
@@ -64,34 +57,21 @@ interface DashboardLayoutProps {
 
 function FloatingChatButton() {
   const { toggleSidebar, open, isMobile } = useSidebarWithSide('right')
-  const { chatMode, isFloatingChatVisible, setIsFloatingChatVisible } = useChatMode()
-  
-  const handleClick = () => {
-    if (chatMode === 'sidebar') {
-      toggleSidebar()
-    } else {
-      setIsFloatingChatVisible(!isFloatingChatVisible)
-    }
-  }
-  
+
   // On mobile, sidebar is always overlaid, so don't show chevron when "open"
   // Only show chevron when sidebar is actually visible on screen (desktop + open)
-  const showChevron = chatMode === 'sidebar' && open && !isMobile
-  
-  const Icon = showChevron
-    ? ChevronRight 
-    : chatMode === 'chatbox' && isFloatingChatVisible
-    ? X
-    : Sparkles;
-  
+  const showChevron = open && !isMobile
+
+  const Icon = showChevron ? ChevronRight : Sparkles;
+
   return (
     <Button
-      onClick={handleClick}
+      onClick={toggleSidebar}
       size="icon"
       className={cn(
         "fixed bottom-3 z-40 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300",
         showChevron
-          ? "right-[calc(18rem+1rem)] md:right-[calc(30rem+1rem)] bg-background hover:bg-accent" 
+          ? "right-[calc(18rem+1rem)] md:right-[calc(30rem+1rem)] bg-background hover:bg-accent"
           : "right-3"
       )}
     >
@@ -101,52 +81,26 @@ function FloatingChatButton() {
 }
 
 function DashboardLayoutContent({ children, adminMeta, authenticatedItem }: DashboardLayoutProps) {
-  const { chatMode, setChatMode, isFloatingChatVisible, setIsFloatingChatVisible } = useChatMode()
-  
   return (
     <>
       <Sidebar adminMeta={adminMeta} user={authenticatedItem} />
       <SidebarInset className="min-w-0">
         {children}
       </SidebarInset>
-      {chatMode === 'sidebar' && <RightSidebar side="right" />}
+      <RightSidebar side="right" />
       <FloatingChatButton />
-      
-      {/* Floating Chat Box */}
-      {chatMode === 'chatbox' && (
-        <FloatingChatBox
-          isVisible={isFloatingChatVisible}
-          onClose={() => setIsFloatingChatVisible(false)}
-          onModeChange={() => setChatMode('sidebar')}
-        />
-      )}
     </>
   )
 }
 
 function ChatModeProvider({ children, user }: { children: React.ReactNode; user?: any }) {
-  const { chatMode: aiChatMode, setChatMode: setAiChatMode } = useAiChatMode()
-  const [isFloatingChatVisible, setIsFloatingChatVisible] = useState(false)
-  
   // Shared chat state
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
-  
-  // Auto-open chat box when switching to chatbox mode
-  const setChatMode = (mode: ChatMode) => {
-    setAiChatMode(mode)
-    if (mode === 'chatbox') {
-      setIsFloatingChatVisible(true)
-    }
-  }
-  
+
   return (
     <ChatModeContext.Provider value={{
-      chatMode: aiChatMode,
-      setChatMode,
-      isFloatingChatVisible,
-      setIsFloatingChatVisible,
       messages,
       setMessages,
       loading,
@@ -163,19 +117,21 @@ function ChatModeProvider({ children, user }: { children: React.ReactNode; user?
 export function DashboardLayout({ children, adminMeta, authenticatedItem }: DashboardLayoutProps) {
   return (
     <ErrorBoundary>
-      <DashboardProvider>
-        <AdminMetaProvider initialData={adminMeta}>
-          <AiConfigProvider>
-            <ChatModeProvider user={authenticatedItem}>
-              <SidebarProvider defaultOpenRight={false}>
-                <DashboardLayoutContent adminMeta={adminMeta} authenticatedItem={authenticatedItem}>
-                  {children}
-                </DashboardLayoutContent>
-              </SidebarProvider>
-            </ChatModeProvider>
-          </AiConfigProvider>
-        </AdminMetaProvider>
-      </DashboardProvider>
+      <QueryProvider>
+        <DashboardProvider>
+          <AdminMetaProvider initialData={adminMeta}>
+            <AiConfigProvider>
+              <ChatModeProvider user={authenticatedItem}>
+                <SidebarProvider defaultOpenRight={false}>
+                  <DashboardLayoutContent adminMeta={adminMeta} authenticatedItem={authenticatedItem}>
+                    {children}
+                  </DashboardLayoutContent>
+                </SidebarProvider>
+              </ChatModeProvider>
+            </AiConfigProvider>
+          </AdminMetaProvider>
+        </DashboardProvider>
+      </QueryProvider>
     </ErrorBoundary>
   )
 }

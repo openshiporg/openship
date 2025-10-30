@@ -5,7 +5,7 @@
 'use server'
 
 import { keystoneClient } from '../lib/keystoneClient'
-import { getListByPath } from './getListByPath'
+import { getList } from './getList'
 import { getFieldTypeFromViewsIndex } from '../views/getFieldTypeFromViewsIndex'
 
 interface ListItemsVariables extends Record<string, unknown> {
@@ -78,33 +78,37 @@ function getFieldGraphQLSelection(field: any): string {
 }
 
 export async function getListItemsAction(
-  listKey: string, 
+  listKey: string,
   variables: ListItemsVariables,
-  selectedFields: string[] = ['id'],
+  selectedFields: string[] | string = ['id'],
   cacheOptions?: CacheOptions
 ): Promise<{ success: true; data: ListItemsResponse } | { success: false; error: string }> {
   try {
-    // Get list metadata
-    const list = await getListByPath(listKey)
+    // Get list metadata by KEY (not path)
+    // listKey is the list.key (e.g., "Task") not the path (e.g., "tasks")
+    const list = await getList(listKey)
     if (!list) {
       console.error(`❌ List not found: ${listKey}`)
       return { success: false, error: `List not found: ${listKey}` }
     }
-    
+
     // Build GraphQL selection for list fields - using the same pattern as getItemAction
-    const selectedGqlFields = selectedFields
-      .map(fieldPath => {
-        if (fieldPath === 'id') return 'id' // Always include id as-is
-        
-        const field = list.fields[fieldPath]
-        if (!field) {
-          console.warn(`⚠️ Field not found: ${fieldPath}`)
-          return fieldPath // fallback
-        }
-        
-        return getFieldGraphQLSelection(field)
-      })
-      .join('\n')
+    // Platform pages can pass a raw GraphQL string to override this
+    const selectedGqlFields = typeof selectedFields === 'string'
+      ? selectedFields
+      : selectedFields
+          .map(fieldPath => {
+            if (fieldPath === 'id') return 'id' // Always include id as-is
+
+            const field = list.fields[fieldPath]
+            if (!field) {
+              console.warn(`⚠️ Field not found: ${fieldPath}`)
+              return fieldPath // fallback
+            }
+
+            return getFieldGraphQLSelection(field)
+          })
+          .join('\n')
     
     // Build the GraphQL query following Keystone's exact pattern
     const query = `

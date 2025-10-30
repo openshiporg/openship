@@ -1,13 +1,13 @@
 /**
  * ApiKeyListPageClient - Client Component for API Keys Platform Page
- * Based on dashboard ListPageClient but with platform-specific layout and PlatformFilterBar
+ * Uses React Query for data fetching
  */
 
 'use client'
 
-import React, { useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { 
+import React, { useState, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
   Triangle,
   Square,
   Circle,
@@ -19,6 +19,10 @@ import { PageBreadcrumbs } from "@/features/dashboard/components/PageBreadcrumbs
 import { PlatformFilterBar } from '@/features/platform/components/PlatformFilterBar'
 import { ListTable } from '@/features/dashboard/components/ListTable'
 import { useSelectedFields } from '@/features/dashboard/hooks/useSelectedFields'
+import { useSort } from '@/features/dashboard/hooks/useSort'
+import { useListItemsQuery } from '@/features/dashboard/hooks/useListItems.query'
+import { buildOrderByClause } from '@/features/dashboard/lib/buildOrderByClause'
+import { buildWhereClause } from '@/features/dashboard/lib/buildWhereClause'
 import { CreateApiKey } from './CreateApiKey'
 
 interface ApiKeyListPageClientProps {
@@ -27,7 +31,7 @@ interface ApiKeyListPageClientProps {
   initialError: string | null
   initialSearchParams: {
     page: number
-    pageSize: number  
+    pageSize: number
     search: string
   }
 }
@@ -56,23 +60,93 @@ function EmptyStateSearch({ onResetFilters }: { onResetFilters: () => void }) {
   )
 }
 
-export function ApiKeyListPageClient({ 
-  list, 
-  initialData, 
-  initialError, 
-  initialSearchParams 
+export function ApiKeyListPageClient({
+  list,
+  initialData,
+  initialError,
+  initialSearchParams
 }: ApiKeyListPageClientProps) {
   const router = useRouter()
-  
-  // Hooks for field selection
-  const selectedFields = useSelectedFields(list)
+  const searchParams = useSearchParams()
 
-  // Extract data from props
-  const data = initialData
-  const error = initialError
-  const currentPage = initialSearchParams.page
-  const pageSize = initialSearchParams.pageSize
-  const searchString = initialSearchParams.search
+  // Hooks for sorting and field selection
+  const selectedFields = useSelectedFields(list)
+  const sort = useSort(list)
+
+  // Extract current search params (reactive to URL changes)
+  const currentSearchParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    searchParams.forEach((value, key) => {
+      params[key] = value
+    })
+    return params
+  }, [searchParams])
+
+  const currentPage = parseInt(currentSearchParams.page || '1', 10) || 1
+  const pageSize = parseInt(currentSearchParams.pageSize || list.pageSize?.toString() || '50', 10)
+  const searchString = currentSearchParams.search || ''
+
+  // Build query variables from current search params
+  const variables = useMemo(() => {
+    const orderBy = buildOrderByClause(list, currentSearchParams)
+    const filterWhere = buildWhereClause(list, currentSearchParams)
+    const searchParameters = searchString ? { search: searchString } : {}
+    const searchWhere = buildWhereClause(list, searchParameters)
+
+    // Combine search and filters
+    const whereConditions = []
+    if (Object.keys(searchWhere).length > 0) {
+      whereConditions.push(searchWhere)
+    }
+    if (Object.keys(filterWhere).length > 0) {
+      whereConditions.push(filterWhere)
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {}
+
+    return {
+      where,
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
+      orderBy
+    }
+  }, [list, currentSearchParams, currentPage, pageSize, searchString])
+
+  // For api-keys, use raw GraphQL string to include relationship fields (from working repomix)
+  const querySelectedFields = `
+    id
+    name
+    tokenPreview
+    scopes
+    status
+    expiresAt
+    lastUsedAt
+    usageCount
+    restrictedToIPs
+    createdAt
+    updatedAt
+    user {
+      id
+      name
+      email
+    }
+  `
+
+  // Use React Query hook with server-side initial data
+  const { data: queryData, error: queryError, isLoading, isFetching } = useListItemsQuery(
+    {
+      listKey: list.key,
+      variables,
+      selectedFields: querySelectedFields
+    },
+    {
+      initialData: initialError ? undefined : initialData,
+    }
+  )
+
+  // Use query data, fallback to initial data
+  const data = queryData || initialData
+  const error = queryError ? queryError.message : initialError
 
   // Handle reset filters
   const handleResetFilters = useCallback(() => {

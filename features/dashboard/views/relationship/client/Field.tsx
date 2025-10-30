@@ -1,9 +1,8 @@
 "use client";
 
 import React, { Fragment } from "react";
-import useSWR from "swr";
-import { getAuthenticatedUser } from "@/features/dashboard/actions/auth";
-import { getList } from "@/features/dashboard/actions/getList";
+import { useListQuery } from "@/features/dashboard/hooks/useList.query";
+import { useAuthenticatedUserQuery } from "@/features/dashboard/hooks/useAuth.query";
 import { RelationshipSelect } from "./components/RelationshipSelect";
 import { Cards } from "./components/Cards";
 import { CreateItemDrawer } from "./components/CreateItemDrawer";
@@ -82,60 +81,52 @@ export function ClientField({
   isDisabled,
   forceValidation,
 }: FieldProps) {
-  // Get list data using getList for relationships
-  const { data: foreignListData } = useSWR(
-    `list-${field.refListKey}`,
-    async () => {
-      return await getList(field.refListKey);
-    }
-  );
+  // Get list data using React Query
+  const { data: foreignList, isLoading: foreignListLoading, error: foreignListError } = useListQuery(field.refListKey);
 
-  const { data: localListData } = useSWR(
-    `list-${field.listKey || field.refListKey}`,
-    async () => {
-      return await getList(field.listKey || field.refListKey);
-    }
+  const { data: localList, isLoading: localListLoading, error: localListError } = useListQuery(
+    field.listKey || field.refListKey
   );
-
-  const foreignList = foreignListData;
-  const localList = localListData;
 
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
-  // Use SWR for authenticated item
-  const { data: authResponse, error: swrError } = useSWR(
-    "authenticated-item",
-    async () => {
-      const response = await getAuthenticatedUser();
-      if (!response.success) {
-        console.error("Failed to get authenticated user:", response.error);
-        // Optionally throw an error to be caught by SWR's error handling
-        // throw new Error(response.error);
-      }
-      return response;
-    },
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 1000,
-    }
-  );
+  // Use React Query for authenticated item
+  const { data: authData, error: authError } = useAuthenticatedUserQuery();
 
-  // Handle SWR error state
-  if (swrError) {
-    console.error("SWR error fetching authenticated user:", swrError);
+  // Handle auth error state
+  if (authError) {
+    console.error("Error fetching authenticated user:", authError);
   }
 
   const authenticatedItem =
-    authResponse?.success && authResponse.data?.authenticatedItem
+    authData?.authenticatedItem
       ? {
-          id: authResponse.data.authenticatedItem.id,
+          id: authData.authenticatedItem.id,
           label:
-            authResponse.data.authenticatedItem.name ||
-            authResponse.data.authenticatedItem.email,
+            authData.authenticatedItem.name ||
+            authData.authenticatedItem.email,
           listKey: "User", // Assuming the listKey is always 'User' for authenticated items
-          state: "authenticated",
+          state: "authenticated" as const,
         }
-      : { state: "unauthenticated" };
+      : { state: "unauthenticated" as const };
+
+  // Show loading state while lists are loading
+  if (foreignListLoading || localListLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  // Show error state if lists failed to load
+  if (foreignListError || localListError) {
+    return (
+      <div className="text-red-500">
+        Error loading relationship data: {foreignListError?.message || localListError?.message}
+      </div>
+    );
+  }
 
   if (value?.kind === "cards-view") {
     return (

@@ -1,34 +1,25 @@
 "use client";
 
-import { Settings2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { ConfigToggleButton } from "./config-toggle-button";
+import { SimpleSettingsPopover } from "./simple-settings-popover";
+import { AIModelSelector } from "./ai-model-selector";
+import { useAiConfig } from "../../hooks/use-ai-config";
 
 interface ModeSplitButtonProps {
   disabled?: boolean;
-  onSettingsClick?: () => void;
 }
 
 export function ModeSplitButton({
   disabled = false,
-  onSettingsClick,
 }: ModeSplitButtonProps) {
-  const handleSettingsClick = () => {
-    if (onSettingsClick) {
-      onSettingsClick();
-    }
-  };
+  const { config: aiConfig } = useAiConfig();
+  const isGlobalMode = aiConfig.keyMode === "env";
 
   return (
-    <Button
-      onClick={handleSettingsClick}
-      size="icon"
-      aria-label="Settings"
-      variant="ghost"
-      disabled={disabled}
-      className="size-7 rounded-full"
-    >
-      <Settings2 className="size-5 text-muted-foreground/70" aria-hidden="true" />
-    </Button>
+    <div className="flex items-center gap-2">
+      <ConfigToggleButton disabled={disabled} />
+      <SimpleSettingsPopover disabled={disabled || isGlobalMode} />
+      <AIModelSelector disabled={disabled || isGlobalMode} />
+    </div>
   );
 }

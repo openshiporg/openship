@@ -6,8 +6,7 @@
 'use client'
 
 import React, { createContext, useContext, ReactNode } from 'react'
-import useSWR from 'swr'
-import { getAdminMetaAction } from '../actions/getAdminMetaAction'
+import { useAdminMetaQuery } from './useAdminMeta.query'
 
 // Types
 export interface AdminMeta {
@@ -48,44 +47,32 @@ export interface FieldMeta {
 // Context for admin metadata
 const AdminMetaContext = createContext<{
   adminMeta: AdminMeta | null
-  error: Error | null 
+  error: Error | null
   isLoading: boolean
-  mutate: () => void
+  refetch: () => void
 } | null>(null)
 
-// Context Provider
-export function AdminMetaProvider({ 
-  children, 
-  initialData 
-}: { 
+// Context Provider (migrated to React Query)
+export function AdminMetaProvider({
+  children,
+  initialData
+}: {
   children: ReactNode
   initialData?: AdminMeta
 }) {
-  const { data: response, error, isLoading, mutate } = useSWR(
-    'admin-meta',
-    async () => {
-      const result = await getAdminMetaAction()
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load admin metadata')
-      }
-      
-      // Lists are already enhanced with gqlNames from getAdminMetaAction
-      return result.data
-    },
-    {
-      fallbackData: initialData,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-    }
-  )
+  const { data, error, isLoading, refetch } = useAdminMetaQuery(undefined, {
+    // IMPORTANT: Use placeholderData instead of initialData for SSR
+    // This allows the query to be invalidated and refetched properly
+    placeholderData: initialData,
+  })
 
   return (
-    <AdminMetaContext.Provider 
+    <AdminMetaContext.Provider
       value={{
-        adminMeta: response || null,
-        error,
+        adminMeta: data || null,
+        error: error as Error | null,
         isLoading,
-        mutate
+        refetch
       }}
     >
       {children}

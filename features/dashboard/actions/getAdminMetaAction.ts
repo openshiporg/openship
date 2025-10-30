@@ -4,13 +4,15 @@
 
 'use server'
 
-import { keystoneClient } from '../lib/keystoneClient'
+import { cache } from 'react'
+import { keystoneClient, type KeystoneResponse } from '../lib/keystoneClient'
 import { getGraphQLNames } from '../lib/getGqlNames'
 
-export async function getAdminMetaAction(listKey?: string) {
-  try {
-    // Exact copy of Keystone's adminMetaQuery from admin-meta-graphql.ts
-    const query = `
+// Cache the admin meta fetching to avoid repeated GraphQL calls
+// This is per-request caching using React's cache()
+const getCachedAdminMeta = cache(async (): Promise<KeystoneResponse<any>> => {
+  // Exact copy of Keystone's adminMetaQuery from admin-meta-graphql.ts
+  const query = `
       query KsFetchAdminMeta {
         keystone {
           adminMeta {
@@ -74,21 +76,55 @@ export async function getAdminMetaAction(listKey?: string) {
       }
     `
 
-    const response = await keystoneClient(query)
+  const response = await keystoneClient(query)
+
+  if (!response.success) {
+    console.error('Failed to fetch admin meta:', response.error)
+    return response
+  }
+
+  const adminMeta = response.data?.keystone?.adminMeta
+
+  if (!adminMeta) {
+    return {
+      success: false,
+      error: 'Admin meta not found in response'
+    }
+  }
+
+  // Enhance all lists with gqlNames before returning
+  const enhancedLists = adminMeta.lists.map((list: any) => {
+    const gqlNames = getGraphQLNames(list.key, { plural: list.plural })
+
+    return {
+      ...list,
+      gqlNames,
+      graphql: {
+        names: gqlNames
+      }
+    }
+  })
+
+  // Return enhanced admin meta
+  return {
+    success: true,
+    data: {
+      ...adminMeta,
+      lists: enhancedLists
+    }
+  }
+})
+
+export async function getAdminMetaAction(listKey?: string): Promise<KeystoneResponse<any>> {
+  try {
+    // Use cached admin meta
+    const response = await getCachedAdminMeta()
 
     if (!response.success) {
-      console.error('Failed to fetch admin meta:', response.error)
       return response
     }
 
-    const adminMeta = response.data?.keystone?.adminMeta
-
-    if (!adminMeta) {
-      return {
-        success: false,
-        error: 'Admin meta not found in response'
-      }
-    }
+    const adminMeta = response.data
 
     // If listKey is provided, filter to that specific list
     if (listKey) {
@@ -106,45 +142,19 @@ export async function getAdminMetaAction(listKey?: string) {
         fields[field.path] = field
       })
 
-      // Enhance with gqlNames (same as all-lists path)
-      const gqlNames = getGraphQLNames(list.key, { plural: list.plural })
-
       return {
         success: true,
         data: {
           list: {
             ...list,
             fields, // Return fields as a record
-            gqlNames,
-            graphql: {
-              names: gqlNames
-            }
           }
         }
       }
     }
 
-    // Enhance all lists with gqlNames before returning
-    const enhancedLists = adminMeta.lists.map((list: any) => {
-      const gqlNames = getGraphQLNames(list.key, { plural: list.plural })
-      
-      return {
-        ...list,
-        gqlNames,
-        graphql: {
-          names: gqlNames
-        }
-      }
-    })
-
-    // Return enhanced admin meta
-    return {
-      success: true,
-      data: {
-        ...adminMeta,
-        lists: enhancedLists
-      }
-    }
+    // Return full admin meta
+    return response
   } catch (error) {
     console.error('Error in getAdminMetaAction:', error)
     return {

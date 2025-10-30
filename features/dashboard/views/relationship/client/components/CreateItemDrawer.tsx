@@ -31,15 +31,16 @@ export function CreateItemDrawer({ listKey, isOpen, onClose, onCreate }: CreateI
     return enhanceFields(list.fields || {}, list.key);
   }, [list]);
 
+  // IMPORTANT: Always call hooks unconditionally before any early returns
   // Use the create item hook with enhanced fields (same as create page)
   // Skip revalidation to prevent page refresh in drawer context
   const createItem = useCreateItem(list, enhancedFields, { skipRevalidation: true });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!createItem) return;
-    
+
     // Use the createItem hook's create method (same as create page)
     const item = await createItem.create();
     if (item?.id) {
@@ -52,6 +53,7 @@ export function CreateItemDrawer({ listKey, isOpen, onClose, onCreate }: CreateI
     onClose();
   };
 
+  // Conditional rendering AFTER all hooks are called
   // Show loading state
   if (isLoading) {
     return (

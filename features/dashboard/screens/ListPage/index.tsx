@@ -104,7 +104,8 @@ export async function ListPage({ params, searchParams }: PageProps) {
   }
 
   // Use the working dashboard action for list items data
-  const response = await getListItemsAction(listKeyParam, variables, selectedFields, cacheOptions)
+  // IMPORTANT: Pass list.key (not listKeyParam which is the path)
+  const response = await getListItemsAction(list.key, variables, selectedFields, cacheOptions)
 
   let fetchedData: { items: any[], count: number } = { items: [], count: 0 }
   let error: string | null = null
@@ -127,6 +128,7 @@ export async function ListPage({ params, searchParams }: PageProps) {
 
   return (
     <ListPageClient
+      key={enhancedList.key}
       list={enhancedList}
       initialData={fetchedData}
       initialError={error}

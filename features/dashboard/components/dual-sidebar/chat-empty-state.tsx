@@ -221,9 +221,6 @@ export function ChatEmptyState({ userName, variant = "default" }: ChatEmptyState
             Welcome back! How can I help?
           </h3>
         </div>
-        <p className={`text-muted-foreground ${isCompact ? "text-xs" : "text-sm"}`}>
-          I'm here to help you tackle your tasks. Just tell me what you need!
-        </p>
       </div>
     </div>
   );

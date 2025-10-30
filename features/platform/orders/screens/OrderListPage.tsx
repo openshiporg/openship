@@ -38,8 +38,8 @@ export async function OrderListPage({ searchParams }: PageProps) {
   const pageSize = parseInt(searchParamsObj.pageSize?.toString() || list.pageSize?.toString() || '50', 10)
   const searchString = searchParamsObj.search?.toString() || ''
   
-  // Extract status filter from URL params
-  const statusFilter = searchParamsObj['!status_matches']
+  // Extract status filter from URL params - using status_contains_i for text field filtering
+  const statusFilter = searchParamsObj['!status_contains_i']
   let status = 'all'
   if (statusFilter) {
     try {

@@ -100,7 +100,8 @@ export async function ApiKeyListPage({ searchParams }: PageProps) {
   }
 
   // Use the dashboard action for list items data
-  const response = await getListItemsAction("api-keys", variables, selectedFields, cacheOptions)
+  // IMPORTANT: Pass list.key (not the path "api-keys")
+  const response = await getListItemsAction(list.key, variables, selectedFields, cacheOptions)
 
   let fetchedData: { items: any[], count: number } = { items: [], count: 0 }
   let error: string | null = null

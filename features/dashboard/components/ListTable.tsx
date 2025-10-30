@@ -9,10 +9,12 @@ import { useState, useEffect } from "react";
 import type { ReactNode } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useQueryClient } from '@tanstack/react-query';
 import { useDashboard } from '../context/DashboardProvider';
 import { Pagination } from './Pagination';
 import { getFieldViews } from '../views/registry';
 import { deleteManyItemsAction } from '../actions/item-actions';
+import { queryKeys } from '../lib/queryKeys';
 
 interface ListItem {
   id: string;
@@ -43,6 +45,7 @@ export function ListTable({
   const pathname = usePathname();
   const searchParams = useSearchParams() || new URLSearchParams();
   const { basePath } = useDashboard();
+  const queryClient = useQueryClient();
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +76,6 @@ export function ListTable({
 
   const handleDelete = async () => {
     const idsToDelete = Array.from(selectedItemsState.selectedItems);
-    console.log('Deleting items with IDs:', list);
     if (idsToDelete.length === 0) return;
 
     if (!list.gqlNames?.deleteManyMutationName) {
@@ -99,7 +101,12 @@ export function ListTable({
           itemsFromServer: selectedItemsState.itemsFromServer,
           selectedItems: new Set(),
         });
-        router.refresh();
+
+        // Invalidate React Query cache - this will automatically refetch the data
+        // Invalidate all items queries for this list (partial match on query key)
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', list.key, 'items']
+        });
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';

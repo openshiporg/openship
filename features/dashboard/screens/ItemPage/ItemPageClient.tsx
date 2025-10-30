@@ -1,19 +1,21 @@
 /**
- * ItemPageClient - Client Component  
+ * ItemPageClient - Client Component
  * Based on Keystone's ItemPage implementation but using ShadCN components
+ * Now using React Query mutations for update/delete operations
  */
 
 'use client'
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { Fields } from '../../components/Fields'
 import { PageBreadcrumbs } from '../../components/PageBreadcrumbs'
 import { useInvalidFields } from '../../utils/useInvalidFields'
 import { useHasChanges, serializeValueToOperationItem } from '../../utils/useHasChanges'
 import { enhanceFields } from '../../utils/enhanceFields'
 import { Button } from '@/components/ui/button'
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,10 +24,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger 
+  AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   AlertCircle,
   Check,
   Copy,
@@ -34,8 +36,9 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateItemAction, deleteItemAction } from '../../actions/item-actions'
 import { useDashboard } from '../../context/DashboardProvider'
+import { updateItemAction, deleteItemAction } from '../../actions/item-actions'
+import { queryKeys } from '../../lib/queryKeys'
 
 interface ItemPageClientProps {
   list: any
@@ -56,15 +59,17 @@ function useEventCallback<Func extends (...args: any[]) => unknown>(callback: Fu
 }
 
 // Delete Button Component (adapted from Keystone with responsive design)
-function DeleteButton({ 
-  list, 
-  value, 
+function DeleteButton({
+  list,
+  value,
   onError,
-  isDesktop = true 
-}: { 
-  list: any; 
-  value: Record<string, unknown>; 
+  queryClient,
+  isDesktop = true
+}: {
+  list: any;
+  value: Record<string, unknown>;
   onError: (error: Error) => void;
+  queryClient: ReturnType<typeof useQueryClient>;
   isDesktop?: boolean;
 }) {
   const itemId = ((value.id ?? '') as string | number).toString()
@@ -73,11 +78,10 @@ function DeleteButton({
 
   const handleDelete = useEventCallback(async () => {
     try {
-      // Call server action - following Keystone's Apollo useMutation pattern
       const { errors } = await deleteItemAction(list.key, itemId)
-      
+
       // Handle errors exactly like Keystone does
-      const error = errors?.find(x => x.path === undefined || x.path?.length === 1)
+      const error = errors?.find((x: any) => x.path === undefined || x.path?.length === 1)
       if (error) {
         toast.error('Unable to delete item.', {
           action: {
@@ -87,9 +91,19 @@ function DeleteButton({
         })
         return
       }
-      
+
       toast.success(`${list.singular} deleted successfully.`)
-      
+
+      // Invalidate React Query cache - this will automatically refetch the data
+      // Invalidate all items queries for this list (partial match on query key)
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', list.key, 'items']
+      })
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.items.item(list.key, itemId)
+      })
+
+      // Navigate to list page after delete
       router.push(list.isSingleton ? `${basePath}/` : `${basePath}/${list.path}`)
     } catch (err: any) {
       toast.error("Unable to delete item.", {
@@ -236,17 +250,18 @@ function deserializeItemToValue(
 // Main ItemPageClient component
 export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
   const router = useRouter()
-  
+  const queryClient = useQueryClient()
+
   // Create enhanced fields like Keystone does
   const enhancedFields = useMemo(() => {
     return enhanceFields(list.fields || {}, list.key)
   }, [list.fields, list.key])
-  
+
   // Deserialize the item data once - following Keystone pattern
   const initialValue = useMemo(() => {
     return deserializeItemToValue(enhancedFields, item)
   }, [enhancedFields, item])
-  
+
   // State for form values - initialized with deserialized data
   const [value, setValue] = useState(() => initialValue)
   const [loading, setLoading] = useState(false)
@@ -288,27 +303,25 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
   // Save handler following Keystone's exact pattern with save state
   const handleSave = useEventCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    
+
     // Check for invalid fields - exact Keystone pattern
     const newForceValidation = invalidFields.size !== 0
     setForceValidation(newForceValidation)
     if (newForceValidation) {
       return
     }
-    
+
     setSaveState('saving')
     setLoading(true)
-    
+
     try {
       // Serialize only changed fields - exact Keystone pattern
       const changedData = serializeValueToOperationItem('update', enhancedFields, value, initialValue)
-      
-      
-      // Call server action - following Keystone's Apollo useMutation pattern
+
       const { errors } = await updateItemAction(list.key, initialValue.id as string, changedData)
-      
+
       // Handle errors exactly like Keystone does
-      const error = errors?.find(x => x.path === undefined || x.path?.length === 1)
+      const error = errors?.find((x: any) => x.path === undefined || x.path?.length === 1)
       if (error) {
         toast.error('Unable to save item', {
           action: {
@@ -319,18 +332,18 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
         setSaveState('idle')
         return
       }
-      
+
       toast.success(`Saved changes to ${list.singular.toLowerCase()}`)
       setSaveState('saved')
-      
+
       // Reset validation state after successful save
       setForceValidation(false)
-      
+
       // Reset to idle after showing saved state
       setTimeout(() => setSaveState('idle'), 3000)
-      
-      // TODO: Add onSaveSuccess callback like Keystone does (for refetching data)
-      
+
+      router.refresh()
+
     } catch (error: any) {
       console.error('Save error:', error)
       toast.error("Unable to save item", {
@@ -416,10 +429,11 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
         actions={
           <div className="flex items-center gap-2">
             {!list.hideDelete && (
-              <DeleteButton 
-                list={list} 
-                value={value} 
+              <DeleteButton
+                list={list}
+                value={value}
                 onError={setErrorDialogValue}
+                queryClient={queryClient}
                 isDesktop={true}
               />
             )}

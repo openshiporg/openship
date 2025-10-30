@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageBreadcrumbs } from "@/features/dashboard/components/PageBreadcrumbs";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import { LineItemSelect } from '../../orders/components/LineItemSelect';
 import { CartItemSelect } from '../../orders/components/CartItemSelect';
 import { MatchDetailsDrawer } from '../components/MatchDetailsDrawer';
 import { useToast } from "@/components/ui/use-toast";
+import { useListItemsQuery } from '../../../dashboard/hooks/useListItems.query';
+import { buildOrderByClause } from '../../../dashboard/lib/buildOrderByClause';
+import { buildWhereClause } from '../../../dashboard/lib/buildWhereClause';
 
 interface Match {
   id: string;
@@ -74,6 +77,8 @@ interface MatchesListPageClientProps {
   searchParams: { [key: string]: string | string[] | undefined };
   shops?: Shop[];
   channels?: Channel[];
+  initialData?: { items: any[], count: number };
+  initialError?: string | null;
 }
 
 export function MatchesListPageClient({
@@ -84,12 +89,139 @@ export function MatchesListPageClient({
   searchParams,
   shops = [],
   channels = [],
+  initialData,
+  initialError,
 }: MatchesListPageClientProps) {
-  const currentSearchParams = useSearchParams();
+  const urlSearchParams = useSearchParams();
   const { toast } = useToast();
   const [selectedShopItems, setSelectedShopItems] = useState<SelectedLineItem[]>([]);
   const [selectedChannelItems, setSelectedChannelItems] = useState<SelectedCartItem[]>([]);
   const [showMatchDialog, setShowMatchDialog] = useState(false);
+
+  // Extract current search params (reactive to URL changes)
+  const currentSearchParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    urlSearchParams.forEach((value, key) => {
+      params[key] = value
+    })
+    return params
+  }, [urlSearchParams])
+
+  const currentPage = parseInt(currentSearchParams.page || '1', 10) || 1
+  const pageSize = parseInt(currentSearchParams.pageSize || list.pageSize?.toString() || '50', 10)
+  const searchString = currentSearchParams.search || ''
+
+  // Build query variables from current search params
+  const variables = useMemo(() => {
+    const orderBy = buildOrderByClause(list, currentSearchParams)
+    const filterWhere = buildWhereClause(list, currentSearchParams)
+    const searchParameters = searchString ? { search: searchString } : {}
+    const searchWhere = buildWhereClause(list, searchParameters)
+
+    // Combine search and filters
+    const whereConditions = []
+    if (Object.keys(searchWhere).length > 0) {
+      whereConditions.push(searchWhere)
+    }
+    if (Object.keys(filterWhere).length > 0) {
+      whereConditions.push(filterWhere)
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {}
+
+    return {
+      where,
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
+      orderBy
+    }
+  }, [list, currentSearchParams, currentPage, pageSize, searchString])
+
+  // For matches, use raw GraphQL string to include relationship fields (from working action)
+  const querySelectedFields = `
+    id
+    outputPriceChanged
+    inventoryNeedsToBeSynced {
+      syncEligible
+      sourceQuantity
+      targetQuantity
+      syncNeeded
+    }
+    input {
+      id
+      productId
+      variantId
+      lineItemId
+      quantity
+      externalDetails {
+        image
+        title
+        productId
+        variantId
+        price
+        availableForSale
+        productLink
+        inventory
+        inventoryTracked
+        error
+      }
+      shop {
+        id
+        name
+        domain
+      }
+    }
+    output {
+      id
+      productId
+      variantId
+      lineItemId
+      quantity
+      price
+      priceChanged
+      externalDetails {
+        image
+        title
+        productId
+        variantId
+        price
+        availableForSale
+        productLink
+        inventory
+        inventoryTracked
+        error
+      }
+      channel {
+        id
+        name
+        domain
+      }
+    }
+    user {
+      id
+      name
+      email
+    }
+    createdAt
+    updatedAt
+  `
+
+  // Use React Query hook with server-side initial data
+  // Use React Query hook with server-side initial data
+  const { data: queryData, error: queryError, isLoading, isFetching } = useListItemsQuery(
+    {
+      listKey: list.key,
+      variables,
+      selectedFields: querySelectedFields
+    },
+    {
+      initialData: initialError ? undefined : (initialData || { items: matches, count }),
+    }
+  )
+
+  // Use query data, fallback to initial data or matches prop
+  const data = queryData || initialData || { items: matches, count }
+  const error = queryError ? queryError.message : initialError
 
   const hasSelectedItems = selectedShopItems.length > 0 || selectedChannelItems.length > 0;
 
@@ -144,7 +276,7 @@ export function MatchesListPageClient({
                     >
                       Matches
                       <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-background border border-border rounded-md">
-                        {count}
+                        {data.count}
                       </span>
                     </TabsTrigger>
                     <TabsTrigger 
@@ -214,7 +346,7 @@ export function MatchesListPageClient({
                 <div className="flex flex-col h-full">
                   <div>
                     <MatchPageClient
-                      matches={matches}
+                      matches={data.items}
                       onAcceptPriceChange={async (channelItemId: string, newPrice: string) => {
                         const { updateChannelItem } = await import('../actions/matches');
                         try {

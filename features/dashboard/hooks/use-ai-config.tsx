@@ -3,19 +3,18 @@
 import * as React from "react"
 
 type KeyMode = "env" | "local"
-type ChatMode = "sidebar" | "chatbox"
 
 interface LocalKeys {
+  provider: string
   apiKey: string
   model: string
   maxTokens: string
+  customEndpoint?: string
 }
 
 interface AiConfig {
   enabled: boolean
-  onboarded: boolean
   keyMode: KeyMode
-  chatMode: ChatMode
   localKeys?: LocalKeys
 }
 
@@ -37,10 +36,8 @@ const AiConfigContext = React.createContext<AiConfigProviderState | undefined>(
 )
 
 const defaultAiConfig: AiConfig = {
-  enabled: false,
-  onboarded: false,
+  enabled: true,
   keyMode: "env",
-  chatMode: "chatbox",
   localKeys: undefined,
 }
 
@@ -48,16 +45,18 @@ const saveToLS = (storageKey: string, config: AiConfig) => {
   try {
     // Save individual keys for backward compatibility
     localStorage.setItem("aiChatEnabled", config.enabled.toString())
-    localStorage.setItem("aiChatOnboarded", config.onboarded.toString())
     localStorage.setItem("aiKeyMode", config.keyMode)
-    localStorage.setItem("aiChatMode", config.chatMode)
-    
+
     if (config.localKeys) {
+      localStorage.setItem("openRouterProvider", config.localKeys.provider)
       localStorage.setItem("openRouterApiKey", config.localKeys.apiKey)
       localStorage.setItem("openRouterModel", config.localKeys.model)
       localStorage.setItem("openRouterMaxTokens", config.localKeys.maxTokens)
+      if (config.localKeys.customEndpoint) {
+        localStorage.setItem("openRouterCustomEndpoint", config.localKeys.customEndpoint)
+      }
     }
-    
+
     // Also save the complete config as JSON for easier future management
     localStorage.setItem(storageKey, JSON.stringify(config))
   } catch {
@@ -81,22 +80,20 @@ const loadFromLS = (storageKey: string, defaultConfig: AiConfig): AiConfig => {
     }
     
     // Fallback to legacy individual keys for backward compatibility
-    const enabled = localStorage.getItem("aiChatEnabled") === "true"
-    const onboarded = localStorage.getItem("aiChatOnboarded") === "true"
+    const enabled = localStorage.getItem("aiChatEnabled") !== "false" // Default to true now
     const keyMode = (localStorage.getItem("aiKeyMode") as KeyMode) || defaultConfig.keyMode
-    const chatMode = (localStorage.getItem("aiChatMode") as ChatMode) || defaultConfig.chatMode
-    
+
     const localKeys = keyMode === "local" ? {
+      provider: localStorage.getItem("openRouterProvider") || "openrouter",
       apiKey: localStorage.getItem("openRouterApiKey") || "",
       model: localStorage.getItem("openRouterModel") || "openai/gpt-4o-mini",
       maxTokens: localStorage.getItem("openRouterMaxTokens") || "4000",
+      customEndpoint: localStorage.getItem("openRouterCustomEndpoint") || undefined,
     } : undefined
-    
+
     const config: AiConfig = {
       enabled,
-      onboarded,
       keyMode,
-      chatMode,
       localKeys,
     }
     
@@ -200,7 +197,7 @@ const AiConfigProvider = (props: AiConfigProviderProps) => {
 // Convenience hooks for common use cases
 const useAiEnabled = () => {
   const { config } = useAiConfig()
-  return config.enabled && config.onboarded
+  return config.enabled
 }
 
 const useAiKeyMode = () => {
@@ -208,14 +205,6 @@ const useAiKeyMode = () => {
   return {
     keyMode: config.keyMode,
     setKeyMode: (keyMode: KeyMode) => setConfig({ keyMode }),
-  }
-}
-
-const useChatMode = () => {
-  const { config, setConfig } = useAiConfig()
-  return {
-    chatMode: config.chatMode,
-    setChatMode: (chatMode: ChatMode) => setConfig({ chatMode }),
   }
 }
 
@@ -240,16 +229,14 @@ const AiChatStorageCompat = {
   }
 }
 
-export { 
-  useAiConfig, 
-  AiConfigProvider, 
-  useAiEnabled, 
-  useAiKeyMode, 
-  useChatMode, 
+export {
+  useAiConfig,
+  AiConfigProvider,
+  useAiEnabled,
+  useAiKeyMode,
   useLocalKeys,
   AiChatStorageCompat as AiChatStorage,
   type AiConfig,
   type KeyMode,
-  type ChatMode,
   type LocalKeys,
 }

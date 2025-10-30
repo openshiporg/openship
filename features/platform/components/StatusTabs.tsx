@@ -47,8 +47,8 @@ export function StatusTabs({ statusCounts, statusConfig, entityName, onSelectAll
     count: statusCounts[value] || 0
   }));
 
-  // Get current status from URL - reverse engineer from !status_matches parameter
-  const statusFilter = searchParams.get("!status_matches");
+  // Get current status from URL - reverse engineer from !status_contains_i parameter
+  const statusFilter = searchParams.get("!status_contains_i");
   let currentStatus = "all"; // Default to "all" when no filter
 
   if (statusFilter) {
@@ -64,14 +64,14 @@ export function StatusTabs({ statusCounts, statusConfig, entityName, onSelectAll
 
   const handleStatusChange = (status: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     // Reset to page 1 when changing status
     params.set("page", "1");
-    
+
     if (status === "all") {
-      params.delete("!status_matches");
+      params.delete("!status_contains_i");
     } else {
-      params.set("!status_matches", JSON.stringify([status]));
+      params.set("!status_contains_i", JSON.stringify([status]));
     }
     router.push(`${pathname}?${params.toString()}`);
   };

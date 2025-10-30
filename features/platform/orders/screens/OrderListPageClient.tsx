@@ -1,13 +1,15 @@
 /**
- * OrderListPageClient - Client Component  
+ * OrderListPageClient - Client Component
  * Based on dashboard ListPageClient but hardcoded for orders
+ * Now using React Query for data fetching with SSR hydration
  */
 
 'use client'
 
-import React, { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { 
+import React, { useState, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import {
   SearchX,
   Triangle,
   Square,
@@ -38,6 +40,9 @@ import { FilterList } from '../../../dashboard/components/FilterList'
 import { useDashboard } from '../../../dashboard/context/DashboardProvider'
 import { useSelectedFields } from '../../../dashboard/hooks/useSelectedFields'
 import { useSort } from '../../../dashboard/hooks/useSort'
+import { useListItemsQuery } from '../../../dashboard/hooks/useListItems.query'
+import { buildOrderByClause } from '../../../dashboard/lib/buildOrderByClause'
+import { buildWhereClause } from '../../../dashboard/lib/buildWhereClause'
 import { placeOrders, addToCart, matchOrder, addMatchToCart, deleteOrder, deleteOrders } from '../actions/orders'
 import { toast } from "sonner"
 import { SearchOrders } from '../../shops/components/SearchOrders'
@@ -65,16 +70,18 @@ interface OrderListPageClientProps {
   shops: any[]
 }
 
-export function OrderListPageClient({ 
-  list, 
-  initialData, 
-  initialError, 
+export function OrderListPageClient({
+  list,
+  initialData,
+  initialError,
   initialSearchParams,
   statusCounts,
   channels,
   shops
 }: OrderListPageClientProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const searchParams = useSearchParams()
   const { basePath } = useDashboard()
   const [selectedItems, setSelectedItems] = useState(new Set<string>())
   const [isProcessOrdersDialogOpen, setIsProcessOrdersDialogOpen] = useState(false)
@@ -107,7 +114,10 @@ export function OrderListPageClient({
     setProcessingOrders(orderIds)
     const response = await placeOrders(orderIds)
     if (response.success) {
-      router.refresh()
+      // Invalidate React Query cache to refetch orders
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', list.key, 'items']
+      })
     }
     setProcessingOrders([])
     setIsProcessOrdersDialogOpen(false)
@@ -131,7 +141,10 @@ export function OrderListPageClient({
       }
 
       if (response?.success) {
-        router.refresh();
+        // Invalidate React Query cache to refetch orders
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', list.key, 'items']
+        })
       } else if(response?.error) {
         throw new Error(response?.error || 'An unknown error occurred.');
       }
@@ -143,12 +156,70 @@ export function OrderListPageClient({
   const selectedFields = useSelectedFields(list)
   const sort = useSort(list)
 
-  // Extract data from props
-  const data = initialData
-  const error = initialError
-  const currentPage = initialSearchParams.page
-  const pageSize = initialSearchParams.pageSize
-  const searchString = initialSearchParams.search
+  // Extract current search params (reactive to URL changes)
+  const currentSearchParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    searchParams.forEach((value, key) => {
+      params[key] = value
+    })
+    return params
+  }, [searchParams])
+
+  const currentPage = parseInt(currentSearchParams.page || '1', 10) || 1
+  const pageSize = parseInt(currentSearchParams.pageSize || list.pageSize?.toString() || '50', 10)
+  const searchString = currentSearchParams.search || ''
+
+  // Build query variables from current search params
+  const variables = useMemo(() => {
+    const orderBy = buildOrderByClause(list, currentSearchParams)
+    const filterWhere = buildWhereClause(list, currentSearchParams)
+    const searchParameters = searchString ? { search: searchString } : {}
+    const searchWhere = buildWhereClause(list, searchParameters)
+
+    // Combine search and filters
+    const whereConditions = []
+    if (Object.keys(searchWhere).length > 0) {
+      whereConditions.push(searchWhere)
+    }
+    if (Object.keys(filterWhere).length > 0) {
+      whereConditions.push(filterWhere)
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {}
+
+    return {
+      where,
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
+      orderBy
+    }
+  }, [list, currentSearchParams, currentPage, pageSize, searchString])
+
+  // For orders, use raw GraphQL string to include relationship fields
+  const querySelectedFields = `
+    id orderId orderName email firstName lastName streetAddress1 streetAddress2 city state zip country phone currency totalPrice subTotalPrice totalDiscounts totalTax status error createdAt updatedAt
+    user { id name email }
+    shop { id name domain accessToken }
+    lineItems { id name image price quantity productId variantId sku lineItemId }
+    cartItems { id name image price quantity productId variantId sku purchaseId url error channel { id name } }
+  `
+
+  // Use React Query hook with server-side initial data
+  // Use React Query hook with server-side initial data
+  const { data: queryData, error: queryError, isLoading, isFetching } = useListItemsQuery(
+    {
+      listKey: list.key,
+      variables,
+      selectedFields: querySelectedFields
+    },
+    {
+      initialData: initialError ? undefined : initialData,
+    }
+  )
+
+  // Use query data, fallback to initial data
+  const data = queryData || initialData
+  const error = queryError ? queryError.message : initialError
 
   // Handle page change - simplified since FilterBar handles search/filters
   const handlePageChange = useCallback((newPage: number) => {
@@ -177,9 +248,11 @@ export function OrderListPageClient({
     setIsCreateOrderDialogOpen(false)
   }
 
-  const handleOrderCreated = (order: any) => {
-    // Refresh the page to show the newly created order
-    router.refresh()
+  const handleOrderCreated = async (order: any) => {
+    // Invalidate React Query cache to show the newly created order
+    await queryClient.invalidateQueries({
+      queryKey: ['lists', list.key, 'items']
+    })
   }
 
   const handleResetFilters = () => {
@@ -221,9 +294,11 @@ export function OrderListPageClient({
       
       if (response.success) {
         toast.success(`Successfully deleted ${idsToDelete.length} ${idsToDelete.length === 1 ? 'order' : 'orders'}`)
-        // Clear selection and refresh
+        // Clear selection and invalidate cache
         setSelectedItems(new Set())
-        router.refresh()
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', list.key, 'items']
+        })
       } else {
         const errorMessage = response.error || 'Delete failed'
         toast.error(errorMessage)

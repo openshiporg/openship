@@ -1,6 +1,6 @@
 "use server";
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { keystoneClient, type KeystoneResponse } from "@/features/dashboard/lib/keystoneClient";
 
 // Relationship Options Server Action
 export async function getRelationshipOptions(
@@ -15,7 +15,7 @@ export async function getRelationshipOptions(
     listQueryName: string;
     listQueryCountName: string;
   }
-) {
+): Promise<KeystoneResponse<any>> {
   try {
     const query = `
       query GetOptions($where: ${gqlNames.whereInputName}!, $take: Int!, $skip: Int!) {
@@ -42,7 +42,7 @@ export async function getRelationshipOptions(
       error instanceof Error
         ? error.message
         : "An unexpected error occurred while fetching relationship options";
-    return { success: false, error: errorMessage };
+    return { success: false, error: errorMessage } as KeystoneResponse<any>;
   }
 }
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getRelationshipOptions } from "@/features/dashboard/actions/relationship";
 import { Select, MultiSelect } from "./Select";
 import type { Option } from "./Select";
-import useSWR from "swr";
+import { useRelationshipOptionsQuery } from "@/features/dashboard/hooks/useRelationshipOptions.query";
+import { getRelationshipOptions } from "@/features/dashboard/actions/relationship";
 import { validate as validateUUID } from "uuid";
 
 interface RelationshipSelectProps {
@@ -101,32 +101,25 @@ export function RelationshipSelect({
     setPage(0);
   }, [search]);
 
-  // Fetch options using the list query with search filtering
-  const { data: optionsData, isLoading: optionsLoading, error } = useSWR(
-    listData && listData.graphql?.names
-      ? ["relationshipOptions", list.key, labelField, search, page]
-      : null,
-    async () => {
-      if (!listData || !listData.graphql?.names) {
-        throw new Error("List data or graphql names not available");
-      }
-
-      const result = await getRelationshipOptions(
-        list.key,
-        where,
-        PAGE_SIZE,
-        page * PAGE_SIZE,
-        labelField,
-        extraSelection,
-        {
-          whereInputName: listData.graphql.names.whereInputName,
-          listQueryName: listData.graphql.names.listQueryName,
-          listQueryCountName: listData.graphql.names.listQueryCountName,
-        }
-      );
-
-      if (result.success) {
-        const responseData = result.success && 'data' in result ? (result.data ?? { items: [], count: 0 }) : { items: [], count: 0 };
+  // Fetch options using React Query
+  const { data: optionsData, isLoading: optionsLoading, error } = useRelationshipOptionsQuery(
+    {
+      listKey: list.key,
+      where,
+      take: PAGE_SIZE,
+      skip: page * PAGE_SIZE,
+      labelField,
+      extraSelection,
+      gqlNames: {
+        whereInputName: listData.graphql?.names?.whereInputName || '',
+        listQueryName: listData.graphql?.names?.listQueryName || '',
+        listQueryCountName: listData.graphql?.names?.listQueryCountName || '',
+      },
+    },
+    {
+      enabled: !!(listData && listData.graphql?.names),
+      select: (data) => {
+        const responseData = data ?? { items: [], count: 0 };
         const newOptions = (responseData.items ?? []).map((item: any) => ({
           value: item.id,
           label: item[labelField],
@@ -142,15 +135,7 @@ export function RelationshipSelect({
           items: newOptions,
           count: responseData.count ?? 0,
         };
-      } else {
-        console.error("Error fetching relationship options (useSWR):", result.error);
-        // Return empty data on error
-        return { items: [], count: 0 };
-      }
-    },
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 200,
+      },
     }
   );
 

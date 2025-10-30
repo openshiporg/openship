@@ -4,8 +4,10 @@
  */
 
 import { useState, useMemo, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { serializeValueToOperationItem } from './useHasChanges'
 import { createItemAction } from '../actions/item-actions'
+import { queryKeys } from '../lib/queryKeys'
 
 interface CreateItemError {
   networkError?: Error
@@ -21,8 +23,8 @@ interface CreateItemState {
 }
 
 export function useCreateItem(list: any, enhancedFields: Record<string, any>, options?: { skipRevalidation?: boolean }) {
-  if (!list || !enhancedFields) return null
-
+  // IMPORTANT: Always call all hooks unconditionally to follow React's rules
+  const queryClient = useQueryClient()
   const [state, setState] = useState<CreateItemState>({
     state: 'idle',
     error: null,
@@ -33,15 +35,17 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
 
   // Initialize default values for the form using enhanced fields
   const defaultValue = useMemo(() => {
+    if (!enhancedFields) return {}
+
     const value: Record<string, any> = {}
-    
+
     // Initialize each field with its default value from the controller
     Object.entries(enhancedFields).forEach(([key, field]: [string, any]) => {
       if (field.controller?.defaultValue !== undefined) {
         value[key] = field.controller.defaultValue
       }
     })
-    
+
     return value
   }, [enhancedFields])
 
@@ -52,17 +56,19 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
 
   // Validate fields using enhanced fields
   const validate = useCallback(() => {
+    if (!enhancedFields) return new Set<string>()
+
     const invalidFields = new Set<string>()
-    
+
     Object.entries(enhancedFields).forEach(([key, field]: [string, any]) => {
       const isRequired = field.createView?.isRequired || false
       const value = state.value[key]
-      
+
       // Basic required field validation
       if (isRequired && (value === undefined || value === null || value === '')) {
         invalidFields.add(key)
       }
-      
+
       // Field-specific validation using controller
       if (field.controller?.validate) {
         const isValid = field.controller.validate(value, { isRequired })
@@ -71,19 +77,21 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
         }
       }
     })
-    
+
     return invalidFields
   }, [enhancedFields, state.value])
 
   // Create item function
   const create = useCallback(async () => {
+    if (!list || !enhancedFields) return null
+
     setState(prev => ({ ...prev, state: 'loading', error: null }))
-    
+
     // Validate before creating
     const invalidFields = validate()
     if (invalidFields.size > 0) {
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         state: 'error',
         invalidFields,
         forceValidation: true,
@@ -95,18 +103,18 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
     try {
       // Serialize the value for GraphQL mutation using enhanced fields
       const data = serializeValueToOperationItem('create', enhancedFields, state.value)
-      
+
       // Get labelField from list to include in selected fields
       const selectedFields = `id ${list.labelField || ''}`
-      
+
       // Call the server action to create the item
       const result = await createItemAction(list.key, data, selectedFields, options)
-      
+
       if (result.errors && result.errors.length > 0) {
-        setState(prev => ({ 
-          ...prev, 
+        setState(prev => ({
+          ...prev,
           state: 'error',
-          error: { 
+          error: {
             graphQLErrors: result.errors.map((err: any) => ({
               ...err,
               path: err.path?.map((p: any) => String(p))
@@ -115,10 +123,16 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
         }))
         return null
       }
-      
+
       setState(prev => ({ ...prev, state: 'success' }))
+
+      // Invalidate React Query cache for the list so it refetches with the new item
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', list.key, 'items']
+      })
+
       return result.data?.item || null
-      
+
     } catch (error: any) {
       setState(prev => ({
         ...prev,
@@ -130,35 +144,54 @@ export function useCreateItem(list: any, enhancedFields: Record<string, any>, op
       }))
       return null
     }
-  }, [enhancedFields, state.value, validate])
+  }, [list, enhancedFields, state.value, validate, options])
 
   // Props for the Fields component - using enhanced fields
-  const props = useMemo(() => ({
-    view: 'createView' as const,
-    position: 'form' as const,
+  const props = useMemo(() => {
+    if (!list || !enhancedFields) {
+      return {
+        view: 'createView' as const,
+        position: 'form' as const,
+        list: null,
+        fields: {},
+        groups: [],
+        value: {},
+        onChange,
+        forceValidation: false,
+        invalidFields: new Set<string>(),
+        isRequireds: {}
+      }
+    }
+
+    return {
+      view: 'createView' as const,
+      position: 'form' as const,
+      list,
+      fields: enhancedFields,
+      groups: list.groups || [],
+      value: { ...defaultValue, ...state.value },
+      onChange,
+      forceValidation: state.forceValidation,
+      invalidFields: state.invalidFields,
+      isRequireds: Object.fromEntries(
+        Object.entries(enhancedFields).map(([key, field]: [string, any]) => [
+          key,
+          field.createView?.isRequired || false
+        ])
+      )
+    }
+  }, [
     list,
-    fields: enhancedFields,
-    groups: list.groups || [],
-    value: { ...defaultValue, ...state.value },
-    onChange,
-    forceValidation: state.forceValidation,
-    invalidFields: state.invalidFields,
-    isRequireds: Object.fromEntries(
-      Object.entries(enhancedFields).map(([key, field]: [string, any]) => [
-        key, 
-        field.createView?.isRequired || false
-      ])
-    )
-  }), [
-    list,
-    enhancedFields, 
-    list.groups, 
-    defaultValue, 
-    state.value, 
-    state.forceValidation, 
-    state.invalidFields, 
+    enhancedFields,
+    defaultValue,
+    state.value,
+    state.forceValidation,
+    state.invalidFields,
     onChange
   ])
+
+  // Return null if dependencies aren't ready, but only AFTER all hooks are called
+  if (!list || !enhancedFields) return null
 
   return {
     state: state.state,

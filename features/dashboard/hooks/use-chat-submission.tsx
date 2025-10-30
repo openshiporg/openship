@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAiConfig } from "./use-ai-config"
 import { getSharedKeys } from "../actions/ai-chat"
 
@@ -26,10 +27,11 @@ export function useChatSubmission({
   setSending,
 }: UseChatSubmissionProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { config: aiConfig } = useAiConfig()
 
   const handleSubmit = async (input: string) => {
-    if (!input.trim() || !aiConfig.enabled) return
+    if (!input.trim()) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -188,8 +190,10 @@ export function useChatSubmission({
             try {
               const dataInfo = JSON.parse(line.slice(2))
               if (dataInfo.dataHasChanged) {
-                console.log("Data has changed, refreshing page")
-                router.refresh()
+                console.log("Data has changed, invalidating React Query cache")
+                // Invalidate ALL queries to refetch data across the entire app
+                // This ensures any list or item that was modified gets updated
+                queryClient.invalidateQueries()
               }
             } catch (error) {
               console.error("Failed to parse data change notification:", error)
