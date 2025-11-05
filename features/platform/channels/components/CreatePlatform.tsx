@@ -4,6 +4,7 @@ import { useList } from "@/features/dashboard/hooks/useAdminMeta";
 import { useCreateItem } from "@/features/dashboard/utils/useCreateItem";
 import { enhanceFields } from "@/features/dashboard/utils/enhanceFields";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,6 +41,7 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { list } = useList('ChannelPlatform');
 
@@ -77,7 +79,9 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
     if (item?.id) {
       setIsDialogOpen(false);
       // Refresh the page to show the new platform
-      router.refresh();
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', 'ChannelPlatform', 'items']
+      });
     }
   };
 

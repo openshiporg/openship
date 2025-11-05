@@ -19,6 +19,7 @@ import {
 import { PlatformSelect } from "./PlatformSelect";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CreateShopProps {
   onShopCreated?: () => void;
@@ -31,6 +32,7 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
   const [selectedPlatformData, setSelectedPlatformData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   // Form fields
   const [name, setName] = useState('');
@@ -89,7 +91,10 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
       if (result.success) {
         toast.success('Shop created successfully');
         setIsDialogOpen(false);
-        router.refresh();
+        // Invalidate React Query cache to refetch shops
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'Shop', 'items']
+        });
         onShopCreated?.();
       } else {
         toast.error(result.error || 'Failed to create shop');

@@ -205,7 +205,6 @@ export function OrderListPageClient({
   `
 
   // Use React Query hook with server-side initial data
-  // Use React Query hook with server-side initial data
   const { data: queryData, error: queryError, isLoading, isFetching } = useListItemsQuery(
     {
       listKey: list.key,
@@ -455,6 +454,7 @@ export function OrderListPageClient({
             channels={channels}
             selectedOrders={selectedItems}
             onSelectedOrdersChange={setSelectedItems}
+            listKey={list.key}
           />
           
           {/* Pagination - Always show to display Process Orders button when items are selected */}

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { PlatformWrapper } from "../../components/PlatformWrapper";
 import { CreatePlatform } from "./CreatePlatform";
 import { EditItemDrawerClientWrapper } from "@/features/platform/components/EditItemDrawerClientWrapper";
@@ -23,6 +24,7 @@ export function ChannelsPageClient({ platforms, totalCount }: ChannelsPageClient
   const [editingPlatformId, setEditingPlatformId] = useState<string | null>(null);
   const [showCreatePlatform, setShowCreatePlatform] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleAddPlatform = () => {
     setShowCreatePlatform(true);
@@ -66,8 +68,10 @@ export function ChannelsPageClient({ platforms, totalCount }: ChannelsPageClient
           setEditDrawerOpen(false);
           setEditingPlatformId(null);
         }}
-        onSave={() => {
-          router.refresh();
+        onSave={async () => {
+          await queryClient.invalidateQueries({
+            queryKey: ['lists', 'Channel', 'items']
+          });
         }}
       />
     </>

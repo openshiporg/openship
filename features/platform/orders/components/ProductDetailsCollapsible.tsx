@@ -47,6 +47,7 @@ import { updateMatchPrice } from "../actions/update-match-price";
 import { useToast } from "@/components/ui/use-toast";
 import { parseErrorString, ErrorType, extractPriceChangeDetails } from "../utils/error-codes";
 import { EditItemDrawerClientWrapper } from "@/features/platform/components/EditItemDrawerClientWrapper";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LineItem {
   id: string;
@@ -91,6 +92,7 @@ export const ProductDetailsCollapsible = ({
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const itemsPerPage = 5;
 
   // Calculate pagination
@@ -129,6 +131,11 @@ export const ProductDetailsCollapsible = ({
           isCartItem ? "Cart item" : "Line item"
         } quantity updated`,
       });
+
+      // Invalidate React Query cache to refetch orders and show updated items
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', 'Order', 'items']
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -156,6 +163,11 @@ export const ProductDetailsCollapsible = ({
       toast({
         title: "Success",
         description: `${isCartItem ? "Cart item" : "Line item"} deleted`,
+      });
+
+      // Invalidate React Query cache to refetch orders and show updated items
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', 'Order', 'items']
       });
     } catch (error: any) {
       toast({

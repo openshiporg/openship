@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, Copy } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -243,6 +244,7 @@ export function CreateApiKey() {
   });
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleScopeChange = (scopes: Option[]) => {
     setFormData(prev => ({
@@ -282,7 +284,9 @@ export function CreateApiKey() {
         setCreatedToken(generatedToken);
         setShowToken(true);
         toast.success("API key created successfully!");
-        router.refresh();
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'apiKeys', 'items']
+        });
       } else {
         toast.error(result.error || "Failed to create API key");
       }

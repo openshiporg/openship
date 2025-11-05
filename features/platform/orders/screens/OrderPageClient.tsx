@@ -8,12 +8,14 @@ import { Order } from '../lib/types';
 import { addToCart, matchOrder, placeOrders, addMatchToCart } from '../actions/orders';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface OrderPageClientProps {
   orders: Order[];
   channels: any[];
   selectedOrders: Set<string>;
   onSelectedOrdersChange: (newSelectedOrders: Set<string>) => void;
+  listKey?: string;
 }
 
 export function OrderPageClient({
@@ -21,10 +23,12 @@ export function OrderPageClient({
   channels,
   selectedOrders,
   onSelectedOrdersChange,
+  listKey = 'Order',
 }: OrderPageClientProps) {
   const { toast } = useToast();
   const [loadingActions, setLoadingActions] = useState<Record<string, Record<string, boolean>>>({});
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleAction = async (action: string, orderId: string, data?: any) => {
     setLoadingActions(prev => ({ ...prev, [action]: { ...(prev[action] || {}), [orderId]: true } }));
@@ -44,6 +48,10 @@ export function OrderPageClient({
 
       if (response?.success) {
         toast({ title: 'Success', description: `${action} completed successfully.` });
+        // Invalidate React Query cache to refetch orders and show updated cart items
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', listKey, 'items']
+        });
       } else if(response?.error) {
         throw new Error(response?.error || 'An unknown error occurred.');
       }

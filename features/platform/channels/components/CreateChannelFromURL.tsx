@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { createChannel } from "../actions/createChannel";
 import { createChannelPlatform } from "../actions/createChannelPlatform";
@@ -43,6 +44,7 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   // Form fields - pre-filled from URL params
   const [name, setName] = useState('');
@@ -224,9 +226,11 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
           newUrl.searchParams.delete(param);
         });
         router.replace(newUrl.pathname + newUrl.search);
-        
-        router.refresh();
-        
+
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'Channel', 'items']
+        });
+
         if (onChannelCreated) {
           onChannelCreated();
         }

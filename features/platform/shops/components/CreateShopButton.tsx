@@ -3,15 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Store } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreateShop } from "./CreateShop";
 
 interface CreateShopButtonProps {}
 
 export function CreateShopButton({}: CreateShopButtonProps) {
   const router = useRouter();
-  
-  const handleShopCreated = () => {
-    router.refresh();
+  const queryClient = useQueryClient();
+
+  const handleShopCreated = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['lists', 'Shop', 'items']
+    });
   };
 
   return (

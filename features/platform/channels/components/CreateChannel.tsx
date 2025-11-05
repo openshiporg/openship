@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CirclePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
   const [selectedPlatformData, setSelectedPlatformData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   // Form fields
   const [name, setName] = useState('');
@@ -89,7 +91,9 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
       if (result.success) {
         toast.success('Channel created successfully');
         setIsDialogOpen(false);
-        router.refresh();
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'Channel', 'items']
+        });
         onChannelCreated?.();
       } else {
         toast.error(result.error || 'Failed to create channel');

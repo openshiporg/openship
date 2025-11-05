@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import { useQueryClient } from '@tanstack/react-query';
 
 // Helper function to safely format price - handles text prices that may not be numeric
 function formatPrice(price: string | number | undefined, currency: string = '$'): string {
@@ -117,6 +118,7 @@ export const OrderDetailsComponent = ({
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const currentAction = Object.entries(loadingActions).find(
     ([_, value]) => value[order.id]
   )?.[0];
@@ -152,7 +154,7 @@ export const OrderDetailsComponent = ({
   const handleDelete = useCallback(async () => {
     try {
       const response = await deleteOrder(order.id);
-      
+
       if (!response.success) {
         toast({
           title: 'Unable to delete order',
@@ -161,14 +163,16 @@ export const OrderDetailsComponent = ({
         });
         return;
       }
-      
+
       toast({
         title: 'Order deleted successfully'
       });
-      
-      // Navigate back to orders list - the deleteOrder action already revalidates the path
-      router.push('/dashboard/platform/orders');
-      
+
+      // Invalidate React Query cache to refetch orders
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', 'Order', 'items']
+      });
+
     } catch (err: any) {
       toast({
         title: 'Unable to delete order',
@@ -176,7 +180,7 @@ export const OrderDetailsComponent = ({
         variant: 'destructive'
       });
     }
-  }, [order.id, toast]);
+  }, [order.id, toast, queryClient]);
 
   return (
     <>

@@ -3,6 +3,7 @@ import { EllipsisVertical, Plus, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreatePlatform } from "./CreatePlatform";
 import { CreateChannel } from "./CreateChannel";
 
@@ -15,6 +16,7 @@ interface PlatformCardProps {
 export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, openDrawer, setSelectedPlatform }) => {
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handlePlatformClick = (platformId: string) => {
     if (selectedPlatformId === platformId) {
@@ -26,9 +28,11 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, openDrawe
     }
   };
 
-  const handleChannelCreated = () => {
+  const handleChannelCreated = async () => {
     // Refresh the page to show the new channel
-    router.refresh();
+    await queryClient.invalidateQueries({
+      queryKey: ['lists', 'Channel', 'items']
+    });
   };
 
   return (

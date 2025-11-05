@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { createShop, CreateShopInput } from "../actions/createShop";
 import { createShopPlatform } from "../actions/createShopPlatform";
@@ -43,6 +44,7 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   // Form fields - pre-filled from URL params
   const [name, setName] = useState('');
@@ -210,9 +212,11 @@ export function CreateShopFromURL({ onShopCreated, searchParams }: CreateShopFro
           newUrl.searchParams.delete(param);
         });
         router.replace(newUrl.pathname + newUrl.search);
-        
-        router.refresh();
-        
+
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'Shop', 'items']
+        });
+
         if (onShopCreated) {
           onShopCreated();
         }

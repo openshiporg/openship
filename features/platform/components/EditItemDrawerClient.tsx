@@ -12,18 +12,19 @@ import { updateItemAction, deleteItemAction } from '../../dashboard/actions/item
 import { AlertCircle, Check, Loader2, Undo2, Copy } from 'lucide-react'
 import { RiDeleteBinLine } from '@remixicon/react'
 import { toast } from 'sonner'
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface EditItemDrawerClientProps {
   list: any
@@ -72,14 +73,15 @@ function deserializeItemToValue(
   return result
 }
 
-export function EditItemDrawerClient({ 
-  list, 
-  item, 
-  itemId, 
-  onClose, 
-  onSave 
+export function EditItemDrawerClient({
+  list,
+  item,
+  itemId,
+  onClose,
+  onSave
 }: EditItemDrawerClientProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   // Create enhanced fields exactly like ItemPageClient does
   const enhancedFields = useMemo(() => {
     return enhanceFields(list.fields || {}, list.key)
@@ -214,7 +216,7 @@ export function EditItemDrawerClient({
   const handleDelete = useEventCallback(async () => {
     try {
       const { errors } = await deleteItemAction(list.key, itemId)
-      
+
       const error = errors?.find(x => x.path === undefined || x.path?.length === 1)
       if (error) {
         toast.error('Unable to delete item.', {
@@ -225,12 +227,17 @@ export function EditItemDrawerClient({
         })
         return
       }
-      
+
       toast.success(`${list.singular} deleted successfully.`)
-      
+
+      // Invalidate React Query cache to refetch items
+      await queryClient.invalidateQueries({
+        queryKey: ['lists', list.key, 'items']
+      })
+
       // Close the drawer first
       onClose()
-      
+
       // Don't redirect automatically - let the parent handle navigation
       // The drawer is used in platform context, not Keystone admin context
     } catch (err: any) {

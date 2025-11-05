@@ -3,6 +3,7 @@ import { MoreVertical, Plus, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreatePlatform } from "./CreatePlatform";
 import { CreateShop } from "./CreateShop";
 
@@ -14,6 +15,7 @@ interface PlatformCardProps {
 export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, setSelectedPlatform }) => {
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handlePlatformClick = (platformId: string) => {
     if (selectedPlatformId === platformId) {
@@ -25,9 +27,11 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({ platforms, setSelect
     }
   };
 
-  const handleShopCreated = () => {
+  const handleShopCreated = async () => {
     // Refresh the page to show the new shop
-    router.refresh();
+    await queryClient.invalidateQueries({
+      queryKey: ['lists', 'Shop', 'items']
+    });
   };
 
   return (

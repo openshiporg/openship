@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { PlatformWrapper } from "../../components/PlatformWrapper";
 import { CreatePlatform } from "./CreatePlatform";
 import { EditItemDrawerClientWrapper } from "@/features/platform/components/EditItemDrawerClientWrapper";
@@ -22,6 +23,7 @@ export function ShopsPageClient({ platforms, totalCount }: ShopsPageClientProps)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [editingPlatformId, setEditingPlatformId] = useState<string | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleEditPlatform = (platformId: string) => {
     setEditingPlatformId(platformId);
@@ -62,8 +64,10 @@ export function ShopsPageClient({ platforms, totalCount }: ShopsPageClientProps)
           setEditDrawerOpen(false);
           setEditingPlatformId(null);
         }}
-        onSave={() => {
-          router.refresh();
+        onSave={async () => {
+          await queryClient.invalidateQueries({
+            queryKey: ['lists', 'Shop', 'items']
+          });
         }}
       />
     </>
