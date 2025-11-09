@@ -38,17 +38,31 @@ export function PlatformTabs({
   const tabRefs = useRef<Array<HTMLDivElement | null>>([]);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Get current platform from URL
-  const currentPlatform = searchParams.get("platform") || "all";
+  // Get current platform from URL - using Keystone filter format
+  const platformFilter = searchParams.get("!platform_is");
+  let currentPlatform = "all";
+
+  if (platformFilter) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(platformFilter));
+      currentPlatform = parsed || "all";
+    } catch (e) {
+      currentPlatform = "all";
+    }
+  }
 
   const handlePlatformChange = (platformId: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
+    // Reset to page 1 when changing platform
+    params.set("page", "1");
+
     if (platformId === "all") {
-      params.delete("platform");
+      params.delete("!platform_is");
     } else {
-      params.set("platform", platformId);
+      // Use Keystone filter format: !platform_is with JSON value (not array, just the ID)
+      params.set("!platform_is", JSON.stringify(platformId));
     }
-    params.set("page", "1"); // Reset to first page
     router.push(`${pathname}?${params.toString()}`);
   };
 

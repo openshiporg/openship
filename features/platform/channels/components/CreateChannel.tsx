@@ -91,8 +91,11 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
       if (result.success) {
         toast.success('Channel created successfully');
         setIsDialogOpen(false);
+        // Invalidate React Query cache to refetch channels
+        // Use exact: false to match all queries that start with this key
         await queryClient.invalidateQueries({
-          queryKey: ['lists', 'Channel', 'items']
+          queryKey: ['lists', 'Channel', 'items'],
+          exact: false
         });
         onChannelCreated?.();
       } else {
@@ -131,7 +134,7 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Channel</DialogTitle>
           <DialogDescription>
@@ -150,7 +153,7 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
             <div className="space-y-4">
               {/* Check if platform has OAuth - if it does AND has app credentials, only show domain */}
               {selectedPlatformData.oAuthFunction && selectedPlatformData.oAuthCallbackFunction && selectedPlatformData.appKey && selectedPlatformData.appSecret ? (
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="domain">Domain</Label>
                   <Input
                     id="domain"
@@ -158,13 +161,13 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
                     placeholder="your-channel-domain.com"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="bg-muted/40"
+                    className="bg-muted/40 mt-2"
                   />
                 </div>
               ) : (
                 /* No OAuth or missing app credentials - need all fields for manual setup */
                 <>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="name">Name</Label>
                     <Input
                       id="name"
@@ -172,10 +175,10 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
                       placeholder="Channel name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="domain">Domain</Label>
                     <Input
                       id="domain"
@@ -183,10 +186,10 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
                       placeholder="your-channel-domain.com"
                       value={domain}
                       onChange={(e) => setDomain(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="accessToken">Access Token</Label>
                     <Input
                       id="accessToken"
@@ -194,7 +197,7 @@ export function CreateChannel({ onChannelCreated, trigger }: CreateChannelProps 
                       placeholder="Enter access token"
                       value={accessToken}
                       onChange={(e) => setAccessToken(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
                 </>

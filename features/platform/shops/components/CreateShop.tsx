@@ -92,8 +92,10 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
         toast.success('Shop created successfully');
         setIsDialogOpen(false);
         // Invalidate React Query cache to refetch shops
+        // Use exact: false to match all queries that start with this key
         await queryClient.invalidateQueries({
-          queryKey: ['lists', 'Shop', 'items']
+          queryKey: ['lists', 'Shop', 'items'],
+          exact: false
         });
         onShopCreated?.();
       } else {
@@ -132,7 +134,7 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Shop</DialogTitle>
           <DialogDescription>
@@ -151,7 +153,7 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
             <div className="space-y-4">
               {/* Check if platform has OAuth - if it does AND has app credentials, only show domain */}
               {selectedPlatformData.oAuthFunction && selectedPlatformData.oAuthCallbackFunction && selectedPlatformData.appKey && selectedPlatformData.appSecret ? (
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="domain">Domain</Label>
                   <Input
                     id="domain"
@@ -159,13 +161,13 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
                     placeholder="your-shop-domain.com"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="bg-muted/40"
+                    className="bg-muted/40 mt-2"
                   />
                 </div>
               ) : (
                 /* No OAuth or missing app credentials - need all fields for manual setup */
                 <>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="name">Name</Label>
                     <Input
                       id="name"
@@ -173,10 +175,10 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
                       placeholder="Shop name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="domain">Domain</Label>
                     <Input
                       id="domain"
@@ -184,10 +186,10 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
                       placeholder="your-shop-domain.com"
                       value={domain}
                       onChange={(e) => setDomain(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="accessToken">Access Token</Label>
                     <Input
                       id="accessToken"
@@ -195,7 +197,7 @@ export function CreateShop({ onShopCreated, trigger }: CreateShopProps = {}) {
                       placeholder="Enter access token"
                       value={accessToken}
                       onChange={(e) => setAccessToken(e.target.value)}
-                      className="bg-muted/40"
+                      className="bg-muted/40 mt-2"
                     />
                   </div>
                 </>

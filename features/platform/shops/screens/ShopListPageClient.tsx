@@ -18,9 +18,14 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageContainer } from '../../../dashboard/components/PageContainer'
+import { PageBreadcrumbs } from '../../../dashboard/components/PageBreadcrumbs'
 import { PlatformFilterBar } from '../../components/PlatformFilterBar'
 import { StatusTabs } from '../../components/StatusTabs'
 import { ShopDetailsComponent } from '../components/ShopDetailsComponent'
+import { ShopListClient } from '../components/ShopListClient'
+import { ShopsPageClient } from '../components/ShopsPageClient'
+import { CreateShop } from '../components/CreateShop'
+import { CreateShopFromURL } from '../components/CreateShopFromURL'
 import { Pagination } from '../../../dashboard/components/Pagination'
 import { FilterList } from '../../../dashboard/components/FilterList'
 import { useDashboard } from '../../../dashboard/context/DashboardProvider'
@@ -29,6 +34,8 @@ import { useSort } from '../../../dashboard/hooks/useSort'
 import { useListItemsQuery } from '../../../dashboard/hooks/useListItems.query'
 import { buildOrderByClause } from '../../../dashboard/lib/buildOrderByClause'
 import { buildWhereClause } from '../../../dashboard/lib/buildWhereClause'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface ShopListPageClientProps {
   list: any
@@ -36,7 +43,7 @@ interface ShopListPageClientProps {
   initialError: string | null
   initialSearchParams: {
     page: number
-    pageSize: number  
+    pageSize: number
     search: string
   }
   statusCounts: {
@@ -44,8 +51,10 @@ interface ShopListPageClientProps {
     all: number
     inactive: number
   } | null
+  platforms?: any[]
   shops?: any[]
   channels?: any[]
+  searchParams?: any
 }
 
 export function ShopListPageClient({
@@ -54,8 +63,10 @@ export function ShopListPageClient({
   initialError,
   initialSearchParams,
   statusCounts,
+  platforms = [],
   shops = [],
-  channels = []
+  channels = [],
+  searchParams: searchParamsFromServer = {}
 }: ShopListPageClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -229,81 +240,96 @@ export function ShopListPageClient({
   const isEmpty = data?.count === 0 && !isFiltered
 
   return (
-    <PageContainer title="Shops" header={header} breadcrumbs={breadcrumbs}>
-      {/* Filter Bar - includes search, filters, sorting, and create button */}
-      <div className="px-4 md:px-6">
-        <PlatformFilterBar list={list} />
-      </div>
+    <section aria-label="Shops overview" className="overflow-hidden flex flex-col">
+      <PageBreadcrumbs
+        items={[
+          { type: "link", label: "Dashboard", href: "/" },
+          { type: "page", label: "Platform" },
+          { type: "page", label: "Shops" },
+        ]}
+      />
 
-      {/* Status Tabs */}
-      {statusCounts && (
-        <div className="border-b">
-          <StatusTabs 
-            statusCounts={statusCounts}
-            statusConfig={{
-                      "active": {
-                                "label": "Active",
-                                "color": "emerald"
-                      },
-                      "inactive": {
-                                "label": "Inactive",
-                                "color": "zinc"
-                      }
-            }}
-            entityName="Shops"
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="border-gray-200 dark:border-gray-800">
+          <div className="px-4 md:px-6 pt-4 md:pt-6 pb-4">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
+              Shops
+            </h1>
+            <p className="text-muted-foreground">
+              <span>Create and manage your connected shops</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="px-4 md:px-6">
+          <PlatformFilterBar
+            list={list}
+            customCreateButton={<CreateShop />}
           />
         </div>
-      )}
 
-      {/* Active Filters */}
-      <div className="px-4 md:px-6 border-b">
-        <FilterList list={list} />
-      </div>
+        <ShopsPageClient
+          platforms={platforms.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            shopsCount: p.shops?.length || 0
+          }))}
+          totalCount={data?.count || 0}
+        />
 
-      {/* Shops list */}
-      {error ? (
-        <div className="px-4 md:px-6">
-          <Alert variant="destructive">
-            <AlertDescription>
-              Failed to load items: {error}
-            </AlertDescription>
-          </Alert>
-        </div>
-      ) : isEmpty ? (
-        <div className="px-4 md:px-6">
-          <EmptyStateDefault />
-        </div>
-      ) : data?.count === 0 ? (
-        <div className="px-4 md:px-6">
-          <EmptyStateSearch />
-        </div>
-      ) : (
-        <>
-          {/* Data grid - full width */}
-          <div className="grid grid-cols-1 divide-y">
-            {data?.items?.map((shop: any) => (
-              <ShopDetailsComponent 
-                key={shop.id} 
-                shop={shop} 
-                shops={shops}
-                channels={channels}
-              />
-            ))}
-          </div>
-          
-          {/* Pagination */}
-          {data && data.count > pageSize && (
-            <div className="px-4 md:px-6 py-4">
-              <Pagination
-                currentPage={currentPage}
-                total={data.count}
-                pageSize={pageSize}
-                list={{ singular: 'shop', plural: 'shops' }}
-              />
+        <div className="flex-1 overflow-auto">
+          {error ? (
+            <div className="px-4 md:px-6">
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Failed to load items: {error}
+                </AlertDescription>
+              </Alert>
+            </div>
+          ) : data && data.items && data.items.length > 0 ? (
+            <ShopListClient shops={data.items} channels={channels} />
+          ) : (
+            <div className="flex items-center justify-center h-full py-10">
+              <div className="text-center">
+                <div className="relative h-11 w-11 mx-auto mb-2">
+                  <Triangle className="absolute left-1 top-1 w-4 h-4 fill-indigo-200 stroke-indigo-400 dark:stroke-indigo-600 dark:fill-indigo-950 rotate-[90deg]" />
+                  <Square className="absolute right-[.2rem] top-1 w-4 h-4 fill-orange-300 stroke-orange-500 dark:stroke-amber-600 dark:fill-amber-950 rotate-[30deg]" />
+                  <Circle className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 fill-emerald-200 stroke-emerald-400 dark:stroke-emerald-600 dark:fill-emerald-900" />
+                </div>
+                <p className="font-medium">No shops found</p>
+                <p className="text-muted-foreground text-sm">
+                  {searchString
+                    ? "Try adjusting your search or filter criteria"
+                    : "Connect your first shop to get started"}
+                </p>
+                {searchString && (
+                  <Link href="/dashboard/platform/shops">
+                    <Button variant="outline" className="mt-4" size="sm">
+                      Clear filters
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           )}
-        </>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      {data && data.items && data.items.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          total={data.count}
+          pageSize={pageSize}
+          list={{
+            singular: "Shop",
+            plural: "Shops"
+          }}
+        />
       )}
-    </PageContainer>
+
+      {/* Auto-opening create shop dialog for OAuth redirects */}
+      <CreateShopFromURL searchParams={searchParamsFromServer} />
+    </section>
   )
 }

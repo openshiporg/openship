@@ -6,6 +6,12 @@
 
 Openship is an order router that connects the places where you're selling to the places where you're fulfilling. It automatically routes orders from your sales channels to your fulfillment partners, giving you complete control over your order flow.
 
+## Demo Video
+
+[![Watch Openship Demo](https://img.youtube.com/vi/C55wxCMAX8E/maxresdefault.jpg)](https://youtu.be/C55wxCMAX8E)
+
+*Watch a complete demo of Openship's order routing capabilities*
+
 Built on top of [next-keystone-starter](https://github.com/junaid33/next-keystone-starter), which provides the foundational architecture for modern full-stack applications with KeystoneJS and Next.js.
 
 ## Core Concepts

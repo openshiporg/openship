@@ -104,9 +104,9 @@ export function ChannelPlatformSelect({
 
   if (error) {
     return (
-      <div className="space-y-2">
-        <Label className="text-base">Platform</Label>
-        <div className="p-4 text-center text-destructive border rounded">
+      <div>
+        <Label>Platform</Label>
+        <div className="p-4 text-center text-destructive border rounded mt-2">
           {error}
         </div>
       </div>
@@ -114,10 +114,10 @@ export function ChannelPlatformSelect({
   }
 
   return (
-    <div className="space-y-2">
-      <Label className="text-base">Platform</Label>
-      <Select 
-        value={value} 
+    <div>
+      <Label>Platform</Label>
+      <Select
+        value={value}
         onValueChange={(newValue) => {
           onValueChange(newValue);
           // Find and pass the platform data
@@ -127,7 +127,7 @@ export function ChannelPlatformSelect({
           }
         }}
       >
-        <SelectTrigger className="w-full bg-muted/40 text-base">
+        <SelectTrigger className="w-full bg-muted/40 text-base mt-2">
           <SelectValue placeholder="Select a platform" />
         </SelectTrigger>
         <SelectContent>
