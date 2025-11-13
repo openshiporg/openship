@@ -13,11 +13,13 @@ export function useInvalidFields(
 ): ReadonlySet<string> {
   return useMemo(() => {
     const invalidFields = new Set<string>()
-    
+
     // First, serialize all field values to get the current form state
     const serialized: Record<string, unknown> = {}
     for (const [fieldKey, field] of Object.entries(fields)) {
-      if (field.controller && field.controller.serialize) {
+      // Only serialize fields that exist in the item - prevents undefined errors
+      // This matches Keystone's pattern where all fields have values from makeDefaultValueState
+      if (item[fieldKey] !== undefined && field.controller && field.controller.serialize) {
         try {
           Object.assign(serialized, field.controller.serialize(item[fieldKey]))
         } catch (error) {

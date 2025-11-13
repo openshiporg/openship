@@ -242,7 +242,7 @@ export function Field({
           <Button
             type="button"
             variant="outline"
-            size="icon"
+            className="size-10.5"
             onClick={() => setSecureTextEntry(bool => !bool)}
             title={secureTextEntry ? 'Show password' : 'Hide password'}
           >
@@ -251,6 +251,7 @@ export function Field({
           <Button
             type="button"
             variant="outline"
+            className="h-10.5"
             onClick={cancelEditing}
           >
             Cancel

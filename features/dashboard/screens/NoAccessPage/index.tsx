@@ -23,10 +23,10 @@ export function NoAccessPage() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:gap-3 w-full gap-2 mt-6">
+        <div className="flex flex-col sm:flex-row gap-2 w-full mt-8">
           <Button
             variant="outline"
-            className="w-full sm:w-1/2"
+            className="flex-1"
             onClick={() => router.back()}
           >
             <ArrowLeft className="size-3" />
@@ -34,11 +34,11 @@ export function NoAccessPage() {
           </Button>
           <Button
             variant="default"
-            className="w-full sm:w-1/2"
+            className="flex-1"
             onClick={() => router.push('/')}
           >
             <Store className="size-3" />
-            Storefront
+            Home
           </Button>
         </div>
       </div>
