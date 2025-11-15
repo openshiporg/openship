@@ -68,7 +68,8 @@ export async function signIn(prevState: { message: string | null, formData: { em
     }
 
     // Set the auth token cookie
-    await (await cookies()).set('keystonejs-session', response.data.authenticate.sessionToken, {
+    const cookieStore = await cookies();
+    cookieStore.set('keystonejs-session', response.data.authenticate.sessionToken, {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',

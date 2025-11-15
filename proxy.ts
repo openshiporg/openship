@@ -1,7 +1,7 @@
 import { handleDashboardRoutes, getAuthenticatedUser } from '@/features/dashboard/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Get authenticated user once
   const { user, redirectToInit } = await getAuthenticatedUser(request);
   
