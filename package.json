@@ -71,7 +71,7 @@
     "graphql-yoga": "^3.1.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.511.0",
-    "next": "16.0.3",
+    "next": "^16.0.7",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.5",
     "pluralize": "^8.0.0",
