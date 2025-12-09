@@ -3,9 +3,9 @@ import React, { useMemo, useState } from "react";
 import { useList } from "@/features/dashboard/hooks/useAdminMeta";
 import { useCreateItem } from "@/features/dashboard/utils/useCreateItem";
 import { enhanceFields } from "@/features/dashboard/utils/enhanceFields";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -100,7 +100,6 @@ export function getFilteredProps(props: any, modifications: any[], defaultCollap
 export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const { list } = useList('ShopPlatform');
@@ -137,15 +136,28 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
   const keysToUpdateTemplate = ["name", "appKey", "appSecret"];
 
   const handlePlatformActivation = async () => {
-    if (!createItem) return
+    if (!createItem) return;
 
-    const item = await createItem.create()
-    if (item?.id) {
-      setIsDialogOpen(false);
-      // Refresh the page to show the new platform
-      await queryClient.invalidateQueries({
-        queryKey: ['lists', 'ShopPlatform', 'items']
-      });
+    try {
+      const item = await createItem.create();
+      if (item?.id) {
+        toast.success('Platform created successfully');
+        setIsDialogOpen(false);
+        // Refresh the page to show the new platform
+        await queryClient.invalidateQueries({
+          queryKey: ['lists', 'ShopPlatform', 'items'],
+          exact: false
+        });
+      } else {
+        // Creation returned but no item - likely a validation error
+        const errorMessage = createItem.error?.graphQLErrors?.[0]?.message
+          || createItem.error?.message
+          || 'Failed to create platform';
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while creating the platform';
+      toast.error(errorMessage);
     }
   };
 
@@ -184,11 +196,10 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
       } else {
         // Use template slug for other platforms (shopify, etc.)
         const templateValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: value } };
-        const emptyValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: "" } };
-        
+
         functionValues = {
           orderLinkFunction: templateValue,
-          updateProductFunction: templateValue, 
+          updateProductFunction: templateValue,
           getWebhooksFunction: templateValue,
           deleteWebhookFunction: templateValue,
           createWebhookFunction: templateValue,
@@ -197,9 +208,9 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
           searchOrdersFunction: templateValue,
           addTrackingFunction: templateValue,
           addCartToPlatformOrderFunction: templateValue,
-          // Leave OAuth functions empty for Shopify since users likely don't have app keys yet
-          oAuthFunction: value === 'shopify' ? emptyValue : templateValue,
-          oAuthCallbackFunction: value === 'shopify' ? emptyValue : templateValue,
+          // OAuth functions should use the template slug so the adapter can be resolved
+          oAuthFunction: templateValue,
+          oAuthCallbackFunction: templateValue,
           cancelOrderWebhookHandler: templateValue,
           createOrderWebhookHandler: templateValue,
         };

@@ -129,7 +129,6 @@ const getFreshAccessToken = async (platform: OpenFrontPlatform) => {
           }
         });
       } catch (error) {
-        console.error('Failed to update shop tokens in database:', error);
         // Continue with the request even if database update fails
       }
       
@@ -296,7 +295,6 @@ export async function getProductFunction({
   productId: string;
   variantId?: string;
 }) {
-  console.log("OpenFront getProductFunction called with:", { platform: platform.domain, productId, variantId });
   
   const openFrontClient = await createOpenFrontClient(platform);
 
@@ -411,7 +409,6 @@ export async function searchOrdersFunction({
   searchEntry: string;
   after?: string;
 }) {
-  console.log("fuckkk")
   const openFrontClient = await createOpenFrontClient(platform);
 
   const gqlQuery = gql`
@@ -501,7 +498,6 @@ export async function searchOrdersFunction({
     skip,
   }) as any;
 
-  console.log("Orders from OpenFront:", orders);
 
   // Transform orders to Openship format
   const transformedOrders = orders.map((order: any) => {
@@ -549,7 +545,6 @@ export async function searchOrdersFunction({
     };
   });
 
-  console.log("Transformed orders:", transformedOrders);
 
   const hasNextPage = skip + take < ordersCount;
   const endCursor = hasNextPage ? Buffer.from((skip + take).toString()).toString('base64') : null;
@@ -601,7 +596,6 @@ export async function updateProductFunction({
   if (price !== undefined) {
     // Note: Price updates in OpenFront might require updating the Price model separately
     // This is a simplified approach - you might need to adjust based on your schema
-    console.log(`Price update requested for variant ${variantId}: ${price}`);
     // Actual price update would depend on how prices are structured in OpenFront
   }
 
@@ -797,8 +791,7 @@ export async function oAuthCallbackFunction({
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("OpenFront OAuth error:", errorText);
-    throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText}`);
+    throw new Error(`Failed to exchange OAuth code for access token: ${response.statusText} - ${errorText}`);
   }
 
   const { access_token, refresh_token, expires_in } = await response.json();
@@ -824,7 +817,6 @@ export async function createOrderWebhookHandler({
   // Verify webhook authenticity using OpenFront's signature
   const signature = headers["x-openfront-webhook-signature"] || headers["X-OpenFront-Webhook-Signature"];
   if (!signature) {
-    console.error("Missing webhook signature. Available headers:", Object.keys(headers));
     throw new Error("Missing webhook signature");
   }
 

@@ -39,10 +39,6 @@ async function addToCart(
 
   const [existingCartItem] = allCartItems;
   if (existingCartItem) {
-    console.log(
-      `There are already ${existingCartItem.quantity}, increment by 1!`
-    );
-
     await context.query.CartItem.updateOne({
       where: { id: existingCartItem.id },
       data: {

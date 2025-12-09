@@ -9,24 +9,16 @@ export async function generateOAuthState(platformId: string, type: 'shop' | 'cha
     platformId,
     type,
     timestamp: Date.now(),
-    nonce: crypto.randomBytes(16).toString('hex') // Small nonce for uniqueness
+    nonce: crypto.randomBytes(16).toString('hex')
   };
-  
-  console.log('🟢 GENERATE: Creating signed state for:', payload);
-  
-  // Create signature
+
   const payloadString = JSON.stringify(payload);
   const signature = crypto.createHmac('sha256', SECRET_KEY).update(payloadString).digest('hex');
-  
-  // Combine payload and signature
+
   const signedState = {
     payload: payloadString,
     signature
   };
-  
-  // Encode as base64
-  const encodedState = Buffer.from(JSON.stringify(signedState)).toString('base64');
-  console.log('🟢 GENERATE: Generated signed state:', encodedState);
-  
-  return encodedState;
+
+  return Buffer.from(JSON.stringify(signedState)).toString('base64');
 }

@@ -249,11 +249,7 @@ export const Webhooks = ({ shopId, shop }: { shopId: string; shop?: any }) => {
       <div className="space-y-3">
         {recommendedWebhooks.map((webhook: any) => {
           const fullRecommendedUrl = (typeof window !== 'undefined' ? window.location.origin : '') + webhook.callbackUrl;
-          
-          console.log('🔍 Checking webhook:', webhook.topic);
-          console.log('🔍 Full recommended URL:', fullRecommendedUrl);
-          console.log('🔍 Existing webhooks:', webhooks.map((w: any) => ({ topic: w.topic, callbackUrl: w.callbackUrl })));
-          
+
           const existingWebhook = webhooks.find(
             (w: any) => {
               const existingTopic = Array.isArray(w.topic) ? w.topic[0] : w.topic;

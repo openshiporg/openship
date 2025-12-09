@@ -100,18 +100,18 @@ export async function initiateChannelOAuthFlow(platformId: string, domain: strin
 
   // Generate state parameter with platform info
   const state = await generateOAuthState(platformId, 'channel');
-  
+
   // The platform object needs to have the domain from user input
   const platformWithDomain = {
     ...platform,
     domain: domain, // Use the domain entered by the user
-    state: state, // Pass state to OAuth function
   };
-  
-  // Call the OAuth function to get the auth URL - use platform's callbackUrl
+
+  // Call the OAuth function to get the auth URL - pass state as separate argument
   const result = await handleChannelOAuth({
     platform: platformWithDomain,
-    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/callback`
+    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/callback`,
+    state: state,
   });
   
   // Redirect to the OAuth URL

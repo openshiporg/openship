@@ -160,7 +160,6 @@ ${uniqueViews.map(view => `  "${view}"`).join(',\n')}
 ];`;
 
   writeFileSync(outputPath, fileContent);
-  console.log(`Generated view order with ${uniqueViews.length} field types: ${uniqueViews.join(', ')}`);
 }
 
 function extractUniqueViews(jsonData: any) {

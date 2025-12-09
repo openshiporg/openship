@@ -83,11 +83,11 @@ export async function getChannelWebhooks({ platform }: { platform: any }) {
   });
 }
 
-export async function handleChannelOAuth({ platform, callbackUrl }: { platform: any; callbackUrl: string }) {
+export async function handleChannelOAuth({ platform, callbackUrl, state }: { platform: any; callbackUrl: string; state: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "oAuthFunction",
-    args: { callbackUrl },
+    args: { callbackUrl, state },
   });
 }
 

@@ -102,11 +102,11 @@ export async function getShopWebhooks({ platform }: any) {
   });
 }
 
-export async function handleShopOAuth({ platform, callbackUrl }: any) {
+export async function handleShopOAuth({ platform, callbackUrl, state }: any) {
   return executeShopAdapterFunction({
     platform,
     functionName: "oAuthFunction",
-    args: { callbackUrl },
+    args: { callbackUrl, state },
   });
 }
 

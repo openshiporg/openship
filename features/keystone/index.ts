@@ -55,11 +55,9 @@ export function statelessSessions({
       
       if (authHeader?.startsWith("Bearer ")) {
         const accessToken = authHeader.replace("Bearer ", "");
-        console.log('🔑 ACCESS TOKEN:', accessToken);
-        
+
         // Try to validate as API key first
         if (accessToken.startsWith("osp_")) {
-          console.log('🔑 API KEY DETECTED, VALIDATING...');
           try {
             // Get all active API keys and test the token against each one
             const apiKeys = await context.sudo().query.ApiKey.findMany({
@@ -75,8 +73,6 @@ export function statelessSessions({
                 user { id }
               `,
             });
-            
-            console.log('🔑 CHECKING AGAINST', apiKeys.length, 'ACTIVE API KEYS');
             
             let matchingApiKey = null;
             
@@ -99,28 +95,23 @@ export function statelessSessions({
                 
                 if (isValid) {
                   matchingApiKey = apiKey;
-                  console.log('🔑 FOUND MATCHING API KEY:', apiKey.id);
                   break;
                 }
               } catch (error) {
-                console.log('🔑 ERROR VERIFYING API KEY:', error);
                 // Continue to next API key if this one doesn't match
                 continue;
               }
             }
-            
+
             if (!matchingApiKey) {
-              console.log('🔑 NO MATCHING API KEY FOUND');
               return; // API key not found or invalid
             }
-            
+
             if (matchingApiKey.status !== 'active') {
-              console.log('🔑 API KEY NOT ACTIVE:', matchingApiKey.status);
               return; // API key is inactive
             }
-            
+
             if (matchingApiKey.expiresAt && new Date() > new Date(matchingApiKey.expiresAt)) {
-              console.log('🔑 API KEY EXPIRED');
               // Auto-revoke expired keys
               await context.sudo().query.ApiKey.updateOne({
                 where: { id: matchingApiKey.id },
@@ -145,16 +136,13 @@ export function statelessSessions({
             
             // Return user session with API key scopes attached
             if (matchingApiKey.user?.id) {
-              const session = { 
-                itemId: matchingApiKey.user.id, 
+              return {
+                itemId: matchingApiKey.user.id,
                 listKey,
-                apiKeyScopes: matchingApiKey.scopes || [] // Attach scopes for permission checking
+                apiKeyScopes: matchingApiKey.scopes || []
               };
-              console.log('🔑 RETURNING SESSION:', JSON.stringify(session, null, 2));
-              return session;
             }
           } catch (err) {
-            console.log('🔑 API Key validation error:', err);
             return;
           }
         }

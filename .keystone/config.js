@@ -1287,14 +1287,15 @@ async function getWebhooksFunction2({
 }
 async function oAuthFunction2({
   platform,
-  callbackUrl
+  callbackUrl,
+  state
 }) {
   const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
   if (!clientId) {
     throw new Error("Shopify OAuth requires appKey in platform config or SHOPIFY_APP_KEY environment variable");
   }
   const scopes5 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
-  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
+  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${encodeURIComponent(state)}`;
   return { authUrl: shopifyAuthUrl };
 }
 async function oAuthCallbackFunction2({
@@ -1484,11 +1485,11 @@ async function getChannelWebhooks({ platform }) {
     args: {}
   });
 }
-async function handleChannelOAuth({ platform, callbackUrl }) {
+async function handleChannelOAuth({ platform, callbackUrl, state }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "oAuthFunction",
-    args: { callbackUrl }
+    args: { callbackUrl, state }
   });
 }
 async function handleChannelOAuthCallback({ platform, code, shop, state, appKey, appSecret, redirectUri }) {
@@ -2836,14 +2837,15 @@ async function getWebhooksFunction4({
 }
 async function oAuthFunction4({
   platform,
-  callbackUrl
+  callbackUrl,
+  state
 }) {
   const clientId = platform.appKey || process.env.SHOPIFY_APP_KEY;
   if (!clientId) {
     throw new Error("Shopify OAuth requires appKey in platform config or SHOPIFY_APP_KEY environment variable");
   }
   const scopes5 = "read_products,write_products,read_orders,write_orders,read_inventory,write_inventory";
-  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${callbackUrl}&state=${Math.random().toString(36).substring(7)}`;
+  const shopifyAuthUrl = `https://${platform.domain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes5}&redirect_uri=${encodeURIComponent(callbackUrl)}&state=${encodeURIComponent(state)}`;
   return { authUrl: shopifyAuthUrl };
 }
 async function oAuthCallbackFunction4({
@@ -3213,11 +3215,11 @@ async function getShopWebhooks({ platform }) {
     args: {}
   });
 }
-async function handleShopOAuth({ platform, callbackUrl }) {
+async function handleShopOAuth({ platform, callbackUrl, state }) {
   return executeShopAdapterFunction({
     platform,
     functionName: "oAuthFunction",
-    args: { callbackUrl }
+    args: { callbackUrl, state }
   });
 }
 async function handleShopOAuthCallback({ platform, code, shop, state, appKey, appSecret, redirectUri }) {
@@ -7790,9 +7792,7 @@ function statelessSessions({
       const authHeader = context.req.headers.authorization;
       if (authHeader?.startsWith("Bearer ")) {
         const accessToken = authHeader.replace("Bearer ", "");
-        console.log("\u{1F511} ACCESS TOKEN:", accessToken);
         if (accessToken.startsWith("osp_")) {
-          console.log("\u{1F511} API KEY DETECTED, VALIDATING...");
           try {
             const apiKeys = await context.sudo().query.ApiKey.findMany({
               where: { status: { equals: "active" } },
@@ -7807,7 +7807,6 @@ function statelessSessions({
                 user { id }
               `
             });
-            console.log("\u{1F511} CHECKING AGAINST", apiKeys.length, "ACTIVE API KEYS");
             let matchingApiKey = null;
             for (const apiKey of apiKeys) {
               try {
@@ -7821,24 +7820,19 @@ function statelessSessions({
                 const isValid = await import_bcryptjs.default.compare(accessToken, fullApiKey.tokenSecret);
                 if (isValid) {
                   matchingApiKey = apiKey;
-                  console.log("\u{1F511} FOUND MATCHING API KEY:", apiKey.id);
                   break;
                 }
               } catch (error) {
-                console.log("\u{1F511} ERROR VERIFYING API KEY:", error);
                 continue;
               }
             }
             if (!matchingApiKey) {
-              console.log("\u{1F511} NO MATCHING API KEY FOUND");
               return;
             }
             if (matchingApiKey.status !== "active") {
-              console.log("\u{1F511} API KEY NOT ACTIVE:", matchingApiKey.status);
               return;
             }
             if (matchingApiKey.expiresAt && /* @__PURE__ */ new Date() > new Date(matchingApiKey.expiresAt)) {
-              console.log("\u{1F511} API KEY EXPIRED");
               await context.sudo().query.ApiKey.updateOne({
                 where: { id: matchingApiKey.id },
                 data: { status: "revoked" }
@@ -7857,17 +7851,13 @@ function statelessSessions({
               }
             }).catch(console.error);
             if (matchingApiKey.user?.id) {
-              const session = {
+              return {
                 itemId: matchingApiKey.user.id,
                 listKey,
                 apiKeyScopes: matchingApiKey.scopes || []
-                // Attach scopes for permission checking
               };
-              console.log("\u{1F511} RETURNING SESSION:", JSON.stringify(session, null, 2));
-              return session;
             }
           } catch (err) {
-            console.log("\u{1F511} API Key validation error:", err);
             return;
           }
         }

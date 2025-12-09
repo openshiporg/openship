@@ -148,14 +148,16 @@ export async function getChannelWebhooks({ platform }: { platform: Platform }) {
 export async function handleChannelOAuth({
   platform,
   callbackUrl,
+  state,
 }: {
   platform: Platform;
   callbackUrl: string;
+  state: string;
 }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: 'oAuthFunction',
-    args: { callbackUrl },
+    args: { callbackUrl, state },
   });
 }
 

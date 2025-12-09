@@ -75,9 +75,9 @@
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.5",
     "pluralize": "^8.0.0",
-    "react": "^19.0.0",
+    "react": "^19.2.1",
     "react-day-picker": "^9.7.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.2.1",
     "react-hook-form": "^7.54.1",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.2",
@@ -120,7 +120,7 @@
     "node": ">=20.0.0"
   },
   "overrides": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   }
 }

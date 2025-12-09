@@ -234,6 +234,7 @@ function useBlockPopover(
     popoverProps: mergeProps(overlayProps, positionProps),
     underlayProps,
     updatePosition,
+    triggerAnchorPoint: { x: 0, y: 0 },
   }
 }
 

@@ -88,7 +88,6 @@ export function verifyWebhook(
     
     // Add more platforms as needed
     default:
-      console.warn(`Unknown platform for webhook verification: ${platform}`)
       return false
   }
 }

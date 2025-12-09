@@ -11,7 +11,6 @@ async function searchChannelProductsQuery(
   }: { channelId: string; searchEntry: string; after?: string },
   context: any,
 ) {
-  console.log("helllooooo")
   const sudoContext = context.sudo();
 
   // Fetch the channel using the provided channelId
