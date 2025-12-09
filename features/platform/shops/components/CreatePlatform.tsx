@@ -151,7 +151,7 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
       } else {
         // Creation returned but no item - likely a validation error
         const errorMessage = createItem.error?.graphQLErrors?.[0]?.message
-          || createItem.error?.message
+          || createItem.error?.networkError?.message
           || 'Failed to create platform';
         toast.error(errorMessage);
       }
