@@ -40,8 +40,10 @@ async function applyDynamicWhereClause(context: any, linkId: string, orderId: st
   // Use findMany with the dynamic filters + id filter
   const matchedOrders = await context.query.Order.findMany({
     where: {
-      ...dynamicWhere,
-      id: { equals: orderId },
+      AND: [
+        dynamicWhere,
+        { id: { equals: orderId } },
+      ],
     },
     query: 'id',
     take: 1,

@@ -284,11 +284,13 @@ const FilterChip = ({
 const AddFilterButton = ({
   filterableFields,
   enhancedFields,
+  existingFilterFields,
   onAdd,
   disabled,
 }: {
   filterableFields: Record<string, any>;
   enhancedFields: Record<string, any>;
+  existingFilterFields: string[];
   onAdd: (filter: LinkFilter) => void;
   disabled: boolean;
 }) => {
@@ -297,7 +299,10 @@ const AddFilterButton = ({
   const [selectedType, setSelectedType] = useState('');
   const [value, setValue] = useState('');
 
-  const fieldPaths = Object.keys(filterableFields);
+  // Exclude fields that are already used in filters
+  const fieldPaths = Object.keys(filterableFields).filter(
+    (path) => !existingFilterFields.includes(path)
+  );
 
   const getFilterTypes = (fieldPath: string) => {
     const field = filterableFields[fieldPath];
@@ -442,8 +447,10 @@ const LinkCard = ({
 
   const filterableFields = useMemo(() => {
     const filtered: Record<string, any> = {};
+    // Fields to exclude from link filters
+    const excludedFields = ['id', 'name'];
     Object.entries(enhancedFields).forEach(([path, field]: [string, any]) => {
-      if (field.controller?.filter) {
+      if (field.controller?.filter && !excludedFields.includes(path)) {
         filtered[path] = field;
       }
     });
@@ -537,6 +544,7 @@ const LinkCard = ({
           <AddFilterButton
             filterableFields={filterableFields}
             enhancedFields={enhancedFields}
+            existingFilterFields={localFilters.map((f) => f.field)}
             onAdd={addFilter}
             disabled={!orderList || Object.keys(filterableFields).length === 0}
           />

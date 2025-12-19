@@ -4422,8 +4422,10 @@ async function applyDynamicWhereClause(context, linkId, orderId) {
   }
   const matchedOrders = await context.query.Order.findMany({
     where: {
-      ...dynamicWhere,
-      id: { equals: orderId }
+      AND: [
+        dynamicWhere,
+        { id: { equals: orderId } }
+      ]
     },
     query: "id",
     take: 1
