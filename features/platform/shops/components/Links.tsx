@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  ArrowRight,
-  Edit,
-  Edit2,
-  ListFilter,
   Plus,
   Trash2,
-  X,
-  ChevronDown,
-  Pencil,
-  CircleAlert,
   GripVertical,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,11 +29,16 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverClose,
 } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ReactSortable } from "react-sortablejs";
+import { useQueryClient } from '@tanstack/react-query';
+import { enhanceFields } from '../../../dashboard/utils/enhanceFields';
+import { 
+  createShopLink, 
+  updateShopLink, 
+  deleteShopLink 
+} from '../actions/links';
 import { cn } from "@/lib/utils";
 
 interface LinkFilter {
@@ -51,145 +49,52 @@ interface LinkFilter {
 
 interface Link {
   id: string;
-  channel: {
+  channel?: {
     id: string;
     name: string;
   };
-  filters: LinkFilter[];
+  filters?: LinkFilter[];
   rank?: number;
-  createdAt: string;
 }
 
-interface Channel {
-  id: string;
-  name: string;
-}
-
-interface SortableLink extends Link {
-  chosen?: boolean;
-  selected?: boolean;
+interface LinksProps {
+  shopId: string;
+  shop: any;
+  channels?: any[];
+  orderList?: any;
 }
 
 // Create Link Button Component
-export const CreateLinkButton = ({ shopId, refetch }: {
+const CreateLinkButton = ({ shopId, channels, onCreated }: {
   shopId: string;
-  refetch: () => void;
+  channels: any[];
+  onCreated: () => void;
 }) => {
-  const [channels, setChannels] = useState<Channel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
-
-  const loadChannels = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query GetChannels {
-              channels(take: 50) {
-                id
-                name
-              }
-            }
-          `
-        })
-      });
-      
-      const data = await response.json();
-      if (data.data?.channels) {
-        setChannels(data.data.channels);
-      } else {
-        setError('Failed to load channels');
-      }
-    } catch (err: any) {
-      console.error('Failed to load channels:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadChannels();
-  }, []);
 
   const handleCreateLink = async (channelId: string) => {
     setIsCreating(true);
     try {
-      const response = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            mutation CreateLink($data: LinkCreateInput!) {
-              createLink(data: $data) {
-                id
-                channel {
-                  id
-                  name
-                }
-                filters
-                rank
-              }
-            }
-          `,
-          variables: {
-            data: {
-              shop: { connect: { id: shopId } },
-              channel: { connect: { id: channelId } },
-              filters: {},
-              rank: 1
-            }
-          }
-        })
-      });
-      
-      const data = await response.json();
-      if (data.data?.createLink) {
-        toast({
-          title: "Link Created",
-          description: "Successfully created channel link",
-        });
-        refetch();
+      const response = await createShopLink(shopId, channelId, []);
+      if (response.success) {
+        toast({ title: "Link Created" });
+        onCreated();
       } else {
-        throw new Error(data.errors?.[0]?.message || 'Failed to create link');
+        throw new Error(response.error || 'Failed to create link');
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create link",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setIsCreating(false);
     }
   };
 
-  if (loading) {
-    return <Button disabled size="sm">Loading...</Button>;
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-600 text-xs">
-        Error: {error}
-      </div>
-    );
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1" disabled={isCreating}>
-          <Plus className="h-3 w-3" />
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" disabled={isCreating}>
+          <Plus className="h-4 w-4" />
           {isCreating ? "Creating..." : "Add Link"}
         </Button>
       </DropdownMenuTrigger>
@@ -198,9 +103,7 @@ export const CreateLinkButton = ({ shopId, refetch }: {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {channels.length === 0 ? (
-            <DropdownMenuItem disabled>
-              No channels available
-            </DropdownMenuItem>
+            <DropdownMenuItem disabled>No channels available</DropdownMenuItem>
           ) : (
             channels.map((channel) => (
               <DropdownMenuItem
@@ -218,441 +121,473 @@ export const CreateLinkButton = ({ shopId, refetch }: {
   );
 };
 
-// Filter Editor Component
-const FilterEditor = ({ filters, onChange }: {
-  filters: LinkFilter[];
-  onChange: (filters: LinkFilter[]) => void;
+// Filter Chip Component - Tremor-inspired
+const FilterChip = ({
+  filter,
+  index,
+  filterableFields,
+  enhancedFields,
+  onUpdate,
+  onRemove,
+}: {
+  filter: LinkFilter;
+  index: number;
+  filterableFields: Record<string, any>;
+  enhancedFields: Record<string, any>;
+  onUpdate: (index: number, updates: Partial<LinkFilter>) => void;
+  onRemove: (index: number) => void;
 }) => {
-  const addFilter = () => {
-    onChange([...filters, { field: "", type: "equals", value: "" }]);
+  const [localType, setLocalType] = useState(filter.type);
+  const [localValue, setLocalValue] = useState(filter.value);
+
+  const getFilterTypes = (fieldPath: string) => {
+    const field = filterableFields[fieldPath];
+    if (!field?.controller?.filter?.types) return {};
+    return field.controller.filter.types;
   };
 
-  const updateFilter = (index: number, field: keyof LinkFilter, value: string) => {
-    const newFilters = [...filters];
-    newFilters[index] = { ...newFilters[index], [field]: value };
-    onChange(newFilters);
+  const getFieldLabel = (fieldPath: string) => {
+    return enhancedFields[fieldPath]?.label || fieldPath;
   };
 
-  const removeFilter = (index: number) => {
-    onChange(filters.filter((_, i) => i !== index));
+  const getTypeLabel = (fieldPath: string, typeKey: string) => {
+    const types = getFilterTypes(fieldPath);
+    return types[typeKey]?.label || typeKey;
+  };
+
+  const filterTypes = getFilterTypes(filter.field);
+  const hasValue = filter.value && filter.value.trim() !== '';
+  const fieldLabel = getFieldLabel(filter.field);
+  const typeLabel = getTypeLabel(filter.field, filter.type);
+
+  const handleApply = () => {
+    const updates: Partial<LinkFilter> = {};
+    if (localType !== filter.type) {
+      updates.type = localType;
+    }
+    if (localValue !== filter.value) {
+      updates.value = localValue;
+    }
+    if (Object.keys(updates).length > 0) {
+      onUpdate(index, updates);
+    }
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Filters</Label>
-        <Button size="sm" variant="outline" onClick={addFilter}>
-          <Plus className="h-3 w-3 mr-1" />
-          Add Filter
-        </Button>
-      </div>
-      {filters.map((filter, index) => (
-        <div key={index} className="flex gap-2 items-center">
-          <Input
-            placeholder="Field"
-            value={filter.field}
-            onChange={(e) => updateFilter(index, "field", e.target.value)}
-            className="flex-1"
-          />
-          <Select
-            value={filter.type}
-            onValueChange={(value) => updateFilter(index, "type", value)}
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex items-center gap-x-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-sm font-medium transition-colors",
+            "hover:bg-muted/50",
+            hasValue
+              ? "border-border bg-background text-foreground"
+              : "border-dashed border-muted-foreground/50 text-muted-foreground"
+          )}
+        >
+          <span
+            aria-hidden="true"
+            onClick={(e) => {
+              if (hasValue) {
+                e.stopPropagation();
+                onRemove(index);
+              }
+            }}
+            className="flex items-center"
           >
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="equals">Equals</SelectItem>
-              <SelectItem value="contains">Contains</SelectItem>
-              <SelectItem value="startsWith">Starts With</SelectItem>
-              <SelectItem value="endsWith">Ends With</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Value"
-            value={filter.value}
-            onChange={(e) => updateFilter(index, "value", e.target.value)}
-            className="flex-1"
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => removeFilter(index)}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+            <Plus
+              className={cn(
+                "-ml-px h-4 w-4 shrink-0 transition-transform",
+                hasValue && "rotate-45 hover:text-destructive"
+              )}
+            />
+          </span>
+          <span className="truncate max-w-[100px] font-medium">{fieldLabel}</span>
+          {hasValue && (
+            <>
+              <span className="text-muted-foreground/60" aria-hidden="true">⋮</span>
+              <span className="truncate max-w-[80px] opacity-70">
+                {typeLabel}
+              </span>
+              <span className="text-muted-foreground/60" aria-hidden="true">⋮</span>
+              <span className="truncate max-w-[100px] opacity-50">
+                {filter.value}
+              </span>
+            </>
+          )}
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-3">
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Field</label>
+            <div className="h-9 px-3 py-2 text-sm bg-muted rounded-md text-muted-foreground">
+              {getFieldLabel(filter.field)}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Condition</label>
+            <Select value={localType} onValueChange={setLocalType}>
+              <SelectTrigger className="h-9 text-base">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(filterTypes).map(([typeKey, typeConfig]: [string, any]) => (
+                  <SelectItem key={typeKey} value={typeKey}>
+                    {typeConfig.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Value</label>
+            <input
+              type="text"
+              placeholder="Enter value..."
+              value={localValue}
+              onChange={(e) => setLocalValue(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <PopoverClose asChild>
+              <Button 
+                size="sm" 
+                className="flex-1"
+                onClick={handleApply}
+              >
+                Apply
+              </Button>
+            </PopoverClose>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="flex-1"
+              onClick={() => onRemove(index)}
+            >
+              Remove
+            </Button>
+          </div>
         </div>
-      ))}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
-// Individual Link Item Component
-const LinkItem = ({ link, linkMode = "sequential", isSelected, onSelect, onUpdate, onDelete }: {
-  link: SortableLink;
+// Add Filter Button - Tremor-inspired dashed button
+const AddFilterButton = ({
+  filterableFields,
+  enhancedFields,
+  onAdd,
+  disabled,
+}: {
+  filterableFields: Record<string, any>;
+  enhancedFields: Record<string, any>;
+  onAdd: (filter: LinkFilter) => void;
+  disabled: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [value, setValue] = useState('');
+
+  const fieldPaths = Object.keys(filterableFields);
+
+  const getFilterTypes = (fieldPath: string) => {
+    const field = filterableFields[fieldPath];
+    if (!field?.controller?.filter?.types) return {};
+    return field.controller.filter.types;
+  };
+
+  const getFieldLabel = (fieldPath: string) => {
+    return enhancedFields[fieldPath]?.label || fieldPath;
+  };
+
+  const handleFieldChange = (fieldPath: string) => {
+    setSelectedField(fieldPath);
+    const types = getFilterTypes(fieldPath);
+    const firstType = Object.keys(types)[0];
+    setSelectedType(firstType || '');
+    setValue('');
+  };
+
+  const handleApply = () => {
+    if (selectedField && selectedType) {
+      onAdd({ field: selectedField, type: selectedType, value });
+      setSelectedField('');
+      setSelectedType('');
+      setValue('');
+      setIsOpen(false);
+    }
+  };
+
+  const filterTypes = selectedField ? getFilterTypes(selectedField) : {};
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className={cn(
+            "flex items-center gap-x-1.5 whitespace-nowrap rounded-md border border-dashed px-2 py-1.5 text-sm font-medium transition-colors",
+            "border-muted-foreground/50 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+            "disabled:opacity-50 disabled:cursor-not-allowed"
+          )}
+        >
+          <Plus className="h-4 w-4 shrink-0" />
+          <span>Add Filter</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-3">
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Field</label>
+            <Select value={selectedField} onValueChange={handleFieldChange}>
+              <SelectTrigger className="h-9 text-base">
+                <SelectValue placeholder="Select field..." />
+              </SelectTrigger>
+              <SelectContent>
+                {fieldPaths.map((fieldPath) => (
+                  <SelectItem key={fieldPath} value={fieldPath}>
+                    {getFieldLabel(fieldPath)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedField && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Condition</label>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="h-9 text-base">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(filterTypes).map(([typeKey, typeConfig]: [string, any]) => (
+                      <SelectItem key={typeKey} value={typeKey}>
+                        {typeConfig.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Value</label>
+                <input
+                  type="text"
+                  placeholder="Enter value..."
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <PopoverClose asChild>
+              <Button 
+                size="sm" 
+                className="flex-1"
+                onClick={handleApply}
+                disabled={!selectedField || !selectedType}
+              >
+                Add
+              </Button>
+            </PopoverClose>
+            <PopoverClose asChild>
+              <Button size="sm" variant="outline" className="flex-1">
+                Cancel
+              </Button>
+            </PopoverClose>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+// Individual Link Card Component
+const LinkCard = ({ 
+  link, 
+  linkMode = "sequential", 
+  onDeleted,
+  orderList
+}: {
+  link: Link;
   linkMode?: string;
-  isSelected: boolean;
-  onSelect: () => void;
-  onUpdate: (id: string, data: any) => void;
-  onDelete: (id: string) => void;
+  onDeleted: () => void;
+  orderList: any;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [localFilters, setLocalFilters] = useState<LinkFilter[]>(
+    Array.isArray(link.filters) ? link.filters : []
+  );
   const { toast } = useToast();
+  
+  const enhancedFields = useMemo(() => {
+    if (!orderList?.fields) return {};
+    return enhanceFields(orderList.fields, 'Order');
+  }, [orderList]);
+
+  const filterableFields = useMemo(() => {
+    const filtered: Record<string, any> = {};
+    Object.entries(enhancedFields).forEach(([path, field]: [string, any]) => {
+      if (field.controller?.filter) {
+        filtered[path] = field;
+      }
+    });
+    return filtered;
+  }, [enhancedFields]);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await onDelete(link.id);
-      toast({
-        title: "Link Deleted",
-        description: "Successfully deleted link",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete link",
-        variant: "destructive",
-      });
+      const response = await deleteShopLink(link.id);
+      if (response.success) {
+        toast({ title: "Link Deleted" });
+        onDeleted();
+      } else {
+        throw new Error(response.error);
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to delete link", variant: "destructive" });
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const saveFilters = async (newFilters: LinkFilter[]) => {
+    try {
+      const response = await updateShopLink(link.id, newFilters);
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to save filters", variant: "destructive" });
+    }
+  };
+
+  const addFilter = (filter: LinkFilter) => {
+    const newFilters = [...localFilters, filter];
+    setLocalFilters(newFilters);
+    saveFilters(newFilters);
+  };
+
+  const updateFilter = (index: number, updates: Partial<LinkFilter>) => {
+    const newFilters = [...localFilters];
+    newFilters[index] = { ...newFilters[index], ...updates };
+    setLocalFilters(newFilters);
+    saveFilters(newFilters);
+  };
+
+  const removeFilter = (index: number) => {
+    const newFilters = localFilters.filter((_, i) => i !== index);
+    setLocalFilters(newFilters);
+    saveFilters(newFilters);
+  };
+
   return (
-    <div className="bg-background border rounded-lg flex justify-between items-center p-3 tracking-wide font-medium w-full">
-      <div className="flex items-center gap-3 flex-1">
-        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-        <Badge
-          variant="outline"
-          className="py-1 px-2 text-xs font-medium"
-        >
-          {linkMode === "sequential" ? link.rank || 1 : "1"}
-        </Badge>
-        <div className="flex-1">
-          <div className="font-medium">{link.channel.name}</div>
-          <div className="text-xs text-muted-foreground">
-            {link.filters?.length || 0} filter{(link.filters?.length || 0) !== 1 && "s"}
-          </div>
+    <div className="rounded-2xl bg-muted/50 p-1">
+      {/* Frame Header */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab shrink-0" />
+          <Badge variant="secondary" className="text-xs font-medium h-6 w-6 flex items-center justify-center p-0 rounded-md shrink-0">
+            {linkMode === "sequential" ? link.rank || 1 : "1"}
+          </Badge>
+          <h3 className="text-sm font-semibold truncate">{link.channel?.name || 'Unknown Channel'}</h3>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
         <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-6 w-6 p-0",
-            isSelected && "bg-blue-50 border-blue-200"
-          )}
-          onClick={onSelect}
-        >
-          <Pencil className="h-3 w-3" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          className={cn(
-            "h-6 px-2 text-xs",
-            isSelected && "bg-blue-50 border-blue-200 border"
-          )}
-          onClick={onSelect}
-        >
-          {link.filters?.length || 0} filter{(link.filters?.length || 0) !== 1 && "s"}
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          className="h-6 w-6 p-0"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           onClick={handleDelete}
           disabled={isDeleting}
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="h-4 w-4" />
         </Button>
+      </div>
+      
+      {/* Frame Panel - Filter Chips */}
+      <div className="rounded-xl border bg-background p-4">
+        <div className="flex flex-wrap gap-2">
+          {localFilters.map((filter, index) => (
+            <FilterChip
+              key={index}
+              filter={filter}
+              index={index}
+              filterableFields={filterableFields}
+              enhancedFields={enhancedFields}
+              onUpdate={updateFilter}
+              onRemove={removeFilter}
+            />
+          ))}
+          
+          <AddFilterButton
+            filterableFields={filterableFields}
+            enhancedFields={enhancedFields}
+            onAdd={addFilter}
+            disabled={!orderList || Object.keys(filterableFields).length === 0}
+          />
+        </div>
+        
+        {localFilters.length === 0 && (
+          <p className="text-xs text-muted-foreground mt-2">No filters - matches all orders</p>
+        )}
       </div>
     </div>
   );
 };
 
-// Check if link orders are equal
-const areOrdersEqual = (links1: SortableLink[], links2: SortableLink[]) => {
-  if (links1.length !== links2.length) return false;
-  return links1.every((link, index) => link.id === links2[index].id);
-};
+export const Links = ({ shopId, shop, channels = [], orderList }: LinksProps) => {
+  const queryClient = useQueryClient();
+  
+  const links = shop?.links || [];
 
-// Main Links Component
-export const Links = ({ shopId }: { shopId: string }) => {
-  const [links, setLinks] = useState<SortableLink[]>([]);
-  const [initialLinks, setInitialLinks] = useState<SortableLink[]>([]);
-  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [linkMode] = useState("sequential"); // Could be made dynamic
-  const { toast } = useToast();
-
-  const hasOrderChanged = !areOrdersEqual(initialLinks, links);
-
-  const loadLinks = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query GetLinks {
-              links {
-                id
-                channel {
-                  id
-                  name
-                }
-                filters
-                rank
-                createdAt
-              }
-            }
-          `
-        })
-      });
-      
-      const data = await response.json();
-      console.log('Shop Links response:', data);
-      
-      if (data.data?.links) {
-        // Sort by rank if available, otherwise by creation date
-        const sortedLinks = data.data.links.sort((a: Link, b: Link) => {
-          if (a.rank !== undefined && b.rank !== undefined) {
-            return a.rank - b.rank;
-          }
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        });
-        setLinks(sortedLinks);
-        setInitialLinks(sortedLinks);
-      } else {
-        setError('No links data received');
-      }
-    } catch (err: any) {
-      console.error('Failed to load shop links:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const invalidateShops = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['lists', 'Shop', 'items'] });
   };
-
-  useEffect(() => {
-    loadLinks();
-  }, [shopId]);
-
-  const handleUpdateLink = async (linkId: string, data: any) => {
-    try {
-      const response = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            mutation UpdateLink($where: LinkWhereUniqueInput!, $data: LinkUpdateInput!) {
-              updateLink(where: $where, data: $data) {
-                id
-                channel {
-                  id
-                  name
-                }
-                filters
-                rank
-              }
-            }
-          `,
-          variables: {
-            where: { id: linkId },
-            data
-          }
-        })
-      });
-      
-      const result = await response.json();
-      if (result.errors) {
-        throw new Error(result.errors[0].message);
-      }
-      
-      loadLinks(); // Refresh the list
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleDeleteLink = async (linkId: string) => {
-    try {
-      const response = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            mutation DeleteLink($where: LinkWhereUniqueInput!) {
-              deleteLink(where: $where) {
-                id
-              }
-            }
-          `,
-          variables: {
-            where: { id: linkId }
-          }
-        })
-      });
-      
-      const result = await response.json();
-      if (result.errors) {
-        throw new Error(result.errors[0].message);
-      }
-      
-      loadLinks(); // Refresh the list
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleSaveOrder = async () => {
-    setIsUpdating(true);
-    try {
-      const updatePromises = links.map((link, index) => {
-        return fetch('/api/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-              mutation UpdateLink($where: LinkWhereUniqueInput!, $data: LinkUpdateInput!) {
-                updateLink(where: $where, data: $data) {
-                  id
-                  rank
-                }
-              }
-            `,
-            variables: {
-              where: { id: link.id },
-              data: { rank: index + 1 }
-            }
-          })
-        });
-      });
-      
-      await Promise.all(updatePromises);
-      
-      toast({
-        title: "Order Updated",
-        description: "Successfully updated link order",
-      });
-      
-      loadLinks(); // Refresh to get updated ranks
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update link order",
-        variant: "destructive",
-      });
-      loadLinks(); // Revert to server state
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  if (loading) {
-    return <div>Loading links...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-md border border-red-500/50 px-4 py-3 text-red-600">
-        <p className="text-sm">
-          <CircleAlert
-            className="me-3 -mt-0.5 inline-flex opacity-60"
-            size={16}
-            aria-hidden="true"
-          />
-          Error loading links: {error}
-        </p>
-      </div>
-    );
-  }
-
-  const selectedLink = selectedLinkId ? links.find(l => l.id === selectedLinkId) : null;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-medium">Links</h3>
+          <h3 className="text-lg font-semibold">Links</h3>
           <p className="text-sm text-muted-foreground">
             Create links to channels based on filters
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {hasOrderChanged ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveOrder}
-              disabled={isUpdating}
-            >
-              {isUpdating ? "Saving..." : "Save Order"}
-            </Button>
-          ) : (
-            <CreateLinkButton shopId={shopId} refetch={loadLinks} />
-          )}
-        </div>
+        <CreateLinkButton shopId={shopId} channels={channels} onCreated={invalidateShops} />
       </div>
 
-      {links.length > 0 && (
-        <ReactSortable
-          list={links}
-          setList={setLinks}
-          handle=".cursor-grab"
-          className="space-y-2"
-        >
-          {links.map((link) => (
-            <LinkItem
+      {links.length > 0 ? (
+        <div className="space-y-3">
+          {links.map((link: Link) => (
+            <LinkCard
               key={link.id}
               link={link}
-              linkMode={linkMode}
-              isSelected={selectedLinkId === link.id}
-              onSelect={() => setSelectedLinkId(link.id)}
-              onUpdate={handleUpdateLink}
-              onDelete={handleDeleteLink}
+              linkMode={shop?.linkMode || "sequential"}
+              onDeleted={invalidateShops}
+              orderList={orderList}
             />
           ))}
-        </ReactSortable>
-      )}
-
-      {links.length === 0 && (
-        <div className="text-center p-8 border border-dashed rounded-lg">
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed bg-muted/30 p-8 text-center">
           <p className="text-sm text-muted-foreground">
             No links found. Create your first link above.
           </p>
-        </div>
-      )}
-
-      {selectedLink && (
-        <div className="border rounded-lg p-4">
-          <div className="flex flex-col gap-3">
-            <div>
-              <h4 className="text-base font-medium">Filters for {selectedLink.channel.name}</h4>
-              <p className="text-xs text-muted-foreground">
-                Orders matching these filters will be processed by this channel
-              </p>
-            </div>
-            <FilterEditor 
-              filters={selectedLink.filters || []} 
-              onChange={(newFilters) => {
-                handleUpdateLink(selectedLink.id, { filters: newFilters });
-              }}
-            />
-          </div>
         </div>
       )}
     </div>

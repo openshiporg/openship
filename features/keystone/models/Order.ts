@@ -21,21 +21,33 @@ async function applyDynamicWhereClause(context: any, linkId: string, orderId: st
     query: 'id dynamicWhereClause',
   });
 
-  if (!link || !link.dynamicWhereClause) {
+  if (!link) {
     return null;
   }
 
-  const whereClause = {
-    ...link.dynamicWhereClause,
-    id: { equals: orderId },
-  };
+  // dynamicWhereClause is now a virtual field that returns a proper where clause object
+  // If empty object or not set, it means match all orders
+  const dynamicWhere = link.dynamicWhereClause;
+  
+  if (!dynamicWhere || typeof dynamicWhere !== 'object' || Object.keys(dynamicWhere).length === 0) {
+    // No filters means the link matches all orders - return the order
+    return await context.query.Order.findOne({
+      where: { id: orderId },
+      query: 'id',
+    });
+  }
 
-  const matchedOrder = await context.query.Order.findOne({
-    where: whereClause,
+  // Use findMany with the dynamic filters + id filter
+  const matchedOrders = await context.query.Order.findMany({
+    where: {
+      ...dynamicWhere,
+      id: { equals: orderId },
+    },
     query: 'id',
+    take: 1,
   });
 
-  return matchedOrder;
+  return matchedOrders.length > 0 ? matchedOrders[0] : null;
 }
 
 export const Order = list({

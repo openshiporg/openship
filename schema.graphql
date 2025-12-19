@@ -1921,7 +1921,7 @@ type Link {
   rank: Int
   filters: JSON
   customWhere: JSON
-  dynamicWhereClause: String
+  dynamicWhereClause: JSON
   shop: Shop
   channel: Channel
   user: User

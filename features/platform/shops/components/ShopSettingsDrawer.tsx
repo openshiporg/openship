@@ -12,6 +12,7 @@ import { Webhooks } from './Webhooks'
 import { OrderDetailsDialog } from './OrderDetailsDialog'
 import { MatchPageClient } from '../../matches/components/MatchPageClient'
 import { getShopMatches } from '../../matches/actions/matches'
+import { getListByPath } from '../../../dashboard/actions/getListByPath'
 import type { Shop } from '../lib/types'
 
 interface ShopSettingsDrawerProps {
@@ -39,6 +40,7 @@ export function ShopSettingsDrawer({
   const itemsCount = shop.shopItems?.length || 0
   const linksCount = shop.links?.length || 0
   const matchesCount = matches?.length || 0
+  const [orderList, setOrderList] = useState<any>(null)
 
   useEffect(() => {
     if (open) {
@@ -53,6 +55,8 @@ export function ShopSettingsDrawer({
         .finally(() => {
           setMatchesLoading(false)
         })
+      
+      getListByPath('orders').then(setOrderList)
     }
   }, [open, shop.id])
 
@@ -155,7 +159,7 @@ export function ShopSettingsDrawer({
               </TabsContent>
 
               <TabsContent value="links" className="h-full bg-background p-4 md:p-6 border-t mt-0 overflow-auto">
-                <Links shopId={shop.id} />
+                <Links shopId={shop.id} shop={shop} channels={channels} orderList={orderList} />
               </TabsContent>
 
               <TabsContent value="webhooks" className="h-full bg-background p-4 md:p-6 border-t mt-0 overflow-auto">

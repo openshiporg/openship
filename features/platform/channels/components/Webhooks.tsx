@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Tooltip,
   TooltipContent,
@@ -201,14 +202,14 @@ const RecommendedWebhookItem = ({ webhook, onRefresh, channelId }: {
 };
 
 export const Webhooks = ({ channelId, channel }: { channelId: string; channel?: any }) => {
-  const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
   
   const webhookData = channel?.webhooks;
   const webhooks = webhookData?.data?.webhooks || [];
   const recommendedWebhooks = webhookData?.recommendedWebhooks || [];
 
-  const loadWebhooks = () => {
-    setRefreshKey(prev => prev + 1);
+  const invalidateChannels = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['lists', 'Channel', 'items'] });
   };
 
   if (!webhookData) {
@@ -240,7 +241,7 @@ export const Webhooks = ({ channelId, channel }: { channelId: string; channel?: 
             <WebhookItem
               key={webhook.id}
               webhook={webhook}
-              onRefresh={loadWebhooks}
+              onRefresh={invalidateChannels}
               channelId={channelId}
             />
           ))}
@@ -262,7 +263,7 @@ export const Webhooks = ({ channelId, channel }: { channelId: string; channel?: 
             <RecommendedWebhookItem
               key={`${webhook.topic}-${fullRecommendedUrl}`}
               webhook={webhook}
-              onRefresh={loadWebhooks}
+              onRefresh={invalidateChannels}
               channelId={channelId}
             />
           ) : null;

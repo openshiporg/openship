@@ -1,5 +1,5 @@
 import { getListByPath } from "@/features/dashboard/actions";
-import { getFilteredChannelsWithPlatform, getChannelPlatforms } from "../actions";
+import { getFilteredChannelsWithPlatform, getChannelPlatforms, getShops } from "../actions";
 import { ChannelListPageClient } from "./ChannelListPageClient";
 import { notFound } from 'next/navigation';
 
@@ -40,8 +40,8 @@ export async function ChannelListPage({ searchParams }: PageProps) {
     }
   }
 
-  // Fetch platforms and initial data for SSR
-  const [platformsResponse, channelsResponse] = await Promise.all([
+  // Fetch platforms, shops and initial data for SSR
+  const [platformsResponse, channelsResponse, shopsResponse] = await Promise.all([
     getChannelPlatforms(),
     getFilteredChannelsWithPlatform(
       searchString || null,
@@ -49,11 +49,13 @@ export async function ChannelListPage({ searchParams }: PageProps) {
       currentPage,
       pageSize,
       null
-    )
+    ),
+    getShops()
   ]);
 
   const platforms = platformsResponse.success ? (platformsResponse.data?.channelPlatforms || []) : []
   const channels = channelsResponse.success ? channelsResponse.data?.items || [] : []
+  const shops = shopsResponse.success ? (shopsResponse.data?.shops || []) : []
   const count = channelsResponse.success ? channelsResponse.data?.count || 0 : 0
 
   const initialData = {
@@ -75,6 +77,7 @@ export async function ChannelListPage({ searchParams }: PageProps) {
       }}
       statusCounts={null}
       platforms={platforms}
+      shops={shops}
       searchParams={{
         showCreateChannel: typeof resolvedSearchParams.showCreateChannel === "string" ? resolvedSearchParams.showCreateChannel : undefined,
         platform: typeof resolvedSearchParams.platform === "string" ? resolvedSearchParams.platform : undefined,

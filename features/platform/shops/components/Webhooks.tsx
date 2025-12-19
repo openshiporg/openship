@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Tooltip,
   TooltipContent,
@@ -200,14 +201,14 @@ const RecommendedWebhookItem = ({ webhook, onRefresh, shopId }: {
 };
 
 export const Webhooks = ({ shopId, shop }: { shopId: string; shop?: any }) => {
-  const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
   
   const webhookData = shop?.webhooks;
   const webhooks = webhookData?.data?.webhooks || [];
   const recommendedWebhooks = webhookData?.recommendedWebhooks || [];
 
-  const loadWebhooks = () => {
-    setRefreshKey(prev => prev + 1);
+  const invalidateShops = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['lists', 'Shop', 'items'] });
   };
 
   if (!webhookData) {
@@ -238,7 +239,7 @@ export const Webhooks = ({ shopId, shop }: { shopId: string; shop?: any }) => {
             <WebhookItem
               key={webhook.id}
               webhook={webhook}
-              onRefresh={loadWebhooks}
+              onRefresh={invalidateShops}
               shopId={shopId}
             />
           ))}
@@ -262,7 +263,7 @@ export const Webhooks = ({ shopId, shop }: { shopId: string; shop?: any }) => {
             <RecommendedWebhookItem
               key={`${webhook.topic}-${fullRecommendedUrl}`}
               webhook={webhook}
-              onRefresh={loadWebhooks}
+              onRefresh={invalidateShops}
               shopId={shopId}
             />
           ) : null;

@@ -4410,18 +4410,25 @@ async function applyDynamicWhereClause(context, linkId, orderId) {
     where: { id: linkId },
     query: "id dynamicWhereClause"
   });
-  if (!link || !link.dynamicWhereClause) {
+  if (!link) {
     return null;
   }
-  const whereClause = {
-    ...link.dynamicWhereClause,
-    id: { equals: orderId }
-  };
-  const matchedOrder = await context.query.Order.findOne({
-    where: whereClause,
-    query: "id"
+  const dynamicWhere = link.dynamicWhereClause;
+  if (!dynamicWhere || typeof dynamicWhere !== "object" || Object.keys(dynamicWhere).length === 0) {
+    return await context.query.Order.findOne({
+      where: { id: orderId },
+      query: "id"
+    });
+  }
+  const matchedOrders = await context.query.Order.findMany({
+    where: {
+      ...dynamicWhere,
+      id: { equals: orderId }
+    },
+    query: "id",
+    take: 1
   });
-  return matchedOrder;
+  return matchedOrders.length > 0 ? matchedOrders[0] : null;
 }
 var Order = (0, import_core4.list)({
   access: {
@@ -6287,9 +6294,85 @@ var Link = (0, import_core16.list)({
     // Virtual field for dynamic where clause
     dynamicWhereClause: (0, import_fields16.virtual)({
       field: import_core17.graphql.field({
-        type: import_core17.graphql.String,
-        resolve() {
-          return "Generated where clause based on filters";
+        type: import_core17.graphql.JSON,
+        async resolve(item, args, context) {
+          const link = await context.query.Link.findOne({
+            where: { id: item.id },
+            query: "filters"
+          });
+          const filters = link?.filters;
+          if (!filters || !Array.isArray(filters) || filters.length === 0) {
+            return {};
+          }
+          const whereConditions = [];
+          for (const filter of filters) {
+            if (!filter.field || !filter.type || filter.value === void 0) {
+              continue;
+            }
+            const { field: fieldPath, type, value } = filter;
+            if (type.endsWith("_i")) {
+              const isNot = type.startsWith("not_");
+              const key = type === "is_i" || type === "not_i" ? "equals" : type.replace(/_i$/, "").replace("not_", "").replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+              const baseFilter = {
+                [key]: value,
+                mode: "insensitive"
+              };
+              whereConditions.push({
+                [fieldPath]: isNot ? { not: baseFilter } : baseFilter
+              });
+            } else if (["equals", "gt", "lt", "gte", "lte", "in", "notIn"].includes(type)) {
+              whereConditions.push({
+                [fieldPath]: { [type]: value }
+              });
+            } else if (type === "not") {
+              whereConditions.push({
+                [fieldPath]: { not: { equals: value } }
+              });
+            } else if (type === "empty") {
+              whereConditions.push({
+                [fieldPath]: { equals: null }
+              });
+            } else if (type === "not_empty") {
+              whereConditions.push({
+                [fieldPath]: { not: { equals: null } }
+              });
+            } else if (type === "is") {
+              whereConditions.push({
+                [fieldPath]: { id: { equals: value } }
+              });
+            } else if (type === "not_is") {
+              whereConditions.push({
+                [fieldPath]: { not: { id: { equals: value } } }
+              });
+            } else if (type === "some") {
+              whereConditions.push({
+                [fieldPath]: { some: { id: { in: Array.isArray(value) ? value : [value] } } }
+              });
+            } else if (type === "not_some") {
+              whereConditions.push({
+                [fieldPath]: { not: { some: { id: { in: Array.isArray(value) ? value : [value] } } } }
+              });
+            } else if (type === "matches") {
+              whereConditions.push({
+                [fieldPath]: { in: Array.isArray(value) ? value : [value] }
+              });
+            } else if (type === "not_matches") {
+              whereConditions.push({
+                [fieldPath]: { notIn: Array.isArray(value) ? value : [value] }
+              });
+            } else {
+              whereConditions.push({
+                [fieldPath]: { [type]: value }
+              });
+            }
+          }
+          if (whereConditions.length === 0) {
+            return {};
+          }
+          if (whereConditions.length === 1) {
+            return whereConditions[0];
+          }
+          return { AND: whereConditions };
         }
       }),
       ui: {

@@ -7,23 +7,26 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Ticket, SquareStack, ArrowRightLeft, Webhook } from 'lucide-react'
 import { SearchOrders } from './SearchOrders'
-import { AdvancedLinks } from './AdvancedLinks'
+import { Links } from './Links'
 import { MatchPageClient } from '../../matches/components/MatchPageClient'
 import { Webhooks } from './Webhooks'
 import { getChannelMatches } from '../../matches/actions/matches'
+import { getListByPath } from '../../../dashboard/actions/getListByPath'
 import type { Channel } from '../lib/types'
 
 interface ChannelSettingsDrawerProps {
   channel: Channel
   open: boolean
   onClose: () => void
+  shops?: any[]
 }
 
 
 export function ChannelSettingsDrawer({
   channel,
   open,
-  onClose
+  onClose,
+  shops = []
 }: ChannelSettingsDrawerProps) {
   const [matches, setMatches] = useState([])
   const [matchesLoading, setMatchesLoading] = useState(false)
@@ -31,6 +34,7 @@ export function ChannelSettingsDrawer({
   const itemsCount = channel.channelItems?.length || 0
   const linksCount = channel.links?.length || 0
   const matchesCount = matches?.length || 0
+  const [orderList, setOrderList] = useState<any>(null)
 
   useEffect(() => {
     if (open) {
@@ -45,6 +49,8 @@ export function ChannelSettingsDrawer({
         .finally(() => {
           setMatchesLoading(false)
         })
+      
+      getListByPath('orders').then(setOrderList)
     }
   }, [open, channel.id])
 
@@ -134,7 +140,7 @@ export function ChannelSettingsDrawer({
               </TabsContent>
 
               <TabsContent value="links" className="h-full bg-background p-4 md:p-6 border-t mt-0 overflow-auto">
-                <AdvancedLinks channelId={channel.id} />
+                <Links channelId={channel.id} channel={channel} shops={shops} orderList={orderList} />
               </TabsContent>
 
               <TabsContent value="webhooks" className="h-full bg-background p-4 md:p-6 border-t mt-0 overflow-auto">

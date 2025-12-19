@@ -38,6 +38,12 @@ export async function getShops(
     }
     links {
       id
+      channel {
+        id
+        name
+      }
+      filters
+      rank
     }
   `
 ) {

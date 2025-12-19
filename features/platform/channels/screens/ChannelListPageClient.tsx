@@ -52,6 +52,7 @@ interface ChannelListPageClientProps {
     inactive: number
   } | null
   platforms?: any[]
+  shops?: any[]
   searchParams?: any
 }
 
@@ -62,6 +63,7 @@ export function ChannelListPageClient({
   initialSearchParams,
   statusCounts,
   platforms = [],
+  shops = [],
   searchParams: searchParamsFromServer = {}
 }: ChannelListPageClientProps) {
   const router = useRouter()
@@ -134,6 +136,9 @@ export function ChannelListPageClient({
     }
     links {
       id
+      shop { id name }
+      filters
+      rank
     }
   `
 
@@ -279,7 +284,7 @@ export function ChannelListPageClient({
               </Alert>
             </div>
           ) : data && data.items && data.items.length > 0 ? (
-            <ChannelListClient channels={data.items} />
+            <ChannelListClient channels={data.items} shops={shops} />
           ) : (
             <div className="flex items-center justify-center h-full py-10">
               <div className="text-center">

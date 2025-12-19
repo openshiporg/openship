@@ -29,13 +29,14 @@ interface Channel {
 
 interface ChannelListClientProps {
   channels: Channel[];
+  shops?: any[];
 }
 
-export function ChannelListClient({ channels }: ChannelListClientProps) {
+export function ChannelListClient({ channels, shops = [] }: ChannelListClientProps) {
   return (
     <div className="relative grid gap-3 p-4">
       {channels.map((channel: Channel) => (
-        <ChannelDetailsComponent key={channel.id} channel={channel as any} />
+        <ChannelDetailsComponent key={channel.id} channel={channel as any} shops={shops} />
       ))}
     </div>
   );

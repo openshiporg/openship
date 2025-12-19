@@ -21,6 +21,7 @@ interface ChannelDetailsComponentProps {
   loadingActions?: Record<string, Record<string, boolean>>;
   removeEditItemButton?: boolean;
   renderButtons?: () => React.ReactNode;
+  shops?: any[];
 }
 
 export const ChannelDetailsComponent = ({
@@ -28,6 +29,7 @@ export const ChannelDetailsComponent = ({
   loadingActions = {},
   removeEditItemButton,
   renderButtons,
+  shops = [],
 }: ChannelDetailsComponentProps) => {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
@@ -137,6 +139,7 @@ export const ChannelDetailsComponent = ({
         channel={channel}
         open={isSettingsDrawerOpen}
         onClose={() => setIsSettingsDrawerOpen(false)}
+        shops={shops}
       />
     </>
   );

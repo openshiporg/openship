@@ -142,6 +142,9 @@ export function ShopListPageClient({
     }
     links {
       id
+      channel { id name }
+      filters
+      rank
     }
   `
 

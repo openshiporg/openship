@@ -34,6 +34,12 @@ export async function getChannels(
     }
     links {
       id
+      shop {
+        id
+        name
+      }
+      filters
+      rank
     }
   `
 ) {
