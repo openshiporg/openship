@@ -1,4 +1,4 @@
-import { Editor, Element, Node, Path, Transforms, Range } from 'slate'
+import { Editor, Element, Node, Path, Transforms, Range, type Location } from 'slate'
 import { isElementActive, moveChildren, nodeTypeMatcher } from './utils'
 import { getListTypeAbove } from './toolbar-state-shared'
 
@@ -10,8 +10,10 @@ export const isListNode = (
 ): node is Element & { type: 'ordered-list' | 'unordered-list' } => isListType(node.type)
 
 export const toggleList = (editor: Editor, format: 'ordered-list' | 'unordered-list') => {
-  const listAbove = getListTypeAbove(editor)
-  const isActive = isElementActive(editor, format) && (listAbove === 'none' || listAbove === format)
+  const selection = (editor.selection ?? null) as Location | null
+  const listAbove = getListTypeAbove(editor, selection)
+  const isActive =
+    isElementActive(editor, format, selection) && (listAbove === 'none' || listAbove === format)
   Editor.withoutNormalizing(editor, () => {
     Transforms.unwrapNodes(editor, {
       match: isListNode,

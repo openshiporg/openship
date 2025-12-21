@@ -1,4 +1,4 @@
-import { Element, Editor, Range, Text } from 'slate'
+import { Element, Editor, Range, Text, type Location } from 'slate'
 import { type DocumentFeatures } from '../../index'
 import { type ComponentBlock } from './component-blocks/api-shared'
 import {
