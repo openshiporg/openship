@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/tooltip'
 
 import { ToolbarButton } from './Toolbar'
-import { useToolbarState } from './toolbar-state'
+import { useSlate } from 'slate-react'
+import { Editor } from 'slate'
 import { insertBlockquote } from './blockquote-shared'
 import { KeyboardInTooltip } from './Toolbar'
 
@@ -29,11 +30,18 @@ export const BlockquoteElement = ({
 }
 
 const BlockquoteButton = () => {
-  const {
-    editor,
-    blockquote: { isDisabled, isSelected },
-  } = useToolbarState()
-  
+  const editor = useSlate()
+
+  // Simple logic for blockquote state
+  const codeBlockEntry = Editor.nodes(editor, {
+    match: node => node.type === 'code',
+  }).next().value
+  const isDisabled = !!codeBlockEntry
+  const blockquoteEntry = Editor.nodes(editor, {
+    match: n => (n as any).type === 'blockquote'
+  }).next().value
+  const isSelected = !!blockquoteEntry
+
   return (
     <ToolbarButton
       isSelected={isSelected}

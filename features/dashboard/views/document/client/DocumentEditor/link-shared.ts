@@ -1,6 +1,6 @@
 import { Element, Editor, Node, Range, Transforms, Text } from 'slate'
 
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 import { EditorAfterButIgnoringingPointsWithNoContent, isElementActive } from './utils'
 import { getAncestorComponentChildFieldDocumentFeatures } from './toolbar-state-shared'
 import { type ComponentBlock } from './component-blocks/api'

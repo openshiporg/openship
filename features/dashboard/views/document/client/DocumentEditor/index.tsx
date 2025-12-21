@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useContext, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useContext, useState, useRef, useEffect } from 'react'
 // @ts-ignore
 import isHotkey from 'is-hotkey'
 import { useCallback, useMemo } from 'react'
@@ -15,23 +15,38 @@ import {
 import { Editable, ReactEditor, Slate, withReact, useSlate } from 'slate-react'
 
 import type { EditableProps } from 'slate-react/dist/components/editable'
-import type { ComponentBlock } from '../component-blocks'
-import type { DocumentFeatures } from '../views-shared'
+import type { ComponentBlock } from './component-blocks/api-shared'
+import type { DocumentFeatures } from '../../index'
 import { wrapLink } from './link-shared'
 import { clearFormatting, type Mark } from './utils'
-import { Toolbar } from './Toolbar'
+import { DocumentToolbar } from '../components/DocumentToolbar'
 import { renderElement } from './render-element'
 import { nestList, unnestList } from './lists-shared'
 import { ComponentBlockContext } from './component-blocks'
 import { getPlaceholderTextForPropPath } from './component-blocks/utils'
 import type { Relationships } from './relationship'
 import { renderLeaf } from './leaf'
-import { ToolbarStateProvider } from './toolbar-state'
 
 import { createDocumentEditor } from './editor-shared'
 import { ActiveBlockPopoverProvider } from './primitives/BlockPopover'
+import { ToolbarStateProvider } from './toolbar-state'
 
 import { cn } from "@/lib/utils"
+
+function replaceEditorValue(editor: Editor, nextValue: Descendant[]) {
+  Editor.withoutNormalizing(editor, () => {
+    // Remove all existing top-level nodes
+    for (let i = editor.children.length - 1; i >= 0; i--) {
+      Transforms.removeNodes(editor, { at: [i] })
+    }
+
+    // Insert new content
+    Transforms.insertNodes(editor, nextValue, { at: [0] })
+
+    // Clear selection to avoid stale selection pointing to removed paths
+    Transforms.deselect(editor)
+  })
+}
 
 const styles = {
   flex: 1,
@@ -169,7 +184,7 @@ export function DocumentEditor({
         }}>
         {useMemo(() =>
           onChange !== undefined && (
-            <Toolbar
+            <DocumentToolbar
               documentFeatures={documentFeatures}
               viewState={{
                 expanded,
@@ -210,27 +225,55 @@ export function DocumentEditorProvider({
   relationships: Relationships
   documentFeatures: DocumentFeatures
 }) {
+  // ═══════════════════════════════════════════════════════════════════
+  // EXTERNAL CHANGE DETECTION MECHANISM (from OUR_RESET_FLOW.md)
+  // ═══════════════════════════════════════════════════════════════════
+  
+  // Track the last value we set via onChange to detect external changes (like reset)
+  const lastOnChangeValueRef = useRef<Descendant[] | null>(null)
+  
+  // Detect external value changes (e.g., reset button or post-save refresh)
+  // External = parent value changed but not through our onChange handler.
+  useEffect(() => {
+    if (lastOnChangeValueRef.current === null) {
+      lastOnChangeValueRef.current = value
+      return
+    }
+    if (lastOnChangeValueRef.current === value) return
+
+    // Update the editor through Slate transforms instead of remounting.
+    replaceEditorValue(editor, safeValue)
+    lastOnChangeValueRef.current = value
+  }, [editor, value])
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // IDENTITY CALCULATION
+  // ═══════════════════════════════════════════════════════════════════
+  
+  // Identity only needs to change when editor instance changes (fast refresh).
   const identity = useMemo(() => Math.random().toString(36), [editor])
 
   // Ensure value is valid before passing to Slate
-  const safeValue = useMemo(() => {
-    if (!Array.isArray(value) || value.length === 0) {
-      return [{ type: 'paragraph', children: [{ text: '' }] }] as Descendant[]
-    }
-    return value
-  }, [value])
+  const safeValue = !Array.isArray(value) || value.length === 0
+    ? [{ type: 'paragraph', children: [{ text: '' }] }] as Descendant[]
+    : value
 
   return (
     <Slate
-      // this fixes issues with Slate crashing when a fast refresh occcurs
+      // Key changes -> component remounts -> initialValue is used fresh
       key={identity}
       editor={editor}
       initialValue={safeValue}
-      onChange={value => {
-        onChange(value)
-        // this fixes a strange issue in Safari where the selection stays inside of the editor
-        // after a blur event happens but the selection is still in the editor
-        // so the cursor is visually in the wrong place and it inserts text backwards
+      onChange={newValue => {
+        // Track that this change came from us (internal)
+        // This prevents the useEffect from detecting it as external
+        lastOnChangeValueRef.current = newValue
+        
+        // Propagate to parent
+        onChange(newValue)
+        
+        // Safari fix: the selection stays inside of the editor
+        // after a blur event but the cursor is visually in the wrong place
         const selection = window.getSelection()
         if (selection && !ReactEditor.isFocused(editor)) {
           const editorNode = ReactEditor.toDOMNode(editor, editor)

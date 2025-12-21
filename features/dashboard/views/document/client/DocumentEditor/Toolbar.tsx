@@ -34,7 +34,7 @@ import {
   ListOrdered,
 } from 'lucide-react'
 
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 import { InlineDialog } from './primitives/InlineDialog'
 import { linkButton } from './link'
 import {

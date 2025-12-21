@@ -1,6 +1,6 @@
 import React, { type ReactNode, useContext } from 'react'
 import { useSlate } from 'slate-react'
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 import { ComponentBlockContext } from './component-blocks'
 import { type ComponentBlock } from './component-blocks/api'
 import { LayoutOptionsProvider } from './layouts'
@@ -10,12 +10,42 @@ import { type ToolbarState, createToolbarState } from './toolbar-state-shared'
 
 const ToolbarStateContext = React.createContext<null | ToolbarState>(null)
 
-export function useToolbarState() {
+// Default empty document features for fallback
+const defaultDocumentFeatures: DocumentFeatures = {
+  formatting: {
+    inlineMarks: {
+      bold: true,
+      italic: true,
+      underline: true,
+      strikethrough: true,
+      code: true,
+      superscript: false,
+      subscript: false,
+      keyboard: false,
+    },
+    listTypes: { ordered: true, unordered: true },
+    alignment: { center: true, end: true },
+    headingLevels: [1, 2, 3, 4, 5, 6],
+    blockTypes: { blockquote: true, code: true },
+    softBreaks: true,
+  },
+  links: true,
+  dividers: true,
+  layouts: [],
+}
+
+export function useToolbarState(): ToolbarState {
   const toolbarState = useContext(ToolbarStateContext)
-  if (!toolbarState) {
-    throw new Error('ToolbarStateProvider must be used to use useToolbarState')
+  const editor = useSlate()
+  
+  // If we have context, use it. Otherwise create toolbar state directly.
+  // This avoids conditional hook calls - we always call useSlate() above.
+  if (toolbarState) {
+    return toolbarState
   }
-  return toolbarState
+  
+  // Create a default toolbar state when no provider is present
+  return createToolbarState(editor, {}, defaultDocumentFeatures)
 }
 
 export const ToolbarStateProvider = ({

@@ -7,7 +7,7 @@ import { useList } from '@keystone-6/core/admin-ui/context'
 import { RelationshipSelect } from '@keystone-6/core/fields/types/relationship/views/RelationshipSelect'
 
 import { ToolbarButton } from './Toolbar'
-import { useToolbarState } from './toolbar-state'
+import { useSlate } from 'slate-react'
 import type { Relationships } from './relationship-shared'
 export type { Relationships } from './relationship-shared'
 
@@ -20,11 +20,11 @@ export function useDocumentFieldRelationships() {
 export const DocumentFieldRelationshipsProvider = DocumentFieldRelationshipsContext.Provider
 
 export function RelationshipButton({ onClose }: { onClose: () => void }) {
-  const {
-    editor,
-    relationships: { isDisabled }
-  } = useToolbarState()
+  const editor = useSlate()
   const relationships = useContext(DocumentFieldRelationshipsContext)
+
+  // Simple logic - relationships are only disabled if there are no relationships configured
+  const isDisabled = Object.keys(relationships).length === 0
   return (
     <Fragment>
       {Object.entries(relationships).map(([key, relationship]) => {

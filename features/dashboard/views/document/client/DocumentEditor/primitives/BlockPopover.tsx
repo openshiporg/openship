@@ -228,13 +228,13 @@ function useBlockPopover(
     }
   }
 
+  // @ts-expect-error - triggerAnchorPoint is not available in our version of react-aria
   return {
     arrowProps,
     placement,
     popoverProps: mergeProps(overlayProps, positionProps),
     underlayProps,
     updatePosition,
-    triggerAnchorPoint: { x: 0, y: 0 },
   }
 }
 

@@ -14,9 +14,10 @@ import { Fragment, useMemo, useState } from 'react'
 import { Transforms } from 'slate'
 
 import { ToolbarGroup } from './Toolbar'
-import { useToolbarState } from './toolbar-state'
+import { useSlate } from 'slate-react'
+import { Editor } from 'slate'
 import { ToolbarButton, KeyboardInTooltip } from './Toolbar'
-import type { DocumentFeatures } from '../views-shared'
+import type { DocumentFeatures } from '../../index'
 
 export function TextAlignMenu({ alignment }: {
   alignment: DocumentFeatures['formatting']['alignment']
@@ -39,9 +40,19 @@ export function TextAlignMenu({ alignment }: {
 }
 
 function TextAlignButton({ showMenu }: { showMenu: boolean }) {
-  const {
-    alignment: { isDisabled, selected },
-  } = useToolbarState()
+  const editor = useSlate()
+
+  // Only disable in code blocks - same logic as bold button
+  const [codeBlockEntry] = Editor.nodes(editor, {
+    match: node => node.type === 'code',
+  })
+  const isDisabled = !!codeBlockEntry
+
+  // Get current alignment
+  const [alignableEntry] = Editor.nodes(editor, {
+    match: node => (node as any).type === 'paragraph' || (node as any).type === 'heading',
+  })
+  const selected: 'start' | 'center' | 'end' = (alignableEntry?.[0] as any)?.textAlign || 'start'
 
   return useMemo(
     () => (
@@ -65,10 +76,11 @@ function TextAlignDialog({ alignment, onSelect }: {
   alignment: DocumentFeatures['formatting']['alignment']
   onSelect: () => void
 }) {
-  const {
-    alignment: { selected },
-    editor,
-  } = useToolbarState()
+  const editor = useSlate()
+  const [alignableEntry] = Editor.nodes(editor, {
+    match: node => (node as any).type === 'paragraph' || (node as any).type === 'heading',
+  })
+  const selected: 'start' | 'center' | 'end' = (alignableEntry?.[0] as any)?.textAlign || 'start'
 
   const alignments: Array<'start' | 'center' | 'end'> = ['start', ...(Object.keys(alignment)).filter(key => alignment[key as keyof typeof alignment])] as Array<'start' | 'center' | 'end'>
 

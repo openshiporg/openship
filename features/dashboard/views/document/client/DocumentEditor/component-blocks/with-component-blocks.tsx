@@ -2,7 +2,7 @@ import { type NodeEntry, Editor, Element, Transforms, Range, Path, Node, Text } 
 
 import type { ArrayField, ChildField, ComponentBlock, ComponentSchema } from './api-shared'
 import { assert, moveChildren } from '../utils'
-import type { DocumentFeatures } from '../../views-shared'
+import type { DocumentFeatures } from '../../../index'
 import {
   areArraysEqual,
   normalizeElementBasedOnDocumentFeatures,

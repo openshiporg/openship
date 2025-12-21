@@ -1,5 +1,5 @@
 import { Element, Editor, Range, Text } from 'slate'
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 import { type ComponentBlock } from './component-blocks/api-shared'
 import {
   type DocumentFeaturesForChildField,

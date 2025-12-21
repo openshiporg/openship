@@ -12,7 +12,7 @@ import {
 import { withHistory } from 'slate-history'
 
 import { type ComponentBlock } from './component-blocks/api-shared'
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 
 import { withComponentBlocks } from './component-blocks/with-component-blocks'
 import { withParagraphs } from './paragraphs'

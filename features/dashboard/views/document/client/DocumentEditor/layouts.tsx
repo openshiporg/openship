@@ -1,6 +1,6 @@
 import { Fragment, createContext, useContext, useMemo, useState } from 'react'
-import { Transforms } from 'slate'
-import { ReactEditor, useFocused, useSelected, useSlateStatic as useStaticEditor, type RenderElementProps } from 'slate-react'
+import { Transforms, Range } from 'slate'
+import { ReactEditor, useSelected, useSlateStatic as useStaticEditor, useReadOnly, type RenderElementProps } from 'slate-react'
 import {
   Tooltip,
   TooltipContent,
@@ -17,20 +17,32 @@ import { Trash2, Columns } from 'lucide-react'
 import { InlineDialog } from './primitives/InlineDialog'
 import { ToolbarGroup, ToolbarSeparator } from './Toolbar'
 import { isElementActive } from './utils'
-import { useToolbarState } from './toolbar-state'
+import { useSlate } from 'slate-react'
+import { Editor } from 'slate'
 import { insertLayout } from './layouts-shared'
 import { ToolbarButton, KeyboardInTooltip } from './Toolbar'
-import type { DocumentFeatures } from '../views-shared'
+import type { DocumentFeatures } from '../../index'
 
 const LayoutOptionsContext = createContext<[number, ...number[]][]>([])
 
 export const LayoutOptionsProvider = LayoutOptionsContext.Provider
 
-export function LayoutContainer({ attributes, children, element }: RenderElementProps & { element: { type: 'layout'; layout: number[] } }) {
-  const focused = useFocused()
-  const selected = useSelected()
+// Hook similar to PlateJS useDebouncePopoverOpen
+function useLayoutPopoverOpen() {
   const editor = useStaticEditor()
-  const [showMenu, setShowMenu] = useState(false)
+  const readOnly = useReadOnly()
+  const selected = useSelected()
+  
+  // Check if selection is collapsed (cursor at a single point, not selecting text)
+  const selectionCollapsed = editor.selection ? Range.isCollapsed(editor.selection) : true
+  
+  // Only show popover when: not read-only, element is selected, and cursor is collapsed
+  return !readOnly && selected && selectionCollapsed
+}
+
+export function LayoutContainer({ attributes, children, element }: RenderElementProps & { element: { type: 'layout'; layout: number[] } }) {
+  const editor = useStaticEditor()
+  const isPopoverOpen = useLayoutPopoverOpen()
 
   const layout = element.layout
   const layoutOptions = useContext(LayoutOptionsContext)
@@ -40,7 +52,7 @@ export function LayoutContainer({ attributes, children, element }: RenderElement
       className="relative my-4"
       {...attributes}
     >
-      <Popover open={focused && selected} onOpenChange={setShowMenu}>
+      <Popover open={isPopoverOpen}>
         <PopoverTrigger asChild>
           <div
             className="grid gap-2"
@@ -51,7 +63,13 @@ export function LayoutContainer({ attributes, children, element }: RenderElement
             {children}
           </div>
         </PopoverTrigger>
-        <PopoverContent align="start" sideOffset={4} className="p-1">
+        <PopoverContent 
+          align="start" 
+          sideOffset={4} 
+          className="p-1"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
           <ToolbarGroup>
             {layoutOptions.map((layoutOption, i) => (
               <ToolbarButton
@@ -122,10 +140,9 @@ function makeLayoutIcon(ratios: number[]) {
 }
 
 export function LayoutsButton({ layouts }: { layouts: DocumentFeatures['layouts'] }) {
-  const {
-    editor,
-    layouts: { isSelected },
-  } = useToolbarState()
+  const editor = useSlate()
+  const layoutEntry = Editor.nodes(editor, { match: node => (node as any).type === 'layout' }).next().value
+  const isSelected = !!layoutEntry
   
   return (
     <Tooltip>

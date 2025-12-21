@@ -1,5 +1,6 @@
 import { forwardRef, type ReactNode } from 'react'
-import { type Node, type Element } from 'slate'
+import { Editor, type Node, type Element } from 'slate'
+import { useSlate } from 'slate-react'
 import {
   Tooltip,
   TooltipContent,
@@ -7,7 +8,6 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { List, ListOrdered } from 'lucide-react'
-import { useToolbarState } from './toolbar-state'
 import { ToolbarButton } from './Toolbar'
 import { toggleList } from './lists-shared'
 
@@ -26,10 +26,19 @@ interface ListButtonProps {
 
 export const ListButton = forwardRef<HTMLButtonElement, ListButtonProps>(
   function ListButton({ type, children }, ref) {
-    const {
-      editor,
-      lists: { [type === 'ordered-list' ? 'ordered' : 'unordered']: { isDisabled, isSelected } },
-    } = useToolbarState()
+    const editor = useSlate()
+
+    // Check if list is active
+    const [listEntry] = Editor.nodes(editor, {
+      match: n => (n as any).type === type,
+    })
+    const isSelected = !!listEntry
+
+    // Check if list is disabled (in headings, etc.)
+    const [headingEntry] = Editor.nodes(editor, {
+      match: n => (n as any).type === 'heading',
+    })
+    const isDisabled = !!headingEntry
 
     return (
       <ToolbarButton

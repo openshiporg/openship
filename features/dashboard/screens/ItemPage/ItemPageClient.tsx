@@ -342,7 +342,11 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
       // Reset to idle after showing saved state
       setTimeout(() => setSaveState('idle'), 3000)
 
-      router.refresh()
+      // Avoid forcing a full route refresh immediately after save;
+      // it can remount uncontrolled editors (Slate) and break editing.
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.items.item(list.key, itemId)
+      })
 
     } catch (error: any) {
       console.error('Save error:', error)

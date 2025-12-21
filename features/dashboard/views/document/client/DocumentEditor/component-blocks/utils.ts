@@ -1,4 +1,4 @@
-import type { DocumentFeatures } from '../../views-shared'
+import type { DocumentFeatures } from '../../../index'
 import type { DocumentFeaturesForNormalization } from '../document-features-normalization'
 import { type Mark, assert } from '../utils'
 import type { ComponentSchema, ChildField } from './api-shared'

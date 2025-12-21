@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Button, buttonVariants } from '@/components/ui/button'
 
 import { ToolbarButton } from './Toolbar'
-import { useToolbarState } from './toolbar-state'
+import { useSlate } from 'slate-react'
+import { Editor, Range } from 'slate'
 import { wrapLink } from './link-shared'
 import { KeyboardInTooltip } from './Toolbar'
 import { Link2, Trash2, ExternalLink } from 'lucide-react'
@@ -133,11 +134,15 @@ export const LinkElement = ({
 }
 
 const LinkButton = () => {
-  const {
-    editor,
-    links: { isDisabled, isSelected },
-  } = useToolbarState()
-  
+  const editor = useSlate()
+
+  // Simple logic for link state
+  const isDisabled = !editor.selection || Range.isCollapsed(editor.selection)
+  const linkEntry = Editor.nodes(editor, {
+    match: n => (n as any).type === 'link'
+  }).next().value
+  const isSelected = !!linkEntry
+
   return (
     <ToolbarButton
       isSelected={isSelected}

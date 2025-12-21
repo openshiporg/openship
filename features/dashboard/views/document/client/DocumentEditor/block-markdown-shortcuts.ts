@@ -1,5 +1,5 @@
 import { Element, Editor, Transforms, Range } from 'slate'
-import { type DocumentFeatures } from '../views-shared'
+import { type DocumentFeatures } from '../../index'
 import { type ComponentBlock } from './component-blocks/api-shared'
 import { insertDivider } from './divider-shared'
 import { type DocumentFeaturesForNormalization } from './document-features-normalization'

@@ -288,10 +288,10 @@ export function Cell({ item, field, linkTo }: any) {
       </CellContainer>
     )
   }
-  
+
   const plainText = serialize(value)
   const cutText = plainText.length > 100 ? plainText.slice(0, 100) + '...' : plainText
-  
+
   return linkTo ? (
     <CellLink {...linkTo}>{cutText}</CellLink>
   ) : (

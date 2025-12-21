@@ -7,8 +7,7 @@ import { ComponentBlockContext, insertComponentBlock } from './component-blocks'
 import { type ComponentBlock } from './component-blocks/api-shared'
 import { type Relationships } from './relationship-shared'
 import { useDocumentFieldRelationships } from './relationship'
-import { useToolbarState } from './toolbar-state'
-import { type ToolbarState } from './toolbar-state-shared'
+import { useSlate } from 'slate-react'
 import { insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading } from './utils'
 import { insertLayout } from './layouts-shared'
 
@@ -28,10 +27,16 @@ type Option = {
 }
 
 function getOptions(
-  toolbarState: ToolbarState,
+  editor: Editor,
+  editorDocumentFeatures: any,
   componentBlocks: Record<string, ComponentBlock>,
   relationships: Relationships
 ): Option[] {
+  const codeBlockEntry = Editor.nodes(editor, { match: node => node.type === 'code' }).next().value
+  const isInCodeBlock = !!codeBlockEntry
+  const headingEntry = Editor.nodes(editor, { match: node => node.type === 'heading' }).next().value
+  const isInHeading = !!headingEntry
+
   const options: (Option | boolean)[] = [
     ...Object.entries(relationships).map(([relationship, { label }]) => ({
       label,
@@ -50,76 +55,69 @@ function getOptions(
         insertComponentBlock(editor, componentBlocks, key)
       },
     })),
-    ...toolbarState.textStyles.allowedHeadingLevels
-      .filter(a => toolbarState.editorDocumentFeatures.formatting.headingLevels.includes(a))
-      .map(level => ({
-        label: `Heading ${level}`,
-        insert(editor: Editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'heading',
-            level,
-            children: [{ text: '' }],
-          })
-        },
-      })),
-    !toolbarState.blockquote.isDisabled &&
-      toolbarState.editorDocumentFeatures.formatting.blockTypes.blockquote && {
-        label: 'Blockquote',
-        insert(editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'blockquote',
-            children: [{ text: '' }],
-          })
-        },
+    ...(isInCodeBlock ? [] : editorDocumentFeatures.formatting.headingLevels.map((level: any) => ({
+      label: `Heading ${level}`,
+      insert(editor: Editor) {
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'heading',
+          level,
+          children: [{ text: '' }],
+        })
       },
-    !toolbarState.code.isDisabled &&
-      toolbarState.editorDocumentFeatures.formatting.blockTypes.code && {
-        label: 'Code block',
-        insert(editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'code',
-            children: [{ text: '' }],
-          })
-        },
-      },
-    !toolbarState.dividers.isDisabled &&
-      toolbarState.editorDocumentFeatures.dividers && {
-        label: 'Divider',
-        insert(editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'divider',
-            children: [{ text: '' }],
-          })
-        },
-      },
-    !!toolbarState.editorDocumentFeatures.layouts.length && {
-      label: 'Layout',
+    }))),
+    !isInCodeBlock && editorDocumentFeatures.formatting.blockTypes.blockquote && {
+      label: 'Blockquote',
       insert(editor) {
-        insertLayout(editor, toolbarState.editorDocumentFeatures.layouts[0])
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'blockquote',
+          children: [{ text: '' }],
+        })
       },
     },
-    !toolbarState.lists.ordered.isDisabled &&
-      toolbarState.editorDocumentFeatures.formatting.listTypes.ordered && {
-        label: 'Numbered List',
-        keywords: ['ordered list'],
-        insert(editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'ordered-list',
-            children: [{ text: '' }],
-          })
-        },
+    !isInCodeBlock && editorDocumentFeatures.formatting.blockTypes.code && {
+      label: 'Code block',
+      insert(editor) {
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'code',
+          children: [{ text: '' }],
+        })
       },
-    !toolbarState.lists.unordered.isDisabled &&
-      toolbarState.editorDocumentFeatures.formatting.listTypes.unordered && {
-        label: 'Bullet List',
-        keywords: ['unordered list'],
-        insert(editor) {
-          insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
-            type: 'unordered-list',
-            children: [{ text: '' }],
-          })
-        },
+    },
+    !isInCodeBlock && editorDocumentFeatures.dividers && {
+      label: 'Divider',
+      insert(editor) {
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'divider',
+          children: [{ text: '' }],
+        })
       },
+    },
+    !!editorDocumentFeatures.layouts.length && {
+      label: 'Layout',
+      insert(editor) {
+        insertLayout(editor, editorDocumentFeatures.layouts[0])
+      },
+    },
+    !isInCodeBlock && !isInHeading && editorDocumentFeatures.formatting.listTypes.ordered && {
+      label: 'Numbered List',
+      keywords: ['ordered list'],
+      insert(editor) {
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'ordered-list',
+          children: [{ text: '' }],
+        })
+      },
+    },
+    !isInCodeBlock && !isInHeading && editorDocumentFeatures.formatting.listTypes.unordered && {
+      label: 'Bullet List',
+      keywords: ['unordered list'],
+      insert(editor) {
+        insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+          type: 'unordered-list',
+          children: [{ text: '' }],
+        })
+      },
+    },
   ]
   return options.filter((x): x is Exclude<typeof x, boolean> => typeof x !== 'boolean')
 }
@@ -158,13 +156,33 @@ export function InsertMenu({ children, text }: { children: ReactNode; text: Text
     return <span>{text.text}</span>
   }
 
-  const toolbarState = useToolbarState()
-  const { editor } = toolbarState
+  const editor = useSlate()
   const componentBlocks = useContext(ComponentBlockContext)
   const relationships = useDocumentFieldRelationships()
 
+  // For now, use default document features - this can be refined later
+  const editorDocumentFeatures = {
+    formatting: {
+      headingLevels: [1, 2, 3, 4, 5, 6],
+      blockTypes: {
+        blockquote: true,
+        code: true
+      },
+      listTypes: {
+        ordered: true,
+        unordered: true
+      },
+      alignment: {
+        center: true,
+        end: true
+      }
+    },
+    dividers: true,
+    layouts: []
+  }
+
   const options = matchSorter(
-    getOptions(toolbarState, componentBlocks, relationships),
+    getOptions(editor, editorDocumentFeatures, componentBlocks, relationships),
     text.text.slice(1),
     {
       keys: ['label', 'keywords'],
