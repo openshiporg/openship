@@ -434,7 +434,7 @@ export function Cards({
         !isReadOnly ? (
         /* Create/Connect Actions */
         <CardContainer mode="create">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {displayOptions.inlineCreate && (
               <Button
                 size="sm"

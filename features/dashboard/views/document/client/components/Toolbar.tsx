@@ -174,33 +174,38 @@ export function KeyboardInTooltip({ children }: { children: ReactNode }) {
   )
 }
 
-// Simple mark button using direct Slate hooks
+// Mark button using toolbar state for proper expanded selection handling
 const MarkButton = forwardRef<HTMLButtonElement, {
   markType: string;
   children: ReactNode;
   tooltip?: string;
 }>(function MarkButton({ markType, children, tooltip, ...props }, ref) {
-  const editor = useSlate()
+  const {
+    editor,
+    marks,
+    textStyles,
+    lists,
+    alignment,
+    blockquote,
+    layouts,
+    links,
+    code,
+    dividers,
+    clearFormatting,
+  } = useToolbarState()
+  const mark = marks[markType as keyof typeof marks]
 
-  // Simple, direct state access
-  const marks = Editor.marks(editor) || {}
-  const isSelected = !!(marks as any)[markType]
-
-  // Check if we're in a code block (marks should be disabled there)
-  const [codeBlockEntry] = Editor.nodes(editor, {
-    match: node => node.type === 'code',
-  })
-  const isDisabled = !!codeBlockEntry
+  if (!mark) return null
 
   return (
     <ToolbarButton
       ref={ref}
-      isDisabled={isDisabled}
-      isSelected={isSelected}
+      isDisabled={mark.isDisabled}
+      isSelected={mark.isSelected}
       tooltip={tooltip}
       onMouseDown={(event) => {
         event.preventDefault()
-        if (isSelected) {
+        if (mark.isSelected) {
           Editor.removeMark(editor, markType)
         } else {
           Editor.addMark(editor, markType, true)
@@ -227,14 +232,6 @@ function getCurrentAlignment(editor: Editor) {
     match: n => (n as any).type === 'paragraph' || (n as any).type === 'heading',
   })
   return (match?.[0] as any)?.textAlign || 'start'
-}
-
-// Helper function to get current heading level
-function getCurrentHeading(editor: Editor) {
-  const [match] = Editor.nodes(editor, {
-    match: n => (n as any).type === 'heading',
-  })
-  return (match?.[0] as any)?.level || 'normal'
 }
 
 // Main toolbar
@@ -396,19 +393,20 @@ const HeadingIcon = ({ level }: { level: number }) => (
 
 function HeadingMenu({ headingLevels }: { headingLevels: DocumentFeatures['formatting']['headingLevels'] }) {
   const [showMenu, setShowMenu] = useState(false)
-  const editor = useSlate()
-
-  const selected = getCurrentHeading(editor)
+  const { editor, textStyles } = useToolbarState()
+  const selected = textStyles.selected
   const buttonLabel = selected === 'normal' ? 'Paragraph' : `Heading ${selected}`
   const ButtonIcon = selected === 'normal' 
     ? <Pilcrow size={16} className="text-muted-foreground" />
     : <HeadingIcon level={selected as number} />
+  const isDisabled = textStyles.allowedHeadingLevels.length === 0
 
   return (
     <Popover open={showMenu} onOpenChange={setShowMenu}>
       <PopoverTrigger asChild>
         <ToolbarButton
           isPressed={showMenu}
+          isDisabled={isDisabled}
           className="w-auto min-w-[120px] px-2 flex items-center gap-2"
           tooltip="Text style"
         >

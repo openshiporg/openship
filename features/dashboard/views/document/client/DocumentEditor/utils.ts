@@ -58,9 +58,14 @@ export const modifierKeyText = IS_MAC ? '⌘' : 'Ctrl'
 
 export function isElementActive(
   editor: Editor,
-  format: ElementType
+  format: ElementType,
+  selection?: Location | null
 ) {
+  if (selection === null) return false
+  const at = selection ?? editor.selection
+  if (!at) return false
   const [match] = Editor.nodes(editor, {
+    at,
     match: n => n.type === format,
   })
 

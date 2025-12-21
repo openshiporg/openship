@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { useSlate } from 'slate-react'
+import { useSlate, useSlateSelection } from 'slate-react'
 import { Editor } from 'slate'
 import { type DocumentFeatures } from '../../index'
 import { type ComponentBlock } from './component-blocks/api'
@@ -42,6 +42,7 @@ export function useToolbarState(): SimpleToolbarState {
   const toolbarState = useContext(SimpleToolbarStateContext)
   // Always call useSlate - don't conditionally call hooks
   const editor = useSlate()
+  useSlateSelection()
   
   if (toolbarState) {
     return toolbarState

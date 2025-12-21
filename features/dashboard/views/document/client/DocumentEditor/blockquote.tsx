@@ -9,9 +9,9 @@ import {
 
 import { ToolbarButton } from './Toolbar'
 import { useSlate } from 'slate-react'
-import { Editor } from 'slate'
 import { insertBlockquote } from './blockquote-shared'
 import { KeyboardInTooltip } from './Toolbar'
+import { useToolbarState } from './toolbar-state'
 
 export * from './blockquote-shared'
 
@@ -31,21 +31,12 @@ export const BlockquoteElement = ({
 
 const BlockquoteButton = () => {
   const editor = useSlate()
-
-  // Simple logic for blockquote state
-  const codeBlockEntry = Editor.nodes(editor, {
-    match: node => node.type === 'code',
-  }).next().value
-  const isDisabled = !!codeBlockEntry
-  const blockquoteEntry = Editor.nodes(editor, {
-    match: n => (n as any).type === 'blockquote'
-  }).next().value
-  const isSelected = !!blockquoteEntry
+  const { blockquote } = useToolbarState()
 
   return (
     <ToolbarButton
-      isSelected={isSelected}
-      isDisabled={isDisabled}
+      isSelected={blockquote.isSelected}
+      isDisabled={blockquote.isDisabled}
       onMouseDown={event => {
         event.preventDefault()
         insertBlockquote(editor)

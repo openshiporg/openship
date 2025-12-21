@@ -1,5 +1,5 @@
 import React, { type ReactNode, useContext } from 'react'
-import { useSlate } from 'slate-react'
+import { useSlate, useSlateSelection } from 'slate-react'
 import { type DocumentFeatures } from '../../index'
 import { ComponentBlockContext } from './component-blocks'
 import { type ComponentBlock } from './component-blocks/api'
@@ -37,6 +37,11 @@ const defaultDocumentFeatures: DocumentFeatures = {
 export function useToolbarState(): ToolbarState {
   const toolbarState = useContext(ToolbarStateContext)
   const editor = useSlate()
+  const selection = useSlateSelection()
+  const lastSelectionRef = React.useRef<typeof selection>(null)
+  if (selection) {
+    lastSelectionRef.current = selection
+  }
   
   // If we have context, use it. Otherwise create toolbar state directly.
   // This avoids conditional hook calls - we always call useSlate() above.
@@ -45,7 +50,7 @@ export function useToolbarState(): ToolbarState {
   }
   
   // Create a default toolbar state when no provider is present
-  return createToolbarState(editor, {}, defaultDocumentFeatures)
+  return createToolbarState(editor, {}, defaultDocumentFeatures, selection ?? lastSelectionRef.current)
 }
 
 export const ToolbarStateProvider = ({
@@ -60,13 +65,23 @@ export const ToolbarStateProvider = ({
   relationships: Relationships
 }) => {
   const editor = useSlate()
+  const selection = useSlateSelection()
+  const lastSelectionRef = React.useRef<typeof selection>(null)
+  if (selection) {
+    lastSelectionRef.current = selection
+  }
 
   return (
     <DocumentFieldRelationshipsProvider value={relationships}>
       <LayoutOptionsProvider value={editorDocumentFeatures.layouts}>
         <ComponentBlockContext.Provider value={componentBlocks}>
           <ToolbarStateContext.Provider
-            value={createToolbarState(editor, componentBlocks, editorDocumentFeatures)}
+            value={createToolbarState(
+              editor,
+              componentBlocks,
+              editorDocumentFeatures,
+              selection ?? lastSelectionRef.current
+            )}
           >
             {children}
           </ToolbarStateContext.Provider>

@@ -15,13 +15,13 @@ import {
 import { Trash2, Columns } from 'lucide-react'
 
 import { InlineDialog } from './primitives/InlineDialog'
-import { ToolbarGroup, ToolbarSeparator } from './Toolbar'
+import { ToolbarGroup } from './Toolbar'
 import { isElementActive } from './utils'
 import { useSlate } from 'slate-react'
-import { Editor } from 'slate'
 import { insertLayout } from './layouts-shared'
 import { ToolbarButton, KeyboardInTooltip } from './Toolbar'
 import type { DocumentFeatures } from '../../index'
+import { useToolbarState } from './toolbar-state'
 
 const LayoutOptionsContext = createContext<[number, ...number[]][]>([])
 
@@ -38,6 +38,10 @@ function useLayoutPopoverOpen() {
   
   // Only show popover when: not read-only, element is selected, and cursor is collapsed
   return !readOnly && selected && selectionCollapsed
+}
+
+const LayoutPopoverSeparator = () => {
+  return <span className="inline-block w-px h-6 mx-1 bg-border" />
 }
 
 export function LayoutContainer({ attributes, children, element }: RenderElementProps & { element: { type: 'layout'; layout: number[] } }) {
@@ -70,7 +74,7 @@ export function LayoutContainer({ attributes, children, element }: RenderElement
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
-          <ToolbarGroup>
+          <ToolbarGroup className="gap-0.5">
             {layoutOptions.map((layoutOption, i) => (
               <ToolbarButton
                 key={i}
@@ -87,7 +91,7 @@ export function LayoutContainer({ attributes, children, element }: RenderElement
                 {makeLayoutIcon(layoutOption)}
               </ToolbarButton>
             ))}
-            <ToolbarSeparator />
+            <LayoutPopoverSeparator />
             <Tooltip>
               <TooltipTrigger asChild>
                 <ToolbarButton
@@ -141,17 +145,16 @@ function makeLayoutIcon(ratios: number[]) {
 
 export function LayoutsButton({ layouts }: { layouts: DocumentFeatures['layouts'] }) {
   const editor = useSlate()
-  const layoutEntry = Editor.nodes(editor, { match: node => (node as any).type === 'layout' }).next().value
-  const isSelected = !!layoutEntry
+  const { layouts: layoutState } = useToolbarState()
   
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <ToolbarButton
-          isSelected={isSelected}
+          isSelected={layoutState.isSelected}
           onMouseDown={event => {
             event.preventDefault()
-            if (isElementActive(editor, 'layout')) {
+            if (layoutState.isSelected && isElementActive(editor, 'layout')) {
               Transforms.unwrapNodes(editor, {
                 match: node => (node as any).type === 'layout',
               })

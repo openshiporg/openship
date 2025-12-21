@@ -22,6 +22,7 @@ import { Link2, Trash2, ExternalLink } from 'lucide-react'
 import { useElementWithSetNodes } from './utils-hooks'
 import { isValidURL } from './isValidURL'
 import { useForceValidation } from './utils-hooks'
+import { useToolbarState } from './toolbar-state'
 
 export * from './link-shared'
 
@@ -135,18 +136,12 @@ export const LinkElement = ({
 
 const LinkButton = () => {
   const editor = useSlate()
-
-  // Simple logic for link state
-  const isDisabled = !editor.selection || Range.isCollapsed(editor.selection)
-  const linkEntry = Editor.nodes(editor, {
-    match: n => (n as any).type === 'link'
-  }).next().value
-  const isSelected = !!linkEntry
+  const { links } = useToolbarState()
 
   return (
     <ToolbarButton
-      isSelected={isSelected}
-      isDisabled={isDisabled}
+      isSelected={links.isSelected}
+      isDisabled={links.isDisabled}
       onMouseDown={event => {
         event.preventDefault()
         wrapLink(editor, '')
