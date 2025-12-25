@@ -1,0 +1,7 @@
+# Railway can't access internal databases during build, so we move
+# npm run migrate from build to start command
+[build]
+buildCommand = "keystone build --no-ui && next build"
+
+[deploy]
+startCommand = "npm run migrate && next start"
