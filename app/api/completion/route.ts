@@ -1,5 +1,6 @@
-import { streamText, experimental_createMCPClient } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+import { convertToModelMessages, streamText, stepCountIs } from 'ai';
+import { createMCPClient } from '@ai-sdk/mcp';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 import { StreamableHTTPClientTransport, StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
@@ -10,137 +11,107 @@ class CookieAwareTransport extends StreamableHTTPClientTransport {
 
   constructor(url: URL, opts?: StreamableHTTPClientTransportOptions, cookies?: string) {
     super(url, opts);
-    
+
     this.originalFetch = global.fetch;
-    
-    // Set initial cookies if provided
+
     if (cookies) {
       this.cookies = [cookies];
     }
-    
-    // Override global fetch to include cookies
+
     global.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       init = init || {};
       const headers = new Headers(init.headers);
-      
+
       if (this.cookies.length > 0) {
         headers.set('Cookie', this.cookies.join('; '));
       }
-      
+
       init.headers = headers;
-      
+
       const response = await this.originalFetch(input, init);
-      
-      // Store any new cookies from response
-      const setCookieHeader = response.headers.get('set-cookie');
-      if (setCookieHeader) {
-        const newCookies = setCookieHeader.split(',').map(cookie => cookie.trim());
-        this.cookies = [...this.cookies, ...newCookies];
+
+      if (typeof response.headers.getSetCookie === 'function') {
+        const setCookies = response.headers.getSetCookie();
+        if (setCookies.length > 0) {
+          this.cookies = [...this.cookies, ...setCookies];
+        }
+      } else {
+        const setCookieHeader = response.headers.get('set-cookie');
+        if (setCookieHeader) {
+          this.cookies = [...this.cookies, setCookieHeader];
+        }
       }
-      
+
       return response;
     };
   }
-  
+
   async close(): Promise<void> {
-    // Restore original fetch
     global.fetch = this.originalFetch;
     this.cookies = [];
     await super.close();
   }
 }
 
-// OpenRouter configuration - will be set from request body
-
 export async function POST(req: Request) {
   let mcpClient: any = null;
   let dataHasChanged = false;
-  
+
   try {
     const body = await req.json();
     let messages = body.messages || [];
     const prompt = body.prompt || body.messages?.[body.messages.length - 1]?.content || '';
-    
-    // Trim messages if conversation is too long (keep system context by preserving recent messages)
-    const MAX_MESSAGES = 20; // Keep last 20 messages for context
+
+    const MAX_MESSAGES = 20;
     if (messages.length > MAX_MESSAGES) {
       messages = messages.slice(-MAX_MESSAGES);
     }
-    
-    
-    // Require API key to be provided in request
+
     if (!body.useLocalKeys || !body.apiKey) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'API key is required',
         details: 'API key must be provided in request body'
-      }), { 
+      }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const openrouterConfig = {
-      apiKey: body.apiKey,
-      baseURL: 'https://openrouter.ai/api/v1',
-    };
+    const apiKey = body.apiKey;
+    const baseURL = 'https://openrouter.ai/api/v1';
 
-    // Get dynamic base URL
-    const baseUrl = await getBaseUrl();
-    const mcpEndpoint = `${baseUrl}/api/mcp-transport/http`;
-    
-    const cookie = req.headers.get('cookie') || '';
-
-    // Create MCP client
-    const transport = new CookieAwareTransport(
-      new URL(mcpEndpoint),
-      {},
-      cookie
-    );
-    
-    mcpClient = await experimental_createMCPClient({
-      transport,
-    });
-    
-    const aiTools = await mcpClient.tools();
-    
-    // Create OpenRouter client with current configuration
-    const openrouter = createOpenAI(openrouterConfig);
-    
-    // Require model to be provided in request
     if (!body.model) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Model is required',
         details: 'Model must be provided in request body'
-      }), { 
+      }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    
+
     const model = body.model;
     const maxTokens = body.maxTokens ? parseInt(body.maxTokens) : undefined;
-    
-    // Debug logging
+
     console.log('Starting completion request:', {
       model,
       maxTokens,
-      hasApiKey: !!openrouterConfig.apiKey,
-      apiKeyPrefix: openrouterConfig.apiKey?.substring(0, 10) + '...'
+      hasApiKey: !!apiKey,
+      apiKeyPrefix: apiKey?.substring(0, 10) + '...'
     });
 
-    // Test the API key with a simple request first to catch auth errors early
     try {
       const testResponse = await fetch('https://openrouter.ai/api/v1/models', {
         headers: {
-          'Authorization': `Bearer ${openrouterConfig.apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!testResponse.ok) {
         const errorText = await testResponse.text();
         console.log('API key validation failed:', errorText);
-        
+
         let errorMessage = 'Invalid API key';
         try {
           const errorJson = JSON.parse(errorText);
@@ -148,26 +119,34 @@ export async function POST(req: Request) {
         } catch {
           // Failed to parse error, use default message
         }
-        
-        return new Response(JSON.stringify({ 
+
+        return new Response(JSON.stringify({
           error: 'Authentication Error',
           details: errorMessage
-        }), { 
+        }), {
           status: 401,
           headers: { 'Content-Type': 'application/json' }
         });
       }
     } catch (validationError) {
       console.error('API key validation error:', validationError);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Authentication Error',
         details: 'Failed to validate API key'
-      }), { 
+      }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    
+
+    const baseUrl = await getBaseUrl();
+    const mcpEndpoint = `${baseUrl}/api/mcp-transport/http`;
+    const cookie = req.headers.get('cookie') || '';
+
+    const transport = new CookieAwareTransport(new URL(mcpEndpoint), {}, cookie);
+    mcpClient = await createMCPClient({ transport });
+    const aiTools = await mcpClient.tools();
+
     const systemInstructions = `You're an expert at converting natural language to GraphQL queries for our KeystoneJS API.
 
 YOUR EXPERTISE:
@@ -247,14 +226,19 @@ EXAMPLES:
 
 Always complete the full workflow and return actual data, not just schema discovery. The system works with any model type dynamically.`;
 
+    const openrouter = createOpenRouter({ apiKey, baseURL });
+
+    const inputMessages = messages.length > 0
+      ? messages
+      : [{ id: `prompt-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: prompt }] }];
+
     const streamTextConfig: any = {
       model: openrouter(model),
       tools: aiTools,
-      messages: messages.length > 0 ? messages : [{ role: 'user', content: prompt }],
+      messages: await convertToModelMessages(inputMessages),
       system: systemInstructions,
-      maxSteps: 10,
-      onStepFinish: async (step: { toolCalls?: any[]; toolResults?: any[]; finishReason?: string; usage?: any; text?: string; }) => {
-        // Track if any CRUD operations were called
+      stopWhen: stepCountIs(10),
+      onStepFinish: async (step: { toolCalls?: any[] }) => {
         if (step.toolCalls && step.toolCalls.length > 0) {
           for (const toolCall of step.toolCalls) {
             if (['createData', 'updateData', 'deleteData'].includes(toolCall.toolName)) {
@@ -265,13 +249,8 @@ Always complete the full workflow and return actual data, not just schema discov
           }
         }
       },
-      onFinish: async (result: { text: string; finishReason: string; usage: any; response: any }) => {
-        console.log('Completion finished successfully');
-        // Send data change notification through the stream
-        if (dataHasChanged) {
-          console.log('Sending data change notification');
-          // We'll append this as a special message at the end
-        }
+      onFinish: async () => {
+        console.log('Completion finished successfully', { dataHasChanged });
         await mcpClient.close();
       },
       onError: async (error: unknown) => {
@@ -279,68 +258,34 @@ Always complete the full workflow and return actual data, not just schema discov
         await mcpClient.close();
       },
     };
-    
-    // Add maxTokens only if specified
+
     if (maxTokens) {
-      streamTextConfig.maxTokens = maxTokens;
+      streamTextConfig.maxOutputTokens = maxTokens;
     }
-    
-    const response = streamText(streamTextConfig);
-    
-    // Create a custom stream that includes our data change notification
-    const stream = response.toDataStream();
-    const reader = stream.getReader();
-    
-    return new Response(
-      new ReadableStream({
-        async start(controller) {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              
-              if (done) {
-                // Before ending the stream, send data change notification if needed
-                if (dataHasChanged) {
-                  console.log('Sending data change notification through stream');
-                  const dataChangeMessage = `9:{"dataHasChanged":true}\n`;
-                  controller.enqueue(new TextEncoder().encode(dataChangeMessage));
-                }
-                controller.close();
-                break;
-              }
-              
-              controller.enqueue(value);
-            }
-          } catch (error) {
-            controller.error(error);
-          }
-        }
-      }),
-      {
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-        }
-      }
-    );
+
+    const result = streamText(streamTextConfig);
+
+    return result.toUIMessageStreamResponse({
+      originalMessages: inputMessages,
+      onError: (error) => error instanceof Error ? error.message : String(error),
+    });
   } catch (error) {
-    // Clean up MCP client if it was created
     if (mcpClient) {
       try {
         await mcpClient.close();
-      } catch (closeError) {}
+      } catch {}
     }
-    
-    // Log the full error for debugging
+
     console.error('Completion API Error:', {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       details: error
     });
-    
-    return new Response(JSON.stringify({ 
+
+    return new Response(JSON.stringify({
       error: 'Internal Server Error',
       details: error instanceof Error ? error.message : String(error)
-    }), { 
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

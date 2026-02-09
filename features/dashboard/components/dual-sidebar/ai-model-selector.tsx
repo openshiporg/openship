@@ -36,10 +36,11 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
   const { config, setConfig } = useAiConfig();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+
   const currentModel =
     config.keyMode === "local"
       ? config.localKeys?.model || "openai/gpt-4o-mini"
-      : process.env.NEXT_PUBLIC_OPENROUTER_MODEL || "openai/gpt-4o-mini";
+      : null;
 
   const handleModelChange = (modelSlug: string) => {
     if (config.keyMode === "local") {
@@ -74,8 +75,13 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
     setIsDropdownOpen(false);
   };
 
-  const selectedModel = POPULAR_MODELS.find((m) => m.slug === currentModel);
-  const displayText = selectedModel?.name || currentModel;
+  const selectedModel = currentModel
+    ? POPULAR_MODELS.find((m) => m.slug === currentModel)
+    : null;
+  const displayText =
+    config.keyMode === "env"
+      ? "Custom"
+      : selectedModel?.name || "Custom";
 
   const selector = (
     <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
