@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useAiConfig } from "../../hooks/use-ai-config";
 
-// Popular AI models
 const POPULAR_MODELS = [
   { name: "GPT-5", slug: "openai/gpt-5" },
   { name: "GPT-5 Mini", slug: "openai/gpt-5-mini" },
@@ -37,29 +36,31 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  const currentModel =
-    config.keyMode === "local"
-      ? config.localKeys?.model || "openai/gpt-4o-mini"
-      : null;
+  const currentModel = config.keyMode === "local"
+    ? config.localKeys?.model || "openai/gpt-4o-mini"
+    : null;
+
+  const selectedModel = currentModel
+    ? POPULAR_MODELS.find((m) => m.slug === currentModel)
+    : null;
+
+  const displayText = config.keyMode === "env"
+    ? "Custom"
+    : selectedModel?.name || "Custom";
 
   const handleModelChange = (modelSlug: string) => {
-    if (config.keyMode === "local") {
-      setConfig({
-        ...config,
-        localKeys: {
-          provider: config.localKeys?.provider || "openrouter",
-          apiKey: config.localKeys?.apiKey || "",
-          model: modelSlug,
-          maxTokens: config.localKeys?.maxTokens || "4000",
-          customEndpoint: config.localKeys?.customEndpoint,
-        },
-      });
-    }
-  };
+    if (config.keyMode !== "local") return;
 
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
-    handleModelChange(value);
+    setConfig({
+      ...config,
+      localKeys: {
+        provider: config.localKeys?.provider || "openrouter",
+        apiKey: config.localKeys?.apiKey || "",
+        model: modelSlug,
+        maxTokens: config.localKeys?.maxTokens || "4000",
+        customEndpoint: config.localKeys?.customEndpoint,
+      },
+    });
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -69,27 +70,34 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
     }
   };
 
-  const handleSelectModel = (modelSlug: string) => {
-    handleModelChange(modelSlug);
-    setInputValue("");
-    setIsDropdownOpen(false);
-  };
+  if (disabled) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 gap-1.5 px-3 h-8 rounded-full border bg-transparent"
+            >
+              <span className="truncate">{displayText}</span>
+              <ChevronDown className="h-3 w-3 opacity-50" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Model is set by global configuration</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
-  const selectedModel = currentModel
-    ? POPULAR_MODELS.find((m) => m.slug === currentModel)
-    : null;
-  const displayText =
-    config.keyMode === "env"
-      ? "Custom"
-      : selectedModel?.name || "Custom";
-
-  const selector = (
+  return (
     <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
-          disabled={disabled}
-          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-secondary-foreground shadow-xs hover:bg-secondary/80 dark:border-none gap-1.5 px-3 has-[>svg]:px-4 border-border dark:bg-secondary h-8 rounded-full border bg-transparent"
+          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-[color,box-shadow] gap-1.5 px-3 h-8 rounded-full border bg-transparent"
         >
           <span className="truncate">{displayText}</span>
           <ChevronDown className="h-3 w-3 opacity-50" />
@@ -100,7 +108,11 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
           <Input
             placeholder="Model slug (e.g. openai/gpt-4o-mini)"
             value={inputValue}
-            onChange={(e) => handleInputChange(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setInputValue(value);
+              handleModelChange(value);
+            }}
             onKeyDown={handleInputKeyDown}
             className="h-9 text-sm"
           />
@@ -113,14 +125,16 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
             {POPULAR_MODELS.map((model) => (
               <button
                 key={model.slug}
-                onClick={() => handleSelectModel(model.slug)}
+                onClick={() => {
+                  handleModelChange(model.slug);
+                  setInputValue("");
+                  setIsDropdownOpen(false);
+                }}
                 className="w-full px-2 py-2 text-left hover:bg-accent rounded-sm transition-colors"
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{model.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {model.slug}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{model.slug}</span>
                 </div>
               </button>
             ))}
@@ -129,21 +143,4 @@ export function AIModelSelector({ disabled = false }: AIModelSelectorProps) {
       </PopoverContent>
     </Popover>
   );
-
-  if (disabled) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>{selector}</div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">Model is set by global configuration</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return selector;
 }
