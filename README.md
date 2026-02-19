@@ -20,6 +20,16 @@ Openship is an order router that connects the places where you're selling to the
 
 [Learn more →](https://openship.org/openship)
 
+## The Openfront Ecosystem
+
+Openship is part of a suite of open-source tools designed to provide a modern, flexible alternatives to proprietary commerce platforms like Shopify, Toast, MindBody, etc.
+
+- **[Openfront E-commerce](https://github.com/openshiporg/openfront)**: A comprehensive headless e-commerce platform with 78+ data models, multi-regional support, and advanced gift card/claims systems.
+- **[Openfront Restaurant](https://github.com/openshiporg/openfront-restaurant)**: A specialized platform for the F&B industry featuring POS, KDS, and table management.
+- **Openship**: The central order router that connects these platforms (and others) to your fulfillment partners.
+
+Our vision is to build a modular, high-performance commerce infrastructure that gives businesses complete ownership of their data and customer experience.
+
 ## Core Concepts
 
 ### Shops
@@ -194,10 +204,6 @@ We welcome contributions! Please see our contributing guidelines for details on:
 - Testing requirements
 - Pull request process
 - Issue reporting
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
