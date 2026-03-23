@@ -1,4 +1,4 @@
-# Openship
+![openship](https://github.com/user-attachments/assets/75cba728-571e-4f6c-9c09-f3473d0f68b9)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fopenship-org%2Fopenship%2F&stores=[{"type"%3A"postgres"}])
 
@@ -18,7 +18,7 @@ Openship is an order router that connects the places where you're selling to the
 
 [Watch full demo on YouTube →](https://youtu.be/C55wxCMAX8E)
 
-[Learn more →](https://openship.org/openship)
+[Learn more →](https://openship.org/products/openship)
 
 ## The Openfront Ecosystem
 
