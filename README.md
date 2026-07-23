@@ -79,7 +79,7 @@ openship/
 
 1. **Clone and install dependencies:**
    ```bash
-   git clone https://github.com/openship-org/openship.git
+   git clone https://github.com/openshiporg/openship.git
    cd openship
    npm install
    ```
