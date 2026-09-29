@@ -4,6 +4,8 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/openship)
 
+[![Deploy on ZopDay](https://zop.dev/deploytozopday-inkhard.svg)](https://zop.dev/zopday/app/deploy?repo=https://github.com/openshiporg/openship&port=3000)
+
 Openship is an order router that connects the places where you're selling to the places where you're fulfilling. It automatically routes orders from your sales channels to your fulfillment partners, giving you complete control over your order flow.
 
 ## Demo
