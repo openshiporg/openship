@@ -139,22 +139,36 @@ export const Order = list({
           }
 
           if (matchedLinks.length > 0) {
-            for (const link of matchedLinks) {
-              await sudoContext.query.CartItem.createMany({
-                data: order.lineItems.map((c: any) => ({
-                  ...c,
-                  channel: { connect: { id: link.channel.id } },
-                  order: { connect: { id: item.id } },
-                  user: { connect: { id: order.user?.id } },
-                })),
-              });
-            }
+            try {
+              for (const link of matchedLinks) {
+                await sudoContext.query.CartItem.createMany({
+                  data: order.lineItems.map((c: any) => ({
+                    ...c,
+                    // LineItem.price is a Float, CartItem.price is text (as match prices are).
+                    price: c.price == null ? "" : Number(c.price).toFixed(2),
+                    channel: { connect: { id: link.channel.id } },
+                    order: { connect: { id: item.id } },
+                    user: { connect: { id: order.user?.id } },
+                  })),
+                });
+              }
 
-            if (item.processOrder) {
-              await placeMultipleOrders({
-                ids: [item.id],
-                query: sudoContext.query,
-                prisma: sudoContext.prisma,
+              if (item.processOrder) {
+                await placeMultipleOrders({
+                  ids: [item.id],
+                  query: sudoContext.query,
+                  prisma: sudoContext.prisma,
+                });
+              }
+            } catch (linkError) {
+              // As with matches: record the failure on the order instead of breaking order creation.
+              console.error('Error during link processing:', linkError);
+              await sudoContext.query.Order.updateOne({
+                where: { id: item.id },
+                data: {
+                  error: `Link processing failed: ${linkError instanceof Error ? linkError.message : 'Unknown error'}`,
+                  status: "PENDING",
+                },
               });
             }
           } else {

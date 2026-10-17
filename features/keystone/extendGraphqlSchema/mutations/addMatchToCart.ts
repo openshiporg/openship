@@ -289,8 +289,9 @@ export async function getMatches({ orderId, context }: { orderId: string; contex
         })
       );
 
-      if (output.filter((value) => value !== undefined).length) {
-        return await createCartItems({ matches: output });
+      const matchedOutput = output.filter((value) => value !== undefined);
+      if (matchedOutput.length) {
+        return await createCartItems({ matches: matchedOutput });
       }
     } else {
       await context.query.Order.updateOne({

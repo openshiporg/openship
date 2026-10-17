@@ -367,9 +367,9 @@ export async function updateProductFunction({
 
   if (price !== undefined) {
     const updatePriceMutation = gql`
-      mutation UpdateProductVariantPrice($input: ProductVariantInput!) {
-        productVariantUpdate(input: $input) {
-          productVariant {
+      mutation UpdateProductVariantPrice($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+        productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+          productVariants {
             id
             price
           }
@@ -383,10 +383,11 @@ export async function updateProductFunction({
 
     mutations.push(
       shopifyClient.request(updatePriceMutation, {
-        input: {
+        productId: `gid://shopify/Product/${productId}`,
+        variants: [{
           id: `gid://shopify/ProductVariant/${variantId}`,
           price: price,
-        },
+        }],
       })
     );
   }
@@ -472,6 +473,15 @@ export async function updateProductFunction({
   }
 
   const results = await Promise.all(mutations);
+  if (price !== undefined) {
+    // The price operation is queued first. Shopify can return HTTP 200 with userErrors.
+    const priceErrors = (results[0] as any).productVariantsBulkUpdate.userErrors;
+    if (priceErrors.length > 0) {
+      throw new Error(
+        `Error updating product price: ${priceErrors.map((error: any) => error.message).join(', ')}`
+      );
+    }
+  }
   return { success: true, results };
 }
 

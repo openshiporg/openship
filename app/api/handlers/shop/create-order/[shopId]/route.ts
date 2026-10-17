@@ -157,6 +157,8 @@ async function processWebhook(shopId: string, body: any, headers: any) {
         query: 'id orderId',
       });
       if (!winner[0]) throw error;
+      // Usually a duplicate delivery that lost the race; log it so other failures stay visible.
+      console.warn(`Order ${finalOrderData.orderId} already exists after a create error:`, error instanceof Error ? error.message : error);
       createdOrder = winner[0];
     }
 
