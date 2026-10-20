@@ -1,6 +1,6 @@
 ![openship](https://github.com/user-attachments/assets/75cba728-571e-4f6c-9c09-f3473d0f68b9)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fopenship-org%2Fopenship%2F&stores=[{"type"%3A"postgres"}])
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fopenshiporg%2Fopenship%2F&stores=[{"type"%3A"postgres"}])
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/openship)
 
@@ -79,7 +79,7 @@ openship/
 
 1. **Clone and install dependencies:**
    ```bash
-   git clone https://github.com/openship-org/openship.git
+   git clone https://github.com/openshiporg/openship.git
    cd openship
    npm install
    ```
