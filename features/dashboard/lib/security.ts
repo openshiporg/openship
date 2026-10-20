@@ -38,15 +38,3 @@ export function sanitizeDashboardRedirect(value: unknown): string {
   return '/dashboard';
 }
 
-/** Optional deployment-owned origin. Invalid configuration fails closed. */
-export function configuredInternalOrigin(value: string | undefined): string | undefined {
-  if (value === undefined || value === '') return undefined;
-  try {
-    const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password ||
-        url.pathname !== '/' || url.search || url.hash) throw new Error();
-    return url.origin;
-  } catch {
-    throw new Error('OPENFRONT_INTERNAL_ORIGIN must be an HTTP(S) origin');
-  }
-}

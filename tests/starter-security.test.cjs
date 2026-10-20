@@ -154,21 +154,6 @@ test('initial-user and reset-password states never return passwords or reset tok
   }
 });
 
-test('configured origin overrides hostile forwarded headers; unset preserves compatibility; invalid fails closed', async () => {
-  for (const [env, expected] of [[{ OPENFRONT_INTERNAL_ORIGIN: 'https://trusted.invalid' }, 'https://trusted.invalid'],
-    [{}, 'https://forwarded.invalid']]) {
-    const instance = sandbox({ env, mocks: { 'next/headers': { headers: async () => new Headers({
-      'x-forwarded-host': 'forwarded.invalid', host: 'host.invalid', 'x-forwarded-proto': 'https',
-    }) } } });
-    assert.equal(await instance.load('features/dashboard/lib/getBaseUrl.ts').getBaseUrl(), expected);
-  }
-  const { configuredInternalOrigin } = sandbox().load(securityPath);
-  for (const value of ['javascript:bad', 'https://user:password@test.invalid', 'https://test.invalid/path', 'https://test.invalid?x=1']) {
-    assert.throws(() => configuredInternalOrigin(value), /OPENFRONT_INTERNAL_ORIGIN/);
-  }
-  assert.equal(configuredInternalOrigin('http://localhost:12345'), 'http://localhost:12345');
-});
-
 function completionSandbox({ session, env = {}, validationStatus = 200, providerError = false, permissionHelper } = {}) {
   const captures = { network: [], models: [], streams: [], sessions: [], transports: [] };
   const instance = sandbox({ env, fetch: async (url, init) => {

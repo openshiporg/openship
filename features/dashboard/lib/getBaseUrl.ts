@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { configuredInternalOrigin } from "./security";
 
 /**
  * Get the base URL for the application dynamically
@@ -12,11 +11,6 @@ export async function getBaseUrl(): Promise<string> {
     return window.location.origin;
   }
 
-  // Prefer deployment-owned configuration before inspecting any request headers.
-  const internalOrigin = configuredInternalOrigin(process.env.OPENFRONT_INTERNAL_ORIGIN);
-  if (internalOrigin) return internalOrigin;
-
-  // Compatibility only: the owner must configure the origin to disable Host trust.
   // Server-side: try to get from headers
   if (typeof process !== 'undefined') {
     try {
