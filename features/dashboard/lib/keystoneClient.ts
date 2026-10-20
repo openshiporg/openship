@@ -3,7 +3,8 @@
  */
 
 import { getAuthHeaders } from '@/features/dashboard/lib/cookies';
-import { GraphQLClient, ClientError } from 'graphql-request';
+import { GraphQLClient } from 'graphql-request';
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from './security';
 import { getGraphQLEndpoint } from '@/features/dashboard/lib/getBaseUrl';
 
 // Define response type for keystoneClient
@@ -19,61 +20,9 @@ async function createGraphQLClient(): Promise<GraphQLClient> {
   const authHeaders = await getAuthHeaders();
   return new GraphQLClient(endpoint, {
     credentials: 'include',
+    redirect: 'error',
     headers: authHeaders || {},
   });
-}
-
-/**
- * Format GraphQL error messages in a more readable way
- */
-function formatGraphQLErrors(error: ClientError): { message: string; errors?: any[] } {
-  if (!error.response) {
-    return { message: error.message };
-  }
-
-  const errors = error.response.errors;
-  if (!errors) {
-    return { message: error.message };
-  }
-
-  // Extract detailed error information
-  const formattedErrors = errors.map(err => {
-    const extensions = err.extensions || {};
-    const path = err.path?.join('.') || '';
-    const code = extensions.code || '';
-    
-    // Get original error if available
-    const originalError = (extensions.originalError as any)?.message || (extensions.exception as any)?.message || '';
-    
-    // Include validation errors if present
-    const validation = extensions.validation || {};
-    const validationErrors = Object.entries(validation)
-      .map(([field, error]) => `${field}: ${error}`)
-      .join(', ');
-
-    // Build detailed error message
-    const details = [
-      originalError && `Original Error: ${originalError}`,
-      path && `Path: ${path}`,
-      code && `Code: ${code}`,
-      validationErrors && `Validation: ${validationErrors}`
-    ].filter(Boolean).join(' | ');
-
-    return {
-      message: err.message,
-      details: details || undefined
-    };
-  });
-
-  // Create a detailed error message
-  const message = formattedErrors
-    .map(err => `${err.message}${err.details ? ` (${err.details})` : ''}`)
-    .join('\n');
-
-  return { 
-    message,
-    errors: errors 
-  };
 }
 
 /**
@@ -111,27 +60,8 @@ export async function keystoneClient<T = any>(
     };
 
   } catch (error) {
-    // graphql-request ClientError includes the complete request variables. Those
-    // may contain OAuth credentials or access tokens, so never log it directly.
-    if (error instanceof ClientError) {
-      const { message, errors } = formatGraphQLErrors(error);
-      console.error("GraphQL request failed", {
-        message,
-        status: error.response?.status,
-      });
-      return {
-        success: false,
-        error: message,
-        errors
-      };
-    }
-
-    const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error("GraphQL request failed", { message });
-    return {
-      success: false,
-      error: message
-    };
+    console.error("Error fetching GraphQL data:", safeErrorSummary(error));
+    return { success: false, error: PUBLIC_REQUEST_ERROR };
   }
 }
 
@@ -189,26 +119,22 @@ async function _fetchGraphQLWithFiles(
       method: "POST",
       headers,
       credentials: "include",
+      redirect: "error",
       body: formData,
     });
 
     if (!response.ok) {
       return {
         success: false,
-        error: `GraphQL request failed: ${response.statusText}`
+        error: PUBLIC_REQUEST_ERROR
       };
     }
 
     const json = await response.json();
 
     if (json.errors) {
-      console.error("GraphQL Errors:", json.errors);
-      return {
-        success: false,
-        error: `GraphQL Error: ${json.errors
-          .map((e: { message: string }) => e.message)
-          .join(", ")}`
-      };
+      console.error("GraphQL Errors:", safeErrorSummary({ response: { errors: json.errors } }));
+      return { success: false, error: PUBLIC_REQUEST_ERROR };
     }
 
     return {
@@ -216,11 +142,8 @@ async function _fetchGraphQLWithFiles(
       data: json.data
     };
   } catch (error) {
-    console.error("Error uploading files:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
+    console.error("Error uploading files:", safeErrorSummary(error));
+    return { success: false, error: PUBLIC_REQUEST_ERROR };
   }
 }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import { keystoneClient, type KeystoneResponse } from "@/features/dashboard/lib/keystoneClient";
 
 // Relationship Options Server Action
@@ -37,11 +38,9 @@ export async function getRelationshipOptions(
     // Return the entire response object directly
     return response;
   } catch (error) {
-    console.error("Error fetching relationship options:", error);
+    console.error("Error fetching relationship options:", safeErrorSummary(error));
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "An unexpected error occurred while fetching relationship options";
+      PUBLIC_REQUEST_ERROR;
     return { success: false, error: errorMessage } as KeystoneResponse<any>;
   }
 }

@@ -4,6 +4,7 @@
 
 'use server'
 
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import { keystoneClient } from '../lib/keystoneClient'
 
 export async function getItemValidationAction(listKey: string, itemId: string) {
@@ -32,7 +33,7 @@ export async function getItemValidationAction(listKey: string, itemId: string) {
     const response = await keystoneClient(query, { id: itemId, listKey })
 
     if (!response.success) {
-      console.error('Failed to fetch item validation:', response.error)
+      console.error('Failed to fetch item validation:', PUBLIC_REQUEST_ERROR)
       return response
     }
 
@@ -64,10 +65,10 @@ export async function getItemValidationAction(listKey: string, itemId: string) {
       data: validationMap
     }
   } catch (error) {
-    console.error('Error in getItemValidationAction:', error)
+    console.error('Error in getItemValidationAction:', safeErrorSummary(error))
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: PUBLIC_REQUEST_ERROR
     }
   }
 }

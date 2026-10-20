@@ -2,56 +2,12 @@ import { convertToModelMessages, streamText, stepCountIs } from 'ai';
 import { createMCPClient } from '@ai-sdk/mcp';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
-import { StreamableHTTPClientTransport, StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-
-// Cookie-aware transport that properly handles cookie forwarding
-class CookieAwareTransport extends StreamableHTTPClientTransport {
-  private cookies: string[] = [];
-  private originalFetch: typeof fetch;
-
-  constructor(url: URL, opts?: StreamableHTTPClientTransportOptions, cookies?: string) {
-    super(url, opts);
-
-    this.originalFetch = global.fetch;
-
-    if (cookies) {
-      this.cookies = [cookies];
-    }
-
-    global.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      init = init || {};
-      const headers = new Headers(init.headers);
-
-      if (this.cookies.length > 0) {
-        headers.set('Cookie', this.cookies.join('; '));
-      }
-
-      init.headers = headers;
-
-      const response = await this.originalFetch(input, init);
-
-      if (typeof response.headers.getSetCookie === 'function') {
-        const setCookies = response.headers.getSetCookie();
-        if (setCookies.length > 0) {
-          this.cookies = [...this.cookies, ...setCookies];
-        }
-      } else {
-        const setCookieHeader = response.headers.get('set-cookie');
-        if (setCookieHeader) {
-          this.cookies = [...this.cookies, setCookieHeader];
-        }
-      }
-
-      return response;
-    };
-  }
-
-  async close(): Promise<void> {
-    global.fetch = this.originalFetch;
-    this.cookies = [];
-    await super.close();
-  }
-}
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import type { IncomingMessage } from 'node:http';
+import { keystoneContext } from '@/features/keystone/context';
+import { permissions } from '@/features/keystone/access';
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
+import { createScopedMcpFetch } from './scopedMcpFetch';
 
 export async function POST(req: Request) {
   let mcpClient: any = null;
@@ -67,83 +23,69 @@ export async function POST(req: Request) {
       messages = messages.slice(-MAX_MESSAGES);
     }
 
-    if (!body.useLocalKeys || !body.apiKey) {
-      return new Response(JSON.stringify({
-        error: 'API key is required',
-        details: 'API key must be provided in request body'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    const apiKey = body.apiKey;
+    let apiKey: string;
+    let model: string;
+    let maxTokens: number | undefined;
     const baseURL = 'https://openrouter.ai/api/v1';
 
-    if (!body.model) {
-      return new Response(JSON.stringify({
-        error: 'Model is required',
-        details: 'Model must be provided in request body'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (body.useLocalKeys === true) {
+      if (typeof body.apiKey !== 'string' || !body.apiKey || typeof body.model !== 'string' || !body.model) {
+        return Response.json({ error: 'Local API key and model are required.' }, { status: 400 });
+      }
+      apiKey = body.apiKey;
+      model = body.model;
+      maxTokens = body.maxTokens ? parseInt(String(body.maxTokens), 10) : undefined;
+    } else {
+      // Reuse Keystone's session and permissions; never accept browser-supplied shared credentials.
+      // Forward only the session cookie, not bearer/API-key headers.
+      const context = await keystoneContext.withRequest({
+        headers: { cookie: req.headers.get('cookie') || '' },
+        method: req.method,
+        url: '/api/completion',
+      } as IncomingMessage);
+      if (!context.session?.itemId) {
+        return Response.json({ error: 'Please sign in to use shared AI.' }, { status: 401 });
+      }
+      const dashboardPermission = Reflect.get(permissions, 'canAccessDashboard');
+      // Two family members use the same role flag in dashboard middleware but
+      // do not export a named helper. Preserve that existing policy there.
+      const canAccessDashboard = typeof dashboardPermission === 'function'
+        ? await dashboardPermission({ session: context.session })
+        : context.session.data?.role?.canAccessDashboard === true;
+      if (canAccessDashboard !== true) {
+        return Response.json({ error: 'Dashboard access is required.' }, { status: 403 });
+      }
+      if (!process.env.OPENROUTER_API_KEY || !process.env.OPENROUTER_MODEL) {
+        return Response.json({ error: 'Shared AI is not available.' }, { status: 503 });
+      }
+      apiKey = process.env.OPENROUTER_API_KEY;
+      model = process.env.OPENROUTER_MODEL;
+      maxTokens = process.env.OPENROUTER_MAX_TOKENS
+        ? parseInt(process.env.OPENROUTER_MAX_TOKENS, 10) : 4000;
     }
-
-    const model = body.model;
-    const maxTokens = body.maxTokens ? parseInt(body.maxTokens) : undefined;
-
-    console.log('Starting completion request:', {
-      model,
-      maxTokens,
-      hasApiKey: !!apiKey,
-      apiKeyPrefix: apiKey?.substring(0, 10) + '...'
-    });
 
     try {
       const testResponse = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        redirect: 'error',
       });
-
       if (!testResponse.ok) {
-        const errorText = await testResponse.text();
-        console.log('API key validation failed:', errorText);
-
-        let errorMessage = 'Invalid API key';
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson?.error?.message || errorMessage;
-        } catch {
-          // Failed to parse error, use default message
-        }
-
-        return new Response(JSON.stringify({
-          error: 'Authentication Error',
-          details: errorMessage
-        }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        console.error('AI key validation failed.');
+        return Response.json({ error: 'Unable to validate AI credentials.' }, { status: 401 });
       }
-    } catch (validationError) {
-      console.error('API key validation error:', validationError);
-      return new Response(JSON.stringify({
-        error: 'Authentication Error',
-        details: 'Failed to validate API key'
-      }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    } catch (error) {
+      console.error('AI key validation failed:', safeErrorSummary(error));
+      return Response.json({ error: 'Unable to validate AI credentials.' }, { status: 401 });
     }
 
     const baseUrl = await getBaseUrl();
     const mcpEndpoint = `${baseUrl}/api/mcp-transport/http`;
     const cookie = req.headers.get('cookie') || '';
 
-    const transport = new CookieAwareTransport(new URL(mcpEndpoint), {}, cookie);
+    const endpoint = new URL(mcpEndpoint);
+    const transport = new StreamableHTTPClientTransport(endpoint, {
+      fetch: createScopedMcpFetch(endpoint, cookie),
+    });
     mcpClient = await createMCPClient({ transport });
     const aiTools = await mcpClient.tools();
 
@@ -228,8 +170,13 @@ Always complete the full workflow and return actual data, not just schema discov
 
     const openrouter = createOpenRouter({ apiKey, baseURL });
 
+    // Support both the SDK sidebar and the older content-based submission hook.
     const inputMessages = messages.length > 0
-      ? messages
+      ? messages.map((message: any, index: number) => ({
+          ...message,
+          id: message.id || `message-${index}`,
+          parts: message.parts || [{ type: 'text', text: message.content || '' }],
+        }))
       : [{ id: `prompt-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: prompt }] }];
 
     const streamTextConfig: any = {
@@ -254,7 +201,7 @@ Always complete the full workflow and return actual data, not just schema discov
         await mcpClient.close();
       },
       onError: async (error: unknown) => {
-        console.error('Stream error occurred:', error);
+        console.error('Stream error occurred:', safeErrorSummary(error));
         await mcpClient.close();
       },
     };
@@ -267,7 +214,7 @@ Always complete the full workflow and return actual data, not just schema discov
 
     return result.toUIMessageStreamResponse({
       originalMessages: inputMessages,
-      onError: (error) => error instanceof Error ? error.message : String(error),
+      onError: () => PUBLIC_REQUEST_ERROR,
     });
   } catch (error) {
     if (mcpClient) {
@@ -276,15 +223,10 @@ Always complete the full workflow and return actual data, not just schema discov
       } catch {}
     }
 
-    console.error('Completion API Error:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      details: error
-    });
+    console.error('Completion API Error:', safeErrorSummary(error));
 
     return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      details: error instanceof Error ? error.message : String(error)
+      error: PUBLIC_REQUEST_ERROR
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

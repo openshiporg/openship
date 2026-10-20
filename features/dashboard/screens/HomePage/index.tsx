@@ -3,6 +3,7 @@
  * Follows Dashboard1's server-side rendering approach
  */
 
+import { PUBLIC_REQUEST_ERROR } from '@/features/dashboard/lib/security';
 import React from 'react'
 import Link from 'next/link'
 import { PlusIcon, Database } from 'lucide-react'
@@ -79,7 +80,7 @@ export async function HomePage() {
   const adminMetaResponse = await getAdminMetaAction()
   
   if (!adminMetaResponse.success) {
-    console.error('Failed to fetch admin meta:', adminMetaResponse.error)
+    console.error('Failed to fetch admin meta:', PUBLIC_REQUEST_ERROR)
     return (
       <PageContainer 
         title="Dashboard" 

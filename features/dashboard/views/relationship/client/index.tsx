@@ -1,4 +1,5 @@
 "use client";
+import { PUBLIC_REQUEST_ERROR } from '@/features/dashboard/lib/security';
 import { Fragment, useState } from "react";
 import useSWR from "swr";
 import { getRelationshipOptions } from "@/features/dashboard/actions/relationship";
@@ -187,7 +188,7 @@ function useRelationshipFilterValues({
         // Return the items array directly on success, default to empty array
         return result.success && 'data' in result ? (result.data?.items ?? []) : [];
       } else {
-        console.error("Error fetching relationship filter values:", result.error);
+        console.error("Error fetching relationship filter values:", PUBLIC_REQUEST_ERROR);
         // Throw error for SWR to catch
         throw new Error(result.error || "Failed to fetch relationship filter values");
       }

@@ -1,3 +1,4 @@
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import { type KeyboardEvent, type ReactNode, useContext, useState, useRef, useEffect } from 'react'
 // @ts-ignore
 import isHotkey from 'is-hotkey'
@@ -349,7 +350,7 @@ export function DocumentEditorEditable(props: EditableProps) {
           try {
             return renderLeaf(props)
           } catch (error) {
-            console.error('Error in renderLeaf:', error, props)
+            console.error('Error in renderLeaf:', safeErrorSummary(error))
             // Return safe fallback
             return <span {...props.attributes}>{props.text?.text || ''}</span>
           }

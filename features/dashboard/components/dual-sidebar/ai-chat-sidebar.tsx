@@ -22,7 +22,7 @@ import { useSidebarWithSide } from "@/components/ui/sidebar";
 import { useChatMode } from "../DashboardLayout";
 import { useAiConfig } from "../../hooks/use-ai-config";
 import { ChatEmptyState } from "./chat-empty-state";
-import { getSharedKeys } from "../../actions/ai-chat";
+import { safeErrorSummary } from "../../lib/security";
 
 function ChatMessage({
   isUser,
@@ -124,25 +124,17 @@ export function AiChatSidebar() {
         return;
       }
 
-      const keysResult = await getSharedKeys();
-      if (!keysResult.success || !keysResult.keys) {
-        throw new Error(keysResult.error || "Shared API keys are not configured.");
-      }
-
       await sendMessage(
         { text },
         {
           body: {
-            useLocalKeys: true,
-            apiKey: keysResult.keys.apiKey,
-            model: keysResult.keys.model,
-            maxTokens: keysResult.keys.maxTokens,
+            useLocalKeys: false,
           },
         }
       );
     } catch (submitError) {
       setInput(text);
-      console.error("Chat submit error:", submitError);
+      console.error("Chat submit error:", safeErrorSummary(submitError));
     }
   };
 
@@ -208,7 +200,7 @@ export function AiChatSidebar() {
           )}
 
           {error && (
-            <div className="text-sm text-destructive px-1">Error: {error.message}</div>
+            <div className="text-sm text-destructive px-1">Unable to complete the chat request. Please try again.</div>
           )}
 
           <ChatContainerScrollAnchor />

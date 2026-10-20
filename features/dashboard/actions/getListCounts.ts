@@ -5,6 +5,7 @@
 
 'use server'
 
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import { keystoneClient } from '../lib/keystoneClient'
 
 export async function getListCounts(
@@ -45,11 +46,9 @@ export async function getListCounts(
 
     return response
   } catch (error: unknown) {
-    console.error('Error fetching list counts:', error)
+    console.error('Error fetching list counts:', safeErrorSummary(error))
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Unknown error fetching list counts'
+      PUBLIC_REQUEST_ERROR
     return { success: false, error: errorMessage }
   }
 }

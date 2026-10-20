@@ -3,6 +3,7 @@
  * Based on Keystone's ItemPage but adapted for server-side rendering
  */
 
+import { PUBLIC_REQUEST_ERROR } from '@/features/dashboard/lib/security';
 import { getItemAction } from '../../actions/getItemAction'
 import { getListByPath } from '../../actions/getListByPath'
 import { getAdminMetaAction, getItemValidationAction } from '../../actions'
@@ -43,7 +44,7 @@ export async function ItemPage({ params }: ItemPageParams) {
   if (response.success) {
     fetchedItem = response.data.item as Record<string, unknown>
   } else {
-    console.error('Error fetching item:', response.error)
+    console.error('Error fetching item:', PUBLIC_REQUEST_ERROR)
     fetchedItem = {}
   }
 

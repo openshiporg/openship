@@ -4,6 +4,7 @@
 
 'use server'
 
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import { keystoneClient } from '../lib/keystoneClient'
 import { getList } from './getList'
 import { getFieldTypeFromViewsIndex } from '../views/getFieldTypeFromViewsIndex'
@@ -69,7 +70,7 @@ function getFieldGraphQLSelection(field: any): string {
         return selectionFn(field.path, field.fieldMeta)
       }
     } catch (error) {
-      console.warn(`Could not get field type for viewsIndex ${field.viewsIndex}:`, error)
+      console.error(`Could not get field type for viewsIndex ${field.viewsIndex}:`, safeErrorSummary(error))
     }
   }
   
@@ -135,7 +136,7 @@ export async function getListItemsAction(
     const response = await keystoneClient(query, variables, cacheOptions)
     
     if (!response.success) {
-      console.error(`❌ GraphQL query failed:`, response.error)
+      console.error(`❌ GraphQL query failed:`, PUBLIC_REQUEST_ERROR)
       return { success: false, error: response.error }
     }
     
@@ -148,10 +149,10 @@ export async function getListItemsAction(
     }
     
   } catch (error) {
-    console.error(`💥 Error fetching list items for ${listKey}:`, error)
+    console.error(`💥 Error fetching list items for ${listKey}:`, safeErrorSummary(error))
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: PUBLIC_REQUEST_ERROR
     }
   }
 }

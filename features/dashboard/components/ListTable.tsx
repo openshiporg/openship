@@ -1,5 +1,6 @@
 "use client"
 
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -172,7 +173,7 @@ export function ListTable({
           );
         }
       } catch (err) {
-        console.warn(`Failed to render cell for field ${fieldKey}:`, err);
+        console.error(`Failed to render cell for field ${fieldKey}:`, safeErrorSummary(err));
       }
     }
 

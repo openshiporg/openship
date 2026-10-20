@@ -6,6 +6,7 @@
 
 'use client'
 
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
@@ -86,7 +87,7 @@ function DeleteButton({
         toast.error('Unable to delete item.', {
           action: {
             label: 'Details',
-            onClick: () => onError(new Error(error.message))
+            onClick: () => onError(new Error(PUBLIC_REQUEST_ERROR))
           }
         })
         return
@@ -207,7 +208,7 @@ function ErrorDialog({ error, onClose }: { error: Error; onClose: () => void }) 
         <AlertDialogHeader>
           <AlertDialogTitle>Error Details</AlertDialogTitle>
           <AlertDialogDescription>
-            {error.message}
+            {PUBLIC_REQUEST_ERROR}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -240,7 +241,7 @@ function deserializeItemToValue(
       // Call deserialize with the properly structured data
       result[fieldPath] = controller.deserialize(itemForField)
     } catch (error) {
-      console.error(`Error deserializing field ${fieldPath}:`, error)
+      console.error(`Error deserializing field ${fieldPath}:`, safeErrorSummary(error))
     }
   })
   
@@ -326,7 +327,7 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
         toast.error('Unable to save item', {
           action: {
             label: 'Details',
-            onClick: () => setErrorDialogValue(new Error(error.message))
+            onClick: () => setErrorDialogValue(new Error(PUBLIC_REQUEST_ERROR))
           }
         })
         setSaveState('idle')
@@ -349,7 +350,7 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
       })
 
     } catch (error: any) {
-      console.error('Save error:', error)
+      console.error('Save error:', safeErrorSummary(error))
       toast.error("Unable to save item", {
         action: {
           label: "Details",
@@ -527,7 +528,7 @@ export function ItemPageClient({ list, item, itemId }: ItemPageClientProps) {
                 <AlertCircle className="h-5 w-5" />
                 <div>
                   <h2 className="font-medium">Error</h2>
-                  <p>{errorDialogValue.message}</p>
+                  <p>{PUBLIC_REQUEST_ERROR}</p>
                 </div>
               </Badge>
             )}

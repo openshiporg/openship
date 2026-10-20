@@ -1,5 +1,6 @@
 "use client";
 
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import React, { Fragment } from "react";
 import { useListQuery } from "@/features/dashboard/hooks/useList.query";
 import { useAuthenticatedUserQuery } from "@/features/dashboard/hooks/useAuth.query";
@@ -95,7 +96,7 @@ export function ClientField({
 
   // Handle auth error state
   if (authError) {
-    console.error("Error fetching authenticated user:", authError);
+    console.error("Error fetching authenticated user:", safeErrorSummary(authError));
   }
 
   const authenticatedItem =

@@ -4,6 +4,7 @@
 
 'use server'
 
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import { getAdminMetaAction } from './getAdminMetaAction'
 
 export async function getListByPath(path: string) {
@@ -38,7 +39,7 @@ export async function getListByPath(path: string) {
       fields // Return fields as a record
     }
   } catch (error) {
-    console.error('Error in getListByPath:', error)
+    console.error('Error in getListByPath:', safeErrorSummary(error))
     return undefined
   }
 }

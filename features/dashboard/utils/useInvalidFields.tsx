@@ -3,6 +3,7 @@
  * Determines which fields are invalid based on validation rules
  */
 
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import { useMemo } from 'react'
 import { testFilter } from '../components/Fields'
 
@@ -23,7 +24,7 @@ export function useInvalidFields(
         try {
           Object.assign(serialized, field.controller.serialize(item[fieldKey]))
         } catch (error) {
-          console.error(`Error serializing field ${fieldKey}:`, error)
+          console.error(`Error serializing field ${fieldKey}:`, safeErrorSummary(error))
         }
       }
     }
@@ -43,7 +44,7 @@ export function useInvalidFields(
           invalidFields.add(fieldKey)
         }
       } catch (error) {
-        console.error(`Error validating field ${fieldKey}:`, error)
+        console.error(`Error validating field ${fieldKey}:`, safeErrorSummary(error))
         // If validation throws, consider it invalid
         invalidFields.add(fieldKey)
       }

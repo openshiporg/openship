@@ -20,7 +20,6 @@ type ActionState = {
   message: string | null;
   formData: {
     email: string;
-    password: string;
   };
 };
 
@@ -28,7 +27,6 @@ const initialState: ActionState = {
   message: null,
   formData: {
     email: '',
-    password: ''
   }
 };
 
@@ -91,7 +89,6 @@ export function SignInForm({ from }: SignInFormProps) {
               autoComplete="current-password"
               placeholder="••••••••"
               className="pr-10 bg-muted/40"
-              defaultValue={state.formData.password}
               required
             />
             <button

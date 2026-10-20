@@ -5,286 +5,129 @@ import { keystoneClient } from '@/features/dashboard/lib/keystoneClient';
 import { redirect } from 'next/navigation';
 import { removeAuthToken } from '@/features/dashboard/lib/cookies';
 import { revalidatePath } from 'next/cache';
+import { safeErrorSummary, sanitizeDashboardRedirect } from '../lib/security';
 
-// Define types for GraphQL responses
-interface RedeemTokenResponse {
-  redeemUserPasswordResetToken?: {
-    code: string;
-    message: string;
-  } | null;
-}
+// Legacy storefront callers may pass a password in previous state; never return it.
+type AuthState = { message: string | null; formData: { email: string; password?: string } };
+const SIGN_IN_ERROR = 'Unable to sign in. Check your email and password and try again.';
 
-interface SendLinkResponse {
-  sendUserPasswordResetLink?: boolean | null;
-}
-
-export async function signIn(prevState: { message: string | null, formData: { email: string, password: string } }, formData: FormData) {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const from = formData.get('from') as string || '/dashboard';
-
-  const query = `
-    mutation($email: String!, $password: String!) {
-      authenticate: authenticateUserWithPassword(email: $email, password: $password) {
-        ... on UserAuthenticationWithPasswordSuccess {
-          sessionToken
-          item {
-            id
-            name
-            email
-          }
-        }
-        ... on UserAuthenticationWithPasswordFailure {
-          message
-        }
-      }
-    }
-  `;
+export async function signIn(prevState: AuthState, formData: FormData) {
+  const email = String(formData.get('email') || '');
+  const password = String(formData.get('password') || '');
+  const from = sanitizeDashboardRedirect(formData.get('from'));
 
   try {
-    const response = await keystoneClient(query, { email, password });
+    const response = await keystoneClient(`
+      mutation($email: String!, $password: String!) {
+        authenticate: authenticateUserWithPassword(email: $email, password: $password) {
+          ... on UserAuthenticationWithPasswordSuccess { sessionToken }
+          ... on UserAuthenticationWithPasswordFailure { message }
+        }
+      }
+    `, { email, password });
 
-    if (!response.success) {
-      return {
-        message: `Authentication failed: ${response.error}`,
-        formData: { email, password }
-      };
+    if (!response.success || response.data?.authenticate?.message || !response.data?.authenticate?.sessionToken) {
+      return { message: SIGN_IN_ERROR, formData: { email } };
     }
 
-    // If we have a message, it's an authentication failure
-    if (response.data?.authenticate?.message) {
-      return {
-        message: response.data.authenticate.message,
-        formData: { email, password }
-      };
-    }
-
-    // Check if we have a sessionToken in the response
-    if (!response.data?.authenticate?.sessionToken) {
-      return {
-        message: 'An unexpected error occurred',
-        formData: { email, password }
-      };
-    }
-
-    // Set the auth token cookie
     const cookieStore = await cookies();
     cookieStore.set('keystonejs-session', response.data.authenticate.sessionToken, {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       httpOnly: true,
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
     });
   } catch (error) {
-    return {
-      message: error instanceof Error ? error.message : 'Failed to authenticate',
-      formData: { email, password }
-    };
+    console.error('Sign-in failed:', safeErrorSummary(error));
+    return { message: SIGN_IN_ERROR, formData: { email } };
   }
 
-  // Validate and sanitize the from URL to prevent open redirect vulnerabilities
-
-  // Redirect must be outside of try/catch
+  // Next.js redirects throw; keep this outside the catch.
   redirect(from);
 }
 
-export async function signUp(prevState: { message: string | null, formData: { email: string, password: string } }, formData: FormData) {
+export async function signUp(prevState: AuthState, formData: FormData) {
+  const email = String(formData.get('email') || '');
+  const password = String(formData.get('password') || '');
+  const name = email.split('@')[0];
   try {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = email.split('@')[0]; // Simple name derivation
-
-    // Create user
-    const createQuery = `
+    const response = await keystoneClient(`
       mutation($email: String!, $name: String!, $password: String!) {
-        createUser(data: { email: $email, name: $name, password: $password }) {
-          id
-          email
-          name
-        }
+        createUser(data: { email: $email, name: $name, password: $password }) { id }
       }
-    `;
-
-    const response = await keystoneClient(createQuery, { email, name, password });
-
+    `, { email, name, password });
     if (!response.success) {
-      return {
-        message: `Failed to create user: ${response.error}`,
-        formData: { email, password }
-      };
+      return { message: 'Unable to create an account. Please try again.', formData: { email } };
     }
-
-    // Sign them in after creation
-    return signIn({ message: null, formData: { email, password } }, formData);
   } catch (error) {
-    return {
-      message: error instanceof Error ? error.message : 'An error occurred',
-      formData: {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string
-      }
-    };
+    console.error('Sign-up failed:', safeErrorSummary(error));
+    return { message: 'Unable to create an account. Please try again.', formData: { email } };
   }
+  return signIn({ message: null, formData: { email } }, formData);
 }
 
 export async function signOut() {
   try {
-    const query = `
-      mutation {
-        endSession
-      }
-    `;
-
-    const response = await keystoneClient(query);
-
-    // Always remove the auth token cookie, even if the mutation fails
-    // This ensures the user is signed out locally
-    await removeAuthToken();
-
-    // CRITICAL: Clear Next.js router cache to prevent stale data
-    revalidatePath("/", "layout");
-
-    if (!response.success) {
-      console.error(`Failed to sign out: ${response.error}`);
-      // Still redirect even if server logout fails, since we cleared the cookie
-    }
+    await keystoneClient('mutation { endSession }');
   } catch (error) {
-    // Still remove the cookie even if there's an error
-    await removeAuthToken();
-    // Clear cache even on error
-    revalidatePath("/", "layout");
-    console.error("Logout error:", error instanceof Error ? error.message : 'An error occurred');
+    console.error('Logout failed:', safeErrorSummary(error));
   }
-  
-  // Always redirect after logout attempt
-  redirect("/dashboard/signin");
+  await removeAuthToken();
+  revalidatePath('/', 'layout');
+  redirect('/dashboard/signin');
 }
 
-export async function createInitialUser(prevState: { message: string | null, formData: { name: string, email: string, password: string } }, formData: FormData) {
-  const name = formData.get('name') as string;
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const listKey = "User";
-
-  const query = `
-    mutation($data: CreateInitial${listKey}Input!) {
-      authenticate: createInitial${listKey}(data: $data) {
-        ... on ${listKey}AuthenticationWithPasswordSuccess {
-          item {
-            id
-          }
-        }
-      }
-    }
-  `;
-
+export async function createInitialUser(
+  prevState: { message: string | null; formData: { name: string; email: string } },
+  formData: FormData
+) {
+  const name = String(formData.get('name') || '');
+  const email = String(formData.get('email') || '');
+  const password = String(formData.get('password') || '');
   try {
-    const response = await keystoneClient(query, {
-      data: { name, email, password }
-    });
-
+    const response = await keystoneClient(`
+      mutation($data: CreateInitialUserInput!) {
+        authenticate: createInitialUser(data: $data) {
+          ... on UserAuthenticationWithPasswordSuccess { item { id } }
+        }
+      }
+    `, { data: { name, email, password } });
     if (!response.success) {
-      return {
-        message: `Failed to create initial user: ${response.error}`,
-        formData: { name, email, password }
-      };
+      return { message: 'Unable to create the initial user. Please try again.', formData: { name, email } };
     }
-
-    return {
-      data: response.data,
-      formData: { name, email, password }
-    };
+    return { data: response.data, formData: { name, email } };
   } catch (error) {
-    return {
-      message: error instanceof Error ? error.message : 'Failed to create initial user',
-      formData: { name, email, password }
-    };
+    console.error('Initial user creation failed:', safeErrorSummary(error));
+    return { message: 'Unable to create the initial user. Please try again.', formData: { name, email } };
   }
 }
 
-export async function resetPassword(prevState: { message: string | null, success: string | null, formData: { email: string, password: string } }, formData: FormData, mode: 'reset' | 'request') {
-  const email = formData.get('email') as string;
-
-  if (mode === 'reset') {
-    const password = formData.get('password') as string;
-    const token = formData.get('token') as string;
-
-    const query = `
-      mutation($email: String!, $password: String!, $token: String!) {
-        redeemUserPasswordResetToken(
-          email: $email
-          token: $token
-          password: $password
-        ) {
-          code
-          message
+export async function resetPassword(
+  prevState: { message: string | null; success: string | null; formData: { email: string } },
+  formData: FormData,
+  mode: 'reset' | 'request'
+) {
+  const email = String(formData.get('email') || '');
+  const failure = { message: 'Unable to reset your password. Please try again.', formData: { email } };
+  try {
+    if (mode === 'reset') {
+      const response = await keystoneClient(`
+        mutation($email: String!, $password: String!, $token: String!) {
+          redeemUserPasswordResetToken(email: $email, token: $token, password: $password) { code }
         }
-      }
-    `;
-
-    try {
-      const response = await keystoneClient<RedeemTokenResponse>(query, { email, password, token });
-
-      if (!response.success) {
-        return {
-          message: `Password reset failed: ${response.error}`,
-          formData: { email, password }
-        };
-      }
-
-      if (response.data?.redeemUserPasswordResetToken?.code) {
-        return {
-          message: response.data.redeemUserPasswordResetToken.message,
-          formData: { email, password }
-        };
-      }
-
-      return {
-        success: 'Password has been reset. You can now sign in.',
-        formData: { email, password }
-      };
-    } catch (error) {
-      return {
-        message: error instanceof Error ? error.message : 'Reset operation failed',
-        formData: { email, password }
-      };
+      `, { email, password: String(formData.get('password') || ''), token: String(formData.get('token') || '') });
+      if (!response.success || response.data?.redeemUserPasswordResetToken?.code) return failure;
+      return { success: 'Password has been reset. You can now sign in.', formData: { email } };
     }
-  } else {
-    // Request reset
-    const query = `
-      mutation($email: String!) {
-        sendUserPasswordResetLink(email: $email)
-      }
-    `;
-
-    try {
-      const response = await keystoneClient<SendLinkResponse>(query, { email });
-
-      if (!response.success) {
-        return {
-          message: `Password reset request failed: ${response.error}`,
-          formData: { email, password: '' }
-        };
-      }
-
-      if (response.data?.sendUserPasswordResetLink === true) {
-        return {
-          success: 'Password reset link has been sent to your email.',
-          formData: { email, password: '' }
-        };
-      } else {
-        return {
-          message: 'Password reset request failed',
-          formData: { email, password: '' }
-        };
-      }
-    } catch (error) {
-      return {
-        message: error instanceof Error ? error.message : 'Reset operation failed',
-        formData: { email, password: '' }
-      };
-    }
+    const response = await keystoneClient(`
+      mutation($email: String!) { sendUserPasswordResetLink(email: $email) }
+    `, { email });
+    if (!response.success || response.data?.sendUserPasswordResetLink !== true) return failure;
+    return { success: 'Password reset link has been sent to your email.', formData: { email } };
+  } catch (error) {
+    console.error('Password reset failed:', safeErrorSummary(error));
+    return failure;
   }
 }
 

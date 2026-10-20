@@ -1,3 +1,4 @@
+import { safeErrorSummary } from '@/features/dashboard/lib/security';
 import { useMemo } from 'react';
 
 export type Value = Record<
@@ -30,7 +31,7 @@ export function useChangedFieldsAndDataForUpdate(
             const serialized = field.controller.serialize(currentValue.value);
             Object.assign(dataForUpdate, serialized);
           } catch (error) {
-            console.error(`Error serializing field ${fieldKey}:`, error);
+            console.error(`Error serializing field ${fieldKey}:`, safeErrorSummary(error));
           }
         }
       }

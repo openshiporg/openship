@@ -1,3 +1,4 @@
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from '@/features/dashboard/lib/security';
 import { type ReactNode, Fragment, useContext, useEffect, useRef } from 'react'
 import { type Text, Editor, Transforms } from 'slate'
 import { ReactEditor } from 'slate-react'
@@ -126,7 +127,7 @@ function insertOption(editor: Editor, text: Text, option: Option) {
   try {
     // Safety check for text node
     if (!text || typeof text.text !== 'string') {
-      console.warn('Invalid text node in insertOption:', text)
+      console.error('Invalid text node in insertOption:', PUBLIC_REQUEST_ERROR)
       return
     }
 
@@ -139,20 +140,20 @@ function insertOption(editor: Editor, text: Text, option: Option) {
     })
     option.insert(editor)
   } catch (error) {
-    console.error('Error in insertOption:', error, { text, option })
+    console.error('Error in insertOption:', safeErrorSummary(error))
   }
 }
 
 export function InsertMenu({ children, text }: { children: ReactNode; text: Text }) {
   // Safety check for text node
   if (!text || typeof text.text !== 'string') {
-    console.warn('InsertMenu received invalid text node:', text)
+    console.error('InsertMenu received invalid text node:', PUBLIC_REQUEST_ERROR)
     return <>{children}</>
   }
 
   // Safety check for children
   if (children === undefined || children === null) {
-    console.warn('InsertMenu received invalid children:', children)
+    console.error('InsertMenu received invalid children:', PUBLIC_REQUEST_ERROR)
     return <span>{text.text}</span>
   }
 
