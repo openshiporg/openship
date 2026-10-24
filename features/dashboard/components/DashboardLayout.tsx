@@ -84,7 +84,8 @@ function DashboardLayoutContent({ children, adminMeta, authenticatedItem }: Dash
   return (
     <>
       <Sidebar adminMeta={adminMeta} user={authenticatedItem} />
-      <SidebarInset className="min-w-0">
+      {/* pb-20 keeps the last rows and fields clear of the floating assistant button */}
+      <SidebarInset className="min-w-0 pb-20">
         {children}
       </SidebarInset>
       <RightSidebar side="right" />

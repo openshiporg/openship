@@ -138,7 +138,7 @@ export function CreatePageClient({ listKey, list }: CreatePageClientProps) {
         }
       />
       
-      <main className="w-full max-w-5xl p-4 md:p-6">
+      <div className="w-full max-w-5xl p-4 md:p-6">
         <div className="grid lg:grid-cols-[minmax(240px,2fr)_3fr] gap-6 gap-y-8">
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] flex flex-col h-full">
@@ -170,7 +170,7 @@ export function CreatePageClient({ listKey, list }: CreatePageClientProps) {
             {(createItem.error?.networkError || createItem.error?.graphQLErrors?.length) && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
+                <AlertDescription className="whitespace-pre-line break-words">
                   {createItem.error.networkError?.message || 
                    createItem.error.graphQLErrors?.[0]?.message ||
                    'An error occurred while creating the item'
@@ -185,7 +185,7 @@ export function CreatePageClient({ listKey, list }: CreatePageClientProps) {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </>
   )
 }

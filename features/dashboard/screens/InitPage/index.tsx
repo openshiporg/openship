@@ -86,14 +86,14 @@ export function InitPage() {
   );
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <main className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex items-center space-x-1.5">
           <Logo aria-hidden="true" />
         </div>
-        <h3 className="mt-6 text-lg font-semibold text-foreground dark:text-foreground">
+        <h1 className="mt-6 text-lg font-semibold text-foreground dark:text-foreground">
           Create admin account
-        </h3>
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground">
           Set up your admin account to get started.
         </p>
@@ -184,7 +184,7 @@ export function InitPage() {
           </Badge>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

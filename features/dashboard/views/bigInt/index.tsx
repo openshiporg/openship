@@ -215,7 +215,7 @@ export function Field({
   if (field.hasAutoIncrementDefault && value.kind === 'create') {
     return (
       <FieldContainer>
-        <FieldLabel>
+        <FieldLabel htmlFor={`field-${field.path}`}>
           {field.label}
         </FieldLabel>
         {field.description && (
@@ -224,6 +224,7 @@ export function Field({
           </FieldDescription>
         )}
         <Input
+          id={`field-${field.path}`}
           autoFocus={autoFocus}
           readOnly
           defaultValue="--"
@@ -250,7 +251,7 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel>
+      <FieldLabel htmlFor={`field-${field.path}`}>
         {field.label}
       </FieldLabel>
       {field.description && (
@@ -259,6 +260,7 @@ export function Field({
         </FieldDescription>
       )}
       <Input
+        id={`field-${field.path}`}
         autoFocus={autoFocus}
         readOnly={isReadOnly}
         inputMode="numeric"

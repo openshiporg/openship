@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getGraphQLEndpoint } from "@/features/dashboard/lib/getBaseUrl";
 import { GraphQLClient } from 'graphql-request';
 import { safeErrorSummary, sanitizeDashboardRedirect } from './lib/security';
+import { isDashboardRoute, publicSignUpsAllowed } from './lib/authFlow';
 
 const basePath = "/dashboard";
 
@@ -89,10 +90,11 @@ export async function handleDashboardRoutes(
     return null;
   }
   
-  const isInitRoute = pathname.startsWith(`${basePath}/init`);
-  const isSigninRoute = pathname.startsWith(`${basePath}/signin`);
-  const isNoAccessRoute = pathname.startsWith(`${basePath}/no-access`);
-  const isResetRoute = pathname.startsWith(`${basePath}/reset`);
+  const isInitRoute = isDashboardRoute(pathname, 'init');
+  const isSigninRoute = isDashboardRoute(pathname, 'signin');
+  const isSignupRoute = isDashboardRoute(pathname, 'signup') && publicSignUpsAllowed();
+  const isNoAccessRoute = isDashboardRoute(pathname, 'no-access');
+  const isResetRoute = isDashboardRoute(pathname, 'reset');
   const fromPath = sanitizeDashboardRedirect(request.nextUrl.searchParams.get("from"));
 
   // Handle redirectToInit for dashboard routes
@@ -109,7 +111,7 @@ export async function handleDashboardRoutes(
   }
 
   // Handle unauthenticated users
-  if (!user && !isSigninRoute && !isResetRoute) {
+  if (!user && !isSigninRoute && !isSignupRoute && !isResetRoute) {
     const signinUrl = new URL(`${basePath}/signin`, request.url);
     if (!isNoAccessRoute) {
       signinUrl.searchParams.set("from", request.nextUrl.pathname);
@@ -118,7 +120,7 @@ export async function handleDashboardRoutes(
   }
 
   // Handle authenticated users trying to access signin
-  if (user && (isSigninRoute || isResetRoute)) {
+  if (user && (isSigninRoute || isSignupRoute || isResetRoute)) {
     if (fromPath && !fromPath.includes("no-access")) {
       return NextResponse.redirect(new URL(fromPath, request.url));
     }

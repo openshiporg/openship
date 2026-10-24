@@ -25,7 +25,7 @@ export function Field(props: FieldProps<typeof controller>) {
 
   return (
     <FieldContainer>
-      <FieldLabel>
+      <FieldLabel htmlFor={`field-${field.path}`}>
         {field.label}
       </FieldLabel>
       {field.description && (
@@ -34,6 +34,7 @@ export function Field(props: FieldProps<typeof controller>) {
         </FieldDescription>
       )}
       <Input
+        id={`field-${field.path}`}
         readOnly={true}
         tabIndex={-1}
         value={stringify(value)}

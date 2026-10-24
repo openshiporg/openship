@@ -91,6 +91,7 @@ function NullableFieldWrapper({
   onChange: (isChecked: boolean) => void
   children: React.ReactNode
 }) {
+  const nullId = React.useId()
   if (!isAllowed) {
     return <>{children}</>
   }
@@ -100,12 +101,13 @@ function NullableFieldWrapper({
       {children}
       <div className="flex items-center space-x-2">
         <Checkbox
+          id={nullId}
           checked={isNull}
           onCheckedChange={onChange}
           disabled={isReadOnly}
           autoFocus={autoFocus}
         />
-        <Label className="text-sm text-muted-foreground">
+        <Label htmlFor={nullId} className="text-sm text-muted-foreground">
           Set field as null
         </Label>
       </div>
@@ -160,11 +162,12 @@ export function Field({
       case 'radio':
         return (
           <div className="space-y-2">
-            <FieldLabel>{field.label}</FieldLabel>
+            <FieldLabel id={`field-${field.path}-label`}>{field.label}</FieldLabel>
             {field.description && (
               <FieldDescription>{field.description}</FieldDescription>
             )}
             <RadioGroup
+              aria-labelledby={`field-${field.path}-label`}
               disabled={isNull || isReadOnly}
               required={isRequired}
               onValueChange={onSelectionChange}
@@ -172,8 +175,8 @@ export function Field({
             >
               {field.options.map(item => (
                 <div key={item.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={item.value} id={item.value} />
-                  <Label htmlFor={item.value}>{item.label}</Label>
+                  <RadioGroupItem value={item.value} id={`field-${field.path}-${item.value}`} />
+                  <Label htmlFor={`field-${field.path}-${item.value}`}>{item.label}</Label>
                 </div>
               ))}
             </RadioGroup>
@@ -185,7 +188,7 @@ export function Field({
       default:
         return (
           <div className="space-y-2">
-            <FieldLabel>{field.label}</FieldLabel>
+            <FieldLabel htmlFor={`field-${field.path}`}>{field.label}</FieldLabel>
             {field.description && (
               <FieldDescription>{field.description}</FieldDescription>
             )}
@@ -195,7 +198,7 @@ export function Field({
               onValueChange={onSelectionChange}
               value={selectedKey || ''}
             >
-              <SelectTrigger className={errorMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}>
+              <SelectTrigger id={`field-${field.path}`} className={errorMessage ? 'border-red-500 shadow-xs' : 'shadow-xs'}>
                 <SelectValue placeholder="Select an option..." />
               </SelectTrigger>
               <SelectContent>

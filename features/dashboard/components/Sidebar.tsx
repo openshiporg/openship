@@ -41,11 +41,15 @@ import { Logo, LogoIcon } from '@/features/dashboard/components/Logo'
 import { UserProfileClient } from './UserProfileClient'
 import { platformNavItems, getPlatformNavItemsWithBasePath } from '@/features/platform/lib/navigation'
 import { useDashboard } from '../context/DashboardProvider'
+import { visiblePlatformItems, visibleSidebarLists } from '../lib/sidebarAccess'
 
 interface User {
   id: string;
   email: string;
   name?: string;
+  role?: {
+    canAccessDashboard?: boolean;
+  };
 }
 
 interface SidebarProps {
@@ -82,13 +86,17 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
   )
 
   // Convert lists to sidebar links format
-  const sidebarLinks = listsArray.map((list: any) => ({
+  const sidebarLinks = visibleSidebarLists(listsArray as any[], user).map((list: any) => ({
     title: list.label,
     href: `/dashboard/${list.path}`
   }))
 
   // Platform navigation items with proper basePath
-  const platformItemsWithBasePath = getPlatformNavItemsWithBasePath(basePath)
+  const platformItemsWithBasePath = visiblePlatformItems(
+    getPlatformNavItemsWithBasePath(basePath),
+    listsArray as any[],
+    user
+  )
   const platformItems = platformItemsWithBasePath.map(item => ({
     title: item.title,
     href: item.href,
@@ -136,6 +144,7 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
         </SidebarGroup>
 
         {/* Platform Routes */}
+        {platformItems.length > 0 && (
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu className="gap-0">
@@ -196,9 +205,10 @@ export function Sidebar({ adminMeta, user }: SidebarProps) {
             </DropdownMenu>
           </SidebarMenu>
         </SidebarGroup>
+        )}
 
         {/* Models Dropdown - Collapsible */}
-        {dashboardItems.map((dashboardItem) => (
+        {dashboardItems.filter((dashboardItem) => dashboardItem.items.length > 0).map((dashboardItem) => (
           <SidebarGroup key={dashboardItem.title}>
             <SidebarGroupLabel>{dashboardItem.title}</SidebarGroupLabel>
             <SidebarMenu className="group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">

@@ -116,6 +116,7 @@ function NullableFieldWrapper({
   children: React.ReactNode
   errorMessage?: string
 }) {
+  const nullId = React.useId()
   return (
     <div className="space-y-2">
       {children}
@@ -127,11 +128,12 @@ function NullableFieldWrapper({
       {isAllowed && (
         <div className="flex items-center space-x-2">
           <Checkbox
+            id={nullId}
             checked={isNull}
             onCheckedChange={onChange}
             disabled={isReadOnly}
           />
-          <Label className="text-sm text-gray-600">
+          <Label htmlFor={nullId} className="text-sm text-gray-600">
             Set field as null
           </Label>
         </div>
@@ -158,7 +160,7 @@ export function Field(props: FieldProps) {
 
   return (
     <FieldContainer>
-      <FieldLabel className={errorMessage ? "text-red-600" : ""}>
+      <FieldLabel htmlFor={`field-${field.path}`} className={errorMessage ? "text-red-600" : ""}>
         {field.label}
       </FieldLabel>
       {field.description && (
@@ -182,6 +184,7 @@ export function Field(props: FieldProps) {
         errorMessage={errorMessage}
       >
         <FieldComponent
+          id={`field-${field.path}`}
           autoFocus={autoFocus}
           placeholder={field.description}
           disabled={isNull}

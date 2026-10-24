@@ -99,14 +99,15 @@ export function __getNames(listKey: string, list: { graphql?: { plural?: string 
   }
 }
 
-// Helper function to properly generate names with pluralization
-// Following Keystone's __getNames pattern from types/utils.ts - EXACT COPY
-export function getGraphQLNames(listKey: string, listMeta: { plural?: string }) {
-  // Create a complete list config object like Keystone does
-  const listConfig = {
-    graphql: listMeta.plural ? { plural: listMeta.plural } : undefined,
-    ui: undefined,
-    isSingleton: false
-  }
-  return __getNames(listKey, listConfig).graphql.names
+// Admin meta's `plural` is the UI label, not graphql.plural, so it must not drive GraphQL
+// names (a label like "Shop Settings" collapses to the list key and Keystone's check throws).
+// Prefer Keystone's own listQueryName; otherwise compute the plural from the list key exactly
+// as Keystone does. Never throws: Keystone already rejected invalid configs at startup.
+export function getGraphQLNames(listKey: string, listMeta: { plural?: string; listQueryName?: string }) {
+  const fromKeystone = listMeta.listQueryName
+    ? listMeta.listQueryName.charAt(0).toUpperCase() + listMeta.listQueryName.slice(1)
+    : undefined
+  const computed = labelToClass(pluralize.plural(humanize(listKey)))
+  const pluralGraphQLName = fromKeystone || (computed === listKey ? `${listKey}s` : computed)
+  return getGqlNames({ listKey, pluralGraphQLName })
 }

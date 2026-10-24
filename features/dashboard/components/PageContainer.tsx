@@ -70,9 +70,9 @@ export function PageContainer({ children, title, header, breadcrumbs }: PageCont
       )}
 
       {/* Main content */}
-      <main className="flex-1">
+      <div className="flex-1">
         {children}
-      </main>
+      </div>
     </div>
   )
 }

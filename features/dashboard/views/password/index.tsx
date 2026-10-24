@@ -207,7 +207,7 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel htmlFor={`field-${field.path}`}>{field.label}</FieldLabel>
       {field.description && (
         <FieldDescription>{field.description}</FieldDescription>
       )}
@@ -215,6 +215,7 @@ export function Field({
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <Input
+            id={`field-${field.path}`}
             autoFocus
             placeholder="New password"
             type={secureTextEntry ? 'password' : 'text'}
@@ -228,6 +229,7 @@ export function Field({
         </div>
         <div className="flex-1">
           <Input
+            aria-label={`Confirm ${field.label.toLowerCase()}`}
             placeholder="Confirm password"
             type={secureTextEntry ? 'password' : 'text'}
             value={value.confirm}

@@ -1,14 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Store } from 'lucide-react';
+import { ArrowLeft, Lock, LogOut, Store } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { signOut } from '@/features/dashboard/actions/auth';
 
 export function NoAccessPage() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <main className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm flex flex-col items-center bg-muted/40 border rounded-lg p-6 shadow-lg">
         <div className="flex justify-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/10 border-2 border-rose-200 dark:border-rose-800">
@@ -41,8 +42,14 @@ export function NoAccessPage() {
             Home
           </Button>
         </div>
+        <form action={signOut} className="w-full mt-2">
+          <Button type="submit" variant="ghost" className="w-full">
+            <LogOut className="size-3" />
+            Sign out
+          </Button>
+        </form>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -40,9 +40,10 @@ export function Field({
 
   return (
     <div className="space-y-2">
-      <Label>{field.label}</Label>
+      <Label htmlFor={`field-${field.path}`}>{field.label}</Label>
       <div className="flex items-center gap-2">
         <Input
+          id={`field-${field.path}`}
           readOnly
           value={displayValue}
           className="bg-muted font-mono"

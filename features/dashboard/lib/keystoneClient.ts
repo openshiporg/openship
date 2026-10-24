@@ -4,7 +4,7 @@
 
 import { getAuthHeaders } from '@/features/dashboard/lib/cookies';
 import { GraphQLClient } from 'graphql-request';
-import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from './security';
+import { PUBLIC_REQUEST_ERROR, publicGraphQLErrorMessage, safeErrorSummary } from './security';
 import { getGraphQLEndpoint } from '@/features/dashboard/lib/getBaseUrl';
 
 // Define response type for keystoneClient
@@ -61,7 +61,7 @@ export async function keystoneClient<T = any>(
 
   } catch (error) {
     console.error("Error fetching GraphQL data:", safeErrorSummary(error));
-    return { success: false, error: PUBLIC_REQUEST_ERROR };
+    return { success: false, error: publicGraphQLErrorMessage(error) };
   }
 }
 
@@ -134,7 +134,7 @@ async function _fetchGraphQLWithFiles(
 
     if (json.errors) {
       console.error("GraphQL Errors:", safeErrorSummary({ response: { errors: json.errors } }));
-      return { success: false, error: PUBLIC_REQUEST_ERROR };
+      return { success: false, error: publicGraphQLErrorMessage({ response: { errors: json.errors } }) };
     }
 
     return {

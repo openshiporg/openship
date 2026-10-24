@@ -5,11 +5,18 @@ import { keystoneClient } from '@/features/dashboard/lib/keystoneClient';
 import { redirect } from 'next/navigation';
 import { removeAuthToken } from '@/features/dashboard/lib/cookies';
 import { revalidatePath } from 'next/cache';
-import { safeErrorSummary, sanitizeDashboardRedirect } from '../lib/security';
+import { PUBLIC_REQUEST_ERROR, safeErrorSummary, sanitizeDashboardRedirect } from '../lib/security';
+import { passwordResetEmailAvailable, RESET_EMAIL_UNAVAILABLE } from '../lib/authFlow';
 
 // Legacy storefront callers may pass a password in previous state; never return it.
 type AuthState = { message: string | null; formData: { email: string; password?: string } };
 const SIGN_IN_ERROR = 'Unable to sign in. Check your email and password and try again.';
+const INITIAL_USER_ERROR = 'Unable to create the initial user.';
+
+// keystoneClient errors are already reduced to Keystone's user-facing validation text
+function withReason(base: string, error: string | undefined) {
+  return error && error !== PUBLIC_REQUEST_ERROR ? `${base} ${error}` : `${base} Please try again.`;
+}
 
 export async function signIn(prevState: AuthState, formData: FormData) {
   const email = String(formData.get('email') || '');
@@ -94,12 +101,12 @@ export async function createInitialUser(
       }
     `, { data: { name, email, password } });
     if (!response.success) {
-      return { message: 'Unable to create the initial user. Please try again.', formData: { name, email } };
+      return { message: withReason(INITIAL_USER_ERROR, response.error), formData: { name, email } };
     }
     return { data: response.data, formData: { name, email } };
   } catch (error) {
     console.error('Initial user creation failed:', safeErrorSummary(error));
-    return { message: 'Unable to create the initial user. Please try again.', formData: { name, email } };
+    return { message: withReason(INITIAL_USER_ERROR, undefined), formData: { name, email } };
   }
 }
 
@@ -117,14 +124,24 @@ export async function resetPassword(
           redeemUserPasswordResetToken(email: $email, token: $token, password: $password) { code }
         }
       `, { email, password: String(formData.get('password') || ''), token: String(formData.get('token') || '') });
-      if (!response.success || response.data?.redeemUserPasswordResetToken?.code) return failure;
+      if (!response.success) {
+        return { message: withReason('Unable to reset your password.', response.error), formData: { email } };
+      }
+      if (response.data?.redeemUserPasswordResetToken?.code) {
+        return { message: 'This reset link is invalid or has expired. Request a new one.', formData: { email } };
+      }
       return { success: 'Password has been reset. You can now sign in.', formData: { email } };
+    }
+    if (!passwordResetEmailAvailable()) {
+      return { message: RESET_EMAIL_UNAVAILABLE, formData: { email } };
     }
     const response = await keystoneClient(`
       mutation($email: String!) { sendUserPasswordResetLink(email: $email) }
     `, { email });
-    if (!response.success || response.data?.sendUserPasswordResetLink !== true) return failure;
-    return { success: 'Password reset link has been sent to your email.', formData: { email } };
+    if (!response.success || response.data?.sendUserPasswordResetLink !== true) {
+      return { message: 'Unable to send the reset email. Please try again, or ask an administrator to set a new password for you.', formData: { email } };
+    }
+    return { success: 'If an account exists for that email, a reset link has been sent to it.', formData: { email } };
   } catch (error) {
     console.error('Password reset failed:', safeErrorSummary(error));
     return failure;

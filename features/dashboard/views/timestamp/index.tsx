@@ -4,7 +4,7 @@
 
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useSyncExternalStore } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -62,6 +62,19 @@ interface CellProps {
   field: any
 }
 
+const subscribeNoop = () => () => {}
+
+// false during SSR and hydration, true afterwards, so local-time text never mismatches
+function useIsClient() {
+  return useSyncExternalStore(subscribeNoop, () => true, () => false)
+}
+
+// The server cannot know the browser's time zone; render UTC until mounted
+export function formatTimestamp(date: Date, pattern: string, isClient: boolean) {
+  if (isClient) return format(date, pattern)
+  return `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`
+}
+
 function validate(
   value: Value,
   fieldMeta: TimestampFieldMeta,
@@ -105,21 +118,24 @@ export function Field({
     ? validate(value, field.fieldMeta, isRequired, field.label)
     : undefined
 
+  const isClient = useIsClient()
   const dateValue = value.value ? new Date(value.value) : undefined
+  const inputId = `field-${field.path}`
 
   if (isReadOnly) {
     return (
       <FieldContainer>
-        <FieldLabel>{field.label}</FieldLabel>
+        <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
         {field.description && (
           <FieldDescription>{field.description}</FieldDescription>
         )}
         <Input
+          id={inputId}
           readOnly
           tabIndex={-1}
           value={
             dateValue
-              ? dateValue.toLocaleString()
+              ? formatTimestamp(dateValue, 'PPP p', isClient)
               : 'yyyy-mm-dd --:--:--'
           }
           className="bg-muted cursor-default"
@@ -131,7 +147,7 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel className={validationMessage ? "text-red-600" : ""}>
+      <FieldLabel htmlFor={inputId} className={validationMessage ? "text-red-600" : ""}>
         {field.label}
       </FieldLabel>
       {field.description && (
@@ -140,6 +156,7 @@ export function Field({
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            id={inputId}
             variant={"outline"}
             className={cn(
               "justify-start text-left font-normal",
@@ -150,7 +167,7 @@ export function Field({
             onBlur={() => setDirty(true)}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateValue ? format(dateValue, "PPP p") : <span>Pick a date and time</span>}
+            {dateValue ? formatTimestamp(dateValue, "PPP p", isClient) : <span>Pick a date and time</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -210,21 +227,23 @@ export function Field({
 }
 
 export function Cell({ item, field }: CellProps) {
+  const isClient = useIsClient()
   const value = item[field.path]
   return (
     <span className="text-sm">
-      {value ? format(new Date(value), "MMM d, yyyy p") : <span className="text-muted-foreground">—</span>}
+      {value ? formatTimestamp(new Date(value), "MMM d, yyyy p", isClient) : <span className="text-muted-foreground">—</span>}
     </span>
   )
 }
 
 export function CardValue({ item, field }: CellProps) {
+  const isClient = useIsClient()
   const value = item[field.path]
   return (
     <div>
       <div className="text-sm font-medium">{field.label}</div>
       <div className="text-sm text-muted-foreground">
-        {value ? format(new Date(value), "MMM d, yyyy p") : '—'}
+        {value ? formatTimestamp(new Date(value), "MMM d, yyyy p", isClient) : '—'}
       </div>
     </div>
   )

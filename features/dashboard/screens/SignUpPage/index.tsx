@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { SignUpForm } from "./SignUpForm";
+import { publicSignUpsAllowed } from "../../lib/authFlow";
 
 export function SignUpPage() {
-  const publicSignUpsAllowed = process.env.PUBLIC_SIGNUPS_ALLOWED === 'true';
-  
-  if (!publicSignUpsAllowed) {
+  if (!publicSignUpsAllowed()) {
     redirect('/dashboard/signin');
   }
 

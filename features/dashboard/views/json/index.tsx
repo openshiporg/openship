@@ -45,13 +45,14 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel className={errorMessage ? "text-red-600" : ""}>
+      <FieldLabel htmlFor={`field-${field.path}`} className={errorMessage ? "text-red-600" : ""}>
         {field.label}
       </FieldLabel>
       {field.description && (
         <FieldDescription>{field.description}</FieldDescription>
       )}
       <Textarea
+        id={`field-${field.path}`}
         autoFocus={autoFocus}
         readOnly={isReadOnly}
         onChange={(e) => onChange?.(e.target.value)}

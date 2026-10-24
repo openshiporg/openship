@@ -95,7 +95,7 @@ const getCachedAdminMeta = cache(async (): Promise<KeystoneResponse<any>> => {
 
   // Enhance all lists with gqlNames before returning
   const enhancedLists = adminMeta.lists.map((list: any) => {
-    const gqlNames = getGraphQLNames(list.key, { plural: list.plural })
+    const gqlNames = getGraphQLNames(list.key, { plural: list.plural, listQueryName: list.listQueryName })
 
     return {
       ...list,

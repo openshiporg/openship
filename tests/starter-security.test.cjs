@@ -144,7 +144,8 @@ test('successful sign-in sets the protected cookie and sanitizes the actual redi
 });
 
 test('initial-user and reset-password states never return passwords or reset tokens', async () => {
-  const { auth } = authSandbox({ success: false, error: 'synthetic internal detail' });
+  // keystoneClient already reduces internal failures to this fixed text (see shared-dashboard tests)
+  const { auth } = authSandbox({ success: false, error: 'Unable to complete the request. Please try again.' });
   const initial = await auth.createInitialUser({}, form());
   assert.deepEqual(Object.keys(initial.formData).sort(), ['email', 'name']);
   for (const mode of ['request', 'reset']) {

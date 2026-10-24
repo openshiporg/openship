@@ -90,11 +90,12 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel htmlFor={`field-${field.path}`}>{field.label}</FieldLabel>
       {field.description && (
         <FieldDescription>{field.description}</FieldDescription>
       )}
       <Input
+        id={`field-${field.path}`}
         type="number"
         step="any"
         inputMode="decimal"

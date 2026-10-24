@@ -83,11 +83,12 @@ export function Field({
   if (field.hasAutoIncrementDefault && value.kind === 'create') {
     return (
       <FieldContainer>
-        <FieldLabel>{field.label}</FieldLabel>
+        <FieldLabel htmlFor={`field-${field.path}`}>{field.label}</FieldLabel>
         {field.description && (
           <FieldDescription>{field.description}</FieldDescription>
         )}
         <Input
+          id={`field-${field.path}`}
           readOnly
           value="Auto increment"
           className="bg-muted shadow-xs"
@@ -116,11 +117,12 @@ export function Field({
 
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel htmlFor={`field-${field.path}`}>{field.label}</FieldLabel>
       {field.description && (
         <FieldDescription>{field.description}</FieldDescription>
       )}
       <Input
+        id={`field-${field.path}`}
         type="number"
         step="1"
         autoFocus={autoFocus}
