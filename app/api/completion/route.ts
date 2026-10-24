@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       // Two family members use the same role flag in dashboard middleware but
       // do not export a named helper. Preserve that existing policy there.
       const canAccessDashboard = typeof dashboardPermission === 'function'
-        ? await dashboardPermission({ session: context.session })
+        ? await (dashboardPermission as (args: { session: unknown }) => unknown)({ session: context.session })
         : context.session.data?.role?.canAccessDashboard === true;
       if (canAccessDashboard !== true) {
         return Response.json({ error: 'Dashboard access is required.' }, { status: 403 });
