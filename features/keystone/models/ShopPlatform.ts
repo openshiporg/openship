@@ -44,10 +44,6 @@ export const ShopPlatform = list({
                 }
               }
               
-              // Fallback to environment variable or default
-              if (!baseUrl) {
-                baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
-              }
               
               // Return simplified callback URL (no platform ID needed)
               return `${baseUrl}/api/oauth/callback`;

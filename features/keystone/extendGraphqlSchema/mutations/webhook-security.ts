@@ -102,14 +102,6 @@ export function assertWebhookBelongsToResource(input: {
 }
 
 export function requestOrigin(context: any): string | null {
-  if (process.env.NEXT_PUBLIC_URL) {
-    try {
-      return new URL(process.env.NEXT_PUBLIC_URL).origin;
-    } catch {
-      return null;
-    }
-  }
-  if (process.env.NODE_ENV === "production") return null;
   const headers = context?.req?.headers || {};
   const hostValue = headers["x-forwarded-host"] || headers.host;
   const protocolValue = headers["x-forwarded-proto"] || "https";

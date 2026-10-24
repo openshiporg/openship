@@ -8,6 +8,8 @@ import {
   openPendingShopOAuth,
   SHOP_OAUTH_PENDING_COOKIE,
 } from '@/features/integrations/lib/oauth-pending';
+import { oauthStateSecret } from '@/features/integrations/lib/oauth-secret';
+import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 
 export interface CreateShopInput {
   name: string;
@@ -83,7 +85,7 @@ export async function completeShopOAuthConnection(name: string) {
   try {
     const pending = openPendingShopOAuth(
       sealedGrant,
-      process.env.OAUTH_STATE_SECRET || 'openship-local-development-oauth-state-secret'
+      oauthStateSecret()
     );
     const result = await createShop({
       name: name.trim(),
@@ -143,7 +145,7 @@ export async function initiateOAuthFlow(platformId: string, domain: string) {
   // Call the OAuth function to get the auth URL - pass state as separate argument
   const result = await handleShopOAuth({
     platform: platformWithDomain,
-    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/callback`,
+    callbackUrl: platform.callbackUrl || `${await getBaseUrl()}/api/oauth/callback`,
     state: state,
   });
   

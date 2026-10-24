@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { oauthStateSecret } from '@/features/integrations/lib/oauth-secret';
 import { keystoneContext } from '@/features/keystone/context';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 import { handleShopOAuthCallback } from '@/features/integrations/shop/lib/executor';
@@ -9,14 +10,6 @@ import {
   SHOP_OAUTH_PENDING_COOKIE,
 } from '@/features/integrations/lib/oauth-pending';
 
-function oauthStateSecret(): string {
-  const secret = process.env.OAUTH_STATE_SECRET;
-  if (secret) return secret;
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('OAUTH_STATE_SECRET is required in production');
-  }
-  return 'openship-local-development-oauth-state-secret';
-}
 
 function readOAuthState(state: string): {
   platformId: string;

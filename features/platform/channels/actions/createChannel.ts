@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { handleChannelOAuth } from '../../../keystone/utils/channelProviderAdapter';
+import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
 
 export interface CreateChannelInput {
   name: string;
@@ -95,7 +96,7 @@ export async function initiateChannelOAuthFlow(platformId: string, domain: strin
   // Call the OAuth function to get the auth URL - pass state as separate argument
   const result = await handleChannelOAuth({
     platform: platformWithDomain,
-    callbackUrl: platform.callbackUrl || `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/oauth/callback`,
+    callbackUrl: platform.callbackUrl || `${await getBaseUrl()}/api/oauth/callback`,
     state: state,
   });
   

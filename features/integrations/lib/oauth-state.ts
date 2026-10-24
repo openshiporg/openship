@@ -1,13 +1,6 @@
 import crypto from 'crypto';
+import { oauthStateSecret } from './oauth-secret';
 
-function oauthStateSecret(): string {
-  const secret = process.env.OAUTH_STATE_SECRET;
-  if (secret) return secret;
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('OAUTH_STATE_SECRET is required in production');
-  }
-  return 'openship-local-development-oauth-state-secret';
-}
 
 export async function generateOAuthState(platformId: string, type: 'shop' | 'channel'): Promise<string> {
   // Create state payload with timestamp for expiry
