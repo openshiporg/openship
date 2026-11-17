@@ -10,5 +10,4 @@ export { default as deleteShopWebhook } from "./deleteShopWebhook";
 export { default as updateShopProduct } from "./updateShopProduct";
 export { default as createChannelWebhook } from "./createChannelWebhook";
 export { default as deleteChannelWebhook } from "./deleteChannelWebhook";
-export { default as createChannelPurchase } from "./createChannelPurchase";
 export { default as upsertMatch } from "./upsertMatch";

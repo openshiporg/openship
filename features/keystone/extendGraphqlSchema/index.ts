@@ -25,7 +25,6 @@ import {
   updateShopProduct,
   createChannelWebhook,
   deleteChannelWebhook,
-  createChannelPurchase,
   upsertMatch,
 } from "./mutations";
 
@@ -72,7 +71,6 @@ const typeDefs = graphql`
       endpoint: String!
     ): CreateWebhookResponse
     deleteChannelWebhook(channelId: ID!, webhookId: ID!): DeleteWebhookResponse
-    createChannelPurchase(input: CreatePurchaseInput!): CreatePurchaseResponse
     upsertMatch(data: MatchCreateInput!): Match
   }
 
@@ -208,36 +206,6 @@ const typeDefs = graphql`
     price: String
     inventory: Int
   }
-
-  input CreatePurchaseInput {
-    shopId: ID!
-    cartItems: [CartItemInput!]!
-    email: String!
-    address: AddressInput!
-    orderId: ID!
-  }
-
-  input CartItemInput {
-    variantId: ID!
-    quantity: Int!
-  }
-
-  input AddressInput {
-    firstName: String!
-    lastName: String!
-    streetAddress1: String!
-    streetAddress2: String
-    city: String!
-    state: String!
-    zip: String!
-    country: String!
-  }
-
-  type CreatePurchaseResponse {
-    success: Boolean
-    error: String
-    purchaseId: ID
-  }
 `;
 
 export const extendGraphqlSchema = (baseSchema: any) =>
@@ -258,7 +226,6 @@ export const extendGraphqlSchema = (baseSchema: any) =>
         updateShopProduct,
         createChannelWebhook,
         deleteChannelWebhook,
-        createChannelPurchase,
         upsertMatch,
       },
       Query: {

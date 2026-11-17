@@ -323,7 +323,6 @@ const result = await executeChannelAdapterFunction({
 - `addMatchToCart` - Add matched products to cart for order
 - `matchOrder` - Apply product matches to order
 - `placeOrders` - Process multiple orders for fulfillment
-- `createChannelPurchase` - Create purchase order on channel
 - `cancelOrder` - Cancel order processing
 - `updateShopProduct` - Update shop product information
 
