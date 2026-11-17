@@ -2,15 +2,15 @@ import { list } from '@keystone-6/core'
 import { allOperations } from '@keystone-6/core/access'
 import { float, integer, relationship, text, timestamp } from '@keystone-6/core/fields'
 
-import { isSignedIn, permissions, rules } from '../access'
+import { isSignedIn, permissions, rules, isSignedInFor } from '../access'
 import { trackingFields } from './trackingFields'
 
 export const CartItem = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
+      create: isSignedInFor("canManageOrders"),
+      query: isSignedInFor("canSeeOtherOrders"),
+      update: isSignedInFor("canManageOrders"),
       delete: permissions.canManageOrders,
     },
     filter: {

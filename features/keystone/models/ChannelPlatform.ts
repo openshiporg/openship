@@ -1,15 +1,15 @@
 import { graphql, group, list } from "@keystone-6/core";
 import { relationship, text, virtual } from "@keystone-6/core/fields";
-import { isSignedIn, rules, permissions } from "../access";
+import { isSignedIn, rules, permissions, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const ChannelPlatform = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
-      delete: isSignedIn,
+      create: isSignedInFor("canManageChannels"),
+      query: isSignedInFor("canSeeOtherChannels"),
+      update: isSignedInFor("canManageChannels"),
+      delete: isSignedInFor("canManageChannels"),
     },
     filter: {
       query: rules.canReadChannels,

@@ -9,15 +9,15 @@ import {
 } from "@keystone-6/core/fields";
 import { graphql } from "@keystone-6/core";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const Link = list({
   access: {
     operation: {
       create: permissions.canCreateLinks,
-      query: isSignedIn,
-      update: isSignedIn,
+      query: isSignedInFor("canSeeOtherLinks"),
+      update: isSignedInFor("canManageLinks"),
       delete: permissions.canManageLinks,
     },
     filter: {

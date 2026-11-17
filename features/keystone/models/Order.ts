@@ -10,7 +10,7 @@ import {
   timestamp,
 } from "@keystone-6/core/fields";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 import { placeMultipleOrders } from "../lib/placeMultipleOrders";
 import { getMatches } from "../extendGraphqlSchema/mutations/addMatchToCart";
@@ -55,9 +55,9 @@ async function applyDynamicWhereClause(context: any, linkId: string, orderId: st
 export const Order = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
+      create: isSignedInFor("canManageOrders"),
+      query: isSignedInFor("canSeeOtherOrders"),
+      update: isSignedInFor("canManageOrders"),
       delete: permissions.canManageOrders,
     },
     filter: {

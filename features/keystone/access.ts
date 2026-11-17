@@ -101,33 +101,36 @@ export const isSignedIn = ({ session }: OperationAccessArgs): boolean => {
   return Boolean(session)
 }
 
-// Helper function to check if API key scopes or role grants a permission
+// An API key gets its owner's role, limited to the key's scopes.
 function hasPermission(session: any, permission: OpenseaPermission): boolean {
-  // If this is an API key session, ONLY check API key scopes
-  if (session?.apiKeyScopes) {
-    return checkApiKeyPermission(session, permission);
-  }
-  // Otherwise, check role-based permissions for regular user sessions
-  return Boolean(session?.data?.role?.[permission]);
+  if (!session?.data?.role?.[permission]) return false;
+  return !session.apiKeyScopes || checkApiKeyPermission(session, permission);
 }
+
+// Any signed-in user; an API key also needs a scope that maps to `permission`.
+// Filter rules still limit what the user can see or change.
+export const isSignedInFor = (permission: OpenseaPermission) =>
+  ({ session }: OperationAccessArgs): boolean =>
+    Boolean(session) &&
+    (!(session as any).apiKeyScopes || checkApiKeyPermission(session, permission));
 
 // Permission Functions - Operation Level Access Control
 export const permissions = {
   // Basic Dashboard Permissions
   canSeeOtherUsers: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherUsers),
+    hasPermission(session, "canSeeOtherUsers"),
   
   canEditOtherUsers: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canEditOtherUsers),
+    hasPermission(session, "canEditOtherUsers"),
   
   canManageUsers: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageUsers),
+    hasPermission(session, "canManageUsers"),
   
   canManageRoles: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageRoles),
+    hasPermission(session, "canManageRoles"),
   
   canAccessDashboard: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canAccessDashboard),
+    hasPermission(session, "canAccessDashboard"),
   
   // E-commerce Platform Permissions
   // Shop Management
@@ -151,61 +154,61 @@ export const permissions = {
     hasPermission(session, "canCreateChannels"),
   
   canUpdateChannels: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageChannels),
+    hasPermission(session, "canManageChannels"),
   
   // Order Management
   canSeeOtherOrders: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherOrders),
+    hasPermission(session, "canSeeOtherOrders"),
   
   canManageOrders: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageOrders),
+    hasPermission(session, "canManageOrders"),
   
   canProcessOrders: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canProcessOrders),
+    hasPermission(session, "canProcessOrders"),
   
   // Product & Inventory Management
   canSeeOtherMatches: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherMatches),
+    hasPermission(session, "canSeeOtherMatches"),
   
   canManageMatches: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageMatches),
+    hasPermission(session, "canManageMatches"),
   
   canCreateMatches: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canCreateMatches),
+    hasPermission(session, "canCreateMatches"),
   
   // Linking System
   canSeeOtherLinks: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canSeeOtherLinks),
+    hasPermission(session, "canSeeOtherLinks"),
   
   canManageLinks: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageLinks),
+    hasPermission(session, "canManageLinks"),
   
   canCreateLinks: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canCreateLinks),
+    hasPermission(session, "canCreateLinks"),
   
   // Platform Integration
   canManagePlatforms: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManagePlatforms),
+    hasPermission(session, "canManagePlatforms"),
   
   canViewPlatformMetrics: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canViewPlatformMetrics),
+    hasPermission(session, "canViewPlatformMetrics"),
   
   // API Key Management
   canManageApiKeys: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageApiKeys),
+    hasPermission(session, "canManageApiKeys"),
   
   canCreateApiKeys: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canCreateApiKeys),
+    hasPermission(session, "canCreateApiKeys"),
   
   // Advanced Features
   canAccessAnalytics: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canAccessAnalytics),
+    hasPermission(session, "canAccessAnalytics"),
   
   canExportData: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canExportData),
+    hasPermission(session, "canExportData"),
   
   canManageWebhooks: ({ session }: OperationAccessArgs): boolean => 
-    Boolean(session?.data.role?.canManageWebhooks),
+    hasPermission(session, "canManageWebhooks"),
 }
 
 // Filter Rules - Filter Level Access Control

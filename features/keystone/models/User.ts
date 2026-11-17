@@ -13,8 +13,7 @@ import {
   permissions,
   rules,
   itemRules,
-  fieldRules,
-} from "../access";
+  fieldRules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const User = list({
@@ -22,7 +21,7 @@ export const User = list({
     operation: {
       query: isSignedIn,
       create: permissions.canManageUsers,
-      update: isSignedIn,
+      update: isSignedInFor("canEditOtherUsers"),
       delete: permissions.canManageUsers,
     },
     filter: {

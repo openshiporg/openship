@@ -1,15 +1,15 @@
 import { list, group, graphql } from "@keystone-6/core";
 import { relationship, text, virtual, json } from "@keystone-6/core/fields";
-import { isSignedIn, rules, permissions } from "../access";
+import { isSignedIn, rules, permissions, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const ShopPlatform = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
-      delete: isSignedIn,
+      create: isSignedInFor("canManageShops"),
+      query: isSignedInFor("canSeeOtherShops"),
+      update: isSignedInFor("canManageShops"),
+      delete: isSignedInFor("canManageShops"),
     },
     filter: {
       query: rules.canReadShops,

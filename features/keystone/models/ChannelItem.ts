@@ -6,7 +6,7 @@ import {
   float,
 } from "@keystone-6/core/fields";
 import { graphql, list } from "@keystone-6/core";
-import { isSignedIn, rules, permissions } from "../access";
+import { isSignedIn, rules, permissions, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 import { getChannelProduct } from "../extendGraphqlSchema/queries";
 
@@ -40,10 +40,10 @@ function mergeData(existingData: any, newData: any) {
 export const ChannelItem = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
-      delete: isSignedIn,
+      create: isSignedInFor("canManageMatches"),
+      query: isSignedInFor("canSeeOtherMatches"),
+      update: isSignedInFor("canManageMatches"),
+      delete: isSignedInFor("canManageMatches"),
     },
     filter: {
       query: rules.canReadMatches,

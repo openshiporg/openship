@@ -3,15 +3,15 @@ import { allOperations } from "@keystone-6/core/access";
 import { relationship, timestamp, virtual } from "@keystone-6/core/fields";
 import { graphql } from "@keystone-6/core";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 
 export const Match = list({
   access: {
     operation: {
       create: permissions.canCreateMatches,
-      query: isSignedIn,
-      update: isSignedIn,
+      query: isSignedInFor("canSeeOtherMatches"),
+      update: isSignedInFor("canManageMatches"),
       delete: permissions.canManageMatches,
     },
     filter: {

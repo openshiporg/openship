@@ -3,14 +3,14 @@ import { allOperations } from "@keystone-6/core/access";
 import { json, relationship, text, timestamp, virtual } from "@keystone-6/core/fields";
 import { graphql } from "@keystone-6/core";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 import { executeChannelAdapterFunction } from '../utils/channelProviderAdapter';
 
 export const Channel = list({
   access: {
     operation: {
-      query: permissions.canSeeOtherChannels,
+      query: isSignedInFor("canSeeOtherChannels"),
       create: permissions.canCreateChannels,
       update: permissions.canManageChannels,
       delete: permissions.canManageChannels,

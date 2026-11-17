@@ -2,16 +2,16 @@ import { list } from "@keystone-6/core";
 import { allOperations } from "@keystone-6/core/access";
 import { json, relationship, text, timestamp } from "@keystone-6/core/fields";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 import { relaySourceTrackingForDetail } from "../../integrations/channel/tracking-relay";
 
 export const TrackingDetail = list({
   access: {
     operation: {
-      create: isSignedIn,
-      query: isSignedIn,
-      update: isSignedIn,
+      create: isSignedInFor("canManageOrders"),
+      query: isSignedInFor("canSeeOtherOrders"),
+      update: isSignedInFor("canManageOrders"),
       delete: permissions.canManageOrders,
     },
     filter: {

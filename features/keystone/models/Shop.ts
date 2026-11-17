@@ -10,14 +10,14 @@ import {
 } from "@keystone-6/core/fields";
 import { graphql } from "@keystone-6/core";
 
-import { isSignedIn, permissions, rules } from "../access";
+import { isSignedIn, permissions, rules, isSignedInFor } from "../access";
 import { trackingFields } from "./trackingFields";
 import { executeShopAdapterFunction } from '../utils/shopProviderAdapter';
 
 export const Shop = list({
   access: {
     operation: {
-      query: permissions.canSeeOtherShops,
+      query: isSignedInFor("canSeeOtherShops"),
       create: permissions.canCreateShops,
       update: permissions.canManageShops,
       delete: permissions.canManageShops,
