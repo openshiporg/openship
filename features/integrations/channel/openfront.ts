@@ -361,6 +361,20 @@ export async function createPurchaseFunction({
   notes?: string;
   idempotencyKey?: string;
 }) {
+  // Never buy from the supplier with a made-up address.
+  const missing = [
+    ["first name", shipping?.firstName],
+    ["last name", shipping?.lastName],
+    ["street address", shipping?.address1],
+    ["city", shipping?.city],
+    ["state", shipping?.state || shipping?.province],
+    ["ZIP", shipping?.zip],
+    ["country", shipping?.country],
+  ].filter(([, value]) => !String(value || "").trim()).map(([label]) => label);
+  if (missing.length) {
+    throw new Error(`Order is missing its shipping ${missing.join(", ")}`);
+  }
+
   const openFrontClient = await createOpenFrontClient(platform);
 
   try {
@@ -507,16 +521,16 @@ export async function createPurchaseFunction({
         }
       `, {
         data: {
-          firstName: shipping?.firstName || 'Guest',
-          lastName: shipping?.lastName || 'Customer',
-          address1: shipping?.address1 || '123 Default St',
-          address2: shipping?.address2 || '',
-          city: shipping?.city || 'Default City',
-          province: shipping?.state || shipping?.province || 'NY',
-          postalCode: shipping?.zip || '10001',
-          phone: shipping?.phone || '',
+          firstName: shipping.firstName,
+          lastName: shipping.lastName,
+          address1: shipping.address1,
+          address2: shipping.address2 || '',
+          city: shipping.city,
+          province: shipping.state || shipping.province,
+          postalCode: shipping.zip,
+          phone: shipping.phone || '',
           country: {
-            connect: { iso2: (shipping?.country || 'US').toLowerCase() },
+            connect: { iso2: String(shipping.country).toLowerCase() },
           },
         },
       }) as any;

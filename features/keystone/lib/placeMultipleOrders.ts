@@ -98,6 +98,17 @@ export async function placeMultipleOrders({
     // A cancelled source order must never be bought from a supplier.
     if (orderStatus === "CANCELLED") continue;
 
+    // OpenFront suppliers ship to this address: never buy without one.
+    const missingAddress = [
+      ["first name", firstName],
+      ["last name", lastName],
+      ["street address", streetAddress1],
+      ["city", city],
+      ["state", state],
+      ["ZIP", zip],
+      ["country", country],
+    ].filter(([, value]) => !String(value || "").trim()).map(([label]) => label);
+
     for (const {
       id: channelId,
       domain,
@@ -107,6 +118,17 @@ export async function placeMultipleOrders({
       metadata,
     } of cartChannels.filter((channel: any) => channel.cartItems.length > 0)) {
       const cartItemIds = cartItems.map((item: any) => item.id);
+      if (platform.createPurchaseFunction === "openfront" && missingAddress.length) {
+        await query.Order.updateOne({
+          where: { id: orderId },
+          data: {
+            status: "PENDING",
+            error: `Order is missing its shipping ${missingAddress.join(", ")}`,
+          },
+          query: "id",
+        });
+        continue;
+      }
       const claim = await claimSupplierPurchase(prisma, {
         orderId,
         channelId,
