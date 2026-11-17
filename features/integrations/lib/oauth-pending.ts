@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 export const SHOP_OAUTH_PENDING_COOKIE = "openship-shop-oauth-pending";
+export const CHANNEL_OAUTH_PENDING_COOKIE = "openship-channel-oauth-pending";
 
 export interface PendingShopOAuth {
   platformId: string;

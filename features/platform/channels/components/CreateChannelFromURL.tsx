@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { createChannel } from '../actions/createChannel';
+import { completeChannelOAuthConnection } from '../actions/createChannel';
 
 interface CreateChannelFromURLProps {
   onChannelCreated?: () => void;
@@ -34,17 +34,13 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState('');
   const [domain, setDomain] = useState('');
-  const [accessToken, setAccessToken] = useState('');
-  const [platformId, setPlatformId] = useState('');
-  const [refreshToken, setRefreshToken] = useState('');
-  const [tokenExpiresAt, setTokenExpiresAt] = useState('');
   const router = useRouter();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!searchParams?.showCreateChannel) return;
     const urlDomain = searchParams.domain;
-    if (!urlDomain || !searchParams.platform || !searchParams.accessToken) return;
+    if (!urlDomain || !searchParams.platform) return;
 
     const decodedDomain = decodeURIComponent(urlDomain);
     const domainName = decodedDomain
@@ -54,31 +50,18 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
       .replace(/openfront/gi, 'Openfront');
     setName(`${domainName.charAt(0).toUpperCase()}${domainName.slice(1)} Channel`);
     setDomain(decodedDomain);
-    setPlatformId(searchParams.platform);
-    setAccessToken(searchParams.accessToken);
-    setRefreshToken(searchParams.refreshToken || '');
-    setTokenExpiresAt(searchParams.tokenExpiresAt || '');
     setIsDialogOpen(true);
   }, [searchParams]);
 
   const handleChannelCreation = async () => {
-    if (!name.trim() || !domain.trim() || !accessToken || !platformId) {
+    if (!name.trim() || !domain.trim()) {
       toast.error('OAuth channel details are incomplete');
       return;
     }
 
     setIsLoading(true);
     try {
-      const channelData: any = {
-        name: name.trim(),
-        domain: domain.trim(),
-        accessToken: accessToken.trim(),
-        platformId,
-      };
-      if (refreshToken) channelData.refreshToken = refreshToken;
-      if (tokenExpiresAt) channelData.tokenExpiresAt = new Date(tokenExpiresAt);
-
-      const result = await createChannel(channelData);
+      const result = await completeChannelOAuthConnection(name.trim());
       if (!result.success) {
         toast.error(result.error || 'Failed to create channel');
         return;
@@ -115,10 +98,6 @@ export function CreateChannelFromURL({ onChannelCreated, searchParams }: CreateC
           <div>
             <Label htmlFor="domain">Domain</Label>
             <Input id="domain" value={domain} onChange={(event) => setDomain(event.target.value)} disabled={isLoading} />
-          </div>
-          <div>
-            <Label htmlFor="accessToken">Access Token</Label>
-            <Input id="accessToken" type="password" value={accessToken} onChange={(event) => setAccessToken(event.target.value)} disabled={isLoading} />
           </div>
         </div>
         <DialogFooter>

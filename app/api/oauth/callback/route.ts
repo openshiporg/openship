@@ -8,8 +8,17 @@ import { handleChannelOAuthCallback } from '@/features/integrations/channel/lib/
 import {
   sealPendingShopOAuth,
   SHOP_OAUTH_PENDING_COOKIE,
+  CHANNEL_OAUTH_PENDING_COOKIE,
 } from '@/features/integrations/lib/oauth-pending';
 
+
+// Shopify sends a bare host (mystore.myshopify.com) and its adapter adds
+// https:// itself; Openfront sends a full origin. Keep each as sent.
+function oauthDomain(shop: string | null): string {
+  const value = String(shop || '').trim();
+  if (!value) throw new Error('OAuth callback is missing the shop domain');
+  return /^https?:\/\//i.test(value) ? new URL(value).origin : value.toLowerCase();
+}
 
 function readOAuthState(state: string): {
   platformId: string;
@@ -93,7 +102,7 @@ export async function GET(request: NextRequest) {
         redirectUri,
       });
       const accessToken = typeof tokenResult === 'string' ? tokenResult : tokenResult.accessToken;
-      const domain = new URL(shop || '').origin;
+      const domain = oauthDomain(shop);
       const pendingGrant = sealPendingShopOAuth({
         platformId: stateData.platformId,
         domain,
@@ -137,16 +146,32 @@ export async function GET(request: NextRequest) {
       redirectUri,
     });
     const accessToken = typeof tokenResult === 'string' ? tokenResult : tokenResult.accessToken;
+    const domain = oauthDomain(shop);
+    const pendingGrant = sealPendingShopOAuth({
+      platformId: stateData.platformId,
+      domain,
+      accessToken,
+      ...(typeof tokenResult === 'object' && tokenResult.refreshToken
+        ? { refreshToken: tokenResult.refreshToken }
+        : {}),
+      ...(typeof tokenResult === 'object' && tokenResult.tokenExpiresAt
+        ? { tokenExpiresAt: tokenResult.tokenExpiresAt }
+        : {}),
+      createdAt: Date.now(),
+    }, oauthStateSecret());
     const redirectUrl = new URL('/dashboard/platform/channels', baseUrl);
     redirectUrl.searchParams.set('showCreateChannel', 'true');
     redirectUrl.searchParams.set('platform', stateData.platformId);
-    redirectUrl.searchParams.set('accessToken', accessToken);
-    redirectUrl.searchParams.set('domain', shop || '');
-    if (typeof tokenResult === 'object') {
-      if (tokenResult.refreshToken) redirectUrl.searchParams.set('refreshToken', tokenResult.refreshToken);
-      if (tokenResult.tokenExpiresAt) redirectUrl.searchParams.set('tokenExpiresAt', tokenResult.tokenExpiresAt);
-    }
-    return NextResponse.redirect(redirectUrl);
+    redirectUrl.searchParams.set('domain', domain);
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.set(CHANNEL_OAUTH_PENDING_COOKIE, pendingGrant, {
+      httpOnly: true,
+      secure: redirectUrl.protocol === 'https:',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 10 * 60,
+    });
+    return response;
   } catch (error) {
     console.error('OAuth callback error:', error);
     return NextResponse.json(

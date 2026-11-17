@@ -4,6 +4,12 @@ import { redirect } from 'next/navigation';
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { handleChannelOAuth } from '../../../keystone/utils/channelProviderAdapter';
 import { getBaseUrl } from '@/features/dashboard/lib/getBaseUrl';
+import { cookies } from 'next/headers';
+import {
+  openPendingShopOAuth,
+  CHANNEL_OAUTH_PENDING_COOKIE,
+} from '@/features/integrations/lib/oauth-pending';
+import { oauthStateSecret } from '@/features/integrations/lib/oauth-secret';
 
 export interface CreateChannelInput {
   name: string;
@@ -50,6 +56,28 @@ export async function createChannel(data: CreateChannelInput) {
       success: false, 
       error: response.error || 'Failed to create channel' 
     };
+  }
+}
+
+export async function completeChannelOAuthConnection(name: string) {
+  const cookieStore = await cookies();
+  const sealedGrant = cookieStore.get(CHANNEL_OAUTH_PENDING_COOKIE)?.value;
+  if (!sealedGrant) return { success: false, error: 'OAuth connection grant is missing or expired' };
+
+  try {
+    const pending = openPendingShopOAuth(sealedGrant, oauthStateSecret());
+    const result = await createChannel({
+      name: name.trim(),
+      domain: pending.domain,
+      accessToken: pending.accessToken,
+      refreshToken: pending.refreshToken,
+      tokenExpiresAt: pending.tokenExpiresAt ? new Date(pending.tokenExpiresAt) : undefined,
+      platformId: pending.platformId,
+    });
+    if (result.success) cookieStore.delete(CHANNEL_OAUTH_PENDING_COOKIE);
+    return result;
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Invalid OAuth connection grant' };
   }
 }
 
