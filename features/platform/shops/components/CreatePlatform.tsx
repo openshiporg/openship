@@ -33,7 +33,6 @@ import { Label } from "@/components/ui/label";
 const shopAdapters = {
   shopify: "shopify",
   openfront: "openfront",
-  demo: "demo",
 };
 
 export function getFilteredProps(props: any, modifications: any[], defaultCollapse?: boolean) {
@@ -168,53 +167,28 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
     if (value !== "custom" && createItem) {
       const currentValue = createItem.props.value;
       
-      // Auto-fill name field for demo
-      let nameValue = currentValue.name;
-      if (value === "demo") {
-        nameValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: "Demo Shop" } };
-      }
+      const nameValue = currentValue.name;
       
-      let functionValues;
-      if (value === "demo") {
-        // Use localhost docs API routes for demo
-        functionValues = {
-          searchProductsFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/search-products' } },
-          getProductFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/get-product' } },
-          searchOrdersFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/search-orders' } },
-          updateProductFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/update-product' } },
-          orderLinkFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/order-link' } },
-          getWebhooksFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/get-webhooks' } },
-          deleteWebhookFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/delete-webhook' } },
-          createWebhookFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/create-webhook' } },
-          addTrackingFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/add-tracking' } },
-          addCartToPlatformOrderFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/add-cart-to-order' } },
-          oAuthFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/oauth' } },
-          oAuthCallbackFunction: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/oauth-callback' } },
-          cancelOrderWebhookHandler: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/webhook-cancel-order' } },
-          createOrderWebhookHandler: { kind: 'create' as const, inner: { kind: 'value' as const, value: 'http://localhost:3000/api/demo/shop/webhook-create-order' } },
-        };
-      } else {
-        // Use template slug for other platforms (shopify, etc.)
-        const templateValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: value } };
+      // Each template slug names its adapter (shopify, openfront).
+      const templateValue = { kind: 'create' as const, inner: { kind: 'value' as const, value: value } };
 
-        functionValues = {
-          orderLinkFunction: templateValue,
-          updateProductFunction: templateValue,
-          getWebhooksFunction: templateValue,
-          deleteWebhookFunction: templateValue,
-          createWebhookFunction: templateValue,
-          searchProductsFunction: templateValue,
-          getProductFunction: templateValue,
-          searchOrdersFunction: templateValue,
-          addTrackingFunction: templateValue,
-          addCartToPlatformOrderFunction: templateValue,
-          // OAuth functions should use the template slug so the adapter can be resolved
-          oAuthFunction: templateValue,
-          oAuthCallbackFunction: templateValue,
-          cancelOrderWebhookHandler: templateValue,
-          createOrderWebhookHandler: templateValue,
-        };
-      }
+      const functionValues = {
+        orderLinkFunction: templateValue,
+        updateProductFunction: templateValue,
+        getWebhooksFunction: templateValue,
+        deleteWebhookFunction: templateValue,
+        createWebhookFunction: templateValue,
+        searchProductsFunction: templateValue,
+        getProductFunction: templateValue,
+        searchOrdersFunction: templateValue,
+        addTrackingFunction: templateValue,
+        addCartToPlatformOrderFunction: templateValue,
+        // OAuth functions should use the template slug so the adapter can be resolved
+        oAuthFunction: templateValue,
+        oAuthCallbackFunction: templateValue,
+        cancelOrderWebhookHandler: templateValue,
+        createOrderWebhookHandler: templateValue,
+      };
       
       const newValue = {
         ...currentValue,
@@ -236,8 +210,6 @@ export function CreatePlatform({ trigger }: { trigger: React.ReactNode }) {
     let fieldKeysToShow;
     if (selectedPlatform === "custom") {
       fieldKeysToShow = keysToUpdateCustom;
-    } else if (selectedPlatform === "demo") {
-      fieldKeysToShow = ["name"]; // Only show name field for demo
     } else {
       fieldKeysToShow = keysToUpdateTemplate;
     }
