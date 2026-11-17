@@ -8,7 +8,6 @@
 import {
   ArrowUpRight,
   ChevronsUpDown,
-  Database,
   LogOut,
   Palette,
 } from "lucide-react";
@@ -106,16 +105,6 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem 
-                className="gap-3"
-                onClick={() => window.open('/api/graphql', '_blank')}
-              >
-                <Database className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">GraphQL API</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
