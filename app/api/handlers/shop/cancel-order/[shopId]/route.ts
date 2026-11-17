@@ -95,7 +95,7 @@ async function processWebhook(shopId: string, body: any, headers: any, rawBody: 
       });
       if (unplaced.length) {
         await keystoneContext.sudo().query.CartItem.updateMany({
-          data: unplaced.map((item: { id: string }) => ({
+          data: unplaced.map((item) => ({
             where: { id: item.id },
             data: { status: 'CANCELLED' },
           })),

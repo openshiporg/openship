@@ -45,7 +45,7 @@ export async function POST(
 // item. Map a line only when its variant is on exactly one cart item.
 function allocationsByVariant(
   lineItems: unknown,
-  cartItems: Array<{ id: string; variantId?: string | null }>
+  cartItems: ReadonlyArray<Record<string, any>>
 ): Array<{ cartItemId: string; quantity: number }> {
   if (!Array.isArray(lineItems)) return [];
   const allocations = new Map<string, number>();
