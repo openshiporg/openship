@@ -122,6 +122,7 @@ async function matchOrder(root: any, { orderId }: { orderId: string }, context: 
         quantity
         productId
         variantId
+        lineItemId
       }
       shop {
         id
@@ -138,127 +139,86 @@ async function matchOrder(root: any, { orderId }: { orderId: string }, context: 
     `,
   });
 
-  const shopItemConnect = await findShopItems({
-    lineItems: order.lineItems.map(
-      ({ id, lineItemId, orderId, userId, updatedAt, createdAt, ...rest }: any) => {
-        // turn into NullFilter values ({ equal }) for findMany
-        // const restNested = Object.keys(rest).reduce(
-        //   (acc, key) => ({
-        //     ...acc,
-        //     ...{ [key]: { equals: rest[key] } },
-        //   }),
-        //   {}
-        // );
-        return {
+  // A saved match is used only one source line at a time, so save one per line.
+  // With more than one line, each cart item must say which line it fills.
+  const lineGroups = order.lineItems.map((line: any) => ({
+    line,
+    cartItems:
+      order.lineItems.length === 1
+        ? order.cartItems
+        : order.cartItems.filter(
+            (cartItem: any) =>
+              String(cartItem.lineItemId || "").trim() &&
+              String(cartItem.lineItemId) === String(line.lineItemId)
+          ),
+  }));
+  const groupedCount = lineGroups.reduce((sum: number, group: any) => sum + group.cartItems.length, 0);
+  if (
+    lineGroups.some((group: any) => group.cartItems.length === 0) ||
+    groupedCount !== order.cartItems.length
+  ) {
+    throw new Error(
+      "Every order line needs its own supplier items before the match can be saved"
+    );
+  }
+
+  let lastMatch = null;
+  for (const { line, cartItems } of lineGroups) {
+    const shopItemConnect = await findShopItems({
+      lineItems: [line].map(
+        ({ id, lineItemId, orderId, userId, updatedAt, createdAt, ...rest }: any) => ({
           ...rest,
           channelId: order.shop.id,
-        };
-      }
-    ),
-    userId: sesh.itemId,
-    context,
-  });
+        })
+      ),
+      userId: sesh.itemId,
+      context,
+    });
 
-  const channelItemConnect = await findChannelItems({
-    cartItems: order.cartItems.map(
-      ({
-        id,
-        lineItemId,
-        orderId,
-        userId,
-        updatedAt,
-        createdAt,
-        url,
-        error: cartItemError,
-        purchaseId,
-        channel,
-        ...rest
-      }: any) => {
-        return {
+    const channelItemConnect = await findChannelItems({
+      cartItems: cartItems.map(
+        ({
+          id,
+          lineItemId,
+          orderId,
+          userId,
+          updatedAt,
+          createdAt,
+          url,
+          error: cartItemError,
+          purchaseId,
+          channel,
+          ...rest
+        }: any) => ({
           ...rest,
           channelId: channel.id,
-        };
-      }
-    ),
-    userId: sesh.itemId,
-    context,
-  });
+        })
+      ),
+      userId: sesh.itemId,
+      context,
+    });
 
-  const existingMatches = await context.query.Match.findMany({
-    where: {
-      user: {
-        id: { equals: sesh.itemId },
+    const existingMatches = await context.query.Match.findMany({
+      where: {
+        user: { id: { equals: sesh.itemId } },
+        input: { some: { id: { in: shopItemConnect.map((item: any) => item.id) } } },
       },
-      AND: order.lineItems.map(({ productId, variantId, quantity }: any) => ({
-        input: {
-          some: {
-            productId: { equals: productId },
-            variantId: { equals: variantId },
-            quantity: { equals: parseInt(quantity) },
-          },
-        },
-      })),
-    },
-    query: ` 
-    id
-    inputCount
-    outputCount
-    input {
-      id
-      quantity
-      productId
-      variantId
-      shop {
-        id
-      }
-      user {
-        id
-      }
+      query: "id inputCount",
+    });
+    for (const existing of existingMatches.filter((match: any) => match.inputCount === 1)) {
+      await context.query.Match.deleteOne({ where: { id: existing.id } });
     }
-    output {
-      id
-      quantity
-      productId
-      variantId
-      price
-      channel {
-        id
-        domain
-        accessToken
-        platform {
-          id
-        }
-      }
-      user {
-        id
-      }
-    }
-  `,
-  });
 
-  const [existingMatch] = existingMatches.filter(
-    (match: any) => match.input.length === order.lineItems.length
-  );
-
-  if (existingMatch) {
-    await context.query.Match.deleteOne({
-      where: { id: existingMatch.id },
+    lastMatch = await context.db.Match.createOne({
+      data: {
+        input: { connect: shopItemConnect },
+        output: { connect: channelItemConnect },
+        user: { connect: { id: sesh.itemId } },
+      },
     });
   }
 
-  const newMatch = await context.db.Match.createOne({
-    data: {
-      input: { connect: shopItemConnect },
-      output: { connect: channelItemConnect },
-      user: {
-        connect: {
-          id: sesh.itemId,
-        },
-      },
-    },
-  });
-
-  return newMatch;
+  return lastMatch;
 }
 
 export default matchOrder;
