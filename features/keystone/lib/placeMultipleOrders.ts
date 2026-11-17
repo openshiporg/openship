@@ -129,11 +129,22 @@ export async function placeMultipleOrders({
         });
         continue;
       }
-      const claim = await claimSupplierPurchase(prisma, {
-        orderId,
-        channelId,
-        cartItemIds,
-      });
+      let claim;
+      try {
+        claim = await claimSupplierPurchase(prisma, {
+          orderId,
+          channelId,
+          cartItemIds,
+        });
+      } catch (error: any) {
+        // One stuck group must not stop the rest of the batch.
+        await query.Order.updateOne({
+          where: { id: orderId },
+          data: { error: error?.message || "Supplier purchase items are already claimed or changed" },
+          query: "id",
+        });
+        continue;
+      }
       if (
         !claim.claimed &&
         !shouldReconcileOpenFrontPurchase(claim, platform.createPurchaseFunction)
