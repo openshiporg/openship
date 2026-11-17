@@ -14,10 +14,11 @@ export async function POST(
   { params }: { params: Promise<{ channelId: string }> }
 ) {
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
     const headers = Object.fromEntries(request.headers.entries());
     const { channelId } = await params;
-    await processWebhook(channelId, body, headers);
+    await processWebhook(channelId, body, headers, rawBody);
     return NextResponse.json({ received: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Webhook processing failed';
@@ -26,7 +27,7 @@ export async function POST(
   }
 }
 
-async function processWebhook(channelId: string, body: unknown, headers: Record<string, string>) {
+async function processWebhook(channelId: string, body: unknown, headers: Record<string, string>, rawBody: string) {
   const sudo = keystoneContext.sudo();
   const channel = await sudo.query.Channel.findOne({
     where: { id: channelId },
@@ -59,6 +60,7 @@ async function processWebhook(channelId: string, body: unknown, headers: Record<
     },
     event: body,
     headers,
+    rawBody,
   });
   const purchaseId = String(
     result?.purchaseId || result?.order?.id || (typeof result === 'string' ? result : '')

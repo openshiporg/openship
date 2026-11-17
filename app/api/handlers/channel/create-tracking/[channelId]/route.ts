@@ -23,10 +23,11 @@ export async function POST(
   { params }: { params: Promise<{ channelId: string }> }
 ) {
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
     const headers = Object.fromEntries(request.headers.entries());
     const { channelId } = await params;
-    const result = await processWebhook(channelId, body, headers);
+    const result = await processWebhook(channelId, body, headers, rawBody);
 
     if (result.success) {
       return NextResponse.json({ received: true });
@@ -43,7 +44,8 @@ export async function POST(
 async function processWebhook(
   channelId: string,
   body: unknown,
-  headers: Record<string, string>
+  headers: Record<string, string>,
+  rawBody: string
 ): Promise<WebhookResult> {
   try {
     const sudo = keystoneContext.sudo();
@@ -81,6 +83,7 @@ async function processWebhook(
       },
       event: body,
       headers,
+      rawBody,
     });
 
     const fulfillmentData = trackingData.fulfillment || trackingData;

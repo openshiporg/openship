@@ -26,10 +26,9 @@ export function verifyShopifyWebhook(
     .digest('base64')
 
   // Compare with timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(hash),
-    Buffer.from(hmacHeader)
-  )
+  const expected = Buffer.from(hash)
+  const supplied = Buffer.from(hmacHeader)
+  return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied)
 }
 
 /**

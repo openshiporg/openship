@@ -99,18 +99,18 @@ export async function handleChannelOAuthCallback({ platform, code, shop, state, 
   });
 }
 
-export async function handleChannelTrackingWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
+export async function handleChannelTrackingWebhook({ platform, event, headers, rawBody }: { platform: any; event: any; headers: any; rawBody?: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "createTrackingWebhookHandler",
-    args: { event, headers },
+    args: { event, headers, rawBody },
   });
 }
 
-export async function handleChannelCancelWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
+export async function handleChannelCancelWebhook({ platform, event, headers, rawBody }: { platform: any; event: any; headers: any; rawBody?: string }) {
   return executeChannelAdapterFunction({
     platform,
     functionName: "cancelPurchaseWebhookHandler",
-    args: { event, headers },
+    args: { event, headers, rawBody },
   });
 }

@@ -1,10 +1,19 @@
 import { GraphQLClient, gql } from "graphql-request";
+import { verifyShopifyWebhook } from "../lib/webhook-verification";
 
 interface ShopifyPlatform {
   domain: string;
   accessToken: string;
   appKey?: string;
   appSecret?: string;
+}
+
+function assertShopifyWebhook(platform: ShopifyPlatform, headers: Record<string, string>, rawBody?: string) {
+  const secret = platform.appSecret || process.env.SHOPIFY_APP_SECRET || "";
+  if (!secret) throw new Error("Shopify webhook cannot be verified: the platform has no app secret");
+  if (typeof rawBody !== "string" || !verifyShopifyWebhook(rawBody, headers["x-shopify-hmac-sha256"] || "", secret)) {
+    throw new Error("Invalid Shopify webhook signature");
+  }
 }
 
 interface SearchProductsArgs {
@@ -608,16 +617,14 @@ export async function createTrackingWebhookHandler({
   platform,
   event,
   headers,
+  rawBody,
 }: {
   platform: ShopifyPlatform;
   event: any;
   headers: Record<string, string>;
+  rawBody?: string;
 }) {
-  // Verify webhook authenticity
-  const hmac = headers["x-shopify-hmac-sha256"];
-  if (!hmac) {
-    throw new Error("Missing webhook HMAC");
-  }
+  assertShopifyWebhook(platform, headers, rawBody);
 
   // Process the fulfillment data
   const fulfillment = {
@@ -646,16 +653,14 @@ export async function cancelPurchaseWebhookHandler({
   platform,
   event,
   headers,
+  rawBody,
 }: {
   platform: ShopifyPlatform;
   event: any;
   headers: Record<string, string>;
+  rawBody?: string;
 }) {
-  // Verify webhook authenticity
-  const hmac = headers["x-shopify-hmac-sha256"];
-  if (!hmac) {
-    throw new Error("Missing webhook HMAC");
-  }
+  assertShopifyWebhook(platform, headers, rawBody);
 
   const order = {
     id: event.id,

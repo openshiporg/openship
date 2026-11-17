@@ -115,19 +115,19 @@ export async function handleShopOAuthCallback({ platform, code, shop, state, app
   });
 }
 
-export async function handleShopOrderWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
+export async function handleShopOrderWebhook({ platform, event, headers, rawBody }: { platform: any; event: any; headers: any; rawBody?: string }) {
   return executeShopAdapterFunction({
     platform,
     functionName: "createOrderWebhookHandler",
-    args: { event, headers },
+    args: { event, headers, rawBody },
   });
 }
 
-export async function handleShopCancelWebhook({ platform, event, headers }: { platform: any; event: any; headers: any }) {
+export async function handleShopCancelWebhook({ platform, event, headers, rawBody }: { platform: any; event: any; headers: any; rawBody?: string }) {
   return executeShopAdapterFunction({
     platform,
     functionName: "cancelOrderWebhookHandler",
-    args: { event, headers },
+    args: { event, headers, rawBody },
   });
 }
 

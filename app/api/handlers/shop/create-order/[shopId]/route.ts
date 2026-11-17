@@ -21,11 +21,12 @@ export async function POST(
 ) {
   try {
     // Get the webhook payload
-    const body = await request.json();
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
     const headers = Object.fromEntries(request.headers.entries());
     const { shopId } = await params;
 
-    await processWebhook(shopId, body, headers);
+    await processWebhook(shopId, body, headers, rawBody);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('WEBHOOK ENDPOINT ERROR:', error);
@@ -33,7 +34,7 @@ export async function POST(
   }
 }
 
-async function processWebhook(shopId: string, body: any, headers: any) {
+async function processWebhook(shopId: string, body: any, headers: any, rawBody: string) {
     // Find the shop and its platform
     const shop = await keystoneContext.sudo().query.Shop.findOne({
       where: { id: shopId },
@@ -78,6 +79,7 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       },
       event: body,
       headers,
+      rawBody,
     });
 
     // Build the Keystone input only after signature verification succeeds.
