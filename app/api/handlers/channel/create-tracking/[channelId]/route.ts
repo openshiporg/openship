@@ -41,6 +41,25 @@ export async function POST(
   }
 }
 
+// Suppliers such as Shopify report fulfilled lines by variant, not by our cart
+// item. Map a line only when its variant is on exactly one cart item.
+function allocationsByVariant(
+  lineItems: unknown,
+  cartItems: Array<{ id: string; variantId?: string | null }>
+): Array<{ cartItemId: string; quantity: number }> {
+  if (!Array.isArray(lineItems)) return [];
+  const allocations = new Map<string, number>();
+  for (const line of lineItems as any[]) {
+    const variantId = String(line?.variantId ?? '').trim();
+    const quantity = Number(line?.quantity);
+    if (!variantId || !Number.isInteger(quantity) || quantity <= 0) return [];
+    const matches = cartItems.filter((item) => String(item.variantId || '') === variantId);
+    if (matches.length !== 1) return [];
+    allocations.set(matches[0].id, (allocations.get(matches[0].id) || 0) + quantity);
+  }
+  return [...allocations].map(([cartItemId, quantity]) => ({ cartItemId, quantity }));
+}
+
 async function processWebhook(
   channelId: string,
   body: unknown,
@@ -150,6 +169,7 @@ async function processWebhook(
         purchaseId
         quantity
         lineItemId
+        variantId
         channel { id }
         order { id orderName }
       `,
@@ -162,7 +182,10 @@ async function processWebhook(
       };
     }
 
-    const allocations = supplierCartItemAllocations(fulfillmentData.lineItems);
+    let allocations = supplierCartItemAllocations(fulfillmentData.lineItems);
+    if (allocations.length === 0) {
+      allocations = allocationsByVariant(fulfillmentData.lineItems, purchaseCartItems);
+    }
     const mappedCartItemIds = allocations.map((allocation) => allocation.cartItemId);
     let cartItems = purchaseCartItems;
     if (mappedCartItemIds.length > 0) {
