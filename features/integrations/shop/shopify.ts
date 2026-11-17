@@ -241,7 +241,29 @@ export async function searchOrdersFunction({
     }
   );
 
+  const lineFields = `
+    fragment SearchOrderLine on LineItem {
+      id
+      title
+      quantity
+      image {
+        originalSrc
+      }
+      variant {
+        id
+        title
+        price
+        sku
+        product {
+          id
+          title
+          handle
+        }
+      }
+    }
+  `;
   const gqlQuery = gql`
+    ${lineFields}
     query SearchOrders($query: String, $after: String) {
       orders(first: 15, query: $query, after: $after) {
         edges {
@@ -274,24 +296,12 @@ export async function searchOrdersFunction({
             lineItems(first: 10) {
               edges {
                 node {
-                  id
-                  title
-                  quantity
-                  image {
-                    originalSrc
-                  }
-                  variant {
-                    id
-                    title
-                    price
-                    sku
-                    product {
-                      id
-                      title
-                      handle
-                    }
-                  }
+                  ...SearchOrderLine
                 }
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
               }
             }
           }
@@ -309,6 +319,30 @@ export async function searchOrdersFunction({
     query: searchEntry,
     after,
   }) as any;
+
+  // Orders with more than ten lines: fetch the rest so an import is complete.
+  const moreLinesQuery = gql`
+    ${lineFields}
+    query OrderLines($id: ID!, $after: String) {
+      order(id: $id) {
+        lineItems(first: 100, after: $after) {
+          edges { node { ...SearchOrderLine } }
+          pageInfo { hasNextPage endCursor }
+        }
+      }
+    }
+  `;
+  for (const { node } of orders.edges) {
+    let page = node.lineItems.pageInfo;
+    while (page?.hasNextPage) {
+      const { order } = await shopifyClient.request(moreLinesQuery, {
+        id: node.id,
+        after: page.endCursor,
+      }) as any;
+      node.lineItems.edges.push(...order.lineItems.edges);
+      page = order.lineItems.pageInfo;
+    }
+  }
 
   const formattedOrders = orders.edges.map(({ node, cursor }: any) => ({
     orderId: node.id.split("/").pop(),
