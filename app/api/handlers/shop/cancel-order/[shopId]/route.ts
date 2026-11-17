@@ -8,11 +8,12 @@ export async function POST(
 ) {
   try {
     // Get the webhook payload
-    const body = await request.json();
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
     const headers = Object.fromEntries(request.headers.entries());
     const { shopId } = await params;
 
-    await processWebhook(shopId, body, headers);
+    await processWebhook(shopId, body, headers, rawBody);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing cancel order webhook:', error);
@@ -20,7 +21,7 @@ export async function POST(
   }
 }
 
-async function processWebhook(shopId: string, body: any, headers: any) {
+async function processWebhook(shopId: string, body: any, headers: any, rawBody: string) {
     // Find the shop and its platform
     const shop = await keystoneContext.sudo().query.Shop.findOne({
       where: { id: shopId },
@@ -43,7 +44,7 @@ async function processWebhook(shopId: string, body: any, headers: any) {
     if (!shop) throw new Error(`Shop not found: ${shopId}`);
 
     // Use the shop provider adapter to handle the webhook
-    const orderId = await handleShopCancelWebhook({
+    const cancelled = await handleShopCancelWebhook({
       platform: {
         ...shop.platform,
         ...(shop.metadata || {}),
@@ -54,7 +55,14 @@ async function processWebhook(shopId: string, body: any, headers: any) {
       },
       event: body,
       headers,
+      rawBody,
     });
+
+    // OpenFront returns the order ID; Shopify returns { order, type }.
+    const orderId = String(
+      typeof cancelled === 'string' ? cancelled : cancelled?.order?.id ?? ''
+    ).trim();
+    if (!orderId) throw new Error('Cancellation webhook is missing the order ID');
 
     // Find the order in our database
     const [foundOrder] = await keystoneContext.sudo().query.Order.findMany({
@@ -72,6 +80,27 @@ async function processWebhook(shopId: string, body: any, headers: any) {
         data: { status: 'CANCELLED' },
         query: 'id status orderId orderName',
       });
+
+      // Stop supplier purchases that have not started yet. Items already
+      // bought or mid-purchase keep their status for the operator.
+      const unplaced = await keystoneContext.sudo().query.CartItem.findMany({
+        where: {
+          order: { id: { equals: foundOrder.id } },
+          purchaseId: { equals: '' },
+          url: { equals: '' },
+          purchaseAttemptKey: { equals: null },
+          status: { not: { equals: 'CANCELLED' } },
+        },
+        query: 'id',
+      });
+      if (unplaced.length) {
+        await keystoneContext.sudo().query.CartItem.updateMany({
+          data: unplaced.map((item: { id: string }) => ({
+            where: { id: item.id },
+            data: { status: 'CANCELLED' },
+          })),
+        });
+      }
 
       return updatedOrder;
     }

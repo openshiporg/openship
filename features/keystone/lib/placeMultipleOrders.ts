@@ -33,6 +33,7 @@ export async function placeMultipleOrders({
       shop,
       orderId: shopOrderId,
       orderName,
+      status: orderStatus,
     } = await query.Order.findOne({
       where: {
         id: orderId,
@@ -57,6 +58,7 @@ export async function placeMultipleOrders({
         }
         orderId
         orderName
+        status
         user {
           email
         }
@@ -92,6 +94,9 @@ export async function placeMultipleOrders({
       metadata
       `,
     });
+
+    // A cancelled source order must never be bought from a supplier.
+    if (orderStatus === "CANCELLED") continue;
 
     for (const {
       id: channelId,

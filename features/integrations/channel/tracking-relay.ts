@@ -47,6 +47,9 @@ export async function relaySourceTrackingForDetail(
     `,
   });
   if (!order) throw new Error('Source order not found');
+  // The shop cancelled this order: keep the tracking on file, but do not send
+  // it to the shop or mark the order complete.
+  if (order.status === 'CANCELLED') return;
 
   const allocationByCartItem = new Map<string, number>(
     (Array.isArray(seed.fulfillmentLineItems) ? seed.fulfillmentLineItems : []).map(
